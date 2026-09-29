@@ -11,9 +11,14 @@ abang-cebu-ai/
 │   ├── project-structure.md             # This document (directory layout & module ownership)
 │   ├── git-workflow.md                  # Branch naming, Conventional Commits, and peer review guide
 │   ├── environment-variables.md         # Client vs server variable boundaries & secrets policy
+│   ├── supabase-architecture.md         # PostgreSQL extensions (PostGIS), migrations, and pooling
 │   ├── client-server-boundaries.md      # Server vs Client components & MapLibre WebGL isolation
 │   └── next15-guidelines.md             # Next.js 15, React 19, and Supabase SSR standards
 ├── public/                              # Public static assets (favicons, SVGs, static imagery)
+├── supabase/                            # Supabase CLI local database management
+│   ├── config.toml                      # Local emulator and pooler configuration
+│   ├── migrations/                      # Version-controlled SQL migration scripts
+│   └── seed.sql                         # Local testing seed data
 ├── src/
 │   ├── app/                             # Next.js 15 App Router
 │   │   ├── globals.css                  # Tailwind CSS v4 root stylesheet

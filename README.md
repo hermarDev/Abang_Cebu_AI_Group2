@@ -26,6 +26,7 @@ Comprehensive architectural guidelines are located in [`docs/`](./docs):
 - **[Team Contribution & Forking Workflow](./CONTRIBUTING.md)**: Step-by-step guide for forking, branching, and submitting Pull Requests for review.
 - **[Git Branching & PR Collaboration Strategy](./docs/git-workflow.md)**: Team branch standards (`feature/*`, `fix/*`), PR checklist template, and peer review workflow.
 - **[Environment Variables & Secrets Governance](./docs/environment-variables.md)**: Client (`NEXT_PUBLIC_*`) vs Server variables, zero-leak policy, and local setup guide.
+- **[Supabase Database Architecture & Extensions](./docs/supabase-architecture.md)**: Required extensions (PostGIS, UUID), CLI migration strategy, and connection pooling.
 - **[Client vs. Server Component Boundaries](./docs/client-server-boundaries.md)**: WebGL isolation pattern for MapLibre GL, preventing SSR memory leaks, and RSC data flow.
 - **[Next.js 15 & React 19 Guidelines](./docs/next15-guidelines.md)**: Asynchronous `cookies()` / `params`, caching defaults (`no-store`), and Supabase SSR integration.
 
