@@ -12,40 +12,29 @@ abang-cebu-ai/
 ├── public/                              # Public static assets (favicons, SVGs, static imagery)
 ├── src/
 │   ├── app/                             # Next.js 15 App Router
-│   │   ├── api/                         # Route Handlers (REST / Webhooks)
-│   │   ├── map/                         # Spatial Map Explorer route (/map)
-│   │   │   └── page.tsx                 # Server Component fetching listings & rendering map
-│   │   ├── error.tsx                    # Route-segment error boundary
 │   │   ├── globals.css                  # Tailwind CSS v4 root stylesheet
-│   │   ├── layout.tsx                   # Global Root Layout (Header, Footer, Fonts)
-│   │   ├── not-found.tsx                # Custom 404 page
-│   │   └── page.tsx                     # Landing / Homepage
-│   ├── components/                      # Reusable UI components
-│   │   ├── ui/                          # Atomic design primitives (Button, Card, Badge, Skeleton)
-│   │   ├── map/                         # MapLibre GL components & dynamic loaders
-│   │   │   ├── index.tsx                # Dynamic loader with ssr: false
-│   │   │   ├── map-container.tsx        # Isolated 'use client' WebGL canvas & cleanup
-│   │   │   └── types.ts                 # Map-specific TypeScript prop definitions
-│   │   ├── layout/                      # Global UI frame (Header, Footer, Navigation)
-│   │   └── features/                    # Domain-scoped modules (listings, search, chat, filters)
-│   ├── config/                          # Centralized site & geospatial coordinates configuration
-│   │   └── site.ts                      # App title, metadata, Cebu coordinates, default map styles
-│   ├── hooks/                           # Custom React client hooks (e.g. useGeolocation, useMap)
+│   │   ├── layout.tsx                   # Minimal Root Layout
+│   │   └── page.tsx                     # Minimal placeholder starter page
+│   ├── components/                      # Reusable UI component modules
+│   │   ├── ui/                          # (.gitkeep) Reserved for atomic design primitives (Button, Card, Input)
+│   │   ├── map/                         # (.gitkeep) Reserved for isolated MapLibre GL client components
+│   │   └── features/                    # (.gitkeep) Reserved for domain-scoped feature modules (search, listings)
+│   ├── hooks/                           # (.gitkeep) Reserved for custom React client hooks
 │   ├── lib/                             # Shared utilities and third-party SDK wrappers
 │   │   ├── utils.ts                     # cn() helper (clsx + tailwind-merge)
-│   │   └── supabase/                    # Official Supabase SSR integration
+│   │   └── supabase/                    # Supabase SSR architecture
 │   │       ├── client.ts                # Browser client (createBrowserClient)
 │   │       ├── server.ts                # Server client (createServerClient + await cookies())
 │   │       ├── middleware.ts            # Auth session refresh handler
-│   │       └── types.ts                 # Database schemas & TypeScript table rows
+│   │       └── types.ts                 # Database type schemas
 │   ├── server/                          # Server-only logic & database orchestration
-│   │   ├── actions/                     # Next.js Server Actions (mutations, forms)
-│   │   └── queries/                     # Data fetching functions (e.g. getCebuListings)
+│   │   ├── actions/                     # (.gitkeep) Reserved for Next.js Server Actions
+│   │   └── queries/                     # (.gitkeep) Reserved for database queries
 │   └── types/                           # Global TypeScript interfaces
-│       └── index.ts                     # Listings, MapMarker, Coordinates, GeoJSON
+│       └── index.ts                     # Domain interfaces (Listings, Coordinates, GeoJSON)
 ├── .env.example                         # Environment variable specifications
 ├── middleware.ts                        # Next.js edge middleware for Supabase auth refresh
-├── next.config.ts                       # Next.js compiler & image domains configuration
+├── next.config.ts                       # Next.js compiler configuration
 ├── package.json                         # Project dependencies and npm scripts
 ├── pnpm-lock.yaml                       # Strict deterministic lockfile
 ├── postcss.config.mjs                   # PostCSS configuration for Tailwind v4
@@ -62,12 +51,12 @@ abang-cebu-ai/
 - **Default Execution**: Every file inside `src/app` is a **React Server Component** unless marked with `'use client'`.
 
 ### `src/components/ui` (Design System Primitives)
-- **Role**: Reusable, atomic, unopinionated UI primitives (`Button`, `Card`, `Badge`, `Skeleton`).
+- **Role**: Reusable, atomic, unopinionated UI primitives (`Button`, `Card`, `Badge`, `Skeleton`, `Input`).
 - **Rule**: Must not contain domain-specific logic, Supabase calls, or route knowledge.
 
 ### `src/components/map` (Geospatial & MapLibre)
 - **Role**: All interactive mapping, GIS overlays, custom pin clustering, and WebGL rendering.
-- **Rule**: MapLibre must **never** be imported in Server Components. It is strictly quarantined behind dynamic imports with `{ ssr: false }` to avoid `window is not defined` server crashes.
+- **Rule**: MapLibre must **never** be imported directly in Server Components. It must be quarantined behind dynamic imports with `{ ssr: false }` to avoid `window is not defined` server crashes.
 
 ### `src/lib/supabase` (Database & Authentication)
 - **Role**: Standard client and server factories for Supabase PostgreSQL.
@@ -76,7 +65,7 @@ abang-cebu-ai/
   - In Client Components (`'use client'`): use `src/lib/supabase/client.ts` (`const supabase = createClient()`).
 
 ### `src/server` (Backend Services & Queries)
-- **Role**: Server-only operations: direct Supabase SQL queries, PostGIS operations, and external AI agent integrations.
+- **Role**: Server-only operations: direct Supabase SQL queries, PostGIS operations, and external AI service integrations.
 - **Rule**: Code in this directory will never be bundled into client browser JavaScript.
 
 ---
