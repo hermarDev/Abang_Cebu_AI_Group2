@@ -1,14 +1,14 @@
 /**
- * AbangCebuAI Authentication & User Registration Type Definitions
- * Phase 1 Architecture: User Registration Workflow & Data Contract
- * Jira Reference: SCRUM-56
+ * AbangCebuAI Authentication & Session Token Lifecycle Type Definitions
+ * Phase 1 Architecture: User Registration & Session Token Lifecycle
+ * Jira References: SCRUM-56, SCRUM-57
  * Database Foundation: SCRUM-54 (20260929000001_users_and_profiles.sql)
  */
 
 import type { UserRole } from './database';
 
 // ==============================================================================
-// 1. Role Constraints & Payloads
+// 1. Registration Constraints & Payloads
 // ==============================================================================
 
 /**
@@ -73,7 +73,150 @@ export interface RegisterSuccessResponse {
 }
 
 // ==============================================================================
-// 2. Error Taxonomy & Codes
+// 2. Login, Session & Token Payloads (SCRUM-57)
+// ==============================================================================
+
+/**
+ * Payload submitted by the client during user login.
+ */
+export interface LoginPayload {
+  /** User primary email address */
+  email: string;
+  /** User plaintext password */
+  password: string;
+  /** Cloudflare Turnstile CAPTCHA verification token */
+  turnstileToken?: string;
+  /** Remember-me persistence flag for extended session lifespan */
+  rememberMe?: boolean;
+}
+
+/**
+ * Session tokens issued upon successful authentication or refresh.
+ */
+export interface SessionTokens {
+  /** Signed JWT access token (HMAC-SHA256, 1-hour standard TTL) */
+  accessToken: string;
+  /** Cryptographically random opaque refresh token string */
+  refreshToken: string;
+  /** Standard OAuth 2.0 Bearer token type */
+  tokenType: 'bearer';
+  /** Token lifespan in seconds (default 3600 seconds) */
+  expiresIn: number;
+  /** Token expiration Unix timestamp (in seconds) */
+  expiresAt: number;
+}
+
+/**
+ * Standard successful response contract for user login.
+ */
+export interface LoginSuccessResponse {
+  success: true;
+  data: {
+    user: RegisteredUserSummary;
+    session: SessionTokens;
+    /** Recommended client redirect route (/search, /dashboard, etc.) */
+    redirectUrl: string;
+  };
+  message: string;
+}
+
+/**
+ * Decoded payload claims of a Supabase-issued JWT access token.
+ */
+export interface SupabaseJwtClaims {
+  /** Issuer URL claim (e.g. 'https://<project-ref>.supabase.co/auth/v1') */
+  iss: string;
+  /** Subject claim: unique Supabase Auth user UUID matching auth.users(id) and profiles(id) */
+  sub: string;
+  /** Audience claim (typically 'authenticated') */
+  aud: string;
+  /** Expiration timestamp (UNIX epoch seconds) */
+  exp: number;
+  /** Not-before timestamp (UNIX epoch seconds) */
+  nbf: number;
+  /** Issued-at timestamp (UNIX epoch seconds) */
+  iat: number;
+  /** Primary verified email address */
+  email: string;
+  /** Optional verified Philippine phone number */
+  phone?: string;
+  /** System-level metadata managed by Supabase Auth engine */
+  app_metadata: {
+    provider?: string;
+    providers?: string[];
+    [key: string]: unknown;
+  };
+  /** User-level metadata synchronized with public.profiles */
+  user_metadata: {
+    role?: UserRole;
+    full_name?: string;
+    preferred_landmark?: string;
+    [key: string]: unknown;
+  };
+  /** PostgreSQL role assumed by the database connection ('authenticated') */
+  role: 'authenticated';
+  /** Authenticator Assurance Level ('aal1' | 'aal2' | string) */
+  aal: 'aal1' | 'aal2' | string;
+  /** Supabase Auth session identifier UUID */
+  session_id: string;
+}
+
+/**
+ * Discrete states representing the client-side session lifecycle.
+ */
+export type SessionState =
+  | 'unauthenticated'
+  | 'authenticating'
+  | 'authenticated'
+  | 'refreshing'
+  | 'stale';
+
+/**
+ * HTTP cookie configuration descriptor for Next.js 16 + @supabase/ssr session storage.
+ */
+export interface CookieConfig {
+  /** Cookie key identifier */
+  name: string;
+  /** Serialized cookie payload */
+  value: string;
+  /** Blocks document.cookie access to defend against XSS token exfiltration */
+  httpOnly: boolean;
+  /** Enforces HTTPS-only transmission */
+  secure: boolean;
+  /** Cross-site request mitigation policy */
+  sameSite: 'lax' | 'strict' | 'none';
+  /** Scoped URL path */
+  path: string;
+  /** Cookie time-to-live in seconds */
+  maxAge: number;
+  /** Cookie handling priority hint */
+  priority: 'low' | 'medium' | 'high';
+  /** Scoped host domain if configured */
+  domain?: string;
+}
+
+/**
+ * Session lifecycle policy constants for AbangCebu AI.
+ */
+export const SESSION_CONSTANTS = {
+  /** Standard JWT access token lifespan in seconds (1 hour) */
+  ACCESS_TOKEN_TTL_SECONDS: 3600,
+  /** Leeway grace period in seconds allowing concurrent requests to complete during rotation */
+  REFRESH_GRACE_PERIOD_SECONDS: 30,
+  /** Default session cookie lifespan in seconds (7 days) */
+  DEFAULT_SESSION_MAX_AGE: 60 * 60 * 24 * 7,
+  /** Extended remember-me session cookie lifespan in seconds (30 days) */
+  REMEMBER_ME_MAX_AGE: 60 * 60 * 24 * 30,
+  /** Threshold in seconds before expiry at which background refresh is triggered (5 minutes) */
+  REFRESH_THRESHOLD_SECONDS: 300,
+  /** Maximum bytes per individual cookie segment before chunking is enforced */
+  COOKIE_CHUNK_SIZE_LIMIT: 4096,
+  /** BroadcastChannel message identifier for multi-tab session synchronization */
+  BROADCAST_CHANNEL_NAME: 'supabase.auth.token',
+} as const;
+
+// ==============================================================================
+// 3. Error Taxonomy & Codes
 // ==============================================================================
 
 /**
@@ -99,6 +242,18 @@ export enum AuthErrorCode {
   CONFIRMATION_CODE_EXPIRED = 'CONFIRMATION_CODE_EXPIRED',
   CONFIRMATION_CODE_INVALID = 'CONFIRMATION_CODE_INVALID',
   ALREADY_CONFIRMED = 'ALREADY_CONFIRMED',
+
+  // Session & Authentication Lifecycle (SCRUM-57)
+  INVALID_CREDENTIALS = 'AUTH_INVALID_CREDENTIALS',
+  EMAIL_NOT_CONFIRMED = 'AUTH_EMAIL_NOT_CONFIRMED',
+  SESSION_EXPIRED = 'AUTH_SESSION_EXPIRED',
+  SESSION_REVOKED = 'AUTH_SESSION_REVOKED',
+  REFRESH_TOKEN_REUSED = 'AUTH_REFRESH_TOKEN_REUSED',
+  REFRESH_TOKEN_NOT_FOUND = 'AUTH_REFRESH_TOKEN_NOT_FOUND',
+  TOKEN_DECODING_ERROR = 'AUTH_TOKEN_DECODING_ERROR',
+  CONCURRENT_REFRESH_IN_PROGRESS = 'AUTH_CONCURRENT_REFRESH_IN_PROGRESS',
+  DEVICE_FINGERPRINT_MISMATCH = 'AUTH_DEVICE_FINGERPRINT_MISMATCH',
+  MFA_REQUIRED = 'AUTH_MFA_REQUIRED',
 
   // Internal & Infrastructure (500)
   INTERNAL_AUTH_ERROR = 'INTERNAL_AUTH_ERROR',
@@ -141,7 +296,7 @@ export type AuthResponse<T = RegisteredUserSummary> =
   | AuthErrorResponse;
 
 // ==============================================================================
-// 3. Registration Validation Rules & Policies
+// 4. Registration Validation Rules & Policies
 // ==============================================================================
 
 /**
@@ -183,7 +338,7 @@ export const REGISTRATION_VALIDATION_RULES = {
 } as const;
 
 // ==============================================================================
-// 4. Utility Helper Functions
+// 5. Utility Helper Functions
 // ==============================================================================
 
 /**

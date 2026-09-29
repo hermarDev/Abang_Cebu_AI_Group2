@@ -2,8 +2,8 @@
 **AbangCebuAI — Sprint 1 Core Infrastructure**  
 *Document Version:* 1.0.0  
 *Jira Ticket Reference:* [SCRUM-54](https://abangcebuai.atlassian.net/browse/SCRUM-54) — *Define Users & Profiles Table Schema Specification*  
-*Author:* Lead Tech Architect & Engineering Manager  
-*Reviewed & Audited by:* Senior Dev Auditor  
+*Author:* Dency Marie Bosque (Database Architect)  
+*Reviewed & Audited by:* Hermar Centillas (Lead / Scrum Master)  
 *Database Engine:* PostgreSQL 15+ (Hosted on Supabase)  
 *Status:* Approved & Production-Ready  
 
