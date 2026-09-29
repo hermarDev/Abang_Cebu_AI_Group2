@@ -102,3 +102,38 @@ export function MapContainer() {
 ## 4. Boundaries for Supabase Operations
 - **Data Fetching for Pages**: Always fetch inside Server Components using `src/lib/supabase/server.ts`. This benefits from server caching, prevents exposing DB credentials, and keeps client bundles lean.
 - **Client Interactions (Realtime / Auth triggers)**: Use `src/lib/supabase/client.ts` inside Client Components (`'use client'`).
+
+---
+
+## 5. OpenStreetMap (OSM) Integration
+AbangCebuAI uses **OpenStreetMap** as its primary geographic data foundation. MapLibre GL is the rendering engine that visualizes OpenStreetMap data.
+
+### Option A: Standard OpenStreetMap Raster Tiles (Direct & Keyless)
+```json
+{
+  "version": 8,
+  "sources": {
+    "osm": {
+      "type": "raster",
+      "tiles": ["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
+      "tileSize": 256,
+      "attribution": "&copy; <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors"
+    }
+  },
+  "layers": [
+    {
+      "id": "osm-tiles",
+      "type": "raster",
+      "source": "osm",
+      "minzoom": 0,
+      "maxzoom": 19
+    }
+  ]
+}
+```
+
+### Option B: OpenStreetMap Vector Tiles (CARTO Positron)
+Provides smooth vector scaling, custom font labels, and modern aesthetics based 100% on OpenStreetMap data:
+- Style URL: `https://basemaps.cartocdn.com/gl/positron-gl-style/style.json`
+- Attribution: OpenStreetMap contributors & CARTO.
+
