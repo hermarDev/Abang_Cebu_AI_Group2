@@ -1,26 +1,295 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Coastal Sand / Warm Surface Canvas */
+  --background: #faf8f5;
+  --foreground: #0f2742;
+
+  /* Card Surfaces & Overlays */
+  --card: #ffffff;
+  --card-foreground: #0f2742;
+  --popover: #ffffff;
+  --popover-foreground: #0f2742;
+
+  /* Brand / Deep Maritime Navy */
+  --primary: #0f2742;
+  --primary-foreground: #ffffff;
+
+  /* Action / Tropical Emerald (CTAs, Bookings, Primary Interactions) */
+  --action: #047857;
+  --action-foreground: #ffffff;
+  --action-hover: #065f46;
+
+  /* Secondary / Coastal Reef Teal (Badges, Active Filters, Secondary Actions) */
+  --secondary: #0d9488;
+  --secondary-foreground: #ffffff;
+
+  /* Muted Surfaces & Captions */
+  --muted: #f3efe8;
+  --muted-foreground: #675a3e;
+
+  /* Accent Highlight Surfaces */
+  --accent: #f0fdfc;
+  --accent-foreground: #0f766e;
+
+  /* Destructive / Sinulog Crimson */
+  --destructive: #e11d48;
+  --destructive-foreground: #ffffff;
+
+  /* Warning / Golden Sun */
+  --warning: #b45309;
+  --warning-foreground: #ffffff;
+
+  /* Borders & Controls */
+  --border: #e6decb;
+  --input: #e6decb;
+  --ring: #047857;
+
+  /* Radius Base Token */
+  --radius: 0.5rem;
+}
+
+.dark {
+  /* Deep Visayan Sea / Navy Midnight Canvas */
+  --background: #09182a;
+  --foreground: #f0f4f9;
+
+  /* Card Surfaces & Overlays */
+  --card: #0f2742;
+  --card-foreground: #f0f4f9;
+  --popover: #0f2742;
+  --popover-foreground: #f0f4f9;
+
+  /* Brand / Highlight Navy */
+  --primary: #518ec3;
+  --primary-foreground: #09182a;
+
+  /* Action / High-Contrast Emerald */
+  --action: #10b981;
+  --action-foreground: #022c22;
+  --action-hover: #34d399;
+
+  /* Secondary / Bright Coastal Teal */
+  --secondary: #2dd4bf;
+  --secondary-foreground: #042f2e;
+
+  /* Muted Surfaces & Captions */
+  --muted: #173b5f;
+  --muted-foreground: #b9d0e7;
+
+  /* Accent Highlight Surfaces */
+  --accent: #115e59;
+  --accent-foreground: #99f6ee;
+
+  /* Destructive / Sinulog Crimson */
+  --destructive: #fb7185;
+  --destructive-foreground: #4c0519;
+
+  /* Warning / Golden Sun */
+  --warning: #fbbf24;
+  --warning-foreground: #451a03;
+
+  /* Borders & Controls */
+  --border: #1b4571;
+  --input: #1b4571;
+  --ring: #34d399;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not(.light) {
+    --background: #09182a;
+    --foreground: #f0f4f9;
+    --card: #0f2742;
+    --card-foreground: #f0f4f9;
+    --popover: #0f2742;
+    --popover-foreground: #f0f4f9;
+    --primary: #518ec3;
+    --primary-foreground: #09182a;
+    --action: #10b981;
+    --action-foreground: #022c22;
+    --action-hover: #34d399;
+    --secondary: #2dd4bf;
+    --secondary-foreground: #042f2e;
+    --muted: #173b5f;
+    --muted-foreground: #b9d0e7;
+    --accent: #115e59;
+    --accent-foreground: #99f6ee;
+    --destructive: #fb7185;
+    --destructive-foreground: #4c0519;
+    --warning: #fbbf24;
+    --warning-foreground: #451a03;
+    --border: #1b4571;
+    --input: #1b4571;
+    --ring: #34d399;
+  }
+}
+
+@theme {
+  /* Cebu Navy (Coastal Blues & Deep Maritime Palette) */
+  --color-cebu-navy-50: #f0f4f9;
+  --color-cebu-navy-100: #dbe6f3;
+  --color-cebu-navy-200: #b9d0e7;
+  --color-cebu-navy-300: #87b0d7;
+  --color-cebu-navy-400: #518ec3;
+  --color-cebu-navy-500: #2e70aa;
+  --color-cebu-navy-600: #20578d;
+  --color-cebu-navy-700: #1b4571;
+  --color-cebu-navy-800: #173b5f;
+  --color-cebu-navy-900: #0f2742;
+  --color-cebu-navy-950: #09182a;
+
+  /* Cebu Emerald (Lush Tropical Green & Primary Actions) */
+  --color-cebu-emerald-50: #ecfdf5;
+  --color-cebu-emerald-100: #d1fae5;
+  --color-cebu-emerald-200: #a7f3d0;
+  --color-cebu-emerald-300: #6ee7b7;
+  --color-cebu-emerald-400: #34d399;
+  --color-cebu-emerald-500: #10b981;
+  --color-cebu-emerald-600: #059669;
+  --color-cebu-emerald-700: #047857;
+  --color-cebu-emerald-800: #065f46;
+  --color-cebu-emerald-900: #064e3b;
+  --color-cebu-emerald-950: #022c22;
+
+  /* Cebu Teal (Coastal Reef & Active Pin Accents) */
+  --color-cebu-teal-50: #f0fdfc;
+  --color-cebu-teal-100: #ccfbf7;
+  --color-cebu-teal-200: #99f6ee;
+  --color-cebu-teal-300: #5eead8;
+  --color-cebu-teal-400: #2dd4bf;
+  --color-cebu-teal-500: #14b8a6;
+  --color-cebu-teal-600: #0d9488;
+  --color-cebu-teal-700: #0f766e;
+  --color-cebu-teal-800: #115e59;
+  --color-cebu-teal-900: #134e4a;
+  --color-cebu-teal-950: #042f2e;
+
+  /* Cebu Sand (Warm Coastal Beach Neutrals & Limestone) */
+  --color-cebu-sand-50: #faf8f5;
+  --color-cebu-sand-100: #f3efe8;
+  --color-cebu-sand-200: #e6decb;
+  --color-cebu-sand-300: #d3c4a8;
+  --color-cebu-sand-400: #bbaa84;
+  --color-cebu-sand-500: #9f8e65;
+  --color-cebu-sand-600: #83734e;
+  --color-cebu-sand-700: #675a3e;
+  --color-cebu-sand-800: #534934;
+  --color-cebu-sand-900: #453c2d;
+  --color-cebu-sand-950: #262017;
+
+  /* Cebu Amber (Golden Hour, Verified Badges & Warnings) */
+  --color-cebu-amber-50: #fffbeb;
+  --color-cebu-amber-100: #fef3c7;
+  --color-cebu-amber-200: #fde68a;
+  --color-cebu-amber-300: #fcd34d;
+  --color-cebu-amber-400: #fbbf24;
+  --color-cebu-amber-500: #f59e0b;
+  --color-cebu-amber-600: #d97706;
+  --color-cebu-amber-700: #b45309;
+  --color-cebu-amber-800: #92400e;
+  --color-cebu-amber-900: #78350f;
+  --color-cebu-amber-950: #451a03;
+
+  /* Cebu Crimson (Sinulog Coral, Alerts & Destructive Actions) */
+  --color-cebu-crimson-50: #fff1f2;
+  --color-cebu-crimson-100: #ffe4e6;
+  --color-cebu-crimson-200: #fecdd3;
+  --color-cebu-crimson-300: #fda4af;
+  --color-cebu-crimson-400: #fb7185;
+  --color-cebu-crimson-500: #f43f5e;
+  --color-cebu-crimson-600: #e11d48;
+  --color-cebu-crimson-700: #be123c;
+  --color-cebu-crimson-800: #9f1239;
+  --color-cebu-crimson-900: #881337;
+  --color-cebu-crimson-950: #4c0519;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-action: var(--action);
+  --color-action-foreground: var(--action-foreground);
+  --color-action-hover: var(--action-hover);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  --radius-xs: calc(var(--radius) - 6px);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 16px);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* WCAG 2.2 AA Touch Target Utilities */
+@utility touch-target {
+  min-width: 44px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@utility touch-target-expanded {
+  position: relative;
+  &::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    min-width: 44px;
+    min-height: 44px;
+    width: 100%;
+    height: 100%;
+    pointer-events: auto;
   }
 }
 
+/* Base Body Application */
 body {
-  background: var(--background);
+  background-color: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Mobile Input 16px Rule: Prevents iOS WebKit auto-zoom on focus */
+@media (max-width: 768px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
+@utility focus-ring {
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+  &:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
 }
