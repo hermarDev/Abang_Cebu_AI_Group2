@@ -108,10 +108,14 @@ export function MapContainer() {
 ## 5. OpenStreetMap (OSM) Integration
 AbangCebuAI uses **OpenStreetMap** as its primary geographic data foundation. MapLibre GL is the rendering engine that visualizes OpenStreetMap data.
 
-### Option A: Standard OpenStreetMap Raster Tiles (Direct & Keyless)
+### Standard Configuration: Option A (Direct OpenStreetMap Tiles)
+We have selected **Option A** as the project standard. It uses OpenStreetMap standard raster tiles directly with zero external API key requirements.
+
+The style specification is maintained locally in the repository at [`public/styles/osm.json`](/styles/osm.json):
 ```json
 {
   "version": 8,
+  "name": "OpenStreetMap Standard",
   "sources": {
     "osm": {
       "type": "raster",
@@ -132,8 +136,14 @@ AbangCebuAI uses **OpenStreetMap** as its primary geographic data foundation. Ma
 }
 ```
 
-### Option B: OpenStreetMap Vector Tiles (CARTO Positron)
-Provides smooth vector scaling, custom font labels, and modern aesthetics based 100% on OpenStreetMap data:
-- Style URL: `https://basemaps.cartocdn.com/gl/positron-gl-style/style.json`
-- Attribution: OpenStreetMap contributors & CARTO.
+### Usage in MapLibre:
+Developers building map components can simply point the map style to the local endpoint:
+```tsx
+const map = new Map({
+  container: mapContainerRef.current,
+  style: process.env.NEXT_PUBLIC_MAP_STYLE_URL || '/styles/osm.json',
+  center: [123.8854, 10.3157], // Cebu City Center
+  zoom: 12,
+});
+```
 
