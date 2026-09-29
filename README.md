@@ -1,4 +1,4 @@
-# AbangCebuAI 🏝️🤖
+# AbangCebuAI
 
 An intelligent, AI-enhanced geospatial rental and property discovery platform in Cebu, Philippines.
 
