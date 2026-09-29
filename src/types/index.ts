@@ -46,3 +46,4 @@ export interface GeoJSONPointFeature {
 }
 
 export * from './database';
+export * from './auth';
