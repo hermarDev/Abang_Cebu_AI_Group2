@@ -51,7 +51,8 @@ docs/
 │   └── git-workflow.md                      # SCRUM-49: Branching, PRs, and commit guidelines
 │
 ├── testing/                                 # Quality Assurance & Verification Test Plans
-│   └── (In Progress: SCRUM-69 to 72)        # Test suites, scenarios, and execution matrices
+│   ├── auth-test-plan.md                    # SCRUM-69: Comprehensive QA test plan & matrix
+│   └── AbangCebu_Auth_Test_Specification.xlsx # SCRUM-69: Populated Capstone test workbook
 │
 ├── pdf/                                     # Formal Architecture & Governance PDFs
 │   ├── AbangCebu_Auth_Registration_Specification.pdf
@@ -59,6 +60,7 @@ docs/
 │   ├── AbangCebu_Auth_Logout_Specification.pdf
 │   ├── AbangCebu_Auth_Password_Reset_Specification.pdf
 │   ├── AbangCebu_Auth_Error_Handling_Specification.pdf
+│   ├── AbangCebu_Auth_Test_Plan_Specification.pdf
 │   ├── AbangCebu_Database_ERD_Architecture.pdf
 │   ├── AbangCebu_Users_And_Profiles_Schema.pdf
 │   ├── AbangCebu_Renter_Persona_and_Access_Rights.pdf
@@ -105,6 +107,9 @@ Located in [`docs/templates/`](./templates/):
 | [next15-guidelines.md](./architecture/next15-guidelines.md) | Architecture | Hermar Centillas | Team Lead | [SCRUM-48](https://abangcebuai.atlassian.net/browse/SCRUM-48) | Approved |
 | [project-structure.md](./architecture/project-structure.md) | Architecture | Hermar Centillas | Team Lead | Architecture | Approved |
 | [git-workflow.md](./architecture/git-workflow.md) | Governance | Hermar Centillas | Team Lead | [SCRUM-49](https://abangcebuai.atlassian.net/browse/SCRUM-49) | Approved |
+| [auth-test-plan.md](./testing/auth-test-plan.md) | QA Testing | Jenny Villamor | Hermar Centillas | [SCRUM-69](https://abangcebuai.atlassian.net/browse/SCRUM-69) | Approved / Done |
+| [AbangCebu_Auth_Test_Specification.xlsx](./testing/AbangCebu_Auth_Test_Specification.xlsx) | QA Testing (Excel) | Jenny Villamor | Hermar Centillas | [SCRUM-69](https://abangcebuai.atlassian.net/browse/SCRUM-69) | Approved / Done |
+| [AbangCebu_Auth_Test_Plan_Specification.pdf](./pdf/AbangCebu_Auth_Test_Plan_Specification.pdf) | QA Testing (PDF) | Jenny Villamor | Hermar Centillas | [SCRUM-69](https://abangcebuai.atlassian.net/browse/SCRUM-69) | Approved / Done |
 
 ---
 
