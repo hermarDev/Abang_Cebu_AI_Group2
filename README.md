@@ -23,6 +23,7 @@ Built with **Next.js 15 (App Router)**, **React 19**, **TypeScript**, **Supabase
 Comprehensive architectural guidelines are located in [`docs/`](./docs):
 
 - **[Project Directory Architecture & Ownership](./docs/project-structure.md)**: File tree conventions, module responsibilities, and team boundaries.
+- **[Team Contribution & Forking Workflow](./CONTRIBUTING.md)**: Step-by-step guide for forking, branching, and submitting Pull Requests for review.
 - **[Git Branching & PR Collaboration Strategy](./docs/git-workflow.md)**: Team branch standards (`feature/*`, `fix/*`), PR checklist template, and peer review workflow.
 - **[Client vs. Server Component Boundaries](./docs/client-server-boundaries.md)**: WebGL isolation pattern for MapLibre GL, preventing SSR memory leaks, and RSC data flow.
 - **[Next.js 15 & React 19 Guidelines](./docs/next15-guidelines.md)**: Asynchronous `cookies()` / `params`, caching defaults (`no-store`), and Supabase SSR integration.
