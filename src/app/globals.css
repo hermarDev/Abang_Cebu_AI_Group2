@@ -47,6 +47,11 @@
 
   /* Radius Base Token */
   --radius: 0.5rem;
+
+  /* Mobile Map-First Viewport & Sheet Height Tokens */
+  --sheet-collapsed-height: calc(env(safe-area-inset-bottom, 0px) + 88px);
+  --sheet-mid-height: 48dvh;
+  --sheet-expanded-height: calc(100dvh - env(safe-area-inset-top, 0px) - 16px);
 }
 
 .dark {
@@ -240,6 +245,36 @@
   --radius-xl: calc(var(--radius) + 4px);
   --radius-2xl: calc(var(--radius) + 8px);
   --radius-3xl: calc(var(--radius) + 16px);
+
+  /* Mobile Map Viewport Z-Index Hierarchy */
+  --z-index-map-canvas: 0;
+  --z-index-map-vector: 10;
+  --z-index-map-pin: 20;
+  --z-index-map-pin-active: 25;
+  --z-index-map-controls: 30;
+  --z-index-search-bar: 40;
+  --z-index-bottom-sheet: 50;
+  --z-index-fab: 60;
+  --z-index-modal-backdrop: 70;
+  --z-index-modal: 80;
+  --z-index-toast: 90;
+}
+
+/* Mobile Safe Area & Layout Utilities */
+@utility pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+@utility pt-safe {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+@utility no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 /* WCAG 2.2 AA Touch Target Utilities */

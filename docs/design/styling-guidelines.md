@@ -398,7 +398,46 @@ The platform provides a dedicated utility `@utility focus-ring`:
 
 ---
 
-## 9. Design System Governance & Developer Checklist
+---
+
+## 10. Mobile Map-First Viewport & Stacking Architecture
+
+For detailed ASCII wireframes and full component specifications across all 3 snap states, refer to [docs/design/mobile-map-wireframes.md](file:///home/hrmr/abang-cebu-ai/docs/design/mobile-map-wireframes.md).
+
+### 10.1 Mobile Viewport (100dvh) & Safe Areas
+On mobile browsers (iOS Safari, Android Chrome), classic `100vh` fails due to dynamic address bar shifts. AbangCebuAI standardizes on:
+- **Root Map Container**: `fixed inset-0 w-full h-[100dvh] overflow-hidden overscroll-none`
+- **Safe-Area Utilities**:
+  - `pb-safe`: `padding-bottom: env(safe-area-inset-bottom, 0px)`
+  - `pt-safe`: `padding-top: env(safe-area-inset-top, 0px)`
+  - `no-scrollbar`: Hides scrollbars on horizontal filter lists while preserving touch scrolling.
+
+### 10.2 Mobile Z-Index Stacking Tokens
+All mobile overlay layers are registered into `@theme inline` in `src/app/globals.css`:
+
+| Token | Class Name | Z-Index | Layer Role |
+| :--- | :--- | :--- | :--- |
+| `--z-index-map-canvas` | `z-map-canvas` | `0` | WebGL MapLibre base map surface |
+| `--z-index-map-vector` | `z-map-vector` | `10` | GIS walking radius circles, jeepney route polylines |
+| `--z-index-map-pin` | `z-map-pin` | `20` | Unselected price badge markers |
+| `--z-index-map-pin-active` | `z-map-pin-active` | `25` | Selected / active rental price pin |
+| `--z-index-map-controls` | `z-map-controls` | `30` | Floating GPS Locate Me and Recenter Cebu controls |
+| `--z-index-search-bar` | `z-search-bar` | `40` | Floating top search pill and filter chip row |
+| `--z-index-bottom-sheet`| `z-bottom-sheet`| `50` | 3-snap bottom sheet drawer (Peek, Mid, Full) |
+| `--z-index-fab` | `z-fab` | `60` | Floating 'Ask AbangCebu AI' assistant FAB |
+| `--z-index-modal-backdrop`| `z-modal-backdrop`| `70` | Semi-transparent scrim backdrop |
+| `--z-index-modal` | `z-modal` | `80` | Full listing detail drawer modal |
+| `--z-index-toast` | `z-toast` | `90` | System alerts, anti-scam banners, toasts |
+
+### 10.3 Dynamic Sheet Height Tokens
+Registered on `:root`:
+- `--sheet-collapsed-height`: `calc(env(safe-area-inset-bottom, 0px) + 88px)` (~15% viewport height)
+- `--sheet-mid-height`: `48dvh` (~48% viewport height)
+- `--sheet-expanded-height`: `calc(100dvh - env(safe-area-inset-top, 0px) - 16px)` (~88% viewport height)
+
+---
+
+## 11. Design System Governance & Developer Checklist
 
 Before any component is merged in future sprints, frontend engineers must verify compliance against the following checklist:
 
@@ -409,4 +448,6 @@ Before any component is merged in future sprints, frontend engineers must verify
 5. [ ] **Clearance**: Is there at least an 8px gutter between adjacent clickable elements?
 6. [ ] **Keyboard Navigation**: Does the element display an active `focus-ring` upon keyboard tab navigation?
 7. [ ] **Dark Mode Integrity**: Does the component render legibly and with correct contrast in both light (`#faf8f5` canvas) and dark (`#09182a` canvas) modes?
-8. [ ] **Sprint 1 Boundary**: Confirm zero premature feature mockups or placeholder listing cards were introduced into the code repository.
+8. [ ] **Mobile Z-Index Layering**: Are mobile overlay components utilizing tokenized z-index classes (`z-search-bar`, `z-bottom-sheet`, `z-fab`, `z-modal`)?
+9. [ ] **Sprint 1 Boundary**: Confirm zero premature feature mockups or placeholder listing cards were introduced into the code repository.
+
