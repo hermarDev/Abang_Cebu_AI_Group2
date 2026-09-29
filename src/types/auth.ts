@@ -283,6 +283,57 @@ export const SESSION_CONSTANTS = {
   DEFAULT_LOGOUT_REDIRECT: '/login?message=logged_out',
 } as const;
 
+/**
+ * Request payload contract for initiating self-service password recovery (SCRUM-59).
+ */
+export interface PasswordResetRequestPayload {
+  /** Target user account email address */
+  email: string;
+  /** Optional Cloudflare Turnstile CAPTCHA token for bot deterrence */
+  turnstileToken?: string;
+  /** Optional post-verification redirect destination */
+  redirectTo?: string;
+}
+
+/**
+ * Request payload contract for setting a new password via PKCE recovery session (SCRUM-59).
+ */
+export interface PasswordResetConfirmPayload {
+  /** New password adhering to NIST SP 800-63B standards */
+  newPassword: string;
+  /** Confirmation password matching newPassword exactly */
+  confirmPassword: string;
+}
+
+/**
+ * Server response contract returned upon password reset operations.
+ */
+export interface PasswordResetResponse {
+  success: boolean;
+  message: string;
+  data?: {
+    /** Target navigation path post-action */
+    redirectUrl?: string;
+  };
+}
+
+/**
+ * Constants governing password recovery policy (SCRUM-59).
+ */
+export const PASSWORD_RESET_CONSTANTS = {
+  /** Maximum lifespan of password reset recovery token in seconds (1 hour) */
+  RECOVERY_TOKEN_TTL_SECONDS: 3600,
+  /** Maximum reset request attempts per rate-limiting window */
+  RATE_LIMIT_MAX_ATTEMPTS: 3,
+  /** Rolling rate-limiting window in seconds (15 minutes) */
+  RATE_LIMIT_WINDOW_SECONDS: 900,
+  /** Default redirect destination upon successful password update */
+  DEFAULT_PASSWORD_RESET_REDIRECT: '/login?message=password_reset_success',
+  /** Generic anti-enumeration response message */
+  GENERIC_SUCCESS_MESSAGE:
+    'If an account is associated with this email, a password recovery link has been dispatched.',
+} as const;
+
 // ==============================================================================
 // 3. Error Taxonomy & Codes
 // ==============================================================================
@@ -327,6 +378,13 @@ export enum AuthErrorCode {
   LOGOUT_FAILED = 'AUTH_LOGOUT_FAILED',
   LOGOUT_NETWORK_ERROR = 'AUTH_LOGOUT_NETWORK_ERROR',
   SESSION_ALREADY_TERMINATED = 'AUTH_SESSION_ALREADY_TERMINATED',
+
+  // Password Reset & Recovery Lifecycle (SCRUM-59)
+  PASSWORD_RESET_TOKEN_EXPIRED = 'AUTH_PASSWORD_RESET_TOKEN_EXPIRED',
+  PASSWORD_RESET_TOKEN_INVALID = 'AUTH_PASSWORD_RESET_TOKEN_INVALID',
+  PASSWORD_REUSE_FORBIDDEN = 'AUTH_PASSWORD_REUSE_FORBIDDEN',
+  PASSWORDS_DO_NOT_MATCH = 'AUTH_PASSWORDS_DO_NOT_MATCH',
+  PASSWORD_RESET_RATE_LIMIT = 'AUTH_PASSWORD_RESET_RATE_LIMIT',
 
   // Internal & Infrastructure (500)
   INTERNAL_AUTH_ERROR = 'INTERNAL_AUTH_ERROR',
