@@ -196,6 +196,68 @@ export interface CookieConfig {
 }
 
 /**
+ * Invalidation scope for user sign-out requests in Supabase Auth.
+ * - 'local': Invalidates the current session/device refresh token.
+ * - 'global': Revokes all active refresh tokens and sessions across all user devices.
+ * - 'others': Revokes all other sessions while preserving the current active session.
+ */
+export type LogoutScope = 'local' | 'global' | 'others';
+
+/**
+ * Request payload contract for user sign-out and session revocation (SCRUM-58).
+ */
+export interface LogoutPayload {
+  /** Invalidation scope (defaults to 'local') */
+  scope?: LogoutScope;
+  /** Optional sanitized destination URL to redirect the user to post-logout */
+  redirectUrl?: string;
+}
+
+/**
+ * Server response contract returned upon successful session revocation.
+ */
+export interface LogoutSuccessResponse {
+  success: true;
+  message: string;
+  data: {
+    /** The scope that was applied for session termination */
+    scope: LogoutScope;
+    /** The sanitized redirect URL client should navigate to */
+    redirectUrl: string;
+    /** Timestamp when session invalidation was committed on the server (ISO 8601) */
+    invalidatedAt: string;
+  };
+}
+
+/**
+ * Client-side session and storage cleanup configuration options.
+ */
+export interface ClientCleanupOptions {
+  /** Clear HTTP-only session cookies and chunked segments (Max-Age=0) */
+  clearCookies: boolean;
+  /** Emit SIGNED_OUT event via BroadcastChannel for multi-tab synchronization */
+  broadcastToTabs: boolean;
+  /** Invalidate Next.js App Router client cache and trigger layout refresh */
+  refreshRouter: boolean;
+  /** Clear in-memory auth state and reset transient user profile cache */
+  clearMemoryState: boolean;
+}
+
+/**
+ * Multi-tab cross-communication message structure passed via BroadcastChannel.
+ */
+export interface BroadcastAuthMessage {
+  /** Action event dispatched across browser tabs */
+  type: 'SIGNED_OUT' | 'SIGNED_IN' | 'TOKEN_REFRESHED' | 'USER_UPDATED';
+  /** Epoch timestamp in milliseconds when the event was dispatched */
+  timestamp: number;
+  /** Revocation scope if sign-out event */
+  scope?: LogoutScope;
+  /** Target redirect path for coordinated navigation */
+  redirectUrl?: string;
+}
+
+/**
  * Session lifecycle policy constants for AbangCebu AI.
  */
 export const SESSION_CONSTANTS = {
@@ -213,6 +275,12 @@ export const SESSION_CONSTANTS = {
   COOKIE_CHUNK_SIZE_LIMIT: 4096,
   /** BroadcastChannel message identifier for multi-tab session synchronization */
   BROADCAST_CHANNEL_NAME: 'supabase.auth.token',
+  /** Cookie deletion header value for Max-Age */
+  COOKIE_DELETE_MAX_AGE: 0,
+  /** Epoch expiration date string for cookie deletion */
+  COOKIE_DELETE_EXPIRES: 'Thu, 01 Jan 1970 00:00:00 GMT',
+  /** Default post-logout redirect route */
+  DEFAULT_LOGOUT_REDIRECT: '/login?message=logged_out',
 } as const;
 
 // ==============================================================================
@@ -254,6 +322,11 @@ export enum AuthErrorCode {
   CONCURRENT_REFRESH_IN_PROGRESS = 'AUTH_CONCURRENT_REFRESH_IN_PROGRESS',
   DEVICE_FINGERPRINT_MISMATCH = 'AUTH_DEVICE_FINGERPRINT_MISMATCH',
   MFA_REQUIRED = 'AUTH_MFA_REQUIRED',
+
+  // Logout & Invalidation Lifecycle (SCRUM-58)
+  LOGOUT_FAILED = 'AUTH_LOGOUT_FAILED',
+  LOGOUT_NETWORK_ERROR = 'AUTH_LOGOUT_NETWORK_ERROR',
+  SESSION_ALREADY_TERMINATED = 'AUTH_SESSION_ALREADY_TERMINATED',
 
   // Internal & Infrastructure (500)
   INTERNAL_AUTH_ERROR = 'INTERNAL_AUTH_ERROR',
@@ -412,3 +485,40 @@ export function validatePasswordStrength(password: string): PasswordStrengthResu
     unmetCriteria,
   };
 }
+
+/**
+ * Validates that a target post-logout or post-auth redirect URL is safe.
+ * Strictly prevents open-redirect attacks by requiring relative root-relative paths
+ * (starting with '/') and explicitly forbidding protocol-relative ('//') or backslash paths.
+ */
+export function isSafeRedirectUrl(url: string | null | undefined): boolean {
+  if (!url || typeof url !== 'string') {
+    return false;
+  }
+
+  // Must begin with a single '/'
+  if (!url.startsWith('/')) {
+    return false;
+  }
+
+  // Disallow protocol-relative URLs (e.g. '//attacker.com')
+  if (url.startsWith('//')) {
+    return false;
+  }
+
+  // Disallow backslashes which some browsers normalize to forward slashes (e.g. '/\\attacker.com')
+  if (url.includes('\\')) {
+    return false;
+  }
+
+  // Disallow null bytes or ASCII control characters
+  for (let i = 0; i < url.length; i++) {
+    const code = url.charCodeAt(i);
+    if (code < 32 || code === 127) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
