@@ -10,6 +10,7 @@ abang-cebu-ai/
 ├── docs/                                # Architecture blueprints, ADRs, and team standards
 │   ├── project-structure.md             # This document (directory layout & module ownership)
 │   ├── git-workflow.md                  # Branch naming, Conventional Commits, and peer review guide
+│   ├── environment-variables.md         # Client vs server variable boundaries & secrets policy
 │   ├── client-server-boundaries.md      # Server vs Client components & MapLibre WebGL isolation
 │   └── next15-guidelines.md             # Next.js 15, React 19, and Supabase SSR standards
 ├── public/                              # Public static assets (favicons, SVGs, static imagery)
