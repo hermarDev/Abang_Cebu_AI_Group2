@@ -14,12 +14,12 @@ flowchart TD
     Fork["Your GitHub Fork<br/>your-username/Abang_Cebu_AI_Group2"]
     Local["Your Local Computer<br/>(Feature Branch)"]
 
-    Upstream -->|1. Fork on GitHub| Fork
-    Fork -->|2. git clone| Local
-    Upstream -.->|3. git pull upstream main<br/>(Stay up to date)| Local
-    Local -->|4. git push origin feature/...| Fork
-    Fork -->|5. Submit Pull Request| Upstream
-    Upstream -->|6. Review & Merge by @hermarDev| Upstream
+    Upstream -->|"1. Fork on GitHub"| Fork
+    Fork -->|"2. git clone"| Local
+    Upstream -.->|"3. git pull upstream main"| Local
+    Local -->|"4. git push origin"| Fork
+    Fork -->|"5. Submit Pull Request"| Upstream
+    Upstream -->|"6. Review & Merge"| Upstream
 ```
 
 ---
