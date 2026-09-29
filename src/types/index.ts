@@ -44,3 +44,5 @@ export interface GeoJSONPointFeature {
     propertyType?: string;
   };
 }
+
+export * from './database';
