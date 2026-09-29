@@ -46,6 +46,23 @@ In AbangCebu AI, **the landing page IS the map**.
 +---------------------------------------------------------------------------------------------------+
 ```
 
+### 1.1 Wireframe Fidelity & Blueprint Conventions
+
+In accordance with professional UX/UI engineering and architectural wireframing standards (Balsamiq, Figma, Whimsical), these wireframes are drafted strictly as **Mid-Fidelity Blueprints**:
+
+1. **Monochrome / Grayscale Visual Hierarchy**:
+   - Eliminates premature visual styling debates (colors, textures, branding).
+   - High-contrast charcoal/slate strokes (`#0F172A`, `#1E293B`, `#475569`), light slate surfaces (`#FFFFFF`, `#F8FAFC`, `#F1F5F9`, `#E2E8F0`), and minimal single-tint focus accents (`#0F172A`).
+2. **Universal Image Placeholder Standard (`[X]`)**:
+   - All visual assets, room galleries, and thumbnails are explicitly demarcated using the universal wireframe convention: a rectangular bounding box with **two corner-to-corner diagonal crossed lines (`X`)** accompanied by photo count badges (e.g. `📷 1/8 PHOTOS`).
+3. **Authentic Device & Browser Chrome Frames**:
+   - **Desktop (1440px)**: Enclosed in a browser window chrome with Mac-style window controls (`● ● ●`), active browser tab, and secure URL bar (`https://abangcebu.ph/...`).
+   - **Mobile (390px, 100dvh)**: Enclosed in a smartphone chassis with Dynamic Island / speaker notch, standard status bar (`9:41`, Signal, Wi-Fi, Battery), and iOS home indicator.
+4. **Architectural Map Schematic**:
+   - Base map surface rendered with coordinate blueprint grid lines, arterial street double-lines with street names (`N. BACALSO AVE`, `OSMEÑA BLVD`, `SALINAS DR`), campus boundary parcels (`CIT-U`, `CEBU IT PARK`), and hatched waterways.
+5. **Numbered Blueprint Callouts (`①` – `⑦`)**:
+   - High-visibility callout badges with leader lines tied directly to functional specification tables.
+
 ---
 
 ## 2. Desktop Viewport Specification (1280px – 1440px+)

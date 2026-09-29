@@ -1,231 +1,487 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 900" width="100%" height="100%">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 960" width="100%" height="100%">
   <defs>
-    <filter id="shadow-card" x="-10%" y="-10%" width="120%" height="120%">
-      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#0f2742" flood-opacity="0.14"/>
+    <!-- Grayscale Blueprint Shadows -->
+    <filter id="wireframe-shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="6" stdDeviation="10" flood-color="#0f172a" flood-opacity="0.18"/>
     </filter>
-    <filter id="shadow-pill" x="-20%" y="-20%" width="140%" height="140%">
-      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#0f2742" flood-opacity="0.16"/>
+    <filter id="pin-shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="4" stdDeviation="4" flood-color="#0f172a" flood-opacity="0.25"/>
     </filter>
-    <linearGradient id="map-bg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#f1f5f9"/>
-      <stop offset="100%" stop-color="#e2e8f0"/>
-    </linearGradient>
-    <linearGradient id="ocean-bg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#cbd5e1"/>
-      <stop offset="100%" stop-color="#94a3b8"/>
-    </linearGradient>
+    
+    <!-- Diagonal Hatch Pattern for Waterway -->
+    <pattern id="hatch-water" width="12" height="12" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="12" stroke="#cbd5e1" stroke-width="1.5"/>
+    </pattern>
+
+    <!-- Campus Hatch Pattern -->
+    <pattern id="hatch-campus" width="16" height="16" patternUnits="userSpaceOnUse">
+      <path d="M 0,16 L 16,0 M 0,0 L 16,16" stroke="#e2e8f0" stroke-width="1"/>
+    </pattern>
   </defs>
 
   <style>
-    .font-sans { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
-    .font-mono { font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace; }
+    .wf-title { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 11px; font-weight: 700; fill: #1e293b; letter-spacing: 0.5px; }
+    .wf-text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 11px; fill: #334155; }
+    .wf-bold { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 12px; font-weight: 700; fill: #0f172a; }
+    .wf-price { font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace; font-size: 13px; font-weight: 800; fill: #0f172a; }
+    .wf-mono { font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace; font-size: 10px; fill: #475569; }
+    .wf-callout { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 11px; font-weight: 800; fill: #ffffff; }
+    .wf-dim { font-family: 'SFMono-Regular', Consolas, Menlo, monospace; font-size: 10px; font-weight: 600; fill: #dc2626; }
   </style>
 
-  <!-- 1. FULL BLEED MAP CANVAS -->
-  <rect width="1440" height="900" fill="url(#map-bg)"/>
-
-  <!-- Stylized Mactan Channel Coastline & Roads -->
-  <path d="M 1120 0 Q 1160 300 1200 550 T 1320 900 L 1440 900 L 1440 0 Z" fill="#93c5fd" opacity="0.35"/>
-  <path d="M 1240 0 Q 1280 320 1340 600 T 1440 900" stroke="#0284c7" stroke-width="2" fill="none" opacity="0.4"/>
+  <!-- ========================================== -->
+  <!-- 1. BROWSER CHROME / DESKTOP VIEWPORT FRAME -->
+  <!-- ========================================== -->
+  <!-- Outer Window Background -->
+  <rect x="0" y="0" width="1440" height="960" fill="#f8fafc"/>
   
-  <!-- Arterial Cebu Road Network -->
-  <!-- N. Bacalso Ave (Highway) -->
-  <path d="M 0 650 Q 400 600 700 520 T 1200 450" stroke="#ffffff" stroke-width="12" fill="none"/>
-  <path d="M 0 650 Q 400 600 700 520 T 1200 450" stroke="#cbd5e1" stroke-width="8" fill="none"/>
+  <!-- Browser Chrome Header Bar -->
+  <rect x="0" y="0" width="1440" height="72" fill="#ffffff" stroke="#94a3b8" stroke-width="1.5"/>
+  <rect x="0" y="0" width="1440" height="34" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1"/>
   
-  <!-- Osmeña Blvd / Mango Ave -->
-  <path d="M 680 900 L 720 500 L 850 200" stroke="#ffffff" stroke-width="10" fill="none"/>
-  <path d="M 680 900 L 720 500 L 850 200" stroke="#cbd5e1" stroke-width="6" fill="none"/>
+  <!-- Window Controls (Mac Traffic Lights) -->
+  <circle cx="20" cy="17" r="5.5" fill="#e2e8f0" stroke="#94a3b8" stroke-width="1"/>
+  <circle cx="38" cy="17" r="5.5" fill="#e2e8f0" stroke="#94a3b8" stroke-width="1"/>
+  <circle cx="56" cy="17" r="5.5" fill="#e2e8f0" stroke="#94a3b8" stroke-width="1"/>
   
-  <!-- Gov. Cuenco (Talamban) -->
-  <path d="M 850 200 L 980 0" stroke="#ffffff" stroke-width="9" fill="none"/>
-  <path d="M 850 200 L 980 0" stroke="#cbd5e1" stroke-width="5" fill="none"/>
+  <!-- Browser Tab -->
+  <path d="M 85 34 L 98 10 Q 102 6 108 6 L 310 6 Q 316 6 320 10 L 333 34 Z" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+  <rect x="85" y="33" width="248" height="2" fill="#ffffff"/>
+  <circle cx="112" cy="20" r="4.5" fill="#64748b"/>
+  <text x="124" y="24" class="wf-title" font-size="10.5">AbangCebu AI — Rental Discovery Map</text>
+  <text x="312" y="23" font-family="sans-serif" font-size="11" fill="#94a3b8">×</text>
 
-  <!-- Landmark Polygons / Zones -->
-  <!-- CIT-U Campus Zone -->
-  <rect x="520" y="540" width="130" height="90" rx="10" fill="#fef3c7" stroke="#f59e0b" stroke-width="2" opacity="0.85"/>
-  <text x="585" y="582" text-anchor="middle" class="font-sans" font-size="11" font-weight="700" fill="#92400e">CIT-U Main Campus</text>
-  <text x="585" y="598" text-anchor="middle" class="font-sans" font-size="9" fill="#b45309">N. Bacalso Ave</text>
-
-  <!-- Cebu IT Park Zone -->
-  <rect x="800" y="240" width="160" height="110" rx="10" fill="#ccfbf1" stroke="#0d9488" stroke-width="2" opacity="0.85"/>
-  <text x="880" y="290" text-anchor="middle" class="font-sans" font-size="11" font-weight="700" fill="#0f766e">Cebu IT Park</text>
-  <text x="880" y="306" text-anchor="middle" class="font-sans" font-size="9" fill="#115e59">Salinas Dr, Lahug</text>
-
-  <!-- 2. DYNAMIC PRICE MARKERS (OVER MAP CANVAS) -->
-  <!-- Marker 1: Near CIT-U (Active Selection) -->
-  <g transform="translate(680, 520)" filter="url(#shadow-pill)">
-    <rect x="-42" y="-18" width="84" height="36" rx="18" fill="#047857" stroke="#ffffff" stroke-width="2"/>
-    <text x="0" y="4" text-anchor="middle" class="font-mono" font-size="13" font-weight="800" fill="#ffffff">₱2,500</text>
-    <polygon points="-6,18 6,18 0,26" fill="#047857"/>
-    <!-- Selected Card Callout Card -->
-    <rect x="-90" y="-72" width="180" height="46" rx="8" fill="#0f2742" stroke="#047857" stroke-width="2"/>
-    <text x="0" y="-52" text-anchor="middle" class="font-sans" font-size="11" font-weight="700" fill="#ffffff">St. Jude Dormitory</text>
-    <text x="0" y="-36" text-anchor="middle" class="font-sans" font-size="9.5" fill="#5eead4">350m from CIT-U Main Gate</text>
-  </g>
-
-  <!-- Marker 2: Urgello Room -->
-  <g transform="translate(620, 420)" filter="url(#shadow-pill)">
-    <rect x="-35" y="-14" width="70" height="28" rx="14" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5"/>
-    <text x="0" y="4" text-anchor="middle" class="font-mono" font-size="12" font-weight="700" fill="#0f2742">₱3,200</text>
-    <polygon points="-5,14 5,14 0,20" fill="#ffffff"/>
-  </g>
-
-  <!-- Marker 3: IT Park Studio -->
-  <g transform="translate(940, 220)" filter="url(#shadow-pill)">
-    <rect x="-35" y="-14" width="70" height="28" rx="14" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5"/>
-    <text x="0" y="4" text-anchor="middle" class="font-mono" font-size="12" font-weight="700" fill="#0f2742">₱7,500</text>
-    <polygon points="-5,14 5,14 0,20" fill="#ffffff"/>
-  </g>
-
-  <!-- Marker 4: Banilad Bedspace -->
-  <g transform="translate(860, 110)" filter="url(#shadow-pill)">
-    <rect x="-35" y="-14" width="70" height="28" rx="14" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5"/>
-    <text x="0" y="4" text-anchor="middle" class="font-mono" font-size="12" font-weight="700" fill="#0f2742">₱1,800</text>
-    <polygon points="-5,14 5,14 0,20" fill="#ffffff"/>
-  </g>
-
-  <!-- Marker 5: Capitol Room -->
-  <g transform="translate(760, 360)" filter="url(#shadow-pill)">
-    <rect x="-35" y="-14" width="70" height="28" rx="14" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5"/>
-    <text x="0" y="4" text-anchor="middle" class="font-mono" font-size="12" font-weight="700" fill="#0f2742">₱4,800</text>
-    <polygon points="-5,14 5,14 0,20" fill="#ffffff"/>
-  </g>
-
-  <!-- 3. TOP OVERLAY BUTTONS -->
-  <!-- "Search This Area" Floating Button -->
-  <g transform="translate(820, 24)" filter="url(#shadow-pill)">
-    <rect x="-80" y="0" width="160" height="38" rx="19" fill="#ffffff" stroke="#0d9488" stroke-width="1.5"/>
-    <circle cx="-56" cy="19" r="6" stroke="#0d9488" stroke-width="2" fill="none"/>
-    <text x="-42" y="23" class="font-sans" font-size="11.5" font-weight="700" fill="#0f2742">Search this area</text>
-  </g>
-
-  <!-- "Ask AI Finder" Floating Pill -->
-  <g transform="translate(1330, 24)" filter="url(#shadow-pill)">
-    <rect x="-95" y="0" width="190" height="42" rx="21" fill="#0f2742" stroke="#0d9488" stroke-width="1.5"/>
-    <text x="-45" y="26" class="font-sans" font-size="12" font-weight="700" fill="#ffffff">✨ Ask Cebu AI</text>
-    <rect x="42" y="10" width="34" height="22" rx="4" fill="#1e293b"/>
-    <text x="59" y="25" text-anchor="middle" class="font-mono" font-size="10" fill="#94a3b8">⌘K</text>
-  </g>
-
-  <!-- 4. BOTTOM-RIGHT MAP HUD (Zoom + Geolocation) -->
-  <g transform="translate(1380, 740)" filter="url(#shadow-pill)">
-    <rect x="0" y="0" width="44" height="88" rx="12" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
-    <line x1="0" y1="44" x2="44" y2="44" stroke="#e2e8f0" stroke-width="1"/>
-    <text x="22" y="28" text-anchor="middle" class="font-sans" font-size="18" font-weight="600" fill="#0f2742">+</text>
-    <text x="22" y="72" text-anchor="middle" class="font-sans" font-size="20" font-weight="600" fill="#0f2742">−</text>
+  <!-- Omnibox & Navigation Row -->
+  <!-- Nav Buttons: Back, Forward, Reload -->
+  <g transform="translate(16, 42)">
+    <circle cx="12" cy="12" r="10" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1"/>
+    <path d="M 15 8 L 9 12 L 15 16" fill="none" stroke="#475569" stroke-width="1.5" stroke-linecap="round"/>
     
-    <!-- Geolocation GPS Button -->
-    <rect x="0" y="98" width="44" height="44" rx="12" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
-    <circle cx="22" cy="120" r="8" stroke="#047857" stroke-width="2.5" fill="none"/>
-    <line x1="22" y1="108" x2="22" y2="112" stroke="#047857" stroke-width="2.5"/>
-    <line x1="22" y1="128" x2="22" y2="132" stroke="#047857" stroke-width="2.5"/>
-    <line x1="10" y1="120" x2="14" y2="120" stroke="#047857" stroke-width="2.5"/>
-    <line x1="30" y1="120" x2="34" y2="120" stroke="#047857" stroke-width="2.5"/>
+    <circle cx="38" cy="12" r="10" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1"/>
+    <path d="M 35 8 L 41 12 L 35 16" fill="none" stroke="#94a3b8" stroke-width="1.5" stroke-linecap="round"/>
+    
+    <circle cx="64" cy="12" r="10" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1"/>
+    <path d="M 68 9 A 5 5 0 1 0 68 15 M 68 9 L 68 12 M 68 9 L 65 9" fill="none" stroke="#475569" stroke-width="1.2"/>
   </g>
 
-  <!-- 5. SIGNATURE FLOATING LEFT CARD (Google Maps Style: 400px x 868px) -->
-  <g transform="translate(16, 16)" filter="url(#shadow-card)">
-    <rect width="400" height="868" rx="16" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+  <!-- URL Address Bar -->
+  <rect x="100" y="40" width="760" height="26" rx="13" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.2"/>
+  <text x="116" y="57" font-family="sans-serif" font-size="10.5" fill="#64748b">🔒</text>
+  <text x="136" y="57" class="wf-mono" font-size="11" font-weight="600" fill="#0f172a">https://abangcebu.ph/map/metro-cebu?near=cit-u&amp;budget=3000</text>
+  <text x="836" y="57" class="wf-mono" font-size="11" fill="#94a3b8">★</text>
 
-    <!-- Search Input Bar -->
-    <rect x="16" y="16" width="368" height="48" rx="12" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1"/>
-    <circle cx="38" cy="40" r="6" stroke="#64748b" stroke-width="2" fill="none"/>
-    <line x1="43" y1="45" x2="48" y2="50" stroke="#64748b" stroke-width="2"/>
-    <text x="58" y="44" class="font-sans" font-size="13" font-weight="500" fill="#0f2742">CIT-U, N. Bacalso Ave, Cebu City</text>
-    <circle cx="360" cy="40" r="9" fill="#e2e8f0"/>
-    <text x="360" y="44" text-anchor="middle" class="font-sans" font-size="11" font-weight="700" fill="#64748b">×</text>
+  <!-- Desktop App Header Right Actions -->
+  <g transform="translate(1080, 40)">
+    <!-- Role Switcher Pill -->
+    <rect x="0" y="0" width="130" height="26" rx="13" fill="#ffffff" stroke="#94a3b8" stroke-width="1.2"/>
+    <text x="14" y="17" class="wf-title" font-size="10">ROLE: RENTER</text>
+    <path d="M 108 14 L 114 14 L 111 18 Z" fill="#475569"/>
 
-    <!-- Quick Category Pill Strip -->
-    <g transform="translate(16, 76)">
-      <!-- Pill 1 (Active) -->
-      <rect x="0" y="0" width="70" height="32" rx="16" fill="#0f2742"/>
-      <text x="35" y="20" text-anchor="middle" class="font-sans" font-size="11" font-weight="700" fill="#ffffff">All (48)</text>
+    <!-- Sign In Button -->
+    <rect x="142" y="0" width="96" height="26" rx="13" fill="#0f172a"/>
+    <text x="190" y="17" text-anchor="middle" class="wf-title" font-size="10.5" fill="#ffffff">SIGN IN</text>
 
-      <!-- Pill 2 -->
-      <rect x="76" y="0" width="88" height="32" rx="16" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1"/>
-      <text x="120" y="20" text-anchor="middle" class="font-sans" font-size="11" font-weight="600" fill="#475569">Bedspace</text>
+    <!-- Post Listing Outline Button -->
+    <rect x="250" y="0" width="96" height="26" rx="13" fill="#ffffff" stroke="#0f172a" stroke-width="1.5"/>
+    <text x="298" y="17" text-anchor="middle" class="wf-title" font-size="10" fill="#0f172a">+ LIST ROOM</text>
+  </g>
 
-      <!-- Pill 3 -->
-      <rect x="170" y="0" width="68" height="32" rx="16" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1"/>
-      <text x="204" y="20" text-anchor="middle" class="font-sans" font-size="11" font-weight="600" fill="#475569">Studio</text>
+  <!-- ========================================== -->
+  <!-- 2. BASE MAP CANVAS & ARCHITECTURAL GRID    -->
+  <!-- ========================================== -->
+  <g transform="translate(0, 72)">
+    <!-- Base Map Canvas Surface (1440 x 888) -->
+    <rect x="0" y="0" width="1440" height="888" fill="#ffffff"/>
 
-      <!-- Pill 4 -->
-      <rect x="244" y="0" width="80" height="32" rx="16" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1"/>
-      <text x="284" y="20" text-anchor="middle" class="font-sans" font-size="11" font-weight="600" fill="#475569">Under ₱3k</text>
+    <!-- Blueprint Coordinate Grid Lines -->
+    <g stroke="#f1f5f9" stroke-width="1" stroke-dasharray="6,6">
+      <line x1="0" y1="120" x2="1440" y2="120"/>
+      <line x1="0" y1="240" x2="1440" y2="240"/>
+      <line x1="0" y1="360" x2="1440" y2="360"/>
+      <line x1="0" y1="480" x2="1440" y2="480"/>
+      <line x1="0" y1="600" x2="1440" y2="600"/>
+      <line x1="0" y1="720" x2="1440" y2="720"/>
+      <line x1="0" y1="840" x2="1440" y2="840"/>
 
-      <!-- Pill 5 (More Filters) -->
-      <rect x="330" y="0" width="38" height="32" rx="16" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1"/>
-      <text x="349" y="20" text-anchor="middle" class="font-sans" font-size="13" font-weight="700" fill="#0f2742">⚙</text>
+      <line x1="160" y1="0" x2="160" y2="888"/>
+      <line x1="320" y1="0" x2="320" y2="888"/>
+      <line x1="480" y1="0" x2="480" y2="888"/>
+      <line x1="640" y1="0" x2="640" y2="888"/>
+      <line x1="800" y1="0" x2="800" y2="888"/>
+      <line x1="960" y1="0" x2="960" y2="888"/>
+      <line x1="1120" y1="0" x2="1120" y2="888"/>
+      <line x1="1280" y1="0" x2="1280" y2="888"/>
     </g>
 
-    <!-- Results Subheader -->
-    <line x1="16" y1="120" x2="384" y2="120" stroke="#f1f5f9" stroke-width="1"/>
-    <text x="16" y="142" class="font-sans" font-size="12" font-weight="700" fill="#0f2742">48 rentals found near CIT-U</text>
-    <text x="384" y="142" text-anchor="end" class="font-sans" font-size="11" fill="#64748b">Sort: Nearest v</text>
+    <!-- Waterway (Cebu Strait / Mactan Channel) -->
+    <path d="M 1220 0 Q 1250 280 1280 500 T 1360 888 L 1440 888 L 1440 0 Z" fill="url(#hatch-water)" stroke="#94a3b8" stroke-width="1.5"/>
+    <text x="1350" y="420" transform="rotate(76 1350 420)" class="wf-mono" font-size="11" font-weight="700" fill="#64748b" letter-spacing="2px">◄ CEBU STRAIT / MACTAN CHANNEL ►</text>
 
-    <!-- RENTAL CARD 1 (ACTIVE HIGHLIGHT) -->
-    <g transform="translate(16, 156)">
-      <rect width="368" height="220" rx="12" fill="#ffffff" stroke="#047857" stroke-width="2"/>
-      
-      <!-- Card Image Carousel -->
-      <rect x="0" y="0" width="368" height="120" rx="12" fill="#e2e8f0"/>
-      <rect x="12" y="10" width="52" height="20" rx="4" fill="#0f2742" opacity="0.8"/>
-      <text x="38" y="24" text-anchor="middle" class="font-mono" font-size="10" font-weight="600" fill="#ffffff">1 / 6 photos</text>
-      
-      <circle cx="346" cy="20" r="14" fill="#ffffff" opacity="0.9"/>
-      <text x="346" y="24" text-anchor="middle" class="font-sans" font-size="12" fill="#e11d48">❤</text>
-
-      <!-- Card Details -->
-      <rect x="12" y="130" width="60" height="18" rx="4" fill="#ccfbf1"/>
-      <text x="42" y="143" text-anchor="middle" class="font-sans" font-size="9.5" font-weight="700" fill="#0f766e">BEDSPACE</text>
-
-      <rect x="78" y="130" width="95" height="18" rx="4" fill="#dcfce7"/>
-      <text x="125" y="143" text-anchor="middle" class="font-sans" font-size="9.5" font-weight="700" fill="#15803d">✓ Verified Landlord</text>
-
-      <!-- Price -->
-      <text x="12" y="172" class="font-mono" font-size="17" font-weight="800" fill="#0f2742">₱2,500 <tspan font-size="11" font-weight="400" fill="#64748b">/ month</tspan></text>
-      <text x="356" y="170" text-anchor="end" class="font-sans" font-size="10" fill="#64748b">1 mo dep • Submetered elect.</text>
-
-      <!-- Title & Location -->
-      <text x="12" y="192" class="font-sans" font-size="12.5" font-weight="700" fill="#0f2742">St. Jude Dormitory - Male Room 3</text>
-      <text x="12" y="206" class="font-sans" font-size="11" fill="#0d9488">📍 350m from CIT-U Main Gate (4 min walk)</text>
+    <!-- Landmark Boundary Parcels (Hatched Wireframe Zones) -->
+    <!-- CIT-U Campus Footprint -->
+    <g transform="translate(560, 520)">
+      <rect x="0" y="0" width="160" height="110" rx="4" fill="url(#hatch-campus)" stroke="#64748b" stroke-width="1.8" stroke-dasharray="4,3"/>
+      <rect x="12" y="10" width="136" height="34" rx="2" fill="#ffffff" stroke="#94a3b8" stroke-width="1"/>
+      <text x="80" y="24" text-anchor="middle" class="wf-bold" font-size="10.5">CIT-U MAIN CAMPUS</text>
+      <text x="80" y="37" text-anchor="middle" class="wf-mono" font-size="8.5">N. Bacalso Ave · 5.2 Ha</text>
     </g>
 
-    <!-- RENTAL CARD 2 -->
-    <g transform="translate(16, 390)">
-      <rect width="368" height="220" rx="12" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
-      
-      <!-- Card Image -->
-      <rect x="0" y="0" width="368" height="120" rx="12" fill="#e2e8f0"/>
-      <rect x="12" y="10" width="52" height="20" rx="4" fill="#0f2742" opacity="0.8"/>
-      <text x="38" y="24" text-anchor="middle" class="font-mono" font-size="10" font-weight="600" fill="#ffffff">1 / 4 photos</text>
-      
-      <!-- Badges -->
-      <rect x="12" y="130" width="48" height="18" rx="4" fill="#e0f2fe"/>
-      <text x="36" y="143" text-anchor="middle" class="font-sans" font-size="9.5" font-weight="700" fill="#0369a1">STUDIO</text>
+    <!-- 500m Walking Isochrone Circle around CIT-U -->
+    <circle cx="640" cy="575" r="140" fill="none" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="6,4"/>
+    <text x="640" y="425" text-anchor="middle" class="wf-mono" font-size="9" font-weight="700" fill="#64748b">--- 500M / 5-MIN WALKING RADIUS ---</text>
 
-      <!-- Price -->
-      <text x="12" y="172" class="font-mono" font-size="17" font-weight="800" fill="#0f2742">₱4,800 <tspan font-size="11" font-weight="400" fill="#64748b">/ month</tspan></text>
-      <text x="356" y="170" text-anchor="end" class="font-sans" font-size="10" fill="#64748b">Own meter • Free Wi-Fi</text>
-
-      <!-- Title & Location -->
-      <text x="12" y="192" class="font-sans" font-size="12.5" font-weight="700" fill="#0f2742">Park Vista Studio Unit 2A</text>
-      <text x="12" y="206" class="font-sans" font-size="11" fill="#0d9488">📍 800m from CIT-U • Near South Bus</text>
+    <!-- Cebu IT Park Commercial Zone -->
+    <g transform="translate(860, 200)">
+      <rect x="0" y="0" width="190" height="130" rx="4" fill="url(#hatch-campus)" stroke="#64748b" stroke-width="1.8" stroke-dasharray="4,3"/>
+      <rect x="16" y="12" width="158" height="34" rx="2" fill="#ffffff" stroke="#94a3b8" stroke-width="1"/>
+      <text x="95" y="26" text-anchor="middle" class="wf-bold" font-size="10.5">CEBU IT PARK ZONE</text>
+      <text x="95" y="39" text-anchor="middle" class="wf-mono" font-size="8.5">Salinas Dr · BPO &amp; Tech Hub</text>
     </g>
 
-    <!-- RENTAL CARD 3 (PARTIAL PEEK) -->
-    <g transform="translate(16, 624)">
-      <rect width="368" height="220" rx="12" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
-      <rect x="0" y="0" width="368" height="120" rx="12" fill="#e2e8f0"/>
-      <text x="12" y="165" class="font-mono" font-size="17" font-weight="800" fill="#0f2742">₱1,800 / mo</text>
-      <text x="12" y="190" class="font-sans" font-size="12" font-weight="700" fill="#0f2742">Urgello Cozy Bedspace</text>
+    <!-- Road Arteries (Architectural Double-Stroke Blueprint Lines) -->
+    <!-- N. Bacalso Avenue (National South Highway) -->
+    <path d="M 0 710 Q 420 640 760 550 T 1280 470" fill="none" stroke="#e2e8f0" stroke-width="22"/>
+    <path d="M 0 710 Q 420 640 760 550 T 1280 470" fill="none" stroke="#64748b" stroke-width="14"/>
+    <path d="M 0 710 Q 420 640 760 550 T 1280 470" fill="none" stroke="#ffffff" stroke-width="1.5" stroke-dasharray="8,6"/>
+    <text x="440" y="650" transform="rotate(-12 440 650)" class="wf-mono" font-size="10" font-weight="700" fill="#ffffff" letter-spacing="1px">N. BACALSO AVENUE (SOUTH ARTERY)</text>
+
+    <!-- Osmeña Boulevard -->
+    <path d="M 760 888 L 780 540 L 920 180 L 980 0" fill="none" stroke="#e2e8f0" stroke-width="18"/>
+    <path d="M 760 888 L 780 540 L 920 180 L 980 0" fill="none" stroke="#64748b" stroke-width="11"/>
+    <path d="M 760 888 L 780 540 L 920 180 L 980 0" fill="none" stroke="#ffffff" stroke-width="1.2" stroke-dasharray="6,5"/>
+    <text x="825" y="440" transform="rotate(-70 825 440)" class="wf-mono" font-size="9.5" font-weight="700" fill="#ffffff" letter-spacing="1px">OSMEÑA BOULEVARD</text>
+
+    <!-- Salinas Drive / Lahug -->
+    <path d="M 780 340 L 1060 270" fill="none" stroke="#64748b" stroke-width="9"/>
+    <text x="860" y="325" transform="rotate(-14 860 325)" class="wf-mono" font-size="9" font-weight="700" fill="#334155">SALINAS DRIVE</text>
+
+    <!-- ========================================== -->
+    <!-- 3. DYNAMIC WIREFRAME MAP PINS (LAYER 1)    -->
+    <!-- ========================================== -->
+    <!-- Unselected Pin 1: Urgello -->
+    <g transform="translate(570, 680)" filter="url(#pin-shadow)">
+      <path d="M 0 0 L -6 -8 L -36 -8 A 12 12 0 0 1 -36 -32 L 36 -32 A 12 12 0 0 1 36 -8 L 6 -8 Z" fill="#ffffff" stroke="#1e293b" stroke-width="1.8"/>
+      <text x="0" y="-16" text-anchor="middle" class="wf-price" font-size="12">₱1,800/mo</text>
     </g>
 
-    <!-- Collapsible Chevron Toggle Button (<) -->
-    <g transform="translate(400, 20)">
-      <path d="M 0 0 L 24 6 Q 30 12 30 20 L 30 24 Q 30 32 24 38 L 0 44 Z" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
-      <text x="14" y="28" text-anchor="middle" class="font-sans" font-size="14" font-weight="700" fill="#0f2742">‹</text>
+    <!-- Unselected Pin 2: Banilad / IT Park -->
+    <g transform="translate(940, 230)" filter="url(#pin-shadow)">
+      <path d="M 0 0 L -6 -8 L -36 -8 A 12 12 0 0 1 -36 -32 L 36 -32 A 12 12 0 0 1 36 -8 L 6 -8 Z" fill="#ffffff" stroke="#1e293b" stroke-width="1.8"/>
+      <text x="0" y="-16" text-anchor="middle" class="wf-price" font-size="12">₱7,500/mo</text>
+    </g>
+
+    <!-- Unselected Pin 3: Sambag 2 -->
+    <g transform="translate(730, 440)" filter="url(#pin-shadow)">
+      <path d="M 0 0 L -6 -8 L -36 -8 A 12 12 0 0 1 -36 -32 L 36 -32 A 12 12 0 0 1 36 -8 L 6 -8 Z" fill="#ffffff" stroke="#1e293b" stroke-width="1.8"/>
+      <text x="0" y="-16" text-anchor="middle" class="wf-price" font-size="12">₱4,800/mo</text>
+    </g>
+
+    <!-- ACTIVE / SELECTED PIN: 350m from CIT-U (Card 1 Active Link) -->
+    <g transform="translate(680, 560)" filter="url(#pin-shadow)">
+      <!-- Pulsing Target Ring -->
+      <circle cx="0" cy="0" r="14" fill="none" stroke="#0f172a" stroke-width="1.5" stroke-dasharray="3,3"/>
+      <path d="M 0 0 L -7 -9 L -44 -9 A 14 14 0 0 1 -44 -37 L 44 -37 A 14 14 0 0 1 44 -9 L 7 -9 Z" fill="#0f172a" stroke="#ffffff" stroke-width="2"/>
+      <text x="0" y="-19" text-anchor="middle" class="wf-price" font-size="13" fill="#ffffff">★ ₱2,500/mo</text>
+      <!-- Small Pin Tag -->
+      <rect x="-30" y="-50" width="60" height="14" rx="2" fill="#ffffff" stroke="#0f172a" stroke-width="1"/>
+      <text x="0" y="-40" text-anchor="middle" class="wf-title" font-size="8">ST. JUDE DORM</text>
+    </g>
+
+    <!-- Active Pin Linking Leader Line to Card 1 -->
+    <path d="M 434 235 L 530 235 Q 560 235 580 280 T 636 540 L 680 540" fill="none" stroke="#0f172a" stroke-width="1.8" stroke-dasharray="4,4"/>
+    <circle cx="434" cy="235" r="3.5" fill="#0f172a"/>
+
+    <!-- ========================================== -->
+    <!-- 4. FLOATING LEFT PANEL (410px Google Maps) -->
+    <!-- ========================================== -->
+    <g transform="translate(24, 20)" filter="url(#wireframe-shadow)">
+      <!-- Main Panel Card Container -->
+      <rect x="0" y="0" width="410" height="830" rx="12" fill="#ffffff" stroke="#1e293b" stroke-width="2"/>
+
+      <!-- A. Integrated Search Bar -->
+      <g transform="translate(16, 16)">
+        <rect x="0" y="0" width="378" height="46" rx="8" fill="#f8fafc" stroke="#334155" stroke-width="1.5"/>
+        <text x="14" y="28" font-family="sans-serif" font-size="14" fill="#475569">🔍</text>
+        <text x="40" y="28" class="wf-bold" font-size="12" fill="#0f172a">CIT-U, N. Bacalso Ave, Cebu City</text>
+        <!-- Clear (X) Button -->
+        <circle cx="330" cy="23" r="9" fill="#e2e8f0"/>
+        <text x="330" y="27" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="700" fill="#475569">×</text>
+        <!-- Voice/Search Action Trigger -->
+        <rect x="346" y="10" width="24" height="26" rx="4" fill="#0f172a"/>
+        <path d="M 353 23 L 361 23 M 358 19 L 362 23 L 358 27" fill="none" stroke="#ffffff" stroke-width="1.5"/>
+      </g>
+
+      <!-- B. Category Filter Pill Row -->
+      <g transform="translate(16, 74)">
+        <!-- Active Pill: All -->
+        <rect x="0" y="0" width="62" height="28" rx="14" fill="#0f172a"/>
+        <text x="31" y="18" text-anchor="middle" class="wf-title" font-size="10.5" fill="#ffffff">All (48)</text>
+
+        <!-- Pill: Bedspace -->
+        <rect x="68" y="0" width="76" height="28" rx="14" fill="#ffffff" stroke="#64748b" stroke-width="1.4"/>
+        <text x="106" y="18" text-anchor="middle" class="wf-title" font-size="10.5">Bedspace</text>
+
+        <!-- Pill: Studio -->
+        <rect x="150" y="0" width="64" height="28" rx="14" fill="#ffffff" stroke="#64748b" stroke-width="1.4"/>
+        <text x="182" y="18" text-anchor="middle" class="wf-title" font-size="10.5">Studio</text>
+
+        <!-- Pill: < P3k -->
+        <rect x="220" y="0" width="70" height="28" rx="14" fill="#ffffff" stroke="#64748b" stroke-width="1.4"/>
+        <text x="255" y="18" text-anchor="middle" class="wf-title" font-size="10.5">&lt; ₱3k</text>
+
+        <!-- Pill: More Filters -->
+        <rect x="296" y="0" width="82" height="28" rx="14" fill="#f1f5f9" stroke="#334155" stroke-width="1.4"/>
+        <text x="337" y="18" text-anchor="middle" class="wf-title" font-size="10.5">⚙ Filters (2)</text>
+      </g>
+
+      <!-- Results Subheader & Sort -->
+      <line x1="16" y1="112" x2="394" y2="112" stroke="#e2e8f0" stroke-width="1"/>
+      <text x="16" y="128" class="wf-bold" font-size="11" fill="#475569">48 VERIFIED RENTALS NEAR CIT-U</text>
+      <text x="394" y="128" text-anchor="end" class="wf-mono" font-size="10.5" font-weight="700" fill="#0f172a">Sort: Nearest ▾</text>
+
+      <!-- ========================================== -->
+      <!-- LISTING CARDS FEED (WITH [X] PLACEHOLDERS) -->
+      <!-- ========================================== -->
+
+      <!-- CARD 1: ACTIVE / HIGHLIGHTED ITEM -->
+      <g transform="translate(16, 140)">
+        <!-- Highlight Card Border -->
+        <rect x="0" y="0" width="378" height="200" rx="8" fill="#ffffff" stroke="#0f172a" stroke-width="2"/>
+        <rect x="0" y="0" width="6" height="200" rx="2" fill="#0f172a"/>
+
+        <!-- Universal Wireframe Image Placeholder [X] (120 x 96) -->
+        <g transform="translate(14, 14)">
+          <rect x="0" y="0" width="124" height="96" rx="4" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1.5"/>
+          <!-- Diagonal X Crossing Lines -->
+          <line x1="0" y1="0" x2="124" y2="96" stroke="#94a3b8" stroke-width="1.2"/>
+          <line x1="124" y1="0" x2="0" y2="96" stroke="#94a3b8" stroke-width="1.2"/>
+          <!-- Image Badge -->
+          <rect x="6" y="74" width="76" height="16" rx="2" fill="#0f172a" opacity="0.85"/>
+          <text x="44" y="85" text-anchor="middle" class="wf-callout" font-size="8.5">📷 1/8 PHOTOS</text>
+        </g>
+
+        <!-- Information Column -->
+        <g transform="translate(148, 16)">
+          <!-- Category & Verified Tag -->
+          <rect x="0" y="0" width="66" height="18" rx="3" fill="#f1f5f9" stroke="#64748b" stroke-width="1"/>
+          <text x="33" y="12" text-anchor="middle" class="wf-title" font-size="8.5">BEDSPACE</text>
+
+          <rect x="72" y="0" width="86" height="18" rx="3" fill="#ffffff" stroke="#0f172a" stroke-width="1.2"/>
+          <text x="115" y="12" text-anchor="middle" class="wf-title" font-size="8.5">✓ VERIFIED</text>
+
+          <!-- Property Title -->
+          <text x="0" y="36" class="wf-bold" font-size="12">St. Jude Dorm — Male Bedspace</text>
+          
+          <!-- Distance Proximity -->
+          <text x="0" y="52" class="wf-text" font-size="10.5">📍 350m from CIT-U Main Gate (4 min)</text>
+          
+          <!-- Amenities Chips -->
+          <g transform="translate(0, 60)">
+            <rect x="0" y="0" width="62" height="16" rx="2" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1"/>
+            <text x="31" y="11" text-anchor="middle" class="wf-mono" font-size="8">Free Wi-Fi</text>
+
+            <rect x="66" y="0" width="72" height="16" rx="2" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1"/>
+            <text x="102" y="11" text-anchor="middle" class="wf-mono" font-size="8">Own Submeter</text>
+          </g>
+
+          <!-- Price & Deposit -->
+          <text x="0" y="94" class="wf-price" font-size="15">₱2,500 <tspan font-size="10" font-family="sans-serif" font-weight="normal" fill="#64748b">/ month</tspan></text>
+          <text x="120" y="94" class="wf-mono" font-size="9" fill="#64748b">1 mo. deposit</text>
+        </g>
+
+        <!-- Card Action Buttons -->
+        <g transform="translate(14, 150)">
+          <!-- Primary CTA -->
+          <rect x="0" y="0" width="260" height="34" rx="4" fill="#0f172a"/>
+          <text x="130" y="21" text-anchor="middle" class="wf-title" font-size="11" fill="#ffffff">VIEW DETAILS &amp; CONTACT LANDLORD</text>
+
+          <!-- Save / Favorite Outline Button -->
+          <rect x="270" y="0" width="80" height="34" rx="4" fill="#ffffff" stroke="#64748b" stroke-width="1.5"/>
+          <text x="310" y="21" text-anchor="middle" class="wf-title" font-size="11">♡ SAVE</text>
+        </g>
+      </g>
+
+      <!-- CARD 2: STANDARD ITEM -->
+      <g transform="translate(16, 354)">
+        <rect x="0" y="0" width="378" height="186" rx="8" fill="#ffffff" stroke="#94a3b8" stroke-width="1.5"/>
+
+        <!-- Universal Wireframe Image Placeholder [X] -->
+        <g transform="translate(14, 14)">
+          <rect x="0" y="0" width="124" height="96" rx="4" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5"/>
+          <line x1="0" y1="0" x2="124" y2="96" stroke="#94a3b8" stroke-width="1.2"/>
+          <line x1="124" y1="0" x2="0" y2="96" stroke="#94a3b8" stroke-width="1.2"/>
+          <rect x="6" y="74" width="76" height="16" rx="2" fill="#0f172a" opacity="0.85"/>
+          <text x="44" y="85" text-anchor="middle" class="wf-callout" font-size="8.5">📷 1/12 PHOTOS</text>
+        </g>
+
+        <!-- Information Column -->
+        <g transform="translate(148, 16)">
+          <rect x="0" y="0" width="58" height="18" rx="3" fill="#f1f5f9" stroke="#64748b" stroke-width="1"/>
+          <text x="29" y="12" text-anchor="middle" class="wf-title" font-size="8.5">STUDIO</text>
+
+          <rect x="64" y="0" width="86" height="18" rx="3" fill="#ffffff" stroke="#0f172a" stroke-width="1.2"/>
+          <text x="107" y="12" text-anchor="middle" class="wf-title" font-size="8.5">✓ VERIFIED</text>
+
+          <text x="0" y="36" class="wf-bold" font-size="12">Park Vista Studio Unit 2A</text>
+          <text x="0" y="52" class="wf-text" font-size="10.5">📍 800m from CIT-U · Near South Bus</text>
+
+          <g transform="translate(0, 60)">
+            <rect x="0" y="0" width="74" height="16" rx="2" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1"/>
+            <text x="37" y="11" text-anchor="middle" class="wf-mono" font-size="8">Air-Conditioned</text>
+
+            <rect x="78" y="0" width="60" height="16" rx="2" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1"/>
+            <text x="108" y="11" text-anchor="middle" class="wf-mono" font-size="8">Private Bath</text>
+          </g>
+
+          <text x="0" y="94" class="wf-price" font-size="15">₱4,800 <tspan font-size="10" font-family="sans-serif" font-weight="normal" fill="#64748b">/ month</tspan></text>
+        </g>
+
+        <!-- Card Action Buttons -->
+        <g transform="translate(14, 138)">
+          <rect x="0" y="0" width="260" height="34" rx="4" fill="#ffffff" stroke="#0f172a" stroke-width="1.5"/>
+          <text x="130" y="21" text-anchor="middle" class="wf-title" font-size="11">VIEW DETAILS &amp; CONTACT</text>
+
+          <rect x="270" y="0" width="80" height="34" rx="4" fill="#ffffff" stroke="#64748b" stroke-width="1.5"/>
+          <text x="310" y="21" text-anchor="middle" class="wf-title" font-size="11">♡ SAVE</text>
+        </g>
+      </g>
+
+      <!-- CARD 3: PARTIALLY CLIPPED SCROLLABLE ITEM -->
+      <g transform="translate(16, 552)">
+        <rect x="0" y="0" width="378" height="140" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="4,3"/>
+        <g transform="translate(14, 14)">
+          <rect x="0" y="0" width="124" height="96" rx="4" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
+          <line x1="0" y1="0" x2="124" y2="96" stroke="#cbd5e1" stroke-width="1"/>
+          <line x1="124" y1="0" x2="0" y2="96" stroke="#cbd5e1" stroke-width="1"/>
+        </g>
+        <g transform="translate(148, 16)">
+          <text x="0" y="20" class="wf-bold" font-size="12">Urgello Cozy Male Bedspace</text>
+          <text x="0" y="38" class="wf-text" font-size="10.5">📍 1.2km from CIT-U · Urgello St</text>
+          <text x="0" y="68" class="wf-price" font-size="15">₱1,800 <tspan font-size="10" font-family="sans-serif" font-weight="normal" fill="#64748b">/ month</tspan></text>
+        </g>
+      </g>
+
+      <!-- Footer / Pagination Indicator -->
+      <g transform="translate(16, 788)">
+        <line x1="0" y1="0" x2="378" y2="0" stroke="#e2e8f0" stroke-width="1"/>
+        <text x="189" y="24" text-anchor="middle" class="wf-mono" font-size="10" fill="#64748b">Showing 1-10 of 48 listings · Scroll for more ▼</text>
+      </g>
+    </g>
+
+    <!-- C. COLLAPSIBLE PANEL CHEVRON TOGGLE (< BUTTON) -->
+    <g transform="translate(434, 40)" filter="url(#pin-shadow)">
+      <rect x="0" y="0" width="28" height="54" rx="6" fill="#ffffff" stroke="#1e293b" stroke-width="1.8"/>
+      <path d="M 18 20 L 10 27 L 18 34" fill="none" stroke="#0f172a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <!-- Dimension Callout Label -->
+      <rect x="34" y="16" width="94" height="22" rx="3" fill="#0f172a"/>
+      <text x="81" y="30" text-anchor="middle" class="wf-callout" font-size="9">COLLAPSE (Esc)</text>
+    </g>
+
+    <!-- ========================================== -->
+    <!-- 5. FLOATING MAP OVERLAY CONTROLS (HUD)     -->
+    <!-- ========================================== -->
+    <!-- Top Center: "Search This Area" Floating Pill -->
+    <g transform="translate(740, 24)" filter="url(#wireframe-shadow)">
+      <rect x="0" y="0" width="180" height="38" rx="19" fill="#ffffff" stroke="#1e293b" stroke-width="1.8"/>
+      <text x="24" y="23" font-family="sans-serif" font-size="13" fill="#0f172a">↻</text>
+      <text x="44" y="23" class="wf-title" font-size="11">SEARCH THIS AREA</text>
+    </g>
+
+    <!-- Top Right: "Ask AbangCebu AI" Assistant Button -->
+    <g transform="translate(1210, 24)" filter="url(#wireframe-shadow)">
+      <rect x="0" y="0" width="206" height="42" rx="21" fill="#0f172a" stroke="#ffffff" stroke-width="1.5"/>
+      <text x="22" y="26" font-family="sans-serif" font-size="13" fill="#ffffff">✦</text>
+      <text x="42" y="26" class="wf-title" font-size="11" fill="#ffffff">ASK ABANGCEBU AI</text>
+      <!-- Keyboard Shortcut Badge -->
+      <rect x="156" y="11" width="36" height="20" rx="4" fill="#334155"/>
+      <text x="174" y="25" text-anchor="middle" class="wf-mono" font-size="9.5" font-weight="700" fill="#ffffff">⌘K</text>
+    </g>
+
+    <!-- Bottom Right Floating Navigation HUD Stack -->
+    <g transform="translate(1368, 620)" filter="url(#wireframe-shadow)">
+      <!-- Recenter Cebu Button -->
+      <g transform="translate(0, 0)">
+        <rect x="0" y="0" width="46" height="46" rx="8" fill="#ffffff" stroke="#1e293b" stroke-width="1.8"/>
+        <text x="23" y="22" text-anchor="middle" font-family="sans-serif" font-size="13" fill="#0f172a">⟲</text>
+        <text x="23" y="36" text-anchor="middle" class="wf-mono" font-size="7.5" font-weight="800">CEBU</text>
+      </g>
+
+      <!-- Zoom Stack (+ / -) -->
+      <g transform="translate(0, 56)">
+        <rect x="0" y="0" width="46" height="92" rx="8" fill="#ffffff" stroke="#1e293b" stroke-width="1.8"/>
+        <line x1="0" y1="46" x2="46" y2="46" stroke="#cbd5e1" stroke-width="1.2"/>
+        <text x="23" y="29" text-anchor="middle" font-family="sans-serif" font-size="18" font-weight="bold" fill="#0f172a">+</text>
+        <text x="23" y="75" text-anchor="middle" font-family="sans-serif" font-size="20" font-weight="bold" fill="#0f172a">−</text>
+      </g>
+
+      <!-- Geolocation "Locate Me" Button -->
+      <g transform="translate(0, 158)">
+        <rect x="0" y="0" width="46" height="46" rx="23" fill="#ffffff" stroke="#1e293b" stroke-width="2"/>
+        <circle cx="23" cy="23" r="8" fill="none" stroke="#0f172a" stroke-width="2"/>
+        <circle cx="23" cy="23" r="3" fill="#0f172a"/>
+        <line x1="23" y1="9" x2="23" y2="13" stroke="#0f172a" stroke-width="2"/>
+        <line x1="23" y1="33" x2="23" y2="37" stroke="#0f172a" stroke-width="2"/>
+        <line x1="9" y1="23" x2="13" y2="23" stroke="#0f172a" stroke-width="2"/>
+        <line x1="33" y1="23" x2="37" y2="23" stroke="#0f172a" stroke-width="2"/>
+      </g>
+    </g>
+
+    <!-- ========================================== -->
+    <!-- 6. NUMBERED WIREFRAME ANNOTATION CALLOUTS  -->
+    <!-- ========================================== -->
+    <!-- Callout 1: Browser Omnibox URL -->
+    <g transform="translate(480, -22)">
+      <circle cx="0" cy="0" r="11" fill="#dc2626"/>
+      <text x="0" y="4" text-anchor="middle" class="wf-callout">1</text>
+    </g>
+
+    <!-- Callout 2: Floating 410px Search & Filter Card -->
+    <g transform="translate(24, 8)">
+      <circle cx="0" cy="0" r="11" fill="#dc2626"/>
+      <text x="0" y="4" text-anchor="middle" class="wf-callout">2</text>
+      <!-- Dimension Red Bracket -->
+      <line x1="4" y1="-8" x2="410" y2="-8" stroke="#dc2626" stroke-width="1.5"/>
+      <line x1="4" y1="-12" x2="4" y2="-4" stroke="#dc2626" stroke-width="1.5"/>
+      <line x1="410" y1="-12" x2="410" y2="-4" stroke="#dc2626" stroke-width="1.5"/>
+      <rect x="175" y="-19" width="64" height="14" rx="2" fill="#ffffff" stroke="#dc2626" stroke-width="1"/>
+      <text x="207" y="-9" text-anchor="middle" class="wf-dim">w: 410px</text>
+    </g>
+
+    <!-- Callout 3: Crossed [X] Universal Wireframe Image Placeholder -->
+    <g transform="translate(40, 150)">
+      <circle cx="0" cy="0" r="11" fill="#dc2626"/>
+      <text x="0" y="4" text-anchor="middle" class="wf-callout">3</text>
+    </g>
+
+    <!-- Callout 4: Collapsible Panel Toggle Button -->
+    <g transform="translate(448, 28)">
+      <circle cx="0" cy="0" r="11" fill="#dc2626"/>
+      <text x="0" y="4" text-anchor="middle" class="wf-callout">4</text>
+    </g>
+
+    <!-- Callout 5: Optical Centering Offset (+432px padding) -->
+    <g transform="translate(480, 840)">
+      <!-- Dimension Line across visible canvas -->
+      <line x1="0" y1="0" x2="880" y2="0" stroke="#dc2626" stroke-width="1.5" stroke-dasharray="4,4"/>
+      <line x1="0" y1="-6" x2="0" y2="6" stroke="#dc2626" stroke-width="1.5"/>
+      <line x1="880" y1="-6" x2="880" y2="6" stroke="#dc2626" stroke-width="1.5"/>
+      <rect x="360" y="-12" width="220" height="20" rx="3" fill="#ffffff" stroke="#dc2626" stroke-width="1.2"/>
+      <text x="470" y="2" text-anchor="middle" class="wf-dim">OPTICAL MAP CANVAS MIDPOINT (~928px)</text>
+      <!-- Badge 5 -->
+      <circle cx="344" cy="-2" r="11" fill="#dc2626"/>
+      <text x="344" y="2" text-anchor="middle" class="wf-callout">5</text>
+    </g>
+
+    <!-- Callout 6: Dynamic Price Pins with Hover Sync -->
+    <g transform="translate(680, 508)">
+      <circle cx="0" cy="0" r="11" fill="#dc2626"/>
+      <text x="0" y="4" text-anchor="middle" class="wf-callout">6</text>
+    </g>
+
+    <!-- Callout 7: Floating HUD Controls & AI Finder -->
+    <g transform="translate(1368, 608)">
+      <circle cx="0" cy="0" r="11" fill="#dc2626"/>
+      <text x="0" y="4" text-anchor="middle" class="wf-callout">7</text>
     </g>
   </g>
 </svg>
