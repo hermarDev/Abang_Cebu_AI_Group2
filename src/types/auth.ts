@@ -386,10 +386,37 @@ export enum AuthErrorCode {
   PASSWORDS_DO_NOT_MATCH = 'AUTH_PASSWORDS_DO_NOT_MATCH',
   PASSWORD_RESET_RATE_LIMIT = 'AUTH_PASSWORD_RESET_RATE_LIMIT',
 
+  // Edge Cases & Infrastructure Failures (SCRUM-60)
+  NETWORK_OFFLINE = 'AUTH_NETWORK_OFFLINE',
+  CSRF_VALIDATION_FAILED = 'AUTH_CSRF_VALIDATION_FAILED',
+  OPEN_REDIRECT_BLOCKED = 'AUTH_OPEN_REDIRECT_BLOCKED',
+  STALE_TAB_DETECTED = 'AUTH_STALE_TAB_DETECTED',
+
   // Internal & Infrastructure (500)
   INTERNAL_AUTH_ERROR = 'INTERNAL_AUTH_ERROR',
   DATABASE_TRIGGER_ERROR = 'DATABASE_TRIGGER_ERROR',
 }
+
+/**
+ * UI presentation and feedback modes for client-side error handling (SCRUM-60).
+ */
+export type ErrorFeedbackMode = 'inline' | 'toast' | 'banner' | 'modal' | 'boundary';
+
+/**
+ * Severity classification for authentication errors.
+ */
+export type ErrorSeverity = 'info' | 'warning' | 'error' | 'critical';
+
+/**
+ * Recommended client-side recovery action hint.
+ */
+export type AuthRecoveryAction =
+  | 'RETRY'
+  | 'RESET_PASSWORD'
+  | 'RESEND_EMAIL'
+  | 'CONTACT_SUPPORT'
+  | 'LOGIN'
+  | 'REFRESH_PAGE';
 
 /**
  * Detailed error descriptor for specific form fields.
@@ -404,15 +431,35 @@ export interface AuthFieldError {
 }
 
 /**
+ * Standardized error structure for authentication failures across AbangCebu AI (SCRUM-60).
+ */
+export interface StandardAuthError {
+  /** Unique machine-readable error code */
+  code: AuthErrorCode;
+  /** Safe, localized user-facing message */
+  message: string;
+  /** HTTP status code */
+  status?: number;
+  /** UI presentation feedback mode */
+  feedbackMode?: ErrorFeedbackMode;
+  /** Severity level */
+  severity?: ErrorSeverity;
+  /** Field-specific error details (if form validation error) */
+  details?: AuthFieldError[];
+  /** Unique request trace/correlation ID for production debugging */
+  traceId?: string;
+  /** Timestamp when error occurred (ISO 8601) */
+  timestamp?: string;
+  /** Recommended client-side recovery action hint */
+  actionHint?: AuthRecoveryAction;
+}
+
+/**
  * Standardized error response contract.
  */
 export interface AuthErrorResponse {
   success: false;
-  error: {
-    code: AuthErrorCode;
-    message: string;
-    details?: AuthFieldError[];
-  };
+  error: StandardAuthError;
 }
 
 /**
@@ -425,6 +472,30 @@ export type AuthResponse<T = RegisteredUserSummary> =
       message: string;
     }
   | AuthErrorResponse;
+
+/**
+ * Creates a standardized AuthErrorResponse with defaults.
+ */
+export function createAuthError(
+  code: AuthErrorCode,
+  message: string,
+  options?: Partial<Omit<StandardAuthError, 'code' | 'message'>>
+): AuthErrorResponse {
+  return {
+    success: false,
+    error: {
+      code,
+      message,
+      status: options?.status ?? 400,
+      feedbackMode: options?.feedbackMode ?? 'toast',
+      severity: options?.severity ?? 'error',
+      details: options?.details,
+      traceId: options?.traceId,
+      timestamp: options?.timestamp ?? new Date().toISOString(),
+      actionHint: options?.actionHint,
+    },
+  };
+}
 
 // ==============================================================================
 // 4. Registration Validation Rules & Policies
