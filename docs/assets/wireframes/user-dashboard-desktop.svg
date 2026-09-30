@@ -1,0 +1,602 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1680 1080" width="100%" height="100%">
+  <defs>
+    <!-- Chassis Shadows -->
+    <filter id="macbook-shadow" x="-5%" y="-5%" width="110%" height="115%">
+      <feDropShadow dx="0" dy="24" stdDeviation="30" flood-color="#0f172a" flood-opacity="0.28"/>
+    </filter>
+    <filter id="card-shadow" x="-5%" y="-5%" width="110%" height="110%">
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#0f172a" flood-opacity="0.08"/>
+    </filter>
+    <filter id="badge-shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#0f172a" flood-opacity="0.14"/>
+    </filter>
+    <filter id="pop-shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="6" stdDeviation="12" flood-color="#0f172a" flood-opacity="0.12"/>
+    </filter>
+
+    <!-- Thumbnail Crosshatch Pattern -->
+    <pattern id="wf-crosshatch" width="12" height="12" patternUnits="userSpaceOnUse">
+      <path d="M 0,12 L 12,0 M 0,0 L 12,12" stroke="#cbd5e1" stroke-width="0.8"/>
+    </pattern>
+  </defs>
+
+  <style>
+    .font-sans { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif; }
+    .font-mono { font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace; }
+  </style>
+
+  <!-- Blueprint Canvas Background -->
+  <rect width="1680" height="1080" fill="#f1f5f9"/>
+
+  <!-- Top Technical Header Bar -->
+  <g transform="translate(100, 24)">
+    <text x="0" y="0" class="font-sans" font-size="16" font-weight="800" fill="#0f172a" letter-spacing="0.5px">ABANGCEBU AI — USER DASHBOARD WIREFRAME SPECIFICATION (1440px × 900px)</text>
+    <text x="0" y="16" class="font-sans" font-size="10.5" font-weight="600" fill="#475569">Sprint 1 SCRUM-67 · Dual-View Dashboard Architecture (/dashboard/renter &amp; /dashboard/landlord) · MacBook Air 16:10 Frame</text>
+  </g>
+
+  <!-- ========================================================================= -->
+  <!-- 1. MACBOOK AIR CHASSIS (1480x950 Outer, 1440x900 Screen, 16:10 Ratio)     -->
+  <!-- ========================================================================= -->
+  <g transform="translate(100, 54)" filter="url(#macbook-shadow)">
+    <!-- Aluminum Outer Lid -->
+    <rect x="-20" y="-20" width="1480" height="950" rx="24" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/>
+    
+    <!-- Inner Bezel (Matte Black) -->
+    <rect x="-10" y="-10" width="1460" height="930" rx="14" fill="#0f172a"/>
+
+    <!-- Active Display Viewport (1440 x 900) -->
+    <rect x="0" y="0" width="1440" height="900" rx="8" fill="#f8fafc"/>
+
+    <!-- FaceTime Camera Notch -->
+    <path d="M 640 0 L 640 14 Q 640 20 646 20 L 794 20 Q 800 20 800 14 L 800 0 Z" fill="#0f172a"/>
+    <circle cx="720" cy="10" r="3.5" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+    <circle cx="734" cy="10" r="1.2" fill="#22c55e"/>
+
+    <!-- MacBook Aluminum Hinge & Opening Lip -->
+    <path d="M -60 930 L 1500 930 L 1520 946 L -80 946 Z" fill="#cbd5e1" stroke="#94a3b8" stroke-width="1.5"/>
+    <rect x="660" y="930" width="120" height="6" rx="3" fill="#94a3b8"/>
+
+    <!-- ========================================================================= -->
+    <!-- 2. FIXED SIDEBAR NAVIGATION (260px Fixed Dark Panel, x:0 to x:260)        -->
+    <!-- ========================================================================= -->
+    <g transform="translate(0, 0)">
+      <!-- Sidebar Background -->
+      <rect x="0" y="0" width="260" height="900" fill="#0f172a"/>
+      <line x1="260" y1="0" x2="260" y2="900" stroke="#1e293b" stroke-width="1.5"/>
+
+      <!-- ① Brand Logotype & Compass Crest -->
+      <g transform="translate(20, 24)">
+        <!-- Compass Crest Icon -->
+        <rect x="0" y="0" width="34" height="34" rx="8" fill="#047857"/>
+        <path d="M 17 6 L 21 14 L 29 17 L 21 20 L 17 28 L 13 20 L 5 17 L 13 14 Z" fill="#ffffff"/>
+        <!-- Brand Title -->
+        <text x="44" y="16" class="font-sans" font-size="14.5" font-weight="800" fill="#ffffff" letter-spacing="0.4px">ABANGCEBU AI</text>
+        <text x="44" y="30" class="font-sans" font-size="8.5" font-weight="600" fill="#94a3b8">Rental Intelligence Platform</text>
+      </g>
+
+      <!-- ② User Profile Pill & KYC Trust Badge -->
+      <g transform="translate(16, 76)">
+        <rect x="0" y="0" width="228" height="62" rx="8" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+        <!-- Avatar Circle -->
+        <circle cx="28" cy="31" r="17" fill="#047857"/>
+        <text x="28" y="35" text-anchor="middle" class="font-sans" font-size="11" font-weight="800" fill="#ffffff">MS</text>
+        <!-- User Details -->
+        <text x="54" y="24" class="font-sans" font-size="11.5" font-weight="700" fill="#ffffff">Mikaela Santos</text>
+        <text x="54" y="38" class="font-sans" font-size="8.5" font-weight="500" fill="#94a3b8">CIT-U Engineering · Seeker</text>
+        <!-- KYC Trust Pill -->
+        <rect x="54" y="44" width="76" height="13" rx="3" fill="#ecfdf5" stroke="#86efac" stroke-width="0.7"/>
+        <text x="92" y="53" text-anchor="middle" class="font-sans" font-size="7.2" font-weight="700" fill="#047857">✓ KYC Verified</text>
+      </g>
+
+      <!-- Navigation Section Label -->
+      <text x="22" y="162" class="font-sans" font-size="8.5" font-weight="700" fill="#64748b" letter-spacing="0.8px">CORE NAVIGATION</text>
+
+      <!-- Navigation Items Stack -->
+      <g transform="translate(16, 172)">
+        <!-- Nav Item 1: Overview (Active) -->
+        <g transform="translate(0, 0)">
+          <rect x="0" y="0" width="228" height="38" rx="6" fill="#1e293b"/>
+          <rect x="0" y="6" width="3.5" height="26" rx="1.5" fill="#047857"/>
+          <text x="18" y="24" class="font-sans" font-size="14">📊</text>
+          <text x="44" y="24" class="font-sans" font-size="11.5" font-weight="700" fill="#ffffff">Dashboard Overview</text>
+        </g>
+
+        <!-- Nav Item 2: Saved Rentals -->
+        <g transform="translate(0, 44)">
+          <rect x="0" y="0" width="228" height="38" rx="6" fill="transparent"/>
+          <text x="18" y="24" class="font-sans" font-size="14">❤️</text>
+          <text x="44" y="24" class="font-sans" font-size="11.5" font-weight="600" fill="#cbd5e1">Saved Rentals</text>
+          <rect x="194" y="10" width="22" height="18" rx="9" fill="#334155"/>
+          <text x="205" y="23" text-anchor="middle" class="font-sans" font-size="9" font-weight="700" fill="#ffffff">8</text>
+        </g>
+
+        <!-- Nav Item 3: Inquiries & Tours -->
+        <g transform="translate(0, 88)">
+          <rect x="0" y="0" width="228" height="38" rx="6" fill="transparent"/>
+          <text x="18" y="24" class="font-sans" font-size="14">💬</text>
+          <text x="44" y="24" class="font-sans" font-size="11.5" font-weight="600" fill="#cbd5e1">Inquiries &amp; Tours</text>
+          <rect x="194" y="10" width="22" height="18" rx="9" fill="#047857"/>
+          <text x="205" y="23" text-anchor="middle" class="font-sans" font-size="9" font-weight="700" fill="#ffffff">3</text>
+        </g>
+
+        <!-- Nav Item 4: My Property Units -->
+        <g transform="translate(0, 132)">
+          <rect x="0" y="0" width="228" height="38" rx="6" fill="transparent"/>
+          <text x="18" y="24" class="font-sans" font-size="14">🏠</text>
+          <text x="44" y="24" class="font-sans" font-size="11.5" font-weight="600" fill="#cbd5e1">My Listed Units</text>
+          <rect x="174" y="10" width="42" height="18" rx="9" fill="#334155"/>
+          <text x="195" y="23" text-anchor="middle" class="font-sans" font-size="8.5" font-weight="700" fill="#94a3b8">2 Units</text>
+        </g>
+
+        <!-- Nav Item 5: Map Explorer -->
+        <g transform="translate(0, 176)">
+          <rect x="0" y="0" width="228" height="38" rx="6" fill="transparent"/>
+          <text x="18" y="24" class="font-sans" font-size="14">🗺️</text>
+          <text x="44" y="24" class="font-sans" font-size="11.5" font-weight="600" fill="#cbd5e1">Metro Cebu Map</text>
+          <text x="186" y="23" class="font-mono" font-size="8.5" font-weight="600" fill="#64748b">[ESC]</text>
+        </g>
+      </g>
+
+      <!-- Section Divider -->
+      <line x1="20" y1="412" x2="240" y2="412" stroke="#1e293b" stroke-width="1"/>
+
+      <!-- Secondary Section Label -->
+      <text x="22" y="434" class="font-sans" font-size="8.5" font-weight="700" fill="#64748b" letter-spacing="0.8px">SECURITY &amp; SETTINGS</text>
+
+      <g transform="translate(16, 444)">
+        <!-- Identity & KYC Trust Center -->
+        <g transform="translate(0, 0)">
+          <rect x="0" y="0" width="228" height="36" rx="6" fill="transparent"/>
+          <text x="18" y="23" class="font-sans" font-size="13">🛡️</text>
+          <text x="44" y="23" class="font-sans" font-size="11" font-weight="600" fill="#cbd5e1">Identity &amp; KYC Center</text>
+        </g>
+        <!-- Account Settings -->
+        <g transform="translate(0, 40)">
+          <rect x="0" y="0" width="228" height="36" rx="6" fill="transparent"/>
+          <text x="18" y="23" class="font-sans" font-size="13">⚙️</text>
+          <text x="44" y="23" class="font-sans" font-size="11" font-weight="600" fill="#cbd5e1">Account Settings</text>
+        </g>
+      </g>
+
+      <!-- Dual Persona Workspace Switcher Card -->
+      <g transform="translate(16, 680)">
+        <rect x="0" y="0" width="228" height="82" rx="8" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+        <text x="14" y="20" class="font-sans" font-size="8.5" font-weight="700" fill="#94a3b8" letter-spacing="0.5px">ROLE WORKSPACE SWITCH</text>
+        <!-- Segmented Toggle -->
+        <rect x="12" y="28" width="204" height="28" rx="5" fill="#0f172a" stroke="#334155" stroke-width="1"/>
+        <rect x="14" y="30" width="98" height="24" rx="4" fill="#047857"/>
+        <text x="63" y="46" text-anchor="middle" class="font-sans" font-size="9" font-weight="700" fill="#ffffff">👤 Renter Mode</text>
+        <text x="162" y="46" text-anchor="middle" class="font-sans" font-size="9" font-weight="600" fill="#94a3b8">🏠 Landlord</text>
+        <text x="14" y="70" class="font-sans" font-size="7.5" font-weight="500" fill="#64748b">Switching view updates operational cards</text>
+      </g>
+
+      <!-- Bottom Log Out Action Button -->
+      <g transform="translate(16, 840)">
+        <rect x="0" y="0" width="228" height="40" rx="6" fill="#1e293b" stroke="#7f1d1d" stroke-width="0.8"/>
+        <text x="18" y="25" class="font-sans" font-size="13">🚪</text>
+        <text x="44" y="25" class="font-sans" font-size="11" font-weight="700" fill="#f87171">Sign Out [Esc + Q]</text>
+      </g>
+    </g>
+
+    <!-- ========================================================================= -->
+    <!-- 3. TOP WORKSPACE HEADER (1180px Wide, x:260 to x:1440, h:64px)            -->
+    <!-- ========================================================================= -->
+    <g transform="translate(260, 0)">
+      <rect x="0" y="0" width="1180" height="64" fill="#ffffff"/>
+      <line x1="0" y1="64" x2="1180" y2="64" stroke="#e2e8f0" stroke-width="1.5"/>
+
+      <!-- User Greeting & Spatial Context -->
+      <text x="32" y="28" class="font-sans" font-size="16" font-weight="800" fill="#0f172a">Maayong adlaw, Mikaela! 👋</text>
+      <text x="32" y="46" class="font-sans" font-size="10.5" font-weight="600" fill="#64748b">Active Search: CIT-U &amp; Punta Princesa Corridor · 8 Saved Units · 1 Upcoming Ocular</text>
+
+      <!-- Right Header Controls -->
+      <g transform="translate(680, 14)">
+        <!-- Quick Search Field -->
+        <rect x="0" y="0" width="210" height="36" rx="6" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1"/>
+        <text x="12" y="22" class="font-sans" font-size="10.5" fill="#94a3b8">🔍 Search properties or chats...</text>
+
+        <!-- View Segmented Switch -->
+        <g transform="translate(222, 0)">
+          <rect x="0" y="0" width="170" height="36" rx="6" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1"/>
+          <rect x="3" y="3" width="82" height="30" rx="4" fill="#ffffff" stroke="#047857" stroke-width="1.2"/>
+          <text x="44" y="22" text-anchor="middle" class="font-sans" font-size="9" font-weight="800" fill="#047857">👤 Renter</text>
+          <text x="127" y="22" text-anchor="middle" class="font-sans" font-size="9" font-weight="600" fill="#64748b">🏠 Landlord</text>
+        </g>
+
+        <!-- Notification Bell -->
+        <g transform="translate(404, 0)">
+          <rect x="0" y="0" width="36" height="36" rx="6" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1"/>
+          <text x="18" y="23" text-anchor="middle" class="font-sans" font-size="14">🔔</text>
+          <circle cx="28" cy="8" r="5" fill="#e11d48"/>
+          <text x="28" y="11" text-anchor="middle" class="font-sans" font-size="7" font-weight="800" fill="#ffffff">3</text>
+        </g>
+
+        <!-- Explore Map Primary Trigger -->
+        <g transform="translate(452, 0)">
+          <rect x="0" y="0" width="128" height="36" rx="6" fill="#047857"/>
+          <text x="64" y="22" text-anchor="middle" class="font-sans" font-size="10" font-weight="800" fill="#ffffff">🗺️ Return to Map</text>
+        </g>
+      </g>
+    </g>
+
+    <!-- ========================================================================= -->
+    <!-- 4. WORKSPACE BODY CANVAS (x:260 to x:1440, y:64 to y:900)                 -->
+    <!-- ========================================================================= -->
+
+    <!-- ④ Anti-Scam KYC Trust Verification Notice Banner -->
+    <g transform="translate(290, 80)">
+      <rect x="0" y="0" width="1120" height="42" rx="6" fill="#fffbeb" stroke="#fcd34d" stroke-width="1.2"/>
+      <text x="16" y="26" class="font-sans" font-size="14">⚠️</text>
+      <text x="38" y="22" class="font-sans" font-size="10" font-weight="700" fill="#92400e">ANTI-SCAM VERIFICATION:</text>
+      <text x="178" y="22" class="font-sans" font-size="10" font-weight="500" fill="#78350f">Your Landlord KYC is Pending Review. Submit valid Government ID to unlock the Verified Badge &amp; direct tenant chat.</text>
+      <text x="38" y="34" class="font-sans" font-size="8.5" font-weight="500" fill="#b45309">Renters: Verified landlords ensure accurate submeters, legitimate lease contracts, and zero fraud.</text>
+      <!-- Action CTA -->
+      <g transform="translate(970, 7)">
+        <rect x="0" y="0" width="138" height="28" rx="4" fill="#d97706"/>
+        <text x="69" y="18" text-anchor="middle" class="font-sans" font-size="9" font-weight="800" fill="#ffffff">Submit Documents →</text>
+      </g>
+    </g>
+
+    <!-- ③ 4 Metric Cards Row (w: 265px each, y: 134) -->
+    <g transform="translate(290, 134)">
+      <!-- Metric Card 1: Saved Listings -->
+      <g transform="translate(0, 0)">
+        <rect x="0" y="0" width="265" height="84" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1" filter="url(#card-shadow)"/>
+        <text x="16" y="24" class="font-sans" font-size="9" font-weight="700" fill="#64748b" letter-spacing="0.5px">SAVED PROPERTIES</text>
+        <text x="16" y="52" class="font-sans" font-size="22" font-weight="800" fill="#0f172a">8 Units</text>
+        <text x="16" y="70" class="font-sans" font-size="9" font-weight="600" fill="#047857">📈 +2 added this week</text>
+        <!-- Icon Bubble -->
+        <circle cx="228" cy="40" r="18" fill="#ecfdf5"/>
+        <text x="228" y="45" text-anchor="middle" class="font-sans" font-size="15">❤️</text>
+      </g>
+
+      <!-- Metric Card 2: Active Inquiries -->
+      <g transform="translate(285, 0)">
+        <rect x="0" y="0" width="265" height="84" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1" filter="url(#card-shadow)"/>
+        <text x="16" y="24" class="font-sans" font-size="9" font-weight="700" fill="#64748b" letter-spacing="0.5px">ACTIVE INQUIRIES</text>
+        <text x="16" y="52" class="font-sans" font-size="22" font-weight="800" fill="#0f172a">3 Ongoing</text>
+        <text x="16" y="70" class="font-sans" font-size="9" font-weight="600" fill="#0284c7">💬 1 landlord reply waiting</text>
+        <!-- Icon Bubble -->
+        <circle cx="228" cy="40" r="18" fill="#e0f2fe"/>
+        <text x="228" y="45" text-anchor="middle" class="font-sans" font-size="15">💬</text>
+      </g>
+
+      <!-- Metric Card 3: Scheduled Oculars -->
+      <g transform="translate(570, 0)">
+        <rect x="0" y="0" width="265" height="84" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1" filter="url(#card-shadow)"/>
+        <text x="16" y="24" class="font-sans" font-size="9" font-weight="700" fill="#64748b" letter-spacing="0.5px">SCHEDULED OCULARS</text>
+        <text x="16" y="52" class="font-sans" font-size="22" font-weight="800" fill="#0f172a">1 Upcoming</text>
+        <text x="16" y="70" class="font-sans" font-size="9" font-weight="600" fill="#d97706">📅 Sat, Oct 3 · 2:00 PM</text>
+        <!-- Icon Bubble -->
+        <circle cx="228" cy="40" r="18" fill="#fef3c7"/>
+        <text x="228" y="45" text-anchor="middle" class="font-sans" font-size="15">📅</text>
+      </g>
+
+      <!-- Metric Card 4: Commute Radar -->
+      <g transform="translate(855, 0)">
+        <rect x="0" y="0" width="265" height="84" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1" filter="url(#card-shadow)"/>
+        <text x="16" y="24" class="font-sans" font-size="9" font-weight="700" fill="#64748b" letter-spacing="0.5px">CIT-U COMMUTE RADAR</text>
+        <text x="16" y="52" class="font-sans" font-size="22" font-weight="800" fill="#0f172a">8 - 14 Mins</text>
+        <text x="16" y="70" class="font-sans" font-size="9" font-weight="600" fill="#475569">🚍 04L &amp; 17B Jeepneys</text>
+        <!-- Icon Bubble -->
+        <circle cx="228" cy="40" r="18" fill="#f1f5f9"/>
+        <text x="228" y="45" text-anchor="middle" class="font-sans" font-size="15">🧭</text>
+      </g>
+    </g>
+
+    <!-- ========================================================================= -->
+    <!-- 5. TWO-COLUMN OPERATIONAL WORKSPACE (y: 232 to y: 885)                    -->
+    <!-- ========================================================================= -->
+
+    <!-- LEFT COLUMN: 700px Wide (Saved Rentals Grid & Landlord Listings Preview) -->
+    <g transform="translate(290, 232)">
+      <!-- ⑤ Section Header: Saved Properties Matrix -->
+      <text x="0" y="16" class="font-sans" font-size="13" font-weight="800" fill="#0f172a">Saved Properties Near CIT-U &amp; Cebu IT Park (8)</text>
+      <text x="470" y="16" class="font-sans" font-size="10" font-weight="600" fill="#64748b">Sort: Distance to CIT-U ▾</text>
+      <line x1="0" y1="26" x2="695" y2="26" stroke="#e2e8f0" stroke-width="1"/>
+
+      <!-- Saved Rental Card 1 -->
+      <g transform="translate(0, 36)">
+        <rect x="0" y="0" width="695" height="154" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1" filter="url(#card-shadow)"/>
+        
+        <!-- Thumbnail Blueprint Placeholder -->
+        <rect x="12" y="12" width="160" height="130" rx="6" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1"/>
+        <rect x="12" y="12" width="160" height="130" rx="6" fill="url(#wf-crosshatch)"/>
+        <text x="92" y="80" text-anchor="middle" class="font-sans" font-size="9" font-weight="700" fill="#64748b">[Photo: Room Interior]</text>
+        <!-- Property Type Tag -->
+        <rect x="18" y="18" width="86" height="18" rx="4" fill="#0f172a"/>
+        <text x="61" y="30" text-anchor="middle" class="font-sans" font-size="7.5" font-weight="800" fill="#ffffff">BEDSPACE UNIT</text>
+
+        <!-- Listing Details -->
+        <g transform="translate(186, 14)">
+          <text x="0" y="16" class="font-sans" font-size="13" font-weight="800" fill="#0f172a">Green Dormitory Room 3A</text>
+          <text x="0" y="32" class="font-sans" font-size="9.5" font-weight="500" fill="#64748b">📍 N. Bacalso Ave, Punta Princesa, Cebu City (Near CIT-U)</text>
+          
+          <!-- Price & Submeter Row -->
+          <text x="0" y="56" class="font-sans" font-size="16" font-weight="800" fill="#047857">₱4,500 <tspan font-size="10" font-weight="500" fill="#64748b">/ month</tspan></text>
+          
+          <!-- ⑥ Feature Pills -->
+          <g transform="translate(130, 42)">
+            <rect x="0" y="0" width="94" height="18" rx="3" fill="#ecfdf5" stroke="#a7f3d0" stroke-width="0.8"/>
+            <text x="47" y="12" text-anchor="middle" class="font-sans" font-size="7.2" font-weight="700" fill="#047857">⚡ Own Electric Meter</text>
+
+            <rect x="100" y="0" width="88" height="18" rx="3" fill="#eff6ff" stroke="#bfdbfe" stroke-width="0.8"/>
+            <text x="144" y="12" text-anchor="middle" class="font-sans" font-size="7.2" font-weight="700" fill="#1d4ed8">💧 Water Submeter</text>
+
+            <rect x="194" y="0" width="92" height="18" rx="3" fill="#f8fafc" stroke="#cbd5e1" stroke-width="0.8"/>
+            <text x="240" y="12" text-anchor="middle" class="font-sans" font-size="7.2" font-weight="700" fill="#334155">🛡️ KYC Verified Host</text>
+          </g>
+
+          <!-- Commute Radar Info -->
+          <rect x="0" y="68" width="494" height="24" rx="4" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+          <text x="10" y="84" class="font-sans" font-size="8.8" font-weight="600" fill="#334155">🚶 8 min walk to CIT-U Main Gate (650m) · 🚍 04L / 17B Jeepney Corridors to Colon &amp; IT Park</text>
+
+          <!-- Action Buttons Bar -->
+          <g transform="translate(0, 102)">
+            <!-- Primary Action: Chat -->
+            <rect x="0" y="0" width="130" height="30" rx="4" fill="#047857"/>
+            <text x="65" y="19" text-anchor="middle" class="font-sans" font-size="9" font-weight="800" fill="#ffffff">💬 Message Landlord</text>
+
+            <!-- Secondary: Ocular -->
+            <rect x="138" y="0" width="130" height="30" rx="4" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+            <text x="203" y="19" text-anchor="middle" class="font-sans" font-size="9" font-weight="700" fill="#0f172a">📅 Schedule Ocular</text>
+
+            <!-- Unsave Heart Button -->
+            <rect x="276" y="0" width="80" height="30" rx="4" fill="#fff1f2" stroke="#fecdd3" stroke-width="1"/>
+            <text x="316" y="19" text-anchor="middle" class="font-sans" font-size="9" font-weight="700" fill="#e11d48">❤️ Saved</text>
+          </g>
+        </g>
+      </g>
+
+      <!-- Saved Rental Card 2 -->
+      <g transform="translate(0, 202)">
+        <rect x="0" y="0" width="695" height="154" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1" filter="url(#card-shadow)"/>
+        
+        <!-- Thumbnail Blueprint Placeholder -->
+        <rect x="12" y="12" width="160" height="130" rx="6" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1"/>
+        <rect x="12" y="12" width="160" height="130" rx="6" fill="url(#wf-crosshatch)"/>
+        <text x="92" y="80" text-anchor="middle" class="font-sans" font-size="9" font-weight="700" fill="#64748b">[Photo: Studio Interior]</text>
+        <rect x="18" y="18" width="76" height="18" rx="4" fill="#0f172a"/>
+        <text x="56" y="30" text-anchor="middle" class="font-sans" font-size="7.5" font-weight="800" fill="#ffffff">STUDIO UNIT</text>
+
+        <!-- Listing Details -->
+        <g transform="translate(186, 14)">
+          <text x="0" y="16" class="font-sans" font-size="13" font-weight="800" fill="#0f172a">Salinas Studio Pad — Salinas Dr, Lahug</text>
+          <text x="0" y="32" class="font-sans" font-size="9.5" font-weight="500" fill="#64748b">📍 Salinas Dr, Lahug, Cebu City (Near Cebu IT Park Gate 2)</text>
+          
+          <!-- Price & Submeter Row -->
+          <text x="0" y="56" class="font-sans" font-size="16" font-weight="800" fill="#047857">₱7,200 <tspan font-size="10" font-weight="500" fill="#64748b">/ month</tspan></text>
+          
+          <g transform="translate(130, 42)">
+            <rect x="0" y="0" width="94" height="18" rx="3" fill="#ecfdf5" stroke="#a7f3d0" stroke-width="0.8"/>
+            <text x="47" y="12" text-anchor="middle" class="font-sans" font-size="7.2" font-weight="700" fill="#047857">⚡ Own Electric Meter</text>
+
+            <rect x="100" y="0" width="88" height="18" rx="3" fill="#f5f3ff" stroke="#ddd6fe" stroke-width="0.8"/>
+            <text x="144" y="12" text-anchor="middle" class="font-sans" font-size="7.2" font-weight="700" fill="#6d28d9">📶 100Mbps Fiber</text>
+
+            <rect x="194" y="0" width="92" height="18" rx="3" fill="#f8fafc" stroke="#cbd5e1" stroke-width="0.8"/>
+            <text x="240" y="12" text-anchor="middle" class="font-sans" font-size="7.2" font-weight="700" fill="#334155">🛡️ KYC Verified Host</text>
+          </g>
+
+          <rect x="0" y="68" width="494" height="24" rx="4" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+          <text x="10" y="84" class="font-sans" font-size="8.8" font-weight="600" fill="#334155">🚍 12 min via 04L / 17B Jeepney to CIT-U · 🚶 4 min walk to JP Morgan / Cebu IT Park</text>
+
+          <g transform="translate(0, 102)">
+            <rect x="0" y="0" width="130" height="30" rx="4" fill="#047857"/>
+            <text x="65" y="19" text-anchor="middle" class="font-sans" font-size="9" font-weight="800" fill="#ffffff">💬 Message Landlord</text>
+
+            <rect x="138" y="0" width="130" height="30" rx="4" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+            <text x="203" y="19" text-anchor="middle" class="font-sans" font-size="9" font-weight="700" fill="#0f172a">📅 Schedule Ocular</text>
+
+            <rect x="276" y="0" width="80" height="30" rx="4" fill="#fff1f2" stroke="#fecdd3" stroke-width="1"/>
+            <text x="316" y="19" text-anchor="middle" class="font-sans" font-size="9" font-weight="700" fill="#e11d48">❤️ Saved</text>
+          </g>
+        </g>
+      </g>
+
+      <!-- ⑧ Landlord Operational Mode Preview (Active Units Management) -->
+      <g transform="translate(0, 372)">
+        <rect x="0" y="0" width="695" height="196" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1" filter="url(#card-shadow)"/>
+        
+        <!-- Header Bar -->
+        <rect x="0" y="0" width="695" height="38" rx="8" fill="#f8fafc"/>
+        <line x1="0" y1="38" x2="695" y2="38" stroke="#e2e8f0" stroke-width="1"/>
+        <text x="16" y="24" class="font-sans" font-size="11.5" font-weight="800" fill="#0f172a">🏠 Landlord Inventory Management: My Listed Units (2 Units Active)</text>
+        
+        <!-- Primary Action: + Add New Listing -->
+        <g transform="translate(540, 6)">
+          <rect x="0" y="0" width="144" height="26" rx="4" fill="#047857"/>
+          <text x="72" y="17" text-anchor="middle" class="font-sans" font-size="9" font-weight="800" fill="#ffffff">+ Add New Listing</text>
+        </g>
+
+        <!-- Units Table Rows -->
+        <!-- Row 1 -->
+        <g transform="translate(16, 50)">
+          <rect x="0" y="0" width="663" height="60" rx="6" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+          <!-- Thumbnail mini -->
+          <rect x="8" y="8" width="44" height="44" rx="4" fill="#e2e8f0"/>
+          <text x="30" y="34" text-anchor="middle" class="font-sans" font-size="8" fill="#64748b">PHOTO</text>
+          
+          <text x="64" y="24" class="font-sans" font-size="11" font-weight="800" fill="#0f172a">Salinas Dr Studio Unit #2B</text>
+          <text x="64" y="42" class="font-sans" font-size="9" font-weight="600" fill="#047857">₱6,500/mo · <tspan fill="#64748b">Lahug, Cebu City</tspan></text>
+
+          <!-- Occupancy Switch -->
+          <g transform="translate(290, 16)">
+            <rect x="0" y="0" width="80" height="26" rx="13" fill="#ecfdf5" stroke="#86efac" stroke-width="1"/>
+            <circle cx="16" cy="13" r="8" fill="#047857"/>
+            <text x="50" y="17" text-anchor="middle" class="font-sans" font-size="8" font-weight="800" fill="#047857">Occupied</text>
+          </g>
+
+          <!-- Inquiries Count -->
+          <text x="400" y="34" class="font-sans" font-size="9.5" font-weight="600" fill="#475569">📩 4 Applicants</text>
+
+          <!-- Action Buttons -->
+          <g transform="translate(500, 15)">
+            <rect x="0" y="0" width="70" height="28" rx="4" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+            <text x="35" y="18" text-anchor="middle" class="font-sans" font-size="8.5" font-weight="700" fill="#0f172a">Edit Unit</text>
+
+            <rect x="78" y="0" width="76" height="28" rx="4" fill="#0f172a"/>
+            <text x="116" y="18" text-anchor="middle" class="font-sans" font-size="8.5" font-weight="700" fill="#ffffff">Triage (4) →</text>
+          </g>
+        </g>
+
+        <!-- Row 2 -->
+        <g transform="translate(16, 120)">
+          <rect x="0" y="0" width="663" height="60" rx="6" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+          <rect x="8" y="8" width="44" height="44" rx="4" fill="#e2e8f0"/>
+          <text x="30" y="34" text-anchor="middle" class="font-sans" font-size="8" fill="#64748b">PHOTO</text>
+          
+          <text x="64" y="24" class="font-sans" font-size="11" font-weight="800" fill="#0f172a">Punta Princesa Boarding Bed #1A</text>
+          <text x="64" y="42" class="font-sans" font-size="9" font-weight="600" fill="#047857">₱3,800/mo · <tspan fill="#64748b">Punta Princesa (Near CIT-U)</tspan></text>
+
+          <!-- Vacant Switch -->
+          <g transform="translate(290, 16)">
+            <rect x="0" y="0" width="80" height="26" rx="13" fill="#fef2f2" stroke="#fecdd3" stroke-width="1"/>
+            <circle cx="64" cy="13" r="8" fill="#e11d48"/>
+            <text x="32" y="17" text-anchor="middle" class="font-sans" font-size="8" font-weight="800" fill="#e11d48">Vacant</text>
+          </g>
+
+          <text x="400" y="34" class="font-sans" font-size="9.5" font-weight="600" fill="#475569">📩 3 Applicants</text>
+
+          <g transform="translate(500, 15)">
+            <rect x="0" y="0" width="70" height="28" rx="4" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+            <text x="35" y="18" text-anchor="middle" class="font-sans" font-size="8.5" font-weight="700" fill="#0f172a">Edit Unit</text>
+
+            <rect x="78" y="0" width="76" height="28" rx="4" fill="#0f172a"/>
+            <text x="116" y="18" text-anchor="middle" class="font-sans" font-size="8.5" font-weight="700" fill="#ffffff">Triage (3) →</text>
+          </g>
+        </g>
+      </g>
+    </g>
+
+    <!-- RIGHT COLUMN: 405px Wide (⑦ Inquiries Feed & Recommendations) -->
+    <g transform="translate(1005, 232)">
+      <!-- Section Header -->
+      <text x="0" y="16" class="font-sans" font-size="13" font-weight="800" fill="#0f172a">Inquiries &amp; Tour Timeline (3)</text>
+      <line x1="0" y1="26" x2="405" y2="26" stroke="#e2e8f0" stroke-width="1"/>
+
+      <!-- Inquiries Timeline Container -->
+      <g transform="translate(0, 36)">
+        <rect x="0" y="0" width="405" height="320" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1" filter="url(#card-shadow)"/>
+
+        <!-- Feed Item 1: Confirmed Tour -->
+        <g transform="translate(14, 14)">
+          <rect x="0" y="0" width="377" height="140" rx="6" fill="#f0fdf4" stroke="#86efac" stroke-width="1"/>
+          <!-- Status Badge -->
+          <rect x="10" y="10" width="148" height="20" rx="4" fill="#047857"/>
+          <text x="84" y="24" text-anchor="middle" class="font-sans" font-size="8" font-weight="800" fill="#ffffff">✓ OCULAR TOUR CONFIRMED</text>
+          <text x="240" y="24" class="font-sans" font-size="8.5" font-weight="600" fill="#047857">Sat, Oct 3 · 2:00 PM</text>
+
+          <text x="10" y="48" class="font-sans" font-size="11.5" font-weight="800" fill="#0f172a">Green Dormitory Room 3A</text>
+          <text x="10" y="64" class="font-sans" font-size="9" font-weight="600" fill="#64748b">Host: Kuya Jun Abellanosa (KYC Verified)</text>
+          
+          <!-- Chat Snippet Box -->
+          <rect x="10" y="74" width="357" height="28" rx="4" fill="#ffffff" stroke="#bbf7d0" stroke-width="0.8"/>
+          <text x="18" y="92" class="font-sans" font-size="8.2" font-style="italic" fill="#334155">"Kuya Jun: Kitakits sa main gate Mikaela. Dalha student ID."</text>
+
+          <!-- Chat Button -->
+          <g transform="translate(10, 108)">
+            <rect x="0" y="0" width="357" height="24" rx="4" fill="#047857"/>
+            <text x="178" y="16" text-anchor="middle" class="font-sans" font-size="8.8" font-weight="800" fill="#ffffff">💬 Open Real-Time Chat (1 Unread)</text>
+          </g>
+        </g>
+
+        <!-- Feed Item 2: Pending Host Review -->
+        <g transform="translate(14, 166)">
+          <rect x="0" y="0" width="377" height="140" rx="6" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+          <rect x="10" y="10" width="168" height="20" rx="4" fill="#64748b"/>
+          <text x="94" y="24" text-anchor="middle" class="font-sans" font-size="8" font-weight="800" fill="#ffffff">⏳ PENDING LANDLORD REVIEW</text>
+          <text x="250" y="24" class="font-sans" font-size="8.5" font-weight="500" fill="#64748b">Sent Today 9:15 AM</text>
+
+          <text x="10" y="48" class="font-sans" font-size="11.5" font-weight="800" fill="#0f172a">Salinas Studio Pad — Lahug</text>
+          <text x="10" y="64" class="font-sans" font-size="9" font-weight="600" fill="#64748b">Host: Ma'am Elena Ramos (Verified Landlord)</text>
+
+          <rect x="10" y="74" width="357" height="28" rx="4" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+          <text x="18" y="92" class="font-sans" font-size="8.2" font-style="italic" fill="#334155">"Mikaela: Hi po, individual electric submeter ba ni or fixed?"</text>
+
+          <g transform="translate(10, 108)">
+            <rect x="0" y="0" width="357" height="24" rx="4" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+            <text x="178" y="16" text-anchor="middle" class="font-sans" font-size="8.8" font-weight="700" fill="#0f172a">View Inquiry Details →</text>
+          </g>
+        </g>
+      </g>
+
+      <!-- Algorithmic Commute-Matched Recommendations Card -->
+      <g transform="translate(0, 372)">
+        <rect x="0" y="0" width="405" height="196" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1" filter="url(#card-shadow)"/>
+        
+        <rect x="0" y="0" width="405" height="34" rx="8" fill="#f8fafc"/>
+        <line x1="0" y1="34" x2="405" y2="34" stroke="#e2e8f0" stroke-width="1"/>
+        <text x="14" y="22" class="font-sans" font-size="11" font-weight="800" fill="#0f172a">🧭 Commute Match: Near CIT-U Campus</text>
+        <text x="14" y="52" class="font-sans" font-size="8.5" font-weight="500" fill="#64748b">Matched to your ₱4,000–₱7,000 budget &amp; 04L route</text>
+
+        <!-- Recommendation 1 -->
+        <g transform="translate(14, 64)">
+          <rect x="0" y="0" width="377" height="54" rx="6" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+          <rect x="8" y="8" width="38" height="38" rx="4" fill="#e2e8f0"/>
+          <text x="27" y="30" text-anchor="middle" class="font-sans" font-size="7.5" fill="#64748b">UNIT</text>
+          <text x="56" y="22" class="font-sans" font-size="10.5" font-weight="800" fill="#0f172a">San Antonio Boarding House</text>
+          <text x="56" y="38" class="font-sans" font-size="8.5" font-weight="600" fill="#047857">₱3,800/mo · <tspan fill="#64748b">🚶 5 min to CIT-U</tspan></text>
+          <!-- Save trigger -->
+          <circle cx="355" cy="27" r="13" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+          <text x="355" y="31" text-anchor="middle" class="font-sans" font-size="10">🤍</text>
+        </g>
+
+        <!-- Recommendation 2 -->
+        <g transform="translate(14, 126)">
+          <rect x="0" y="0" width="377" height="54" rx="6" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+          <rect x="8" y="8" width="38" height="38" rx="4" fill="#e2e8f0"/>
+          <text x="27" y="30" text-anchor="middle" class="font-sans" font-size="7.5" fill="#64748b">UNIT</text>
+          <text x="56" y="22" class="font-sans" font-size="10.5" font-weight="800" fill="#0f172a">Tres de Abril Studio Pad</text>
+          <text x="56" y="38" class="font-sans" font-size="8.5" font-weight="600" fill="#047857">₱5,200/mo · <tspan fill="#64748b">⚡ Submeter · 🚍 04L</tspan></text>
+          <circle cx="355" cy="27" r="13" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+          <text x="355" y="31" text-anchor="middle" class="font-sans" font-size="10">🤍</text>
+        </g>
+      </g>
+    </g>
+
+    <!-- ========================================================================= -->
+    <!-- 6. NUMBERED BLUEPRINT CALLOUT BADGES (① to ⑧)                             -->
+    <!-- ========================================================================= -->
+    <!-- ① Fixed Sidebar Nav Badge -->
+    <g transform="translate(244, 180)" filter="url(#badge-shadow)">
+      <circle cx="0" cy="0" r="13" fill="#0f172a" stroke="#ffffff" stroke-width="2"/>
+      <text x="0" y="5" text-anchor="middle" class="font-sans" font-size="11" font-weight="800" fill="#ffffff">①</text>
+    </g>
+    <!-- ② Profile Pill & KYC Badge -->
+    <g transform="translate(244, 98)" filter="url(#badge-shadow)">
+      <circle cx="0" cy="0" r="13" fill="#0f172a" stroke="#ffffff" stroke-width="2"/>
+      <text x="0" y="5" text-anchor="middle" class="font-sans" font-size="11" font-weight="800" fill="#ffffff">②</text>
+    </g>
+    <!-- ③ Metric Cards Row Badge -->
+    <g transform="translate(1415, 142)" filter="url(#badge-shadow)">
+      <circle cx="0" cy="0" r="13" fill="#0f172a" stroke="#ffffff" stroke-width="2"/>
+      <text x="0" y="5" text-anchor="middle" class="font-sans" font-size="11" font-weight="800" fill="#ffffff">③</text>
+    </g>
+    <!-- ④ Anti-Scam KYC Banner Badge -->
+    <g transform="translate(1415, 88)" filter="url(#badge-shadow)">
+      <circle cx="0" cy="0" r="13" fill="#d97706" stroke="#ffffff" stroke-width="2"/>
+      <text x="0" y="5" text-anchor="middle" class="font-sans" font-size="11" font-weight="800" fill="#ffffff">④</text>
+    </g>
+    <!-- ⑤ Saved Properties Grid Badge -->
+    <g transform="translate(975, 270)" filter="url(#badge-shadow)">
+      <circle cx="0" cy="0" r="13" fill="#0f172a" stroke="#ffffff" stroke-width="2"/>
+      <text x="0" y="5" text-anchor="middle" class="font-sans" font-size="11" font-weight="800" fill="#ffffff">⑤</text>
+    </g>
+    <!-- ⑥ Submeter & Transit Pills Badge -->
+    <g transform="translate(975, 340)" filter="url(#badge-shadow)">
+      <circle cx="0" cy="0" r="13" fill="#047857" stroke="#ffffff" stroke-width="2"/>
+      <text x="0" y="5" text-anchor="middle" class="font-sans" font-size="11" font-weight="800" fill="#ffffff">⑥</text>
+    </g>
+    <!-- ⑦ Inquiries & Ocular Timeline Badge -->
+    <g transform="translate(1415, 270)" filter="url(#badge-shadow)">
+      <circle cx="0" cy="0" r="13" fill="#0f172a" stroke="#ffffff" stroke-width="2"/>
+      <text x="0" y="5" text-anchor="middle" class="font-sans" font-size="11" font-weight="800" fill="#ffffff">⑦</text>
+    </g>
+    <!-- ⑧ Landlord Inventory & Add Listing CTA Badge -->
+    <g transform="translate(975, 608)" filter="url(#badge-shadow)">
+      <circle cx="0" cy="0" r="13" fill="#047857" stroke="#ffffff" stroke-width="2"/>
+      <text x="0" y="5" text-anchor="middle" class="font-sans" font-size="11" font-weight="800" fill="#ffffff">⑧</text>
+    </g>
+  </g>
+</svg>

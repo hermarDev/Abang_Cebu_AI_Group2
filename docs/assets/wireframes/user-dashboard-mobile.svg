@@ -1,0 +1,674 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1680 1080" width="100%" height="100%">
+  <defs>
+    <filter id="phone-shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="18" stdDeviation="20" flood-color="#0f172a" flood-opacity="0.22"/>
+    </filter>
+    <filter id="card-shadow" x="-5%" y="-5%" width="110%" height="110%">
+      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#0f172a" flood-opacity="0.08"/>
+    </filter>
+    <filter id="drawer-shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="4" dy="0" stdDeviation="12" flood-color="#0f172a" flood-opacity="0.32"/>
+    </filter>
+    <pattern id="wf-mobile-cross" width="10" height="10" patternUnits="userSpaceOnUse">
+      <path d="M 0,10 L 10,0 M 0,0 L 10,10" stroke="#cbd5e1" stroke-width="0.7"/>
+    </pattern>
+  </defs>
+
+  <style>
+    .font-sans { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif; }
+    .font-mono { font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace; }
+  </style>
+
+  <!-- Background Surface -->
+  <rect width="1680" height="1080" fill="#f1f5f9"/>
+
+  <!-- Blueprint Main Title -->
+  <g transform="translate(36, 24)">
+    <text x="0" y="0" class="font-sans" font-size="16" font-weight="800" fill="#0f172a" letter-spacing="0.5px">MOBILE VIEWPORT USER DASHBOARD WIREFRAME SPECIFICATION (393px × 852px · 100dvh)</text>
+    <text x="0" y="16" class="font-sans" font-size="10.5" font-weight="600" fill="#475569">Dual-View Ergonomics &amp; Inquiries Triage Workflows · iPhone 16 Pro Titanium Chassis · iOS Safari 100dvh Touch Architecture</text>
+  </g>
+
+  <!-- ========================================================================= -->
+  <!-- PHONE 1: MOBILE RENTER DASHBOARD                                          -->
+  <!-- ========================================================================= -->
+  <g transform="translate(36, 76)" filter="url(#phone-shadow)">
+    <!-- Header Badge -->
+    <rect x="0" y="-28" width="375" height="22" rx="4" fill="#0f172a"/>
+    <text x="187.5" y="-13" text-anchor="middle" class="font-sans" font-size="9.5" font-weight="700" fill="#ffffff">PHONE 1: RENTER DASHBOARD VIEW</text>
+
+    <!-- Outer Titanium Chassis (375 x 870) -->
+    <rect x="0" y="0" width="375" height="870" rx="44" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2.5"/>
+    <rect x="6" y="6" width="363" height="858" rx="38" fill="#0f172a"/>
+    <rect x="9" y="9" width="357" height="852" rx="36" fill="#f8fafc"/>
+
+    <!-- Dynamic Island Capsule -->
+    <rect x="124" y="20" width="126" height="30" rx="15" fill="#000000"/>
+    <circle cx="226" cy="35" r="4.5" fill="#1e293b"/>
+    <circle cx="146" cy="35" r="2.5" fill="#1e293b"/>
+
+    <!-- iOS Status Bar (9:41) -->
+    <text x="38" y="38" class="font-sans" font-size="12" font-weight="700" fill="#0f172a">9:41</text>
+    <g transform="translate(290, 28)">
+      <rect x="0" y="7" width="2.5" height="5" fill="#0f172a"/>
+      <rect x="3.5" y="5" width="2.5" height="7" fill="#0f172a"/>
+      <rect x="7" y="3" width="2.5" height="9" fill="#0f172a"/>
+      <rect x="10.5" y="1" width="2.5" height="11" fill="#0f172a"/>
+      <path d="M 16 9 A 6 6 0 0 1 24 9 M 18 11 A 3 3 0 0 1 22 11" fill="none" stroke="#0f172a" stroke-width="1.2"/>
+      <rect x="28" y="2" width="19" height="9.5" rx="2.5" fill="none" stroke="#0f172a" stroke-width="1.1"/>
+      <rect x="30" y="3.5" width="13" height="6.5" rx="1.2" fill="#0f172a"/>
+      <rect x="48" y="4.5" width="1.2" height="4.5" fill="#0f172a"/>
+    </g>
+
+    <!-- Top Safe-Area Mobile Header (h: 44px, y: 58) -->
+    <g transform="translate(20, 58)">
+      <!-- Hamburger Menu Button (44x44 hitbox) -->
+      <rect x="0" y="0" width="36" height="36" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+      <line x1="8" y1="12" x2="28" y2="12" stroke="#0f172a" stroke-width="2" stroke-linecap="round"/>
+      <line x1="8" y1="18" x2="28" y2="18" stroke="#0f172a" stroke-width="2" stroke-linecap="round"/>
+      <line x1="8" y1="24" x2="28" y2="24" stroke="#0f172a" stroke-width="2" stroke-linecap="round"/>
+
+      <!-- Brand Logotype -->
+      <text x="46" y="23" class="font-sans" font-size="13" font-weight="800" fill="#0f172a">ABANGCEBU AI</text>
+
+      <!-- Notification Bell -->
+      <rect x="299" y="0" width="36" height="36" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+      <text x="317" y="23" text-anchor="middle" class="font-sans" font-size="13">🔔</text>
+      <circle cx="327" cy="8" r="4.5" fill="#e11d48"/>
+      <text x="327" y="11" text-anchor="middle" class="font-sans" font-size="6.5" font-weight="800" fill="#ffffff">3</text>
+    </g>
+
+    <!-- Renter Greeting & Role Context Pill -->
+    <g transform="translate(20, 102)">
+      <text x="0" y="16" class="font-sans" font-size="14" font-weight="800" fill="#0f172a">Maayong adlaw, Mikaela! 👋</text>
+      <rect x="0" y="22" width="180" height="18" rx="4" fill="#ecfdf5" stroke="#a7f3d0" stroke-width="0.8"/>
+      <text x="8" y="34" class="font-sans" font-size="8.5" font-weight="700" fill="#047857">🎓 CIT-U Seeker · ✓ KYC Verified</text>
+    </g>
+
+    <!-- 2x2 Metric Cards Grid (y: 144) -->
+    <g transform="translate(20, 144)">
+      <!-- Metric 1: Saved -->
+      <g transform="translate(0, 0)">
+        <rect x="0" y="0" width="162" height="66" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1" filter="url(#card-shadow)"/>
+        <text x="10" y="18" class="font-sans" font-size="8" font-weight="700" fill="#64748b">SAVED PROPERTIES</text>
+        <text x="10" y="40" class="font-sans" font-size="17" font-weight="800" fill="#0f172a">8 Units</text>
+        <text x="10" y="55" class="font-sans" font-size="7.5" font-weight="600" fill="#047857">📈 +2 this week</text>
+        <circle cx="140" cy="30" r="13" fill="#ecfdf5"/>
+        <text x="140" y="34" text-anchor="middle" class="font-sans" font-size="11">❤️</text>
+      </g>
+
+      <!-- Metric 2: Active Inquiries -->
+      <g transform="translate(173, 0)">
+        <rect x="0" y="0" width="162" height="66" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1" filter="url(#card-shadow)"/>
+        <text x="10" y="18" class="font-sans" font-size="8" font-weight="700" fill="#64748b">INQUIRIES</text>
+        <text x="10" y="40" class="font-sans" font-size="17" font-weight="800" fill="#0f172a">3 Active</text>
+        <text x="10" y="55" class="font-sans" font-size="7.5" font-weight="600" fill="#0284c7">💬 1 awaiting reply</text>
+        <circle cx="140" cy="30" r="13" fill="#e0f2fe"/>
+        <text x="140" y="34" text-anchor="middle" class="font-sans" font-size="11">💬</text>
+      </g>
+
+      <!-- Metric 3: Oculars -->
+      <g transform="translate(0, 74)">
+        <rect x="0" y="0" width="162" height="66" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1" filter="url(#card-shadow)"/>
+        <text x="10" y="18" class="font-sans" font-size="8" font-weight="700" fill="#64748b">OCULAR TOUR</text>
+        <text x="10" y="40" class="font-sans" font-size="17" font-weight="800" fill="#0f172a">1 Scheduled</text>
+        <text x="10" y="55" class="font-sans" font-size="7.5" font-weight="600" fill="#d97706">📅 Sat, Oct 3</text>
+        <circle cx="140" cy="30" r="13" fill="#fef3c7"/>
+        <text x="140" y="34" text-anchor="middle" class="font-sans" font-size="11">📅</text>
+      </g>
+
+      <!-- Metric 4: Commute Radar -->
+      <g transform="translate(173, 74)">
+        <rect x="0" y="0" width="162" height="66" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1" filter="url(#card-shadow)"/>
+        <text x="10" y="18" class="font-sans" font-size="8" font-weight="700" fill="#64748b">CIT-U TRANSIT</text>
+        <text x="10" y="40" class="font-sans" font-size="17" font-weight="800" fill="#0f172a">8 - 14 Mins</text>
+        <text x="10" y="55" class="font-sans" font-size="7.5" font-weight="600" fill="#475569">🚍 04L &amp; 17B</text>
+        <circle cx="140" cy="30" r="13" fill="#f1f5f9"/>
+        <text x="140" y="34" text-anchor="middle" class="font-sans" font-size="11">🧭</text>
+      </g>
+    </g>
+
+    <!-- Saved Rental Card (y: 294) -->
+    <g transform="translate(20, 294)">
+      <text x="0" y="14" class="font-sans" font-size="11.5" font-weight="800" fill="#0f172a">Saved Units Near CIT-U (8)</text>
+      <text x="280" y="14" class="font-sans" font-size="8.5" font-weight="600" fill="#047857">View All →</text>
+      
+      <!-- Card Box -->
+      <rect x="0" y="24" width="335" height="236" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1" filter="url(#card-shadow)"/>
+      
+      <!-- Photo Area -->
+      <rect x="0" y="24" width="335" height="110" rx="8" fill="#f8fafc"/>
+      <rect x="0" y="24" width="335" height="110" fill="url(#wf-mobile-cross)"/>
+      <rect x="10" y="34" width="94" height="18" rx="4" fill="#0f172a"/>
+      <text x="57" y="46" text-anchor="middle" class="font-sans" font-size="7.5" font-weight="800" fill="#ffffff">BEDSPACE UNIT</text>
+      
+      <circle cx="310" cy="43" r="13" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+      <text x="310" y="47" text-anchor="middle" class="font-sans" font-size="10">❤️</text>
+
+      <!-- Details -->
+      <text x="12" y="152" class="font-sans" font-size="12" font-weight="800" fill="#0f172a">Green Dormitory Room 3A</text>
+      <text x="12" y="167" class="font-sans" font-size="9" font-weight="500" fill="#64748b">📍 Punta Princesa, N. Bacalso Ave (Near CIT-U)</text>
+      
+      <text x="12" y="188" class="font-sans" font-size="15" font-weight="800" fill="#047857">₱4,500 <tspan font-size="9" font-weight="500" fill="#64748b">/ mo</tspan></text>
+      
+      <!-- Submeter & Commute Pills -->
+      <rect x="110" y="174" width="86" height="16" rx="3" fill="#ecfdf5" stroke="#a7f3d0" stroke-width="0.7"/>
+      <text x="153" y="185" text-anchor="middle" class="font-sans" font-size="7" font-weight="700" fill="#047857">⚡ Submeter Elec</text>
+
+      <rect x="202" y="174" width="120" height="16" rx="3" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="0.7"/>
+      <text x="262" y="185" text-anchor="middle" class="font-sans" font-size="7" font-weight="600" fill="#334155">🚶 8 min walk CIT-U</text>
+
+      <!-- Action Buttons (44x44 touch ergonomics) -->
+      <g transform="translate(12, 210)">
+        <rect x="0" y="0" width="150" height="38" rx="6" fill="#047857"/>
+        <text x="75" y="23" text-anchor="middle" class="font-sans" font-size="9.5" font-weight="800" fill="#ffffff">💬 Message Owner</text>
+
+        <rect x="160" y="0" width="150" height="38" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2"/>
+        <text x="235" y="23" text-anchor="middle" class="font-sans" font-size="9.5" font-weight="700" fill="#0f172a">📅 Schedule Tour</text>
+      </g>
+    </g>
+
+    <!-- Upcoming Tour Quick Alert Card (y: 564) -->
+    <g transform="translate(20, 564)">
+      <rect x="0" y="0" width="335" height="68" rx="8" fill="#f0fdf4" stroke="#86efac" stroke-width="1"/>
+      <text x="12" y="18" class="font-sans" font-size="8" font-weight="800" fill="#047857">📅 UPCOMING OCULAR TOUR CONFIRMED</text>
+      <text x="12" y="34" class="font-sans" font-size="11" font-weight="800" fill="#0f172a">Green Dormitory Room 3A · Sat, Oct 3, 2:00 PM</text>
+      <text x="12" y="52" class="font-sans" font-size="8.5" font-weight="600" fill="#047857">Kuya Jun: "Kitakits sa main gate Mikaela." → Open Chat</text>
+    </g>
+
+    <!-- Persistent Bottom Navigation Tab Bar (y: 694, h: 56) -->
+    <g transform="translate(9, 694)">
+      <rect x="0" y="0" width="357" height="56" fill="#ffffff"/>
+      <line x1="0" y1="0" x2="357" y2="0" stroke="#e2e8f0" stroke-width="1"/>
+      <!-- Tab 1: Home (Active) -->
+      <g transform="translate(14, 8)">
+        <text x="25" y="18" text-anchor="middle" class="font-sans" font-size="16">🏠</text>
+        <text x="25" y="34" text-anchor="middle" class="font-sans" font-size="8" font-weight="800" fill="#047857">Home</text>
+      </g>
+      <!-- Tab 2: Map Explorer -->
+      <g transform="translate(103, 8)">
+        <text x="25" y="18" text-anchor="middle" class="font-sans" font-size="16">🗺️</text>
+        <text x="25" y="34" text-anchor="middle" class="font-sans" font-size="8" font-weight="600" fill="#64748b">Map</text>
+      </g>
+      <!-- Tab 3: Inquiries (Badge 3) -->
+      <g transform="translate(192, 8)">
+        <text x="25" y="18" text-anchor="middle" class="font-sans" font-size="16">💬</text>
+        <circle cx="34" cy="8" r="5" fill="#e11d48"/>
+        <text x="34" y="11" text-anchor="middle" class="font-sans" font-size="6.5" font-weight="800" fill="#ffffff">3</text>
+        <text x="25" y="34" text-anchor="middle" class="font-sans" font-size="8" font-weight="600" fill="#64748b">Inquiries</text>
+      </g>
+      <!-- Tab 4: Saved Units -->
+      <g transform="translate(281, 8)">
+        <text x="25" y="18" text-anchor="middle" class="font-sans" font-size="16">❤️</text>
+        <text x="25" y="34" text-anchor="middle" class="font-sans" font-size="8" font-weight="600" fill="#64748b">Saved</text>
+      </g>
+    </g>
+
+    <!-- iOS Safari Floating Address Bar & Home Indicator (y: 750 to 861) -->
+    <g transform="translate(20, 756)">
+      <rect x="0" y="0" width="335" height="42" rx="14" fill="#e2e8f0" stroke="#cbd5e1" stroke-width="0.8"/>
+      <text x="22" y="25" class="font-sans" font-size="12" font-weight="700" fill="#475569">AA</text>
+      <text x="167.5" y="26" text-anchor="middle" class="font-sans" font-size="11" font-weight="500" fill="#0f172a">🔒 abangcebu.ph/dashboard</text>
+      <text x="312" y="26" class="font-sans" font-size="13" fill="#475569">↻</text>
+    </g>
+    <!-- iOS Home Indicator -->
+    <rect x="127.5" y="834" width="120" height="4.5" rx="2.5" fill="#0f172a"/>
+  </g>
+
+  <!-- ========================================================================= -->
+  <!-- PHONE 2: MOBILE LANDLORD DASHBOARD                                        -->
+  <!-- ========================================================================= -->
+  <g transform="translate(444, 76)" filter="url(#phone-shadow)">
+    <rect x="0" y="-28" width="375" height="22" rx="4" fill="#047857"/>
+    <text x="187.5" y="-13" text-anchor="middle" class="font-sans" font-size="9.5" font-weight="700" fill="#ffffff">PHONE 2: LANDLORD DASHBOARD VIEW</text>
+
+    <!-- Chassis -->
+    <rect x="0" y="0" width="375" height="870" rx="44" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2.5"/>
+    <rect x="6" y="6" width="363" height="858" rx="38" fill="#0f172a"/>
+    <rect x="9" y="9" width="357" height="852" rx="36" fill="#f8fafc"/>
+
+    <!-- Dynamic Island & Status Bar -->
+    <rect x="124" y="20" width="126" height="30" rx="15" fill="#000000"/>
+    <circle cx="226" cy="35" r="4.5" fill="#1e293b"/>
+    <circle cx="146" cy="35" r="2.5" fill="#1e293b"/>
+    <text x="38" y="38" class="font-sans" font-size="12" font-weight="700" fill="#0f172a">9:41</text>
+    <g transform="translate(290, 28)">
+      <rect x="0" y="7" width="2.5" height="5" fill="#0f172a"/>
+      <rect x="3.5" y="5" width="2.5" height="7" fill="#0f172a"/>
+      <rect x="7" y="3" width="2.5" height="9" fill="#0f172a"/>
+      <rect x="10.5" y="1" width="2.5" height="11" fill="#0f172a"/>
+      <rect x="28" y="2" width="19" height="9.5" rx="2.5" fill="none" stroke="#0f172a" stroke-width="1.1"/>
+      <rect x="30" y="3.5" width="13" height="6.5" rx="1.2" fill="#0f172a"/>
+    </g>
+
+    <!-- Safe-Area Mobile Header -->
+    <g transform="translate(20, 58)">
+      <rect x="0" y="0" width="36" height="36" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+      <line x1="8" y1="12" x2="28" y2="12" stroke="#0f172a" stroke-width="2" stroke-linecap="round"/>
+      <line x1="8" y1="18" x2="28" y2="18" stroke="#0f172a" stroke-width="2" stroke-linecap="round"/>
+      <line x1="8" y1="24" x2="28" y2="24" stroke="#0f172a" stroke-width="2" stroke-linecap="round"/>
+
+      <text x="46" y="23" class="font-sans" font-size="13" font-weight="800" fill="#0f172a">LANDLORD PORTAL</text>
+
+      <rect x="299" y="0" width="36" height="36" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+      <text x="317" y="23" text-anchor="middle" class="font-sans" font-size="13">🔔</text>
+      <circle cx="327" cy="8" r="4.5" fill="#e11d48"/>
+      <text x="327" y="11" text-anchor="middle" class="font-sans" font-size="6.5" font-weight="800" fill="#ffffff">7</text>
+    </g>
+
+    <!-- Amber Anti-Scam KYC Notice Banner (Mobile) -->
+    <g transform="translate(20, 102)">
+      <rect x="0" y="0" width="335" height="42" rx="6" fill="#fffbeb" stroke="#fcd34d" stroke-width="1"/>
+      <text x="10" y="24" class="font-sans" font-size="13">⚠️</text>
+      <text x="28" y="18" class="font-sans" font-size="8.5" font-weight="700" fill="#92400e">KYC VERIFICATION REQUIRED:</text>
+      <text x="28" y="32" class="font-sans" font-size="7.8" font-weight="500" fill="#78350f">Submit Government ID to unlock Verified Badge.</text>
+      <text x="280" y="25" class="font-sans" font-size="8" font-weight="800" fill="#b45309">Verify →</text>
+    </g>
+
+    <!-- 2x2 Landlord Metric Cards Grid (y: 152) -->
+    <g transform="translate(20, 152)">
+      <g transform="translate(0, 0)">
+        <rect x="0" y="0" width="162" height="66" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1" filter="url(#card-shadow)"/>
+        <text x="10" y="18" class="font-sans" font-size="8" font-weight="700" fill="#64748b">ACTIVE UNITS</text>
+        <text x="10" y="40" class="font-sans" font-size="17" font-weight="800" fill="#0f172a">4 Listed</text>
+        <text x="10" y="55" class="font-sans" font-size="7.5" font-weight="600" fill="#047857">✓ All Published</text>
+        <circle cx="140" cy="30" r="13" fill="#ecfdf5"/>
+        <text x="140" y="34" text-anchor="middle" class="font-sans" font-size="11">🏠</text>
+      </g>
+
+      <g transform="translate(173, 0)">
+        <rect x="0" y="0" width="162" height="66" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1" filter="url(#card-shadow)"/>
+        <text x="10" y="18" class="font-sans" font-size="8" font-weight="700" fill="#64748b">MONTHLY VIEWS</text>
+        <text x="10" y="40" class="font-sans" font-size="17" font-weight="800" fill="#0f172a">1,420</text>
+        <text x="10" y="55" class="font-sans" font-size="7.5" font-weight="600" fill="#047857">📈 +18% this mo</text>
+        <circle cx="140" cy="30" r="13" fill="#f1f5f9"/>
+        <text x="140" y="34" text-anchor="middle" class="font-sans" font-size="11">👁️</text>
+      </g>
+
+      <g transform="translate(0, 74)">
+        <rect x="0" y="0" width="162" height="66" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1" filter="url(#card-shadow)"/>
+        <text x="10" y="18" class="font-sans" font-size="8" font-weight="700" fill="#64748b">PENDING INQUIRIES</text>
+        <text x="10" y="40" class="font-sans" font-size="17" font-weight="800" fill="#0f172a">7 New</text>
+        <text x="10" y="55" class="font-sans" font-size="7.5" font-weight="600" fill="#0284c7">📩 2 Ocular requests</text>
+        <circle cx="140" cy="30" r="13" fill="#e0f2fe"/>
+        <text x="140" y="34" text-anchor="middle" class="font-sans" font-size="11">📩</text>
+      </g>
+
+      <g transform="translate(173, 74)">
+        <rect x="0" y="0" width="162" height="66" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1" filter="url(#card-shadow)"/>
+        <text x="10" y="18" class="font-sans" font-size="8" font-weight="700" fill="#64748b">OCCUPANCY RATE</text>
+        <text x="10" y="40" class="font-sans" font-size="17" font-weight="800" fill="#0f172a">85%</text>
+        <text x="10" y="55" class="font-sans" font-size="7.5" font-weight="600" fill="#d97706">3 of 4 Occupied</text>
+        <circle cx="140" cy="30" r="13" fill="#fef3c7"/>
+        <text x="140" y="34" text-anchor="middle" class="font-sans" font-size="11">📊</text>
+      </g>
+    </g>
+
+    <!-- Primary Action: + Add New Listing (44px height touch target) -->
+    <g transform="translate(20, 302)">
+      <rect x="0" y="0" width="335" height="44" rx="8" fill="#047857"/>
+      <text x="167.5" y="27" text-anchor="middle" class="font-sans" font-size="11.5" font-weight="800" fill="#ffffff">+ Add New Rental Listing</text>
+    </g>
+
+    <!-- Landlord Unit Management Card (y: 356) -->
+    <g transform="translate(20, 356)">
+      <text x="0" y="14" class="font-sans" font-size="11.5" font-weight="800" fill="#0f172a">My Listed Properties (4)</text>
+
+      <!-- Unit Card 1 -->
+      <g transform="translate(0, 24)">
+        <rect x="0" y="0" width="335" height="136" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1" filter="url(#card-shadow)"/>
+        
+        <rect x="10" y="10" width="56" height="56" rx="6" fill="#e2e8f0"/>
+        <text x="38" y="42" text-anchor="middle" class="font-sans" font-size="8" fill="#64748b">PHOTO</text>
+
+        <text x="76" y="24" class="font-sans" font-size="11.5" font-weight="800" fill="#0f172a">Salinas Dr Studio Unit #2B</text>
+        <text x="76" y="38" class="font-sans" font-size="9" font-weight="500" fill="#64748b">Lahug, Cebu City · ₱6,500/mo</text>
+
+        <!-- Occupancy Toggle Switch -->
+        <g transform="translate(76, 46)">
+          <rect x="0" y="0" width="84" height="22" rx="11" fill="#ecfdf5" stroke="#86efac" stroke-width="1"/>
+          <circle cx="13" cy="11" r="7" fill="#047857"/>
+          <text x="48" y="15" text-anchor="middle" class="font-sans" font-size="7.5" font-weight="800" fill="#047857">Occupied</text>
+        </g>
+        <text x="174" y="60" class="font-sans" font-size="8" font-weight="600" fill="#64748b">4 pending inquiries</text>
+
+        <line x1="10" y1="76" x2="325" y2="76" stroke="#f1f5f9" stroke-width="1"/>
+
+        <!-- Action Row -->
+        <g transform="translate(10, 86)">
+          <rect x="0" y="0" width="150" height="38" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+          <text x="75" y="23" text-anchor="middle" class="font-sans" font-size="9.5" font-weight="700" fill="#0f172a">✏️ Edit Details</text>
+
+          <rect x="162" y="0" width="153" height="38" rx="6" fill="#0f172a"/>
+          <text x="238" y="23" text-anchor="middle" class="font-sans" font-size="9.5" font-weight="700" fill="#ffffff">Triage Applicants (4) →</text>
+        </g>
+      </g>
+
+      <!-- Unit Card 2 -->
+      <g transform="translate(0, 170)">
+        <rect x="0" y="0" width="335" height="100" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1" filter="url(#card-shadow)"/>
+        <rect x="10" y="10" width="46" height="46" rx="6" fill="#e2e8f0"/>
+        <text x="33" y="36" text-anchor="middle" class="font-sans" font-size="7.5" fill="#64748b">PHOTO</text>
+        <text x="66" y="24" class="font-sans" font-size="11" font-weight="800" fill="#0f172a">Punta Princesa Bed #1A</text>
+        <text x="66" y="38" class="font-sans" font-size="8.5" font-weight="500" fill="#64748b">Near CIT-U · ₱3,800/mo</text>
+        
+        <g transform="translate(66, 44)">
+          <rect x="0" y="0" width="76" height="20" rx="10" fill="#fef2f2" stroke="#fecdd3" stroke-width="1"/>
+          <circle cx="62" cy="10" r="6" fill="#e11d48"/>
+          <text x="28" y="14" text-anchor="middle" class="font-sans" font-size="7" font-weight="800" fill="#e11d48">Vacant</text>
+        </g>
+        <text x="156" y="58" class="font-sans" font-size="8" font-weight="600" fill="#64748b">3 inquiries</text>
+
+        <g transform="translate(10, 68)">
+          <rect x="0" y="0" width="315" height="26" rx="4" fill="#f8fafc" stroke="#cbd5e1" stroke-width="0.8"/>
+          <text x="157.5" y="17" text-anchor="middle" class="font-sans" font-size="8.5" font-weight="700" fill="#0f172a">Review Applicants (3) →</text>
+        </g>
+      </g>
+    </g>
+
+    <!-- Bottom Tab Bar -->
+    <g transform="translate(9, 694)">
+      <rect x="0" y="0" width="357" height="56" fill="#ffffff"/>
+      <line x1="0" y1="0" x2="357" y2="0" stroke="#e2e8f0" stroke-width="1"/>
+      <g transform="translate(14, 8)">
+        <text x="25" y="18" text-anchor="middle" class="font-sans" font-size="16">📊</text>
+        <text x="25" y="34" text-anchor="middle" class="font-sans" font-size="8" font-weight="800" fill="#047857">Overview</text>
+      </g>
+      <g transform="translate(103, 8)">
+        <text x="25" y="18" text-anchor="middle" class="font-sans" font-size="16">🗺️</text>
+        <text x="25" y="34" text-anchor="middle" class="font-sans" font-size="8" font-weight="600" fill="#64748b">Map</text>
+      </g>
+      <g transform="translate(192, 8)">
+        <text x="25" y="18" text-anchor="middle" class="font-sans" font-size="16">📩</text>
+        <circle cx="34" cy="8" r="5" fill="#e11d48"/>
+        <text x="34" y="11" text-anchor="middle" class="font-sans" font-size="6.5" font-weight="800" fill="#ffffff">7</text>
+        <text x="25" y="34" text-anchor="middle" class="font-sans" font-size="8" font-weight="600" fill="#64748b">Inquiries</text>
+      </g>
+      <g transform="translate(281, 8)">
+        <text x="25" y="18" text-anchor="middle" class="font-sans" font-size="16">🏠</text>
+        <text x="25" y="34" text-anchor="middle" class="font-sans" font-size="8" font-weight="600" fill="#64748b">My Units</text>
+      </g>
+    </g>
+
+    <!-- Safari Bar & Home Indicator -->
+    <g transform="translate(20, 756)">
+      <rect x="0" y="0" width="335" height="42" rx="14" fill="#e2e8f0" stroke="#cbd5e1" stroke-width="0.8"/>
+      <text x="22" y="25" class="font-sans" font-size="12" font-weight="700" fill="#475569">AA</text>
+      <text x="167.5" y="26" text-anchor="middle" class="font-sans" font-size="11" font-weight="500" fill="#0f172a">🔒 abangcebu.ph/landlord</text>
+      <text x="312" y="26" class="font-sans" font-size="13" fill="#475569">↻</text>
+    </g>
+    <rect x="127.5" y="834" width="120" height="4.5" rx="2.5" fill="#0f172a"/>
+  </g>
+
+  <!-- ========================================================================= -->
+  <!-- PHONE 3: MOBILE TENANT INQUIRIES & TRIAGE                                 -->
+  <!-- ========================================================================= -->
+  <g transform="translate(852, 76)" filter="url(#phone-shadow)">
+    <rect x="0" y="-28" width="375" height="22" rx="4" fill="#0284c7"/>
+    <text x="187.5" y="-13" text-anchor="middle" class="font-sans" font-size="9.5" font-weight="700" fill="#ffffff">PHONE 3: INQUIRIES &amp; TRIAGE FEED</text>
+
+    <!-- Chassis -->
+    <rect x="0" y="0" width="375" height="870" rx="44" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2.5"/>
+    <rect x="6" y="6" width="363" height="858" rx="38" fill="#0f172a"/>
+    <rect x="9" y="9" width="357" height="852" rx="36" fill="#f8fafc"/>
+
+    <!-- Dynamic Island & Status Bar -->
+    <rect x="124" y="20" width="126" height="30" rx="15" fill="#000000"/>
+    <circle cx="226" cy="35" r="4.5" fill="#1e293b"/>
+    <circle cx="146" cy="35" r="2.5" fill="#1e293b"/>
+    <text x="38" y="38" class="font-sans" font-size="12" font-weight="700" fill="#0f172a">9:41</text>
+    <g transform="translate(290, 28)">
+      <rect x="0" y="7" width="2.5" height="5" fill="#0f172a"/>
+      <rect x="3.5" y="5" width="2.5" height="7" fill="#0f172a"/>
+      <rect x="7" y="3" width="2.5" height="9" fill="#0f172a"/>
+      <rect x="10.5" y="1" width="2.5" height="11" fill="#0f172a"/>
+      <rect x="28" y="2" width="19" height="9.5" rx="2.5" fill="none" stroke="#0f172a" stroke-width="1.1"/>
+      <rect x="30" y="3.5" width="13" height="6.5" rx="1.2" fill="#0f172a"/>
+    </g>
+
+    <!-- Safe-Area Mobile Header -->
+    <g transform="translate(20, 58)">
+      <text x="0" y="24" class="font-sans" font-size="15" font-weight="800" fill="#0f172a">Inquiries &amp; Tours</text>
+      <text x="250" y="24" class="font-sans" font-size="9" font-weight="600" fill="#64748b">Mark all read</text>
+    </g>
+
+    <!-- Filter Segmented Tabs (y: 96) -->
+    <g transform="translate(20, 96)">
+      <rect x="0" y="0" width="335" height="34" rx="6" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1"/>
+      <rect x="2" y="2" width="108" height="30" rx="4" fill="#ffffff" stroke="#0f172a" stroke-width="1"/>
+      <text x="56" y="21" text-anchor="middle" class="font-sans" font-size="8.5" font-weight="800" fill="#0f172a">All (7)</text>
+      
+      <text x="167" y="21" text-anchor="middle" class="font-sans" font-size="8.5" font-weight="600" fill="#64748b">Oculars (2)</text>
+      <text x="278" y="21" text-anchor="middle" class="font-sans" font-size="8.5" font-weight="600" fill="#64748b">Chats (5)</text>
+    </g>
+
+    <!-- Applicant Triage Card 1: Tour Request (y: 140) -->
+    <g transform="translate(20, 140)">
+      <rect x="0" y="0" width="335" height="230" rx="8" fill="#ffffff" stroke="#86efac" stroke-width="1.5" filter="url(#card-shadow)"/>
+      
+      <!-- Top Tag -->
+      <rect x="10" y="10" width="136" height="18" rx="4" fill="#047857"/>
+      <text x="78" y="22" text-anchor="middle" class="font-sans" font-size="7.5" font-weight="800" fill="#ffffff">📅 OCULAR REQUEST</text>
+      <text x="260" y="22" class="font-sans" font-size="8" font-weight="500" fill="#64748b">10m ago</text>
+
+      <!-- Applicant Info -->
+      <g transform="translate(10, 36)">
+        <circle cx="16" cy="16" r="15" fill="#047857"/>
+        <text x="16" y="20" text-anchor="middle" class="font-sans" font-size="10" font-weight="800" fill="#ffffff">MS</text>
+        <text x="38" y="14" class="font-sans" font-size="11.5" font-weight="800" fill="#0f172a">Mikaela Santos</text>
+        <text x="38" y="27" class="font-sans" font-size="8" font-weight="500" fill="#64748b">CIT-U Student · ✓ ID Verified</text>
+      </g>
+
+      <text x="10" y="82" class="font-sans" font-size="9" font-weight="700" fill="#334155">Unit: Green Dormitory Room 3A (₱4,500/mo)</text>
+      <text x="10" y="96" class="font-sans" font-size="8.5" font-weight="600" fill="#047857">Requested Date: Saturday, Oct 3 · 2:00 PM</text>
+
+      <!-- Message Bubble -->
+      <rect x="10" y="104" width="315" height="38" rx="4" fill="#f8fafc" stroke="#e2e8f0" stroke-width="0.8"/>
+      <text x="18" y="120" class="font-sans" font-size="8" font-style="italic" fill="#334155">"Hi Kuya Jun! Pwede mo-ocular tour this Sat 2pm with my classmate? Thank you!"</text>
+
+      <!-- Quick Triage Action Buttons (44x44 touch targets) -->
+      <g transform="translate(10, 150)">
+        <!-- Accept Tour (Emerald) -->
+        <rect x="0" y="0" width="150" height="38" rx="6" fill="#047857"/>
+        <text x="75" y="23" text-anchor="middle" class="font-sans" font-size="9.5" font-weight="800" fill="#ffffff">✓ Accept Tour</text>
+
+        <!-- Decline Tour (Subtle Red) -->
+        <rect x="160" y="0" width="155" height="38" rx="6" fill="#fff1f2" stroke="#fda4af" stroke-width="1"/>
+        <text x="237" y="23" text-anchor="middle" class="font-sans" font-size="9.5" font-weight="700" fill="#e11d48">✕ Propose New Time</text>
+      </g>
+
+      <g transform="translate(10, 194)">
+        <rect x="0" y="0" width="315" height="28" rx="4" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="0.8"/>
+        <text x="157.5" y="18" text-anchor="middle" class="font-sans" font-size="8.5" font-weight="700" fill="#0f172a">💬 Open Live Chat with Mikaela</text>
+      </g>
+    </g>
+
+    <!-- Applicant Triage Card 2: Submeter Inquiry (y: 382) -->
+    <g transform="translate(20, 382)">
+      <rect x="0" y="0" width="335" height="178" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1" filter="url(#card-shadow)"/>
+      <rect x="10" y="10" width="108" height="18" rx="4" fill="#0284c7"/>
+      <text x="64" y="22" text-anchor="middle" class="font-sans" font-size="7.5" font-weight="800" fill="#ffffff">💬 INQUIRY MESSAGE</text>
+      <text x="260" y="22" class="font-sans" font-size="8" font-weight="500" fill="#64748b">1h ago</text>
+
+      <g transform="translate(10, 36)">
+        <circle cx="16" cy="16" r="15" fill="#334155"/>
+        <text x="16" y="20" text-anchor="middle" class="font-sans" font-size="10" font-weight="800" fill="#ffffff">CT</text>
+        <text x="38" y="14" class="font-sans" font-size="11.5" font-weight="800" fill="#0f172a">Carlos Tan</text>
+        <text x="38" y="27" class="font-sans" font-size="8" font-weight="500" fill="#64748b">BPO Professional · IT Park</text>
+      </g>
+
+      <text x="10" y="82" class="font-sans" font-size="9" font-weight="700" fill="#334155">Unit: Salinas Studio Unit #2B (₱6,500/mo)</text>
+      
+      <rect x="10" y="90" width="315" height="34" rx="4" fill="#f8fafc" stroke="#e2e8f0" stroke-width="0.8"/>
+      <text x="18" y="106" class="font-sans" font-size="8" font-style="italic" fill="#334155">"Sir, separate ba ang electric submeter or fixed rate? Available pa ba?"</text>
+
+      <g transform="translate(10, 132)">
+        <rect x="0" y="0" width="315" height="36" rx="6" fill="#047857"/>
+        <text x="157.5" y="22" text-anchor="middle" class="font-sans" font-size="9.5" font-weight="800" fill="#ffffff">💬 Reply to Carlos Now</text>
+      </g>
+    </g>
+
+    <!-- Bottom Tab Bar -->
+    <g transform="translate(9, 694)">
+      <rect x="0" y="0" width="357" height="56" fill="#ffffff"/>
+      <line x1="0" y1="0" x2="357" y2="0" stroke="#e2e8f0" stroke-width="1"/>
+      <g transform="translate(14, 8)">
+        <text x="25" y="18" text-anchor="middle" class="font-sans" font-size="16">📊</text>
+        <text x="25" y="34" text-anchor="middle" class="font-sans" font-size="8" font-weight="600" fill="#64748b">Overview</text>
+      </g>
+      <g transform="translate(103, 8)">
+        <text x="25" y="18" text-anchor="middle" class="font-sans" font-size="16">🗺️</text>
+        <text x="25" y="34" text-anchor="middle" class="font-sans" font-size="8" font-weight="600" fill="#64748b">Map</text>
+      </g>
+      <g transform="translate(192, 8)">
+        <text x="25" y="18" text-anchor="middle" class="font-sans" font-size="16">📩</text>
+        <circle cx="34" cy="8" r="5" fill="#e11d48"/>
+        <text x="34" y="11" text-anchor="middle" class="font-sans" font-size="6.5" font-weight="800" fill="#ffffff">7</text>
+        <text x="25" y="34" text-anchor="middle" class="font-sans" font-size="8" font-weight="800" fill="#047857">Inquiries</text>
+      </g>
+      <g transform="translate(281, 8)">
+        <text x="25" y="18" text-anchor="middle" class="font-sans" font-size="16">🏠</text>
+        <text x="25" y="34" text-anchor="middle" class="font-sans" font-size="8" font-weight="600" fill="#64748b">My Units</text>
+      </g>
+    </g>
+
+    <!-- Safari Bar & Home Indicator -->
+    <g transform="translate(20, 756)">
+      <rect x="0" y="0" width="335" height="42" rx="14" fill="#e2e8f0" stroke="#cbd5e1" stroke-width="0.8"/>
+      <text x="22" y="25" class="font-sans" font-size="12" font-weight="700" fill="#475569">AA</text>
+      <text x="167.5" y="26" text-anchor="middle" class="font-sans" font-size="11" font-weight="500" fill="#0f172a">🔒 abangcebu.ph/inquiries</text>
+      <text x="312" y="26" class="font-sans" font-size="13" fill="#475569">↻</text>
+    </g>
+    <rect x="127.5" y="834" width="120" height="4.5" rx="2.5" fill="#0f172a"/>
+  </g>
+
+  <!-- ========================================================================= -->
+  <!-- PHONE 4: MOBILE NAVIGATION DRAWER & EMPTY STATES                          -->
+  <!-- ========================================================================= -->
+  <g transform="translate(1260, 76)" filter="url(#phone-shadow)">
+    <rect x="0" y="-28" width="375" height="22" rx="4" fill="#475569"/>
+    <text x="187.5" y="-13" text-anchor="middle" class="font-sans" font-size="9.5" font-weight="700" fill="#ffffff">PHONE 4: MOBILE DRAWER &amp; ZERO STATE</text>
+
+    <!-- Chassis -->
+    <rect x="0" y="0" width="375" height="870" rx="44" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2.5"/>
+    <rect x="6" y="6" width="363" height="858" rx="38" fill="#0f172a"/>
+    <rect x="9" y="9" width="357" height="852" rx="36" fill="#f8fafc"/>
+
+    <!-- Dynamic Island & Status Bar -->
+    <rect x="124" y="20" width="126" height="30" rx="15" fill="#000000"/>
+    <circle cx="226" cy="35" r="4.5" fill="#1e293b"/>
+    <circle cx="146" cy="35" r="2.5" fill="#1e293b"/>
+    <text x="38" y="38" class="font-sans" font-size="12" font-weight="700" fill="#0f172a">9:41</text>
+    <g transform="translate(290, 28)">
+      <rect x="0" y="7" width="2.5" height="5" fill="#0f172a"/>
+      <rect x="3.5" y="5" width="2.5" height="7" fill="#0f172a"/>
+      <rect x="7" y="3" width="2.5" height="9" fill="#0f172a"/>
+      <rect x="10.5" y="1" width="2.5" height="11" fill="#0f172a"/>
+      <rect x="28" y="2" width="19" height="9.5" rx="2.5" fill="none" stroke="#0f172a" stroke-width="1.1"/>
+      <rect x="30" y="3.5" width="13" height="6.5" rx="1.2" fill="#0f172a"/>
+    </g>
+
+    <!-- Underlying Zero State Screen (Dimmed by backdrop) -->
+    <g transform="translate(20, 68)">
+      <text x="0" y="24" class="font-sans" font-size="14" font-weight="800" fill="#0f172a">Saved Rentals</text>
+      <!-- Empty State Card -->
+      <g transform="translate(0, 44)">
+        <rect x="0" y="0" width="335" height="240" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+        <circle cx="167.5" cy="65" r="28" fill="#f1f5f9"/>
+        <text x="167.5" y="73" text-anchor="middle" class="font-sans" font-size="24">❤️</text>
+        <text x="167.5" y="118" text-anchor="middle" class="font-sans" font-size="13" font-weight="800" fill="#0f172a">No Saved Rentals Yet</text>
+        <text x="167.5" y="138" text-anchor="middle" class="font-sans" font-size="8.5" font-weight="500" fill="#64748b">Browse verified rooms near CIT-U, USC &amp; IT Park</text>
+        <rect x="40" y="160" width="255" height="42" rx="6" fill="#047857"/>
+        <text x="167.5" y="186" text-anchor="middle" class="font-sans" font-size="10.5" font-weight="800" fill="#ffffff">🗺️ Explore Metro Cebu Map →</text>
+      </g>
+    </g>
+
+    <!-- Translucent Dimmed Backdrop Overlay (covering screen) -->
+    <rect x="9" y="9" width="357" height="852" rx="36" fill="#0f172a" fill-opacity="0.55"/>
+
+    <!-- Slide-Out Mobile Navigation Drawer (w: 285px, from left) -->
+    <g transform="translate(9, 9)" filter="url(#drawer-shadow)">
+      <rect x="0" y="0" width="285" height="852" rx="36" fill="#0f172a"/>
+      
+      <!-- Drawer User Profile Header -->
+      <g transform="translate(20, 54)">
+        <circle cx="24" cy="24" r="22" fill="#047857"/>
+        <text x="24" y="30" text-anchor="middle" class="font-sans" font-size="13" font-weight="800" fill="#ffffff">MS</text>
+        
+        <text x="56" y="20" class="font-sans" font-size="13" font-weight="800" fill="#ffffff">Mikaela Santos</text>
+        <text x="56" y="36" class="font-sans" font-size="8.5" font-weight="500" fill="#94a3b8">mikaela@cit.edu.ph</text>
+        
+        <rect x="56" y="44" width="76" height="15" rx="3" fill="#ecfdf5"/>
+        <text x="94" y="55" text-anchor="middle" class="font-sans" font-size="7.5" font-weight="700" fill="#047857">✓ KYC Verified</text>
+      </g>
+
+      <!-- Role Switcher in Drawer -->
+      <g transform="translate(20, 134)">
+        <rect x="0" y="0" width="245" height="42" rx="6" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+        <text x="12" y="26" class="font-sans" font-size="9.5" font-weight="700" fill="#ffffff">⇄ Switch to Landlord Mode</text>
+        <text x="216" y="26" class="font-sans" font-size="11" fill="#047857">→</text>
+      </g>
+
+      <!-- Drawer Nav Links -->
+      <g transform="translate(20, 194)">
+        <text x="0" y="14" class="font-sans" font-size="8" font-weight="700" fill="#64748b" letter-spacing="0.8px">MAIN MENU</text>
+
+        <!-- Nav 1: Dashboard -->
+        <g transform="translate(0, 24)">
+          <rect x="0" y="0" width="245" height="40" rx="6" fill="#1e293b"/>
+          <text x="14" y="25" class="font-sans" font-size="13">📊</text>
+          <text x="40" y="25" class="font-sans" font-size="11" font-weight="700" fill="#ffffff">Dashboard Overview</text>
+        </g>
+
+        <!-- Nav 2: Saved Rentals -->
+        <g transform="translate(0, 70)">
+          <text x="14" y="25" class="font-sans" font-size="13">❤️</text>
+          <text x="40" y="25" class="font-sans" font-size="11" font-weight="600" fill="#cbd5e1">Saved Rentals</text>
+          <rect x="210" y="10" width="24" height="18" rx="9" fill="#334155"/>
+          <text x="222" y="23" text-anchor="middle" class="font-sans" font-size="8.5" font-weight="700" fill="#ffffff">8</text>
+        </g>
+
+        <!-- Nav 3: Inquiries -->
+        <g transform="translate(0, 116)">
+          <text x="14" y="25" class="font-sans" font-size="13">💬</text>
+          <text x="40" y="25" class="font-sans" font-size="11" font-weight="600" fill="#cbd5e1">Inquiries &amp; Tours</text>
+          <rect x="210" y="10" width="24" height="18" rx="9" fill="#047857"/>
+          <text x="222" y="23" text-anchor="middle" class="font-sans" font-size="8.5" font-weight="700" fill="#ffffff">3</text>
+        </g>
+
+        <!-- Nav 4: Map -->
+        <g transform="translate(0, 162)">
+          <text x="14" y="25" class="font-sans" font-size="13">🗺️</text>
+          <text x="40" y="25" class="font-sans" font-size="11" font-weight="600" fill="#cbd5e1">Explore Metro Cebu Map</text>
+        </g>
+
+        <!-- Nav 5: Identity & Trust -->
+        <g transform="translate(0, 208)">
+          <text x="14" y="25" class="font-sans" font-size="13">🛡️</text>
+          <text x="40" y="25" class="font-sans" font-size="11" font-weight="600" fill="#cbd5e1">Identity &amp; KYC Center</text>
+        </g>
+
+        <!-- Nav 6: Settings -->
+        <g transform="translate(0, 254)">
+          <text x="14" y="25" class="font-sans" font-size="13">⚙️</text>
+          <text x="40" y="25" class="font-sans" font-size="11" font-weight="600" fill="#cbd5e1">Account Settings</text>
+        </g>
+      </g>
+
+      <!-- Bottom Sign Out in Drawer -->
+      <g transform="translate(20, 680)">
+        <rect x="0" y="0" width="245" height="42" rx="6" fill="#1e293b" stroke="#7f1d1d" stroke-width="0.8"/>
+        <text x="16" y="26" class="font-sans" font-size="13">🚪</text>
+        <text x="42" y="26" class="font-sans" font-size="11" font-weight="700" fill="#f87171">Sign Out</text>
+      </g>
+    </g>
+
+    <!-- Safari Bar & Home Indicator -->
+    <g transform="translate(20, 756)">
+      <rect x="0" y="0" width="335" height="42" rx="14" fill="#e2e8f0" stroke="#cbd5e1" stroke-width="0.8"/>
+      <text x="22" y="25" class="font-sans" font-size="12" font-weight="700" fill="#475569">AA</text>
+      <text x="167.5" y="26" text-anchor="middle" class="font-sans" font-size="11" font-weight="500" fill="#0f172a">🔒 abangcebu.ph/dashboard</text>
+      <text x="312" y="26" class="font-sans" font-size="13" fill="#475569">↻</text>
+    </g>
+    <rect x="127.5" y="834" width="120" height="4.5" rx="2.5" fill="#0f172a"/>
+  </g>
+</svg>
