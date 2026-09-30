@@ -1,0 +1,620 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1680 1080" width="100%" height="100%">
+  <defs>
+    <filter id="phone-shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="18" stdDeviation="20" flood-color="#0f172a" flood-opacity="0.22"/>
+    </filter>
+    <filter id="badge-shadow" x="-15%" y="-15%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#0f172a" flood-opacity="0.12"/>
+    </filter>
+  </defs>
+
+  <style>
+    .font-sans { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif; }
+    .font-mono { font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace; }
+  </style>
+
+  <!-- Background Surface -->
+  <rect width="1680" height="1080" fill="#f1f5f9"/>
+
+  <!-- Blueprint Main Title -->
+  <g transform="translate(36, 24)">
+    <text x="0" y="0" class="font-sans" font-size="16" font-weight="800" fill="#0f172a" letter-spacing="0.5px">MOBILE VIEWPORT LOGIN WIREFRAME SPECIFICATION (393px × 852px · 100dvh)</text>
+    <text x="0" y="16" class="font-sans" font-size="10.5" font-weight="600" fill="#475569">Interactive Input Visual States Matrix · iPhone 16 Pro Titanium Chassis · iOS Safari 100dvh Dynamic Viewport</text>
+  </g>
+
+  <!-- ========================================================================= -->
+  <!-- PHONE 1: STATE 1 — DEFAULT / EMPTY STATE                                  -->
+  <!-- ========================================================================= -->
+  <g transform="translate(36, 76)" filter="url(#phone-shadow)">
+    <!-- Header Badge -->
+    <rect x="0" y="-28" width="375" height="22" rx="4" fill="#0f172a"/>
+    <text x="187.5" y="-13" text-anchor="middle" class="font-sans" font-size="9.5" font-weight="700" fill="#ffffff">STATE 1: DEFAULT / EMPTY STATE</text>
+
+    <!-- Outer Titanium Chassis (375 x 870) -->
+    <rect x="0" y="0" width="375" height="870" rx="44" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2.5"/>
+    <rect x="6" y="6" width="363" height="858" rx="38" fill="#0f172a"/>
+    <!-- Active Screen Viewport -->
+    <rect x="9" y="9" width="357" height="852" rx="36" fill="#ffffff"/>
+
+    <!-- Dynamic Island Capsule -->
+    <rect x="124" y="20" width="126" height="30" rx="15" fill="#000000"/>
+    <circle cx="226" cy="35" r="4.5" fill="#1e293b"/>
+    <circle cx="146" cy="35" r="2.5" fill="#1e293b"/>
+
+    <!-- iOS Status Bar (9:41) -->
+    <text x="38" y="38" class="font-sans" font-size="12" font-weight="700" fill="#0f172a">9:41</text>
+    <g transform="translate(290, 28)">
+      <!-- Signal -->
+      <rect x="0" y="7" width="2.5" height="5" fill="#0f172a"/>
+      <rect x="3.5" y="5" width="2.5" height="7" fill="#0f172a"/>
+      <rect x="7" y="3" width="2.5" height="9" fill="#0f172a"/>
+      <rect x="10.5" y="1" width="2.5" height="11" fill="#0f172a"/>
+      <!-- Wi-Fi -->
+      <path d="M 16 9 A 6 6 0 0 1 24 9 M 18 11 A 3 3 0 0 1 22 11" fill="none" stroke="#0f172a" stroke-width="1.2"/>
+      <!-- Battery -->
+      <rect x="28" y="2" width="19" height="9.5" rx="2.5" fill="none" stroke="#0f172a" stroke-width="1.1"/>
+      <rect x="30" y="3.5" width="13" height="6.5" rx="1.2" fill="#0f172a"/>
+      <rect x="48" y="4.5" width="1.2" height="4.5" fill="#0f172a"/>
+    </g>
+
+    <!-- Top Safe-Area Header Action Bar -->
+    <g transform="translate(20, 60)">
+      <rect x="0" y="0" width="128" height="36" rx="6" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1"/>
+      <text x="12" y="22" class="font-sans" font-size="11" font-weight="700" fill="#0f172a">← Back to Map</text>
+      <!-- Safe touch target indicator (44x44px) -->
+      <rect x="-4" y="-4" width="136" height="44" fill="none" stroke="#047857" stroke-width="0.8" stroke-dasharray="2,2"/>
+    </g>
+
+    <!-- Main Content Area -->
+    <g transform="translate(24, 114)">
+      <!-- Brand Eyebrow & Headline -->
+      <text x="0" y="0" class="font-mono" font-size="8.5" font-weight="800" fill="#047857" letter-spacing="1px">ABANGCEBU AI</text>
+      <text x="0" y="22" class="font-sans" font-size="18" font-weight="800" fill="#0f172a">Sign In</text>
+      <text x="0" y="38" class="font-sans" font-size="10.5" fill="#64748b">Explore rooms, inquiries, and saved rentals.</text>
+
+      <!-- Role Selector Segmented Control (h=42px) -->
+      <g transform="translate(0, 52)">
+        <rect x="0" y="0" width="327" height="40" rx="8" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1"/>
+        <rect x="3" y="3" width="160" height="34" rx="6" fill="#ffffff" stroke="#047857" stroke-width="1.2"/>
+        <text x="83" y="23" text-anchor="middle" class="font-sans" font-size="10.5" font-weight="700" fill="#047857">👤 Renter</text>
+        <text x="245" y="23" text-anchor="middle" class="font-sans" font-size="10.5" font-weight="600" fill="#64748b">🏠 Landlord</text>
+      </g>
+
+      <!-- Email Field (Default) -->
+      <g transform="translate(0, 110)">
+        <text x="0" y="0" class="font-sans" font-size="10.5" font-weight="700" fill="#0f172a">Email Address <tspan fill="#e11d48">*</tspan></text>
+        <rect x="0" y="6" width="327" height="46" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2"/>
+        <g transform="translate(12, 19)">
+          <rect x="0" y="0" width="16" height="12" rx="2" fill="none" stroke="#94a3b8" stroke-width="1.2"/>
+          <path d="M 0 0 L 8 7 L 16 0" fill="none" stroke="#94a3b8" stroke-width="1.2"/>
+        </g>
+        <text x="36" y="33" class="font-sans" font-size="11.5" fill="#94a3b8">renter@cit.edu.ph</text>
+      </g>
+
+      <!-- Password Field (Default) -->
+      <g transform="translate(0, 182)">
+        <text x="0" y="0" class="font-sans" font-size="10.5" font-weight="700" fill="#0f172a">Password <tspan fill="#e11d48">*</tspan></text>
+        <rect x="0" y="6" width="327" height="46" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2"/>
+        <g transform="translate(12, 18)">
+          <rect x="2" y="6" width="12" height="10" rx="2" fill="none" stroke="#94a3b8" stroke-width="1.2"/>
+          <path d="M 4 6 L 4 3 A 4 4 0 0 1 12 3 L 12 6" fill="none" stroke="#94a3b8" stroke-width="1.2"/>
+        </g>
+        <text x="36" y="33" class="font-sans" font-size="11.5" fill="#94a3b8">Enter your password</text>
+        <!-- Show/Hide Toggle Eye (44x44px Touch Target) -->
+        <g transform="translate(283, 7)">
+          <rect x="0" y="0" width="44" height="44" rx="6" fill="#f8fafc" stroke="#cbd5e1" stroke-width="0.8"/>
+          <path d="M 12 22 Q 22 14 32 22 Q 22 30 12 22 Z" fill="none" stroke="#64748b" stroke-width="1.3"/>
+          <circle cx="22" cy="22" r="2.8" fill="#64748b"/>
+        </g>
+      </g>
+
+      <!-- Remember Me & Forgot Password -->
+      <g transform="translate(0, 254)">
+        <rect x="0" y="0" width="16" height="16" rx="4" fill="#ffffff" stroke="#94a3b8" stroke-width="1.2"/>
+        <text x="24" y="12" class="font-sans" font-size="10.5" font-weight="600" fill="#475569">Remember me</text>
+        <text x="327" y="12" text-anchor="end" class="font-sans" font-size="10.5" font-weight="700" fill="#047857">Forgot?</text>
+      </g>
+
+      <!-- Primary Sign In CTA Button (48px) -->
+      <g transform="translate(0, 290)">
+        <rect x="0" y="0" width="327" height="48" rx="8" fill="#047857" stroke="#065f46" stroke-width="1.2"/>
+        <text x="163.5" y="29" text-anchor="middle" class="font-sans" font-size="13" font-weight="800" fill="#ffffff">Sign In to AbangCebu →</text>
+      </g>
+
+      <!-- OR Divider -->
+      <g transform="translate(0, 362)">
+        <line x1="0" y1="0" x2="327" y2="0" stroke="#e2e8f0" stroke-width="1"/>
+        <rect x="110" y="-8" width="107" height="16" rx="3" fill="#ffffff"/>
+        <text x="163.5" y="4" text-anchor="middle" class="font-mono" font-size="7.5" font-weight="700" fill="#94a3b8">OR CONTINUE WITH</text>
+      </g>
+
+      <!-- Google OAuth Button (46px) -->
+      <g transform="translate(0, 390)">
+        <rect x="0" y="0" width="327" height="46" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2"/>
+        <circle cx="106" cy="23" r="7" fill="#ffffff" stroke="#ea4335" stroke-width="1.3"/>
+        <text x="106" y="26" text-anchor="middle" class="font-sans" font-size="9" font-weight="800" fill="#4285f4">G</text>
+        <text x="175" y="28" text-anchor="middle" class="font-sans" font-size="11.5" font-weight="700" fill="#1e293b">Continue with Google</text>
+      </g>
+
+      <!-- Sign Up Prompt -->
+      <g transform="translate(0, 458)">
+        <text x="163.5" y="0" text-anchor="middle" class="font-sans" font-size="10.5" fill="#475569">
+          Need an account? <tspan font-weight="800" fill="#047857">Sign up for free</tspan>
+        </text>
+      </g>
+
+      <!-- Mobile Touch Guide Box -->
+      <g transform="translate(0, 488)">
+        <rect x="0" y="0" width="327" height="56" rx="6" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1"/>
+        <text x="12" y="18" class="font-mono" font-size="8" font-weight="700" fill="#047857">MOBILE ERGONOMIC CONTRACT</text>
+        <text x="12" y="32" class="font-sans" font-size="8.5" fill="#475569">• 44×44px touch targets enforced across all controls</text>
+        <text x="12" y="45" class="font-sans" font-size="8.5" fill="#475569">• 16px input font rule eliminates Safari auto-zoom</text>
+      </g>
+    </g>
+
+    <!-- iOS Safari Address Bar -->
+    <g transform="translate(20, 786)">
+      <rect x="0" y="0" width="335" height="42" rx="21" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
+      <text x="18" y="25" class="font-sans" font-size="11" font-weight="600" fill="#64748b">AA</text>
+      <text x="56" y="25" class="font-mono" font-size="10.5" font-weight="700" fill="#0f172a">🔒 abangcebu.ph</text>
+      <text x="306" y="25" class="font-sans" font-size="12" fill="#64748b">↻</text>
+    </g>
+    <!-- Home Indicator -->
+    <rect x="127.5" y="842" width="120" height="4.5" rx="2.25" fill="#0f172a"/>
+  </g>
+
+  <!-- ========================================================================= -->
+  <!-- PHONE 2: STATE 2 — ACTIVE / FOCUSED STATE                                 -->
+  <!-- ========================================================================= -->
+  <g transform="translate(447, 76)" filter="url(#phone-shadow)">
+    <!-- Header Badge -->
+    <rect x="0" y="-28" width="375" height="22" rx="4" fill="#047857"/>
+    <text x="187.5" y="-13" text-anchor="middle" class="font-sans" font-size="9.5" font-weight="700" fill="#ffffff">STATE 2: ACTIVE / FOCUSED STATE</text>
+
+    <!-- Outer Titanium Chassis -->
+    <rect x="0" y="0" width="375" height="870" rx="44" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2.5"/>
+    <rect x="6" y="6" width="363" height="858" rx="38" fill="#0f172a"/>
+    <rect x="9" y="9" width="357" height="852" rx="36" fill="#ffffff"/>
+
+    <!-- Dynamic Island Capsule -->
+    <rect x="124" y="20" width="126" height="30" rx="15" fill="#000000"/>
+    <circle cx="226" cy="35" r="4.5" fill="#1e293b"/>
+    <circle cx="146" cy="35" r="2.5" fill="#1e293b"/>
+
+    <!-- iOS Status Bar -->
+    <text x="38" y="38" class="font-sans" font-size="12" font-weight="700" fill="#0f172a">9:41</text>
+    <g transform="translate(290, 28)">
+      <rect x="0" y="7" width="2.5" height="5" fill="#0f172a"/>
+      <rect x="3.5" y="5" width="2.5" height="7" fill="#0f172a"/>
+      <rect x="7" y="3" width="2.5" height="9" fill="#0f172a"/>
+      <rect x="10.5" y="1" width="2.5" height="11" fill="#0f172a"/>
+      <path d="M 16 9 A 6 6 0 0 1 24 9" fill="none" stroke="#0f172a" stroke-width="1.2"/>
+      <rect x="28" y="2" width="19" height="9.5" rx="2.5" fill="none" stroke="#0f172a" stroke-width="1.1"/>
+      <rect x="30" y="3.5" width="13" height="6.5" rx="1.2" fill="#0f172a"/>
+      <rect x="48" y="4.5" width="1.2" height="4.5" fill="#0f172a"/>
+    </g>
+
+    <!-- Top Safe-Area Action Bar -->
+    <g transform="translate(20, 60)">
+      <rect x="0" y="0" width="128" height="36" rx="6" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1"/>
+      <text x="12" y="22" class="font-sans" font-size="11" font-weight="700" fill="#0f172a">← Back to Map</text>
+    </g>
+
+    <!-- Main Content Area -->
+    <g transform="translate(24, 114)">
+      <text x="0" y="0" class="font-mono" font-size="8.5" font-weight="800" fill="#047857" letter-spacing="1px">ABANGCEBU AI</text>
+      <text x="0" y="22" class="font-sans" font-size="18" font-weight="800" fill="#0f172a">Sign In</text>
+      <text x="0" y="38" class="font-sans" font-size="10.5" fill="#64748b">Explore rooms, inquiries, and saved rentals.</text>
+
+      <!-- Role Selector -->
+      <g transform="translate(0, 52)">
+        <rect x="0" y="0" width="327" height="40" rx="8" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1"/>
+        <rect x="3" y="3" width="160" height="34" rx="6" fill="#ffffff" stroke="#047857" stroke-width="1.2"/>
+        <text x="83" y="23" text-anchor="middle" class="font-sans" font-size="10.5" font-weight="700" fill="#047857">👤 Renter</text>
+        <text x="245" y="23" text-anchor="middle" class="font-sans" font-size="10.5" font-weight="600" fill="#64748b">🏠 Landlord</text>
+      </g>
+
+      <!-- Email Field (Filled State) -->
+      <g transform="translate(0, 110)">
+        <text x="0" y="0" class="font-sans" font-size="10.5" font-weight="700" fill="#0f172a">Email Address <tspan fill="#e11d48">*</tspan></text>
+        <rect x="0" y="6" width="327" height="46" rx="8" fill="#ffffff" stroke="#64748b" stroke-width="1.2"/>
+        <g transform="translate(12, 19)">
+          <rect x="0" y="0" width="16" height="12" rx="2" fill="none" stroke="#0f172a" stroke-width="1.2"/>
+          <path d="M 0 0 L 8 7 L 16 0" fill="none" stroke="#0f172a" stroke-width="1.2"/>
+        </g>
+        <text x="36" y="33" class="font-sans" font-size="11.5" font-weight="600" fill="#0f172a">mika.renter@cit.edu.ph</text>
+      </g>
+
+      <!-- Password Field (ACTIVELY FOCUSED with Emerald Ring + Plaintext) -->
+      <g transform="translate(0, 182)">
+        <text x="0" y="0" class="font-sans" font-size="10.5" font-weight="700" fill="#047857">Password (Focused) <tspan fill="#e11d48">*</tspan></text>
+        <!-- High-contrast Cebu Emerald Focus Ring -->
+        <rect x="-1.5" y="4.5" width="330" height="49" rx="9" fill="none" stroke="#a7f3d0" stroke-width="3"/>
+        <rect x="0" y="6" width="327" height="46" rx="8" fill="#ffffff" stroke="#047857" stroke-width="2"/>
+        
+        <g transform="translate(12, 18)">
+          <rect x="2" y="6" width="12" height="10" rx="2" fill="none" stroke="#047857" stroke-width="1.3"/>
+          <path d="M 4 6 L 4 3 A 4 4 0 0 1 12 3 L 12 6" fill="none" stroke="#047857" stroke-width="1.3"/>
+        </g>
+        <!-- Plaintext Password Revealed with Active Blinking Cursor -->
+        <text x="36" y="34" class="font-mono" font-size="12" font-weight="700" fill="#0f172a">SecurePass2026!</text>
+        <line x1="162" y1="20" x2="162" y2="38" stroke="#047857" stroke-width="2"/>
+
+        <!-- Show/Hide Toggle Button (PRESSED / VISIBLE EYE-SLASH) -->
+        <g transform="translate(283, 7)">
+          <rect x="0" y="0" width="44" height="44" rx="6" fill="#ecfdf5" stroke="#047857" stroke-width="1.2"/>
+          <path d="M 12 22 Q 22 14 32 22 Q 22 30 12 22 Z" fill="none" stroke="#047857" stroke-width="1.4"/>
+          <circle cx="22" cy="22" r="2.8" fill="#047857"/>
+          <line x1="13" y1="31" x2="31" y2="13" stroke="#047857" stroke-width="1.6"/>
+        </g>
+      </g>
+
+      <!-- Active Helper Pill: 16px Font Locked -->
+      <g transform="translate(0, 240)">
+        <rect x="0" y="0" width="220" height="20" rx="4" fill="#f0fdf4" stroke="#86efac" stroke-width="0.8"/>
+        <text x="8" y="13" class="font-mono" font-size="7.5" font-weight="700" fill="#047857">✓ Font-size: 16px (Anti-zoom)</text>
+      </g>
+
+      <!-- Remember Me (Checked) & Forgot Password -->
+      <g transform="translate(0, 268)">
+        <rect x="0" y="0" width="16" height="16" rx="4" fill="#047857" stroke="#047857" stroke-width="1.2"/>
+        <path d="M 3 8 L 7 12 L 13 4" fill="none" stroke="#ffffff" stroke-width="1.8"/>
+        <text x="24" y="12" class="font-sans" font-size="10.5" font-weight="600" fill="#0f172a">Remember me (Active)</text>
+        <text x="327" y="12" text-anchor="end" class="font-sans" font-size="10.5" font-weight="700" fill="#047857">Forgot?</text>
+      </g>
+
+      <!-- Primary Sign In CTA Button (Ready for Tap) -->
+      <g transform="translate(0, 302)">
+        <rect x="0" y="0" width="327" height="48" rx="8" fill="#047857" stroke="#065f46" stroke-width="1.2"/>
+        <text x="163.5" y="29" text-anchor="middle" class="font-sans" font-size="13" font-weight="800" fill="#ffffff">Sign In to AbangCebu →</text>
+      </g>
+
+      <!-- Virtual Keyboard Representation Hint -->
+      <g transform="translate(0, 368)">
+        <rect x="0" y="0" width="327" height="170" rx="8" fill="#e2e8f0" stroke="#cbd5e1" stroke-width="1"/>
+        <rect x="8" y="8" width="311" height="28" rx="4" fill="#ffffff"/>
+        <text x="18" y="26" class="font-sans" font-size="10" font-weight="600" fill="#475569">Quick suggestions: .edu.ph  |  .com  |  @cit.edu.ph</text>
+        
+        <!-- Schematic Keyboard Rows -->
+        <g transform="translate(12, 44)">
+          <rect x="0" y="0" width="28" height="34" rx="4" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+          <text x="14" y="22" text-anchor="middle" class="font-sans" font-size="11" font-weight="600" fill="#0f172a">Q</text>
+          <rect x="33" y="0" width="28" height="34" rx="4" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+          <text x="47" y="22" text-anchor="middle" class="font-sans" font-size="11" font-weight="600" fill="#0f172a">W</text>
+          <rect x="66" y="0" width="28" height="34" rx="4" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+          <text x="80" y="22" text-anchor="middle" class="font-sans" font-size="11" font-weight="600" fill="#0f172a">E</text>
+          <rect x="99" y="0" width="28" height="34" rx="4" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+          <text x="113" y="22" text-anchor="middle" class="font-sans" font-size="11" font-weight="600" fill="#0f172a">R</text>
+          <rect x="132" y="0" width="28" height="34" rx="4" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+          <text x="146" y="22" text-anchor="middle" class="font-sans" font-size="11" font-weight="600" fill="#0f172a">T</text>
+          <rect x="165" y="0" width="28" height="34" rx="4" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+          <text x="179" y="22" text-anchor="middle" class="font-sans" font-size="11" font-weight="600" fill="#0f172a">Y</text>
+          <rect x="198" y="0" width="28" height="34" rx="4" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+          <text x="212" y="22" text-anchor="middle" class="font-sans" font-size="11" font-weight="600" fill="#0f172a">U</text>
+          <rect x="231" y="0" width="28" height="34" rx="4" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+          <text x="245" y="22" text-anchor="middle" class="font-sans" font-size="11" font-weight="600" fill="#0f172a">I</text>
+          <rect x="264" y="0" width="28" height="34" rx="4" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+          <text x="278" y="22" text-anchor="middle" class="font-sans" font-size="11" font-weight="600" fill="#0f172a">O</text>
+        </g>
+        <g transform="translate(40, 84)">
+          <rect x="0" y="0" width="140" height="34" rx="4" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+          <text x="70" y="22" text-anchor="middle" class="font-sans" font-size="10.5" fill="#64748b">space</text>
+          <rect x="150" y="0" width="90" height="34" rx="4" fill="#047857"/>
+          <text x="195" y="22" text-anchor="middle" class="font-sans" font-size="11" font-weight="700" fill="#ffffff">return</text>
+        </g>
+      </g>
+    </g>
+
+    <!-- iOS Safari Address Bar -->
+    <g transform="translate(20, 786)">
+      <rect x="0" y="0" width="335" height="42" rx="21" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
+      <text x="18" y="25" class="font-sans" font-size="11" font-weight="600" fill="#64748b">AA</text>
+      <text x="56" y="25" class="font-mono" font-size="10.5" font-weight="700" fill="#0f172a">🔒 abangcebu.ph</text>
+      <text x="306" y="25" class="font-sans" font-size="12" fill="#64748b">↻</text>
+    </g>
+    <rect x="127.5" y="842" width="120" height="4.5" rx="2.25" fill="#0f172a"/>
+  </g>
+
+  <!-- ========================================================================= -->
+  <!-- PHONE 3: STATE 3 — VALIDATION ERROR STATE (SCRUM-57 & SCRUM-60)           -->
+  <!-- ========================================================================= -->
+  <g transform="translate(858, 76)" filter="url(#phone-shadow)">
+    <!-- Header Badge -->
+    <rect x="0" y="-28" width="375" height="22" rx="4" fill="#e11d48"/>
+    <text x="187.5" y="-13" text-anchor="middle" class="font-sans" font-size="9.5" font-weight="700" fill="#ffffff">STATE 3: VALIDATION ERROR (AUTH_INVALID)</text>
+
+    <!-- Outer Titanium Chassis -->
+    <rect x="0" y="0" width="375" height="870" rx="44" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2.5"/>
+    <rect x="6" y="6" width="363" height="858" rx="38" fill="#0f172a"/>
+    <rect x="9" y="9" width="357" height="852" rx="36" fill="#ffffff"/>
+
+    <!-- Dynamic Island Capsule -->
+    <rect x="124" y="20" width="126" height="30" rx="15" fill="#000000"/>
+    <circle cx="226" cy="35" r="4.5" fill="#1e293b"/>
+    <circle cx="146" cy="35" r="2.5" fill="#1e293b"/>
+
+    <!-- iOS Status Bar -->
+    <text x="38" y="38" class="font-sans" font-size="12" font-weight="700" fill="#0f172a">9:41</text>
+    <g transform="translate(290, 28)">
+      <rect x="0" y="7" width="2.5" height="5" fill="#0f172a"/>
+      <rect x="3.5" y="5" width="2.5" height="7" fill="#0f172a"/>
+      <rect x="7" y="3" width="2.5" height="9" fill="#0f172a"/>
+      <rect x="10.5" y="1" width="2.5" height="11" fill="#0f172a"/>
+      <path d="M 16 9 A 6 6 0 0 1 24 9" fill="none" stroke="#0f172a" stroke-width="1.2"/>
+      <rect x="28" y="2" width="19" height="9.5" rx="2.5" fill="none" stroke="#0f172a" stroke-width="1.1"/>
+      <rect x="30" y="3.5" width="13" height="6.5" rx="1.2" fill="#0f172a"/>
+      <rect x="48" y="4.5" width="1.2" height="4.5" fill="#0f172a"/>
+    </g>
+
+    <!-- Top Safe-Area Action Bar -->
+    <g transform="translate(20, 60)">
+      <rect x="0" y="0" width="128" height="36" rx="6" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1"/>
+      <text x="12" y="22" class="font-sans" font-size="11" font-weight="700" fill="#0f172a">← Back to Map</text>
+    </g>
+
+    <!-- Main Content Area -->
+    <g transform="translate(24, 108)">
+      
+      <!-- Top Alert Banner: AUTH_INVALID_CREDENTIALS (SCRUM-60 Spec) -->
+      <g transform="translate(0, 0)">
+        <rect x="0" y="0" width="327" height="56" rx="8" fill="#fff1f2" stroke="#fda4af" stroke-width="1.2"/>
+        <text x="12" y="18" class="font-mono" font-size="8" font-weight="800" fill="#e11d48">⚠️ AUTH_INVALID_CREDENTIALS (401)</text>
+        <text x="12" y="33" class="font-sans" font-size="9" font-weight="600" fill="#9f1239">Incorrect email or password. Please verify</text>
+        <text x="12" y="46" class="font-sans" font-size="9" font-weight="600" fill="#9f1239">your credentials or <tspan text-decoration="underline" font-weight="800">reset your password</tspan>.</text>
+      </g>
+
+      <!-- Role Selector -->
+      <g transform="translate(0, 68)">
+        <rect x="0" y="0" width="327" height="40" rx="8" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1"/>
+        <rect x="3" y="3" width="160" height="34" rx="6" fill="#ffffff" stroke="#047857" stroke-width="1.2"/>
+        <text x="83" y="23" text-anchor="middle" class="font-sans" font-size="10.5" font-weight="700" fill="#047857">👤 Renter</text>
+        <text x="245" y="23" text-anchor="middle" class="font-sans" font-size="10.5" font-weight="600" fill="#64748b">🏠 Landlord</text>
+      </g>
+
+      <!-- Email Field (Filled, Neutral Border) -->
+      <g transform="translate(0, 122)">
+        <text x="0" y="0" class="font-sans" font-size="10.5" font-weight="700" fill="#0f172a">Email Address <tspan fill="#e11d48">*</tspan></text>
+        <rect x="0" y="6" width="327" height="46" rx="8" fill="#ffffff" stroke="#94a3b8" stroke-width="1.2"/>
+        <g transform="translate(12, 19)">
+          <rect x="0" y="0" width="16" height="12" rx="2" fill="none" stroke="#0f172a" stroke-width="1.2"/>
+          <path d="M 0 0 L 8 7 L 16 0" fill="none" stroke="#0f172a" stroke-width="1.2"/>
+        </g>
+        <text x="36" y="33" class="font-sans" font-size="11.5" font-weight="600" fill="#0f172a">mika.renter@cit.edu.ph</text>
+      </g>
+
+      <!-- Password Field (ERROR STATE: Red Border + Exclamation Mark + Inline Warning) -->
+      <g transform="translate(0, 190)">
+        <text x="0" y="0" class="font-sans" font-size="10.5" font-weight="700" fill="#e11d48">Password <tspan fill="#e11d48">*</tspan></text>
+        
+        <!-- Error Border (Crimson #e11d48) -->
+        <rect x="0" y="6" width="327" height="46" rx="8" fill="#fff1f2" stroke="#e11d48" stroke-width="1.8"/>
+        
+        <g transform="translate(12, 18)">
+          <rect x="2" y="6" width="12" height="10" rx="2" fill="none" stroke="#e11d48" stroke-width="1.3"/>
+          <path d="M 4 6 L 4 3 A 4 4 0 0 1 12 3 L 12 6" fill="none" stroke="#e11d48" stroke-width="1.3"/>
+        </g>
+        <text x="36" y="35" class="font-mono" font-size="14" fill="#e11d48" letter-spacing="2px">••••••••••••</text>
+        
+        <!-- Warning Icon Pill -->
+        <g transform="translate(248, 17)">
+          <circle cx="12" cy="12" r="10" fill="#e11d48"/>
+          <text x="12" y="16" text-anchor="middle" class="font-sans" font-size="11" font-weight="800" fill="#ffffff">!</text>
+        </g>
+
+        <!-- Eye toggle -->
+        <g transform="translate(283, 7)">
+          <rect x="0" y="0" width="44" height="44" rx="6" fill="#f8fafc" stroke="#cbd5e1" stroke-width="0.8"/>
+          <path d="M 12 22 Q 22 14 32 22 Q 22 30 12 22 Z" fill="none" stroke="#64748b" stroke-width="1.3"/>
+          <circle cx="22" cy="22" r="2.8" fill="#64748b"/>
+        </g>
+
+        <!-- Inline Error Message (WCAG aria-describedby) -->
+        <text x="0" y="66" class="font-sans" font-size="9.5" font-weight="700" fill="#e11d48">
+          ❌ Incorrect password. 4 attempts remaining before lockout.
+        </text>
+      </g>
+
+      <!-- Remember Me & Forgot Password -->
+      <g transform="translate(0, 276)">
+        <rect x="0" y="0" width="16" height="16" rx="4" fill="#ffffff" stroke="#94a3b8" stroke-width="1.2"/>
+        <text x="24" y="12" class="font-sans" font-size="10.5" font-weight="600" fill="#475569">Remember me</text>
+        <text x="327" y="12" text-anchor="end" class="font-sans" font-size="10.5" font-weight="700" fill="#e11d48">Reset Password →</text>
+      </g>
+
+      <!-- Primary Sign In CTA Button -->
+      <g transform="translate(0, 312)">
+        <rect x="0" y="0" width="327" height="48" rx="8" fill="#047857" stroke="#065f46" stroke-width="1.2"/>
+        <text x="163.5" y="29" text-anchor="middle" class="font-sans" font-size="13" font-weight="800" fill="#ffffff">Sign In to AbangCebu →</text>
+      </g>
+
+      <!-- Error Taxonomy Mapping Box -->
+      <g transform="translate(0, 380)">
+        <rect x="0" y="0" width="327" height="150" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1"/>
+        <text x="12" y="20" class="font-mono" font-size="8.5" font-weight="800" fill="#0f172a">ERROR HANDLING CONTRACTS (SCRUM-60)</text>
+        
+        <g transform="translate(12, 34)">
+          <circle cx="4" cy="4" r="3" fill="#e11d48"/>
+          <text x="14" y="8" class="font-mono" font-size="8" font-weight="700" fill="#0f172a">AUTH_INVALID_CREDENTIALS:</text>
+          <text x="14" y="20" class="font-sans" font-size="8" fill="#475569">Generic anti-enumeration copy; inline counter.</text>
+        </g>
+        <g transform="translate(12, 68)">
+          <circle cx="4" cy="4" r="3" fill="#d97706"/>
+          <text x="14" y="8" class="font-mono" font-size="8" font-weight="700" fill="#0f172a">AUTH_EMAIL_NOT_CONFIRMED:</text>
+          <text x="14" y="20" class="font-sans" font-size="8" fill="#475569">Amber banner + "Resend Confirmation Email".</text>
+        </g>
+        <g transform="translate(12, 102)">
+          <circle cx="4" cy="4" r="3" fill="#7f1d1d"/>
+          <text x="14" y="8" class="font-mono" font-size="8" font-weight="700" fill="#0f172a">AUTH_ACCOUNT_SUSPENDED:</text>
+          <text x="14" y="20" class="font-sans" font-size="8" fill="#475569">Lockout banner + support@abangcebu.ph link.</text>
+        </g>
+      </g>
+    </g>
+
+    <!-- iOS Safari Address Bar -->
+    <g transform="translate(20, 786)">
+      <rect x="0" y="0" width="335" height="42" rx="21" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
+      <text x="18" y="25" class="font-sans" font-size="11" font-weight="600" fill="#64748b">AA</text>
+      <text x="56" y="25" class="font-mono" font-size="10.5" font-weight="700" fill="#0f172a">🔒 abangcebu.ph</text>
+      <text x="306" y="25" class="font-sans" font-size="12" fill="#64748b">↻</text>
+    </g>
+    <rect x="127.5" y="842" width="120" height="4.5" rx="2.25" fill="#0f172a"/>
+  </g>
+
+  <!-- ========================================================================= -->
+  <!-- PHONE 4: STATE 4 — LOADING / SUBMITTING STATE                             -->
+  <!-- ========================================================================= -->
+  <g transform="translate(1269, 76)" filter="url(#phone-shadow)">
+    <!-- Header Badge -->
+    <rect x="0" y="-28" width="375" height="22" rx="4" fill="#0f2742"/>
+    <text x="187.5" y="-13" text-anchor="middle" class="font-sans" font-size="9.5" font-weight="700" fill="#ffffff">STATE 4: LOADING / SUBMITTING STATE</text>
+
+    <!-- Outer Titanium Chassis -->
+    <rect x="0" y="0" width="375" height="870" rx="44" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2.5"/>
+    <rect x="6" y="6" width="363" height="858" rx="38" fill="#0f172a"/>
+    <rect x="9" y="9" width="357" height="852" rx="36" fill="#ffffff"/>
+
+    <!-- Dynamic Island Capsule -->
+    <rect x="124" y="20" width="126" height="30" rx="15" fill="#000000"/>
+    <circle cx="226" cy="35" r="4.5" fill="#1e293b"/>
+    <circle cx="146" cy="35" r="2.5" fill="#1e293b"/>
+
+    <!-- iOS Status Bar -->
+    <text x="38" y="38" class="font-sans" font-size="12" font-weight="700" fill="#0f172a">9:41</text>
+    <g transform="translate(290, 28)">
+      <rect x="0" y="7" width="2.5" height="5" fill="#0f172a"/>
+      <rect x="3.5" y="5" width="2.5" height="7" fill="#0f172a"/>
+      <rect x="7" y="3" width="2.5" height="9" fill="#0f172a"/>
+      <rect x="10.5" y="1" width="2.5" height="11" fill="#0f172a"/>
+      <path d="M 16 9 A 6 6 0 0 1 24 9" fill="none" stroke="#0f172a" stroke-width="1.2"/>
+      <rect x="28" y="2" width="19" height="9.5" rx="2.5" fill="none" stroke="#0f172a" stroke-width="1.1"/>
+      <rect x="30" y="3.5" width="13" height="6.5" rx="1.2" fill="#0f172a"/>
+      <rect x="48" y="4.5" width="1.2" height="4.5" fill="#0f172a"/>
+    </g>
+
+    <!-- Top Safe-Area Action Bar (Disabled) -->
+    <g transform="translate(20, 60)" opacity="0.6">
+      <rect x="0" y="0" width="128" height="36" rx="6" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1"/>
+      <text x="12" y="22" class="font-sans" font-size="11" font-weight="700" fill="#64748b">← Back to Map</text>
+    </g>
+
+    <!-- Top Progress Bar (Indeterminate Loading) -->
+    <g transform="translate(9, 102)">
+      <rect x="0" y="0" width="357" height="3" fill="#ecfdf5"/>
+      <rect x="70" y="0" width="160" height="3" fill="#047857"/>
+    </g>
+
+    <!-- Main Content Area (Disabled Form Fields) -->
+    <g transform="translate(24, 114)">
+      <text x="0" y="0" class="font-mono" font-size="8.5" font-weight="800" fill="#047857" letter-spacing="1px">ABANGCEBU AI</text>
+      <text x="0" y="22" class="font-sans" font-size="18" font-weight="800" fill="#0f172a">Signing in...</text>
+      <text x="0" y="38" class="font-sans" font-size="10.5" fill="#64748b">Verifying session credentials with Supabase Auth...</text>
+
+      <!-- Role Selector (Disabled) -->
+      <g transform="translate(0, 52)" opacity="0.6">
+        <rect x="0" y="0" width="327" height="40" rx="8" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1"/>
+        <rect x="3" y="3" width="160" height="34" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+        <text x="83" y="23" text-anchor="middle" class="font-sans" font-size="10.5" font-weight="700" fill="#047857">👤 Renter</text>
+        <text x="245" y="23" text-anchor="middle" class="font-sans" font-size="10.5" font-weight="600" fill="#64748b">🏠 Landlord</text>
+      </g>
+
+      <!-- Email Field (Disabled) -->
+      <g transform="translate(0, 110)">
+        <text x="0" y="0" class="font-sans" font-size="10.5" font-weight="700" fill="#64748b">Email Address</text>
+        <rect x="0" y="6" width="327" height="46" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
+        <g transform="translate(12, 19)" opacity="0.5">
+          <rect x="0" y="0" width="16" height="12" rx="2" fill="none" stroke="#64748b" stroke-width="1.2"/>
+          <path d="M 0 0 L 8 7 L 16 0" fill="none" stroke="#64748b" stroke-width="1.2"/>
+        </g>
+        <text x="36" y="33" class="font-sans" font-size="11.5" fill="#64748b">mika.renter@cit.edu.ph</text>
+      </g>
+
+      <!-- Password Field (Disabled) -->
+      <g transform="translate(0, 182)">
+        <text x="0" y="0" class="font-sans" font-size="10.5" font-weight="700" fill="#64748b">Password</text>
+        <rect x="0" y="6" width="327" height="46" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
+        <g transform="translate(12, 18)" opacity="0.5">
+          <rect x="2" y="6" width="12" height="10" rx="2" fill="none" stroke="#64748b" stroke-width="1.2"/>
+          <path d="M 4 6 L 4 3 A 4 4 0 0 1 12 3 L 12 6" fill="none" stroke="#64748b" stroke-width="1.2"/>
+        </g>
+        <text x="36" y="35" class="font-mono" font-size="14" fill="#64748b" letter-spacing="2px">••••••••••••</text>
+        <g transform="translate(283, 7)" opacity="0.5">
+          <rect x="0" y="0" width="44" height="44" rx="6" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="0.8"/>
+          <path d="M 12 22 Q 22 14 32 22 Q 22 30 12 22 Z" fill="none" stroke="#64748b" stroke-width="1.3"/>
+          <circle cx="22" cy="22" r="2.8" fill="#64748b"/>
+        </g>
+      </g>
+
+      <!-- Primary Sign In CTA Button (LOADING SPINNER STATE) -->
+      <g transform="translate(0, 260)">
+        <rect x="0" y="0" width="327" height="48" rx="8" fill="#065f46" stroke="#064e3b" stroke-width="1.2"/>
+        <!-- Animated Spinner Icon -->
+        <g transform="translate(80, 16)">
+          <circle cx="8" cy="8" r="7" fill="none" stroke="#a7f3d0" stroke-width="2" opacity="0.3"/>
+          <path d="M 8 1 A 7 7 0 0 1 15 8" fill="none" stroke="#ffffff" stroke-width="2.4" stroke-linecap="round"/>
+        </g>
+        <text x="180" y="29" text-anchor="middle" class="font-sans" font-size="12.5" font-weight="800" fill="#ffffff">Signing in...</text>
+      </g>
+
+      <!-- Google OAuth Button (Disabled) -->
+      <g transform="translate(0, 324)" opacity="0.5">
+        <rect x="0" y="0" width="327" height="46" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1"/>
+        <text x="163.5" y="28" text-anchor="middle" class="font-sans" font-size="11.5" font-weight="600" fill="#64748b">Continue with Google (Disabled)</text>
+      </g>
+
+      <!-- Server Action Execution Telemetry Card -->
+      <g transform="translate(0, 396)">
+        <rect x="0" y="0" width="327" height="150" rx="8" fill="#f0fdf4" stroke="#86efac" stroke-width="1"/>
+        <text x="12" y="20" class="font-mono" font-size="8.5" font-weight="800" fill="#047857">NEXT.js 16 SERVER ACTION TELEMETRY</text>
+        
+        <g transform="translate(12, 34)">
+          <text x="0" y="10" class="font-mono" font-size="8" fill="#334155">• Form Action: <tspan font-weight="700">loginAction(formData)</tspan></text>
+          <text x="0" y="24" class="font-mono" font-size="8" fill="#334155">• Status: <tspan font-weight="700" fill="#047857">Pending (useActionState: isPending)</tspan></text>
+          <text x="0" y="38" class="font-mono" font-size="8" fill="#334155">• Target: <tspan font-weight="700">/auth/v1/token?grant_type=password</tspan></text>
+          <text x="0" y="52" class="font-mono" font-size="8" fill="#334155">• Anti-Double Submit: <tspan font-weight="700">Button locked</tspan></text>
+          <text x="0" y="66" class="font-mono" font-size="8" fill="#334155">• Return Target: <tspan font-weight="700">/map?lat=10.2942&amp;lng=123.8659</tspan></text>
+          <text x="0" y="80" class="font-mono" font-size="8" fill="#334155">• Cookie Storage: <tspan font-weight="700">sb-access-token (HttpOnly)</tspan></text>
+        </g>
+      </g>
+    </g>
+
+    <!-- iOS Safari Address Bar -->
+    <g transform="translate(20, 786)">
+      <rect x="0" y="0" width="335" height="42" rx="21" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
+      <text x="18" y="25" class="font-sans" font-size="11" font-weight="600" fill="#64748b">AA</text>
+      <text x="56" y="25" class="font-mono" font-size="10.5" font-weight="700" fill="#0f172a">🔒 abangcebu.ph</text>
+      <text x="306" y="25" class="font-sans" font-size="12" fill="#64748b">↻</text>
+    </g>
+    <rect x="127.5" y="842" width="120" height="4.5" rx="2.25" fill="#0f172a"/>
+  </g>
+
+  <!-- ========================================================================= -->
+  <!-- FOOTER ANNOTATION BAR                                                     -->
+  <!-- ========================================================================= -->
+  <g transform="translate(36, 990)">
+    <rect x="0" y="0" width="1608" height="60" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2"/>
+    <g transform="translate(30, 18)">
+      <circle cx="10" cy="12" r="10" fill="#0f172a"/>
+      <text x="10" y="16" text-anchor="middle" class="font-sans" font-size="9" font-weight="800" fill="#ffffff">1</text>
+      <text x="28" y="12" class="font-sans" font-size="10" font-weight="700" fill="#0f172a">State 1: Default / Empty</text>
+      <text x="28" y="25" class="font-sans" font-size="9" fill="#64748b">Neutral borders, placeholders, 44x44px touch targets, Back to Map link.</text>
+    </g>
+    <g transform="translate(430, 18)">
+      <circle cx="10" cy="12" r="10" fill="#047857"/>
+      <text x="10" y="16" text-anchor="middle" class="font-sans" font-size="9" font-weight="800" fill="#ffffff">2</text>
+      <text x="28" y="12" class="font-sans" font-size="10" font-weight="700" fill="#0f172a">State 2: Active / Focused</text>
+      <text x="28" y="25" class="font-sans" font-size="9" fill="#64748b">Emerald ring, show/hide eye toggle pressed, 16px font anti-zoom rule.</text>
+    </g>
+    <g transform="translate(830, 18)">
+      <circle cx="10" cy="12" r="10" fill="#e11d48"/>
+      <text x="10" y="16" text-anchor="middle" class="font-sans" font-size="9" font-weight="800" fill="#ffffff">3</text>
+      <text x="28" y="12" class="font-sans" font-size="10" font-weight="700" fill="#0f172a">State 3: Validation Error</text>
+      <text x="28" y="25" class="font-sans" font-size="9" fill="#64748b">AUTH_INVALID_CREDENTIALS alert banner, red input borders, inline counter.</text>
+    </g>
+    <g transform="translate(1230, 18)">
+      <circle cx="10" cy="12" r="10" fill="#0f2742"/>
+      <text x="10" y="16" text-anchor="middle" class="font-sans" font-size="9" font-weight="800" fill="#ffffff">4</text>
+      <text x="28" y="12" class="font-sans" font-size="10" font-weight="700" fill="#0f172a">State 4: Loading / Submitting</text>
+      <text x="28" y="25" class="font-sans" font-size="9" fill="#64748b">Inputs disabled, spinner indicator, anti-double submit lock, GoTrue auth.</text>
+    </g>
+  </g>
+</svg>

@@ -43,7 +43,8 @@ docs/
 │   ├── styling-guidelines.md                # SCRUM-50: Tailwind v4 tokens & Cebu coastal palette
 │   ├── renter-persona.md                    # SCRUM-61: Renter persona ("Mika") & journey map
 │   ├── landing-page-wireframe.md            # SCRUM-64: Landing page wireframe & desktop/mobile layout
-│   └── mobile-map-wireframes.md             # SCRUM-64: Mobile map viewport & 3-snap bottom sheet spec
+│   ├── mobile-map-wireframes.md             # SCRUM-64: Mobile map viewport & 3-snap bottom sheet spec
+│   └── login-page-wireframe.md              # SCRUM-65: Login page wireframe & desktop/mobile layout
 │
 ├── architecture/                            # System Boundaries & Framework Standards
 │   ├── what-is-abangcebu-ai.md              # Official product vision & platform boundaries
@@ -67,14 +68,17 @@ docs/
 │   ├── AbangCebu_Users_And_Profiles_Schema.pdf
 │   ├── AbangCebu_Renter_Persona_and_Access_Rights.pdf
 │   ├── AbangCebu_UI_Styling_Guidelines.pdf
-│   └── AbangCebu_Landing_Page_Wireframe_Specification.pdf
+│   ├── AbangCebu_Landing_Page_Wireframe_Specification.pdf
+│   └── AbangCebu_Login_Page_Wireframe_Specification.pdf
 │
 └── assets/                                  # Visual Diagrams & Architecture Assets
     ├── abangcebu_database_erd.png           # High-resolution ERD rendering
     ├── abangcebu_database_erd.svg           # Vector source ERD
     └── wireframes/                          # Visual wireframe blueprints
         ├── landing-page-desktop.svg         # 1440x900 desktop Google Maps wireframe blueprint
-        └── landing-page-mobile.svg          # 390x844 mobile 100dvh wireframe blueprint
+        ├── landing-page-mobile.svg          # 390x844 mobile 100dvh wireframe blueprint
+        ├── login-page-desktop.svg           # 1440x900 desktop login split-screen wireframe blueprint
+        └── login-page-mobile.svg            # 393x852 mobile 4-state login wireframe blueprint
 ```
 
 ---
@@ -111,6 +115,8 @@ Located in [`docs/templates/`](./templates/):
 | [landing-page-wireframe.md](./design/landing-page-wireframe.md) | Design | Angel Crushein Yaun | Hermar Centillas | [SCRUM-64](https://abangcebuai.atlassian.net/browse/SCRUM-64) | Approved / Done |
 | [mobile-map-wireframes.md](./design/mobile-map-wireframes.md) | Design | Angel Crushein Yaun | Hermar Centillas | [SCRUM-64](https://abangcebuai.atlassian.net/browse/SCRUM-64) | Approved / Done |
 | [AbangCebu_Landing_Page_Wireframe_Specification.pdf](./pdf/AbangCebu_Landing_Page_Wireframe_Specification.pdf) | Design (PDF) | Angel Crushein Yaun | Hermar Centillas | [SCRUM-64](https://abangcebuai.atlassian.net/browse/SCRUM-64) | Approved / Done |
+| [login-page-wireframe.md](./design/login-page-wireframe.md) | Design | Neah Moneva | Hermar Centillas | [SCRUM-65](https://abangcebuai.atlassian.net/browse/SCRUM-65) | Approved / Done |
+| [AbangCebu_Login_Page_Wireframe_Specification.pdf](./pdf/AbangCebu_Login_Page_Wireframe_Specification.pdf) | Design (PDF) | Neah Moneva | Hermar Centillas | [SCRUM-65](https://abangcebuai.atlassian.net/browse/SCRUM-65) | Approved / Done |
 | [what-is-abangcebu-ai.md](./architecture/what-is-abangcebu-ai.md) | Architecture | Hermar Centillas | Team Lead | Product Vision | Approved |
 | [client-server-boundaries.md](./architecture/client-server-boundaries.md) | Architecture | Hermar Centillas | Team Lead | Architecture | Approved |
 | [next15-guidelines.md](./architecture/next15-guidelines.md) | Architecture | Hermar Centillas | Team Lead | [SCRUM-48](https://abangcebuai.atlassian.net/browse/SCRUM-48) | Approved |
