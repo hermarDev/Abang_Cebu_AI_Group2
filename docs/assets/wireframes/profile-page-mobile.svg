@@ -1,0 +1,601 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1680 1080" width="100%" height="100%">
+  <defs>
+    <filter id="phone-shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="18" stdDeviation="20" flood-color="#0f172a" flood-opacity="0.22"/>
+    </filter>
+    <filter id="card-shadow" x="-5%" y="-5%" width="110%" height="110%">
+      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#0f172a" flood-opacity="0.08"/>
+    </filter>
+    <filter id="modal-shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="12" stdDeviation="24" flood-color="#0f172a" flood-opacity="0.35"/>
+    </filter>
+    <filter id="toast-shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#047857" flood-opacity="0.25"/>
+    </filter>
+    <pattern id="wf-mobile-cross" width="10" height="10" patternUnits="userSpaceOnUse">
+      <path d="M 0,10 L 10,0 M 0,0 L 10,10" stroke="#cbd5e1" stroke-width="0.7"/>
+    </pattern>
+    <pattern id="wf-dots" width="16" height="16" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#cbd5e1"/>
+    </pattern>
+  </defs>
+
+  <style>
+    .font-sans { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif; }
+    .font-mono { font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace; }
+  </style>
+
+  <!-- Background Surface -->
+  <rect width="1680" height="1080" fill="#f1f5f9"/>
+  <rect width="1680" height="1080" fill="url(#wf-dots)" opacity="0.6"/>
+
+  <!-- Blueprint Main Title -->
+  <g transform="translate(36, 24)">
+    <text x="0" y="0" class="font-sans" font-size="16" font-weight="800" fill="#0f172a" letter-spacing="0.5px">MOBILE VIEWPORT PROFILE &amp; ACCOUNT SETTINGS WIREFRAME SPECIFICATION (393px × 852px · 100dvh)</text>
+    <text x="0" y="16" class="font-sans" font-size="10.5" font-weight="600" fill="#475569">Sprint 1 SCRUM-68 · 4 Interactive Operational States · iPhone 16 Pro Titanium Chassis · iOS Safari 100dvh Touch Architecture</text>
+  </g>
+
+  <!-- ========================================================================= -->
+  <!-- PHONE 1: PERSONAL INFORMATION & PREFERENCES TAB                           -->
+  <!-- ========================================================================= -->
+  <g transform="translate(36, 76)" filter="url(#phone-shadow)">
+    <!-- Header Badge -->
+    <rect x="0" y="-28" width="375" height="22" rx="4" fill="#0f172a"/>
+    <text x="187.5" y="-13" text-anchor="middle" class="font-sans" font-size="9.5" font-weight="700" fill="#ffffff">STATE 1: PERSONAL DETAILS &amp; CORRIDOR TAB</text>
+
+    <!-- Outer Titanium Chassis (375 x 870) -->
+    <rect x="0" y="0" width="375" height="870" rx="44" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2.5"/>
+    <rect x="6" y="6" width="363" height="858" rx="38" fill="#0f172a"/>
+    <rect x="9" y="9" width="357" height="852" rx="36" fill="#f8fafc"/>
+
+    <!-- Dynamic Island Capsule -->
+    <rect x="124" y="20" width="126" height="30" rx="15" fill="#000000"/>
+    <circle cx="226" cy="35" r="4.5" fill="#1e293b"/>
+    <circle cx="146" cy="35" r="2.5" fill="#1e293b"/>
+
+    <!-- iOS Status Bar (9:41) -->
+    <text x="38" y="38" class="font-sans" font-size="12" font-weight="700" fill="#0f172a">9:41</text>
+    <g transform="translate(290, 28)">
+      <rect x="0" y="7" width="2.5" height="5" fill="#0f172a"/>
+      <rect x="3.5" y="5" width="2.5" height="7" fill="#0f172a"/>
+      <rect x="7" y="3" width="2.5" height="9" fill="#0f172a"/>
+      <rect x="10.5" y="1" width="2.5" height="11" fill="#0f172a"/>
+      <path d="M 16 9 A 6 6 0 0 1 24 9 M 18 11 A 3 3 0 0 1 22 11" fill="none" stroke="#0f172a" stroke-width="1.2"/>
+      <rect x="28" y="2" width="19" height="9.5" rx="2.5" fill="none" stroke="#0f172a" stroke-width="1.1"/>
+      <rect x="30" y="3.5" width="13" height="6.5" rx="1.2" fill="#0f172a"/>
+      <rect x="48" y="4.5" width="1.2" height="4.5" fill="#0f172a"/>
+    </g>
+
+    <!-- Top Safe-Area Mobile Header (h: 44px, y: 58) -->
+    <g transform="translate(20, 58)">
+      <rect x="0" y="0" width="36" height="36" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+      <text x="18" y="23" text-anchor="middle" class="font-sans" font-size="13" font-weight="700" fill="#0f172a">←</text>
+      <text x="46" y="23" class="font-sans" font-size="13" font-weight="800" fill="#0f172a">Profile &amp; Settings</text>
+      <!-- Trust Shield -->
+      <rect x="290" y="4" width="44" height="28" rx="6" fill="#ecfdf5"/>
+      <text x="312" y="22" text-anchor="middle" class="font-sans" font-size="12">🛡️</text>
+    </g>
+
+    <!-- Compact Profile Header Capsule (y: 104) -->
+    <g transform="translate(20, 104)">
+      <rect x="0" y="0" width="335" height="68" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+      <!-- Avatar -->
+      <circle cx="36" cy="34" r="24" fill="#0f172a"/>
+      <text x="36" y="39" text-anchor="middle" class="font-sans" font-size="13" font-weight="800" fill="#ffffff">MS</text>
+      <circle cx="52" cy="50" r="8" fill="#047857" stroke="#ffffff" stroke-width="1.5"/>
+      <text x="52" y="53" text-anchor="middle" class="font-sans" font-size="7">📷</text>
+      
+      <!-- Name & Badge -->
+      <text x="70" y="26" class="font-sans" font-size="12.5" font-weight="800" fill="#0f172a">Maria Elena Santos</text>
+      <rect x="70" y="34" width="96" height="16" rx="8" fill="#ecfdf5" stroke="#a7f3d0" stroke-width="0.8"/>
+      <text x="118" y="45" text-anchor="middle" class="font-sans" font-size="8" font-weight="800" fill="#047857">🛡️ Verified Renter</text>
+      <text x="174" y="46" class="font-sans" font-size="8" font-weight="600" fill="#64748b">Student Seeker</text>
+    </g>
+
+    <!-- Segmented 3-Tab Bar (44px touch target, y: 180) -->
+    <g transform="translate(20, 180)">
+      <rect x="0" y="0" width="335" height="38" rx="8" fill="#e2e8f0"/>
+      <!-- Tab 1: Personal (Active) -->
+      <rect x="3" y="3" width="108" height="32" rx="6" fill="#ffffff" filter="url(#card-shadow)"/>
+      <text x="57" y="23" text-anchor="middle" class="font-sans" font-size="9" font-weight="800" fill="#047857">👤 Personal</text>
+      <!-- Tab 2: Security -->
+      <text x="167" y="23" text-anchor="middle" class="font-sans" font-size="9" font-weight="600" fill="#475569">🔒 Security</text>
+      <!-- Tab 3: KYC -->
+      <text x="277" y="23" text-anchor="middle" class="font-sans" font-size="9" font-weight="600" fill="#475569">🛡️ KYC (✓)</text>
+    </g>
+
+    <!-- Form Canvas: Inputs & Spatial Corridor (y: 228) -->
+    <g transform="translate(20, 228)">
+      <!-- Input 1: Full Name -->
+      <g transform="translate(0, 0)">
+        <text x="0" y="10" class="font-sans" font-size="9" font-weight="700" fill="#334155">FULL NAME</text>
+        <rect x="0" y="14" width="335" height="38" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+        <text x="12" y="38" class="font-sans" font-size="11" font-weight="600" fill="#0f172a">Maria Elena Santos</text>
+      </g>
+
+      <!-- Input 2: Confirmed Email -->
+      <g transform="translate(0, 58)">
+        <text x="0" y="10" class="font-sans" font-size="9" font-weight="700" fill="#334155">EMAIL (LOCKED TO AUTH)</text>
+        <rect x="0" y="14" width="335" height="38" rx="6" fill="#f1f5f9" stroke="#e2e8f0" stroke-width="1"/>
+        <text x="12" y="38" class="font-sans" font-size="10.5" font-weight="600" fill="#64748b">maria.santos@cit.edu.ph</text>
+        <text x="280" y="38" class="font-sans" font-size="9" font-weight="700" fill="#047857">✓ Verified</text>
+      </g>
+
+      <!-- Input 3: Philippine Mobile Number -->
+      <g transform="translate(0, 116)">
+        <text x="0" y="10" class="font-sans" font-size="9" font-weight="700" fill="#334155">PHILIPPINE MOBILE NUMBER (+63)</text>
+        <rect x="0" y="14" width="68" height="38" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+        <text x="12" y="38" class="font-sans" font-size="10.5" font-weight="700" fill="#0f172a">🇵🇭 +63</text>
+        <rect x="74" y="14" width="261" height="38" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+        <text x="86" y="38" class="font-sans" font-size="11" font-weight="600" fill="#0f172a">917 845 2910</text>
+      </g>
+
+      <!-- Input 4: University Corridor Selector -->
+      <g transform="translate(0, 174)">
+        <text x="0" y="10" class="font-sans" font-size="9" font-weight="700" fill="#334155">PREFERRED UNIVERSITY / WORK CORRIDOR</text>
+        <rect x="0" y="14" width="335" height="38" rx="6" fill="#ffffff" stroke="#047857" stroke-width="1.5"/>
+        <text x="12" y="38" class="font-sans" font-size="10" font-weight="700" fill="#0f172a">🎓 CIT-U Corridor (N. Bacalso Ave)</text>
+        <text x="312" y="38" class="font-sans" font-size="11" font-weight="700" fill="#047857">▾</text>
+      </g>
+
+      <!-- Commute Tolerance Pills -->
+      <g transform="translate(0, 232)">
+        <text x="0" y="10" class="font-sans" font-size="9" font-weight="700" fill="#334155">COMMUTE TOLERANCE</text>
+        <rect x="0" y="14" width="160" height="28" rx="5" fill="#ecfdf5" stroke="#047857" stroke-width="1.2"/>
+        <text x="80" y="32" text-anchor="middle" class="font-sans" font-size="8.5" font-weight="700" fill="#047857">🚶 Walking (&lt; 10 min)*</text>
+        <rect x="168" y="14" width="167" height="28" rx="5" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+        <text x="251" y="32" text-anchor="middle" class="font-sans" font-size="8.5" font-weight="600" fill="#475569">🚍 1-Ride Jeep (04L/17B)</text>
+      </g>
+
+      <!-- Bio Textarea -->
+      <g transform="translate(0, 282)">
+        <text x="0" y="10" class="font-sans" font-size="9" font-weight="700" fill="#334155">RENTER BIO &amp; HOUSING CRITERIA</text>
+        <rect x="0" y="14" width="335" height="64" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+        <text x="10" y="30" class="font-sans" font-size="8.5" font-weight="500" fill="#0f172a">3rd-year BS Civil Engineering student at CIT-U.</text>
+        <text x="10" y="44" class="font-sans" font-size="8.5" font-weight="500" fill="#0f172a">Quiet study room, submeter, stable water.</text>
+        <text x="10" y="58" class="font-sans" font-size="8" font-weight="600" fill="#047857">✓ Parent guarantor documents ready.</text>
+      </g>
+
+      <!-- Save Profile Changes Button (44px touch target) -->
+      <g transform="translate(0, 370)">
+        <rect x="0" y="0" width="335" height="42" rx="8" fill="#047857" filter="url(#toast-shadow)"/>
+        <text x="167.5" y="26" text-anchor="middle" class="font-sans" font-size="11" font-weight="800" fill="#ffffff">💾  Save Profile Changes</text>
+      </g>
+    </g>
+
+    <!-- Persistent Bottom Tab Bar (h: 52px, y: 730) -->
+    <g transform="translate(9, 730)">
+      <rect x="0" y="0" width="357" height="52" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+      <!-- Home -->
+      <g transform="translate(36, 8)">
+        <text x="0" y="18" text-anchor="middle" class="font-sans" font-size="14">🏠</text>
+        <text x="0" y="32" text-anchor="middle" class="font-sans" font-size="8" font-weight="600" fill="#64748b">Home</text>
+      </g>
+      <!-- Map -->
+      <g transform="translate(126, 8)">
+        <text x="0" y="18" text-anchor="middle" class="font-sans" font-size="14">🗺️</text>
+        <text x="0" y="32" text-anchor="middle" class="font-sans" font-size="8" font-weight="600" fill="#64748b">Map</text>
+      </g>
+      <!-- Inquiries -->
+      <g transform="translate(216, 8)">
+        <text x="0" y="18" text-anchor="middle" class="font-sans" font-size="14">💬</text>
+        <text x="0" y="32" text-anchor="middle" class="font-sans" font-size="8" font-weight="600" fill="#64748b">Inquiries</text>
+        <circle cx="8" cy="8" r="4" fill="#047857"/>
+        <text x="8" y="10.5" text-anchor="middle" class="font-sans" font-size="6" font-weight="800" fill="#ffffff">3</text>
+      </g>
+      <!-- Profile (ACTIVE) -->
+      <g transform="translate(306, 8)">
+        <text x="0" y="18" text-anchor="middle" class="font-sans" font-size="14">👤</text>
+        <text x="0" y="32" text-anchor="middle" class="font-sans" font-size="8" font-weight="800" fill="#047857">Profile</text>
+        <circle cx="0" cy="38" r="2" fill="#047857"/>
+      </g>
+    </g>
+
+    <!-- iOS Safari Floating Address Bar & Home Indicator (y: 786) -->
+    <g transform="translate(20, 786)">
+      <rect x="0" y="0" width="335" height="42" rx="21" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="0.8"/>
+      <text x="24" y="25" class="font-sans" font-size="11" fill="#64748b">AA</text>
+      <text x="167.5" y="25" text-anchor="middle" class="font-sans" font-size="10.5" font-weight="600" fill="#0f172a">🔒 abangcebu.ph/profile</text>
+      <text x="304" y="25" class="font-sans" font-size="11" fill="#64748b">↻</text>
+    </g>
+    <rect x="127" y="844" width="120" height="4.5" rx="2.2" fill="#0f172a"/>
+  </g>
+
+  <!-- ========================================================================= -->
+  <!-- PHONE 2: SECURITY & AUTHENTICATION TAB (NIST 800-63B + 2FA + SESSIONS)     -->
+  <!-- ========================================================================= -->
+  <g transform="translate(447, 76)" filter="url(#phone-shadow)">
+    <!-- Header Badge -->
+    <rect x="0" y="-28" width="375" height="22" rx="4" fill="#0f172a"/>
+    <text x="187.5" y="-13" text-anchor="middle" class="font-sans" font-size="9.5" font-weight="700" fill="#ffffff">STATE 2: SECURITY &amp; SESSIONS TAB</text>
+
+    <!-- Outer Titanium Chassis -->
+    <rect x="0" y="0" width="375" height="870" rx="44" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2.5"/>
+    <rect x="6" y="6" width="363" height="858" rx="38" fill="#0f172a"/>
+    <rect x="9" y="9" width="357" height="852" rx="36" fill="#f8fafc"/>
+
+    <!-- Dynamic Island Capsule -->
+    <rect x="124" y="20" width="126" height="30" rx="15" fill="#000000"/>
+    <circle cx="226" cy="35" r="4.5" fill="#1e293b"/>
+    <circle cx="146" cy="35" r="2.5" fill="#1e293b"/>
+
+    <!-- iOS Status Bar (9:41) -->
+    <text x="38" y="38" class="font-sans" font-size="12" font-weight="700" fill="#0f172a">9:41</text>
+    <g transform="translate(290, 28)">
+      <rect x="0" y="7" width="2.5" height="5" fill="#0f172a"/>
+      <rect x="3.5" y="5" width="2.5" height="7" fill="#0f172a"/>
+      <rect x="7" y="3" width="2.5" height="9" fill="#0f172a"/>
+      <rect x="10.5" y="1" width="2.5" height="11" fill="#0f172a"/>
+      <path d="M 16 9 A 6 6 0 0 1 24 9 M 18 11 A 3 3 0 0 1 22 11" fill="none" stroke="#0f172a" stroke-width="1.2"/>
+      <rect x="28" y="2" width="19" height="9.5" rx="2.5" fill="none" stroke="#0f172a" stroke-width="1.1"/>
+      <rect x="30" y="3.5" width="13" height="6.5" rx="1.2" fill="#0f172a"/>
+      <rect x="48" y="4.5" width="1.2" height="4.5" fill="#0f172a"/>
+    </g>
+
+    <!-- Top Safe-Area Mobile Header -->
+    <g transform="translate(20, 58)">
+      <rect x="0" y="0" width="36" height="36" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+      <text x="18" y="23" text-anchor="middle" class="font-sans" font-size="13" font-weight="700" fill="#0f172a">←</text>
+      <text x="46" y="23" class="font-sans" font-size="13" font-weight="800" fill="#0f172a">Security &amp; Auth</text>
+    </g>
+
+    <!-- Segmented 3-Tab Bar (Security Active, y: 104) -->
+    <g transform="translate(20, 104)">
+      <rect x="0" y="0" width="335" height="38" rx="8" fill="#e2e8f0"/>
+      <!-- Tab 1: Personal -->
+      <text x="57" y="23" text-anchor="middle" class="font-sans" font-size="9" font-weight="600" fill="#475569">👤 Personal</text>
+      <!-- Tab 2: Security (Active) -->
+      <rect x="113" y="3" width="108" height="32" rx="6" fill="#ffffff" filter="url(#card-shadow)"/>
+      <text x="167" y="23" text-anchor="middle" class="font-sans" font-size="9" font-weight="800" fill="#047857">🔒 Security</text>
+      <!-- Tab 3: KYC -->
+      <text x="277" y="23" text-anchor="middle" class="font-sans" font-size="9" font-weight="600" fill="#475569">🛡️ KYC (✓)</text>
+    </g>
+
+    <!-- Content: Password Card + 4-Segment Gauge (y: 154) -->
+    <g transform="translate(20, 154)">
+      <rect x="0" y="0" width="335" height="210" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+      <text x="14" y="20" class="font-sans" font-size="11" font-weight="800" fill="#0f172a">Change Password (NIST SP 800-63B)</text>
+
+      <!-- Input: Current Password -->
+      <g transform="translate(14, 30)">
+        <text x="0" y="10" class="font-sans" font-size="8.5" font-weight="700" fill="#475569">CURRENT PASSWORD</text>
+        <rect x="0" y="14" width="307" height="32" rx="5" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1"/>
+        <text x="10" y="34" class="font-sans" font-size="11" fill="#0f172a">••••••••••••</text>
+      </g>
+
+      <!-- Input: New Password -->
+      <g transform="translate(14, 82)">
+        <text x="0" y="10" class="font-sans" font-size="8.5" font-weight="700" fill="#475569">NEW PASSWORD</text>
+        <rect x="0" y="14" width="307" height="32" rx="5" fill="#ffffff" stroke="#047857" stroke-width="1.2"/>
+        <text x="10" y="34" class="font-sans" font-size="11" fill="#0f172a">Cebu@Safety2026!</text>
+        <text x="284" y="34" class="font-sans" font-size="10">👁️</text>
+      </g>
+
+      <!-- 4-Segment Strength Gauge (STRONG) -->
+      <g transform="translate(14, 136)">
+        <text x="0" y="10" class="font-sans" font-size="8" font-weight="700" fill="#047857">STRENGTH: STRONG (NIST COMPLIANT)</text>
+        <rect x="0" y="14" width="73" height="4" rx="2" fill="#047857"/>
+        <rect x="78" y="14" width="73" height="4" rx="2" fill="#047857"/>
+        <rect x="156" y="14" width="73" height="4" rx="2" fill="#047857"/>
+        <rect x="234" y="14" width="73" height="4" rx="2" fill="#047857"/>
+      </g>
+
+      <!-- 5 Requirement Checkpoints -->
+      <g transform="translate(14, 162)">
+        <text x="0" y="10" class="font-sans" font-size="7.5" font-weight="700" fill="#047857">✓ 12+ chars   ✓ Uppercase   ✓ Lowercase   ✓ Number   ✓ Symbol</text>
+        <rect x="0" y="18" width="307" height="26" rx="5" fill="#047857"/>
+        <text x="153.5" y="35" text-anchor="middle" class="font-sans" font-size="9" font-weight="700" fill="#ffffff">Update Master Password</text>
+      </g>
+    </g>
+
+    <!-- Two-Factor Authentication Card (y: 376) -->
+    <g transform="translate(20, 376)">
+      <rect x="0" y="0" width="335" height="66" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+      <text x="14" y="22" class="font-sans" font-size="10.5" font-weight="800" fill="#0f172a">Two-Factor Authentication (2FA)</text>
+      <text x="14" y="38" class="font-sans" font-size="8" font-weight="500" fill="#64748b">Require 6-digit TOTP code during logins.</text>
+      <text x="14" y="52" class="font-sans" font-size="8" font-weight="700" fill="#047857">✓ Active via Authenticator App</text>
+      <!-- Active Toggle Switch -->
+      <rect x="275" y="20" width="46" height="24" rx="12" fill="#047857"/>
+      <circle cx="308" cy="32" r="9" fill="#ffffff" filter="url(#card-shadow)"/>
+    </g>
+
+    <!-- Active Recognized Sessions List (y: 452) -->
+    <g transform="translate(20, 452)">
+      <rect x="0" y="0" width="335" height="188" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+      <text x="14" y="20" class="font-sans" font-size="10.5" font-weight="800" fill="#0f172a">Recognized Device Sessions (2)</text>
+
+      <!-- Session 1: MacBook Air (Current) -->
+      <g transform="translate(14, 30)">
+        <rect x="0" y="0" width="307" height="42" rx="6" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+        <text x="10" y="16" class="font-sans" font-size="9.5" font-weight="700" fill="#0f172a">💻 MacBook Air · Cebu City, PH</text>
+        <text x="10" y="30" class="font-sans" font-size="8" font-weight="500" fill="#64748b">Chrome 129 · IP: 112.204.42.18</text>
+        <rect x="230" y="12" width="68" height="18" rx="4" fill="#ecfdf5"/>
+        <text x="264" y="24" text-anchor="middle" class="font-sans" font-size="7.5" font-weight="800" fill="#047857">THIS DEVICE</text>
+      </g>
+
+      <!-- Session 2: iPhone 16 Pro -->
+      <g transform="translate(14, 78)">
+        <rect x="0" y="0" width="307" height="42" rx="6" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+        <text x="10" y="16" class="font-sans" font-size="9.5" font-weight="700" fill="#0f172a">📱 iPhone 16 Pro · Mandaue City</text>
+        <text x="10" y="30" class="font-sans" font-size="8" font-weight="500" fill="#64748b">iOS Safari · Active 12 minutes ago</text>
+        <text x="265" y="26" class="font-sans" font-size="8.5" font-weight="700" fill="#e11d48">Revoke</text>
+      </g>
+
+      <!-- Emergency Revoke All Other Sessions Button -->
+      <g transform="translate(14, 130)">
+        <rect x="0" y="0" width="307" height="34" rx="6" fill="#fff1f2" stroke="#fecdd3" stroke-width="1"/>
+        <text x="153.5" y="21" text-anchor="middle" class="font-sans" font-size="9" font-weight="800" fill="#e11d48">⚠️ Revoke All Other Sessions</text>
+      </g>
+    </g>
+
+    <!-- Persistent Bottom Tab Bar -->
+    <g transform="translate(9, 730)">
+      <rect x="0" y="0" width="357" height="52" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+      <g transform="translate(36, 8)"><text x="0" y="18" text-anchor="middle" class="font-sans" font-size="14">🏠</text><text x="0" y="32" text-anchor="middle" class="font-sans" font-size="8" font-weight="600" fill="#64748b">Home</text></g>
+      <g transform="translate(126, 8)"><text x="0" y="18" text-anchor="middle" class="font-sans" font-size="14">🗺️</text><text x="0" y="32" text-anchor="middle" class="font-sans" font-size="8" font-weight="600" fill="#64748b">Map</text></g>
+      <g transform="translate(216, 8)"><text x="0" y="18" text-anchor="middle" class="font-sans" font-size="14">💬</text><text x="0" y="32" text-anchor="middle" class="font-sans" font-size="8" font-weight="600" fill="#64748b">Inquiries</text></g>
+      <g transform="translate(306, 8)"><text x="0" y="18" text-anchor="middle" class="font-sans" font-size="14">👤</text><text x="0" y="32" text-anchor="middle" class="font-sans" font-size="8" font-weight="800" fill="#047857">Profile</text><circle cx="0" cy="38" r="2" fill="#047857"/></g>
+    </g>
+
+    <!-- Safari Bar -->
+    <g transform="translate(20, 786)">
+      <rect x="0" y="0" width="335" height="42" rx="21" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="0.8"/>
+      <text x="24" y="25" class="font-sans" font-size="11" fill="#64748b">AA</text>
+      <text x="167.5" y="25" text-anchor="middle" class="font-sans" font-size="10.5" font-weight="600" fill="#0f172a">🔒 abangcebu.ph/profile#security</text>
+      <text x="304" y="25" class="font-sans" font-size="11" fill="#64748b">↻</text>
+    </g>
+    <rect x="127" y="844" width="120" height="4.5" rx="2.2" fill="#0f172a"/>
+  </g>
+
+  <!-- ========================================================================= -->
+  <!-- PHONE 3: KYC IDENTITY VERIFICATION TAB (ANTI-SCAM GATEWAY & ID UPLOAD)    -->
+  <!-- ========================================================================= -->
+  <g transform="translate(858, 76)" filter="url(#phone-shadow)">
+    <!-- Header Badge -->
+    <rect x="0" y="-28" width="375" height="22" rx="4" fill="#0f172a"/>
+    <text x="187.5" y="-13" text-anchor="middle" class="font-sans" font-size="9.5" font-weight="700" fill="#ffffff">STATE 3: KYC IDENTITY VERIFICATION TAB</text>
+
+    <!-- Outer Titanium Chassis -->
+    <rect x="0" y="0" width="375" height="870" rx="44" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2.5"/>
+    <rect x="6" y="6" width="363" height="858" rx="38" fill="#0f172a"/>
+    <rect x="9" y="9" width="357" height="852" rx="36" fill="#f8fafc"/>
+
+    <!-- Dynamic Island Capsule -->
+    <rect x="124" y="20" width="126" height="30" rx="15" fill="#000000"/>
+    <circle cx="226" cy="35" r="4.5" fill="#1e293b"/>
+    <circle cx="146" cy="35" r="2.5" fill="#1e293b"/>
+
+    <!-- iOS Status Bar (9:41) -->
+    <text x="38" y="38" class="font-sans" font-size="12" font-weight="700" fill="#0f172a">9:41</text>
+    <g transform="translate(290, 28)">
+      <rect x="0" y="7" width="2.5" height="5" fill="#0f172a"/>
+      <rect x="3.5" y="5" width="2.5" height="7" fill="#0f172a"/>
+      <rect x="7" y="3" width="2.5" height="9" fill="#0f172a"/>
+      <rect x="10.5" y="1" width="2.5" height="11" fill="#0f172a"/>
+      <path d="M 16 9 A 6 6 0 0 1 24 9 M 18 11 A 3 3 0 0 1 22 11" fill="none" stroke="#0f172a" stroke-width="1.2"/>
+      <rect x="28" y="2" width="19" height="9.5" rx="2.5" fill="none" stroke="#0f172a" stroke-width="1.1"/>
+      <rect x="30" y="3.5" width="13" height="6.5" rx="1.2" fill="#0f172a"/>
+      <rect x="48" y="4.5" width="1.2" height="4.5" fill="#0f172a"/>
+    </g>
+
+    <!-- Top Safe-Area Mobile Header -->
+    <g transform="translate(20, 58)">
+      <rect x="0" y="0" width="36" height="36" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+      <text x="18" y="23" text-anchor="middle" class="font-sans" font-size="13" font-weight="700" fill="#0f172a">←</text>
+      <text x="46" y="23" class="font-sans" font-size="13" font-weight="800" fill="#0f172a">KYC Trust Gateway</text>
+    </g>
+
+    <!-- Segmented 3-Tab Bar (KYC Active, y: 104) -->
+    <g transform="translate(20, 104)">
+      <rect x="0" y="0" width="335" height="38" rx="8" fill="#e2e8f0"/>
+      <!-- Tab 1: Personal -->
+      <text x="57" y="23" text-anchor="middle" class="font-sans" font-size="9" font-weight="600" fill="#475569">👤 Personal</text>
+      <!-- Tab 2: Security -->
+      <text x="167" y="23" text-anchor="middle" class="font-sans" font-size="9" font-weight="600" fill="#475569">🔒 Security</text>
+      <!-- Tab 3: KYC (Active) -->
+      <rect x="223" y="3" width="108" height="32" rx="6" fill="#ffffff" filter="url(#card-shadow)"/>
+      <text x="277" y="23" text-anchor="middle" class="font-sans" font-size="9" font-weight="800" fill="#047857">🛡️ KYC (✓)</text>
+    </g>
+
+    <!-- Content: Anti-Scam KYC Verification Banner & Uploader (y: 154) -->
+    <g transform="translate(20, 154)">
+      <!-- Anti-Scam Status Banner -->
+      <rect x="0" y="0" width="335" height="52" rx="8" fill="#ecfdf5" stroke="#a7f3d0" stroke-width="1.2"/>
+      <text x="12" y="20" class="font-sans" font-size="10.5" font-weight="800" fill="#047857">✓ KYC STATUS: TIER 1 VERIFIED RENTER</text>
+      <text x="12" y="34" class="font-sans" font-size="8.5" font-weight="500" fill="#065f46">Philippine PhilSys National ID verified via DICT.</text>
+      <text x="12" y="44" class="font-sans" font-size="7.5" font-weight="600" fill="#047857">Zero rental deposit scam guarantee active.</text>
+
+      <!-- ID Selector Dropdown -->
+      <g transform="translate(0, 64)">
+        <text x="0" y="10" class="font-sans" font-size="9" font-weight="700" fill="#334155">PHILIPPINE GOVERNMENT ID TYPE</text>
+        <rect x="0" y="14" width="335" height="36" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+        <text x="12" y="37" class="font-sans" font-size="10" font-weight="700" fill="#0f172a">🇵🇭 Philippine Identification System (PhilSys)</text>
+        <text x="312" y="37" class="font-sans" font-size="11" font-weight="700" fill="#475569">▾</text>
+      </g>
+
+      <!-- Drag & Drop / Tap to Capture: Front ID -->
+      <g transform="translate(0, 126)">
+        <text x="0" y="10" class="font-sans" font-size="9" font-weight="700" fill="#334155">ID FRONT SIDE (MAX 10MB) *</text>
+        <rect x="0" y="14" width="335" height="92" rx="8" fill="#ffffff" stroke="#047857" stroke-width="1.5" stroke-dasharray="4 3"/>
+        <rect x="10" y="22" width="100" height="74" rx="4" fill="url(#wf-mobile-cross)"/>
+        <text x="120" y="42" class="font-sans" font-size="9.5" font-weight="800" fill="#0f172a">PhilSys_Front_Encrypted.jpg</text>
+        <text x="120" y="56" class="font-sans" font-size="8" font-weight="500" fill="#64748b">Size: 2.4 MB · Format: JPEG / PNG</text>
+        <rect x="120" y="66" width="112" height="18" rx="4" fill="#ecfdf5"/>
+        <text x="176" y="78" text-anchor="middle" class="font-sans" font-size="8" font-weight="800" fill="#047857">✓ Verified Pass</text>
+      </g>
+
+      <!-- Drag & Drop / Tap to Capture: Back ID -->
+      <g transform="translate(0, 244)">
+        <text x="0" y="10" class="font-sans" font-size="9" font-weight="700" fill="#334155">ID BACK SIDE (QR CODE &amp; BARCODE) *</text>
+        <rect x="0" y="14" width="335" height="92" rx="8" fill="#ffffff" stroke="#047857" stroke-width="1.5" stroke-dasharray="4 3"/>
+        <rect x="10" y="22" width="100" height="74" rx="4" fill="url(#wf-mobile-cross)"/>
+        <text x="120" y="42" class="font-sans" font-size="9.5" font-weight="800" fill="#0f172a">PhilSys_Back_Encrypted.jpg</text>
+        <text x="120" y="56" class="font-sans" font-size="8" font-weight="500" fill="#64748b">Size: 2.1 MB · OCR Barcode Matched</text>
+        <rect x="120" y="66" width="112" height="18" rx="4" fill="#ecfdf5"/>
+        <text x="176" y="78" text-anchor="middle" class="font-sans" font-size="8" font-weight="800" fill="#047857">✓ Security Stamp</text>
+      </g>
+
+      <!-- Landlord Ownership / Student Proof Card -->
+      <g transform="translate(0, 362)">
+        <rect x="0" y="0" width="335" height="52" rx="6" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1"/>
+        <text x="12" y="18" class="font-sans" font-size="8.5" font-weight="700" fill="#334155">🎓 CIT-U Student Verification (Optional Discount)</text>
+        <text x="12" y="32" class="font-sans" font-size="8" font-weight="500" fill="#64748b">Current Study Load verified · 10% student housing discount enabled.</text>
+        <text x="12" y="44" class="font-sans" font-size="7.5" font-weight="700" fill="#047857">✓ Enrollment Valid through March 2027</text>
+      </g>
+
+      <!-- Update Documents CTA -->
+      <g transform="translate(0, 426)">
+        <rect x="0" y="0" width="335" height="38" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2"/>
+        <text x="167.5" y="24" text-anchor="middle" class="font-sans" font-size="10" font-weight="700" fill="#334155">📄  Update Verification Documents</text>
+      </g>
+    </g>
+
+    <!-- Persistent Bottom Tab Bar -->
+    <g transform="translate(9, 730)">
+      <rect x="0" y="0" width="357" height="52" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+      <g transform="translate(36, 8)"><text x="0" y="18" text-anchor="middle" class="font-sans" font-size="14">🏠</text><text x="0" y="32" text-anchor="middle" class="font-sans" font-size="8" font-weight="600" fill="#64748b">Home</text></g>
+      <g transform="translate(126, 8)"><text x="0" y="18" text-anchor="middle" class="font-sans" font-size="14">🗺️</text><text x="0" y="32" text-anchor="middle" class="font-sans" font-size="8" font-weight="600" fill="#64748b">Map</text></g>
+      <g transform="translate(216, 8)"><text x="0" y="18" text-anchor="middle" class="font-sans" font-size="14">💬</text><text x="0" y="32" text-anchor="middle" class="font-sans" font-size="8" font-weight="600" fill="#64748b">Inquiries</text></g>
+      <g transform="translate(306, 8)"><text x="0" y="18" text-anchor="middle" class="font-sans" font-size="14">👤</text><text x="0" y="32" text-anchor="middle" class="font-sans" font-size="8" font-weight="800" fill="#047857">Profile</text><circle cx="0" cy="38" r="2" fill="#047857"/></g>
+    </g>
+
+    <!-- Safari Bar -->
+    <g transform="translate(20, 786)">
+      <rect x="0" y="0" width="335" height="42" rx="21" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="0.8"/>
+      <text x="24" y="25" class="font-sans" font-size="11" fill="#64748b">AA</text>
+      <text x="167.5" y="25" text-anchor="middle" class="font-sans" font-size="10.5" font-weight="600" fill="#0f172a">🔒 abangcebu.ph/profile#kyc</text>
+      <text x="304" y="25" class="font-sans" font-size="11" fill="#64748b">↻</text>
+    </g>
+    <rect x="127" y="844" width="120" height="4.5" rx="2.2" fill="#0f172a"/>
+  </g>
+
+  <!-- ========================================================================= -->
+  <!-- PHONE 4: AVATAR CROP MODAL & INTERACTIVE SUCCESS TOAST                    -->
+  <!-- ========================================================================= -->
+  <g transform="translate(1269, 76)" filter="url(#phone-shadow)">
+    <!-- Header Badge -->
+    <rect x="0" y="-28" width="375" height="22" rx="4" fill="#0f172a"/>
+    <text x="187.5" y="-13" text-anchor="middle" class="font-sans" font-size="9.5" font-weight="700" fill="#ffffff">STATE 4: PHOTO CROP MODAL &amp; TOAST</text>
+
+    <!-- Outer Titanium Chassis -->
+    <rect x="0" y="0" width="375" height="870" rx="44" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2.5"/>
+    <rect x="6" y="6" width="363" height="858" rx="38" fill="#0f172a"/>
+    <rect x="9" y="9" width="357" height="852" rx="36" fill="#f8fafc"/>
+
+    <!-- Underlying Blurred Page Background -->
+    <g opacity="0.25">
+      <rect x="29" y="104" width="317" height="68" rx="8" fill="#cbd5e1"/>
+      <rect x="29" y="180" width="317" height="38" rx="8" fill="#cbd5e1"/>
+      <rect x="29" y="228" width="317" height="300" rx="8" fill="#cbd5e1"/>
+    </g>
+
+    <!-- Dimmed Modal Backdrop (55% Opacity) -->
+    <rect x="9" y="9" width="357" height="852" rx="36" fill="#0f172a" opacity="0.65"/>
+
+    <!-- Dynamic Island Capsule -->
+    <rect x="124" y="20" width="126" height="30" rx="15" fill="#000000"/>
+    <circle cx="226" cy="35" r="4.5" fill="#1e293b"/>
+    <circle cx="146" cy="35" r="2.5" fill="#1e293b"/>
+
+    <!-- iOS Status Bar (9:41, white on dark backdrop) -->
+    <text x="38" y="38" class="font-sans" font-size="12" font-weight="700" fill="#ffffff">9:41</text>
+    <g transform="translate(290, 28)">
+      <rect x="0" y="7" width="2.5" height="5" fill="#ffffff"/>
+      <rect x="3.5" y="5" width="2.5" height="7" fill="#ffffff"/>
+      <rect x="7" y="3" width="2.5" height="9" fill="#ffffff"/>
+      <rect x="10.5" y="1" width="2.5" height="11" fill="#ffffff"/>
+      <path d="M 16 9 A 6 6 0 0 1 24 9 M 18 11 A 3 3 0 0 1 22 11" fill="none" stroke="#ffffff" stroke-width="1.2"/>
+      <rect x="28" y="2" width="19" height="9.5" rx="2.5" fill="none" stroke="#ffffff" stroke-width="1.1"/>
+      <rect x="30" y="3.5" width="13" height="6.5" rx="1.2" fill="#ffffff"/>
+      <rect x="48" y="4.5" width="1.2" height="4.5" fill="#ffffff"/>
+    </g>
+
+    <!-- FLOATING AUTO-DISMISSING SUCCESS TOAST (y: 64) -->
+    <g transform="translate(25, 64)" filter="url(#toast-shadow)">
+      <rect x="0" y="0" width="325" height="46" rx="23" fill="#047857" stroke="#34d399" stroke-width="1.5"/>
+      <circle cx="24" cy="23" r="12" fill="#ffffff"/>
+      <text x="24" y="28" text-anchor="middle" class="font-sans" font-size="12" font-weight="800" fill="#047857">✓</text>
+      <text x="46" y="22" class="font-sans" font-size="10.5" font-weight="800" fill="#ffffff">Profile Updated Successfully</text>
+      <text x="46" y="35" class="font-sans" font-size="8.5" font-weight="500" fill="#ecfdf5">Corridor and avatar changes saved</text>
+      <text x="298" y="27" class="font-sans" font-size="12" fill="#a7f3d0">✕</text>
+    </g>
+
+    <!-- CENTERED AVATAR CROP MODAL DIALOG (w: 325px, h: 440px, y: 130) -->
+    <g transform="translate(25, 130)" filter="url(#modal-shadow)">
+      <rect x="0" y="0" width="325" height="440" rx="14" fill="#ffffff"/>
+      
+      <!-- Modal Header -->
+      <g transform="translate(20, 22)">
+        <text x="0" y="0" class="font-sans" font-size="13" font-weight="800" fill="#0f172a">📷 Adjust Profile Photo</text>
+        <text x="0" y="14" class="font-sans" font-size="8.5" font-weight="500" fill="#64748b">Drag to reposition and use slider to zoom.</text>
+        <rect x="254" y="-12" width="28" height="28" rx="6" fill="#f1f5f9"/>
+        <text x="268" y="6" text-anchor="middle" class="font-sans" font-size="11" font-weight="700" fill="#475569">✕</text>
+      </g>
+      <line x1="0" y1="46" x2="325" y2="46" stroke="#f1f5f9" stroke-width="1.5"/>
+
+      <!-- Circular Viewfinder Cropping Mask Canvas -->
+      <g transform="translate(62.5, 62)">
+        <!-- Outer Square Container -->
+        <rect x="0" y="0" width="200" height="200" rx="8" fill="#0f172a"/>
+        <!-- Crosshatch photo placeholder -->
+        <rect x="0" y="0" width="200" height="200" fill="url(#wf-mobile-cross)" opacity="0.3"/>
+        
+        <!-- Cropped circular highlight circle (Avatar radius 85px) -->
+        <circle cx="100" cy="100" r="85" fill="none" stroke="#ffffff" stroke-width="2.5"/>
+        <circle cx="100" cy="100" r="85" fill="#334155" opacity="0.4"/>
+        <circle cx="100" cy="100" r="45" fill="#0f172a"/>
+        <text x="100" y="108" text-anchor="middle" class="font-sans" font-size="24" font-weight="800" fill="#ffffff">MS</text>
+
+        <!-- Rule-of-thirds grid guidelines -->
+        <line x1="43" y1="15" x2="43" y2="185" stroke="#ffffff" stroke-width="0.7" stroke-dasharray="2 2" opacity="0.6"/>
+        <line x1="157" y1="15" x2="157" y2="185" stroke="#ffffff" stroke-width="0.7" stroke-dasharray="2 2" opacity="0.6"/>
+        <line x1="15" y1="43" x2="185" y2="43" stroke="#ffffff" stroke-width="0.7" stroke-dasharray="2 2" opacity="0.6"/>
+        <line x1="15" y1="157" x2="185" y2="157" stroke="#ffffff" stroke-width="0.7" stroke-dasharray="2 2" opacity="0.6"/>
+      </g>
+
+      <!-- Zoom Slider Control -->
+      <g transform="translate(25, 282)">
+        <text x="0" y="14" class="font-sans" font-size="11" font-weight="700" fill="#475569">🔍 −</text>
+        <line x1="34" y1="10" x2="242" y2="10" stroke="#cbd5e1" stroke-width="3" stroke-linecap="round"/>
+        <line x1="34" y1="10" x2="148" y2="10" stroke="#047857" stroke-width="3" stroke-linecap="round"/>
+        <circle cx="148" cy="10" r="8" fill="#ffffff" stroke="#047857" stroke-width="3" filter="url(#card-shadow)"/>
+        <text x="254" y="14" class="font-sans" font-size="11" font-weight="700" fill="#475569">+ 🔎</text>
+      </g>
+
+      <!-- Aspect Ratio Badge -->
+      <g transform="translate(25, 318)">
+        <rect x="0" y="0" width="275" height="24" rx="4" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+        <text x="137.5" y="16" text-anchor="middle" class="font-sans" font-size="8.5" font-weight="700" fill="#475569">📐 Output Aspect Ratio: 1:1 Square (Avatar Optimized)</text>
+      </g>
+
+      <!-- Modal Action Buttons (44px touch targets) -->
+      <g transform="translate(20, 362)">
+        <!-- Cancel Button -->
+        <rect x="0" y="0" width="135" height="42" rx="8" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1"/>
+        <text x="67.5" y="26" text-anchor="middle" class="font-sans" font-size="10.5" font-weight="700" fill="#475569">Cancel</text>
+
+        <!-- Apply Photo Button -->
+        <rect x="145" y="0" width="140" height="42" rx="8" fill="#047857" filter="url(#toast-shadow)"/>
+        <text x="215" y="26" text-anchor="middle" class="font-sans" font-size="10.5" font-weight="800" fill="#ffffff">✓ Apply Photo</text>
+      </g>
+    </g>
+
+    <!-- Persistent Bottom Tab Bar -->
+    <g transform="translate(9, 730)">
+      <rect x="0" y="0" width="357" height="52" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+      <g transform="translate(36, 8)"><text x="0" y="18" text-anchor="middle" class="font-sans" font-size="14">🏠</text><text x="0" y="32" text-anchor="middle" class="font-sans" font-size="8" font-weight="600" fill="#64748b">Home</text></g>
+      <g transform="translate(126, 8)"><text x="0" y="18" text-anchor="middle" class="font-sans" font-size="14">🗺️</text><text x="0" y="32" text-anchor="middle" class="font-sans" font-size="8" font-weight="600" fill="#64748b">Map</text></g>
+      <g transform="translate(216, 8)"><text x="0" y="18" text-anchor="middle" class="font-sans" font-size="14">💬</text><text x="0" y="32" text-anchor="middle" class="font-sans" font-size="8" font-weight="600" fill="#64748b">Inquiries</text></g>
+      <g transform="translate(306, 8)"><text x="0" y="18" text-anchor="middle" class="font-sans" font-size="14">👤</text><text x="0" y="32" text-anchor="middle" class="font-sans" font-size="8" font-weight="800" fill="#047857">Profile</text><circle cx="0" cy="38" r="2" fill="#047857"/></g>
+    </g>
+
+    <!-- Safari Bar -->
+    <g transform="translate(20, 786)">
+      <rect x="0" y="0" width="335" height="42" rx="21" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="0.8"/>
+      <text x="24" y="25" class="font-sans" font-size="11" fill="#64748b">AA</text>
+      <text x="167.5" y="25" text-anchor="middle" class="font-sans" font-size="10.5" font-weight="600" fill="#0f172a">🔒 abangcebu.ph/profile</text>
+      <text x="304" y="25" class="font-sans" font-size="11" fill="#64748b">↻</text>
+    </g>
+    <rect x="127" y="844" width="120" height="4.5" rx="2.2" fill="#0f172a"/>
+  </g>
+</svg>

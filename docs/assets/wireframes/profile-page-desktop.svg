@@ -1,0 +1,547 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1680 1080" width="100%" height="100%">
+  <defs>
+    <!-- Chassis Shadows -->
+    <filter id="macbook-shadow" x="-5%" y="-5%" width="110%" height="115%">
+      <feDropShadow dx="0" dy="24" stdDeviation="30" flood-color="#0f172a" flood-opacity="0.28"/>
+    </filter>
+    <filter id="card-shadow" x="-5%" y="-5%" width="110%" height="110%">
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#0f172a" flood-opacity="0.08"/>
+    </filter>
+    <filter id="badge-shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#0f172a" flood-opacity="0.14"/>
+    </filter>
+    <filter id="action-shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#047857" flood-opacity="0.25"/>
+    </filter>
+
+    <!-- Crosshatch Patterns for Blueprint Aesthetics -->
+    <pattern id="wf-crosshatch" width="12" height="12" patternUnits="userSpaceOnUse">
+      <path d="M 0,12 L 12,0 M 0,0 L 12,12" stroke="#cbd5e1" stroke-width="0.8"/>
+    </pattern>
+    <pattern id="wf-grid-dots" width="16" height="16" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#cbd5e1"/>
+    </pattern>
+  </defs>
+
+  <style>
+    .font-sans { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+    .font-mono { font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace; }
+  </style>
+
+  <!-- Blueprint Canvas Background -->
+  <rect width="1680" height="1080" fill="#f1f5f9"/>
+  <rect width="1680" height="1080" fill="url(#wf-grid-dots)" opacity="0.6"/>
+
+  <!-- Top Technical Header Bar -->
+  <g transform="translate(100, 24)">
+    <text x="0" y="0" class="font-sans" font-size="16" font-weight="800" fill="#0f172a" letter-spacing="0.5px">ABANGCEBU AI — PROFILE &amp; ACCOUNT SETTINGS WIREFRAME SPECIFICATION (1440px × 900px)</text>
+    <text x="0" y="16" class="font-sans" font-size="10.5" font-weight="600" fill="#475569">Sprint 1 SCRUM-68 · 3-Tab Architecture (Personal Info, Security &amp; Auth, KYC Verification) · MacBook Air 16:10 Chassis</text>
+  </g>
+
+  <!-- ========================================================================= -->
+  <!-- 1. MACBOOK AIR CHASSIS (1480x950 Outer, 1440x900 Screen, 16:10 Ratio)     -->
+  <!-- ========================================================================= -->
+  <g transform="translate(100, 54)" filter="url(#macbook-shadow)">
+    <!-- Aluminum Outer Lid -->
+    <rect x="-20" y="-20" width="1480" height="950" rx="24" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/>
+    
+    <!-- Inner Bezel (Matte Black) -->
+    <rect x="-10" y="-10" width="1460" height="930" rx="14" fill="#0f172a"/>
+
+    <!-- Active Display Viewport (1440 x 900) -->
+    <rect x="0" y="0" width="1440" height="900" rx="8" fill="#f8fafc"/>
+
+    <!-- FaceTime Camera Notch -->
+    <path d="M 640 0 L 640 14 Q 640 20 646 20 L 794 20 Q 800 20 800 14 L 800 0 Z" fill="#0f172a"/>
+    <circle cx="720" cy="10" r="3.5" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+    <circle cx="734" cy="10" r="1.2" fill="#22c55e"/>
+
+    <!-- MacBook Aluminum Hinge & Opening Lip -->
+    <path d="M -60 930 L 1500 930 L 1520 946 L -80 946 Z" fill="#cbd5e1" stroke="#94a3b8" stroke-width="1.5"/>
+    <rect x="660" y="930" width="120" height="6" rx="3" fill="#94a3b8"/>
+
+    <!-- ========================================================================= -->
+    <!-- 2. FIXED SIDEBAR NAVIGATION (260px Fixed Dark Panel, x:0 to x:260)        -->
+    <!-- ========================================================================= -->
+    <g transform="translate(0, 0)">
+      <!-- Sidebar Background -->
+      <rect x="0" y="0" width="260" height="900" fill="#0f172a"/>
+      <line x1="260" y1="0" x2="260" y2="900" stroke="#1e293b" stroke-width="1.5"/>
+
+      <!-- ① Brand Logotype & Compass Crest -->
+      <g transform="translate(20, 24)">
+        <!-- Compass Crest Icon -->
+        <rect x="0" y="0" width="34" height="34" rx="8" fill="#047857"/>
+        <path d="M 17 6 L 21 14 L 29 17 L 21 20 L 17 28 L 13 20 L 5 17 L 13 14 Z" fill="#ffffff"/>
+        <!-- Brand Title -->
+        <text x="44" y="16" class="font-sans" font-size="14.5" font-weight="800" fill="#ffffff" letter-spacing="0.4px">ABANGCEBU AI</text>
+        <text x="44" y="30" class="font-sans" font-size="8.5" font-weight="600" fill="#94a3b8">Rental Intelligence Platform</text>
+      </g>
+
+      <!-- User Profile Capsule Mini -->
+      <g transform="translate(16, 76)">
+        <rect x="0" y="0" width="228" height="62" rx="8" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+        <circle cx="28" cy="31" r="18" fill="#334155"/>
+        <text x="28" y="36" text-anchor="middle" class="font-sans" font-size="12" font-weight="700" fill="#ffffff">MS</text>
+        <circle cx="40" cy="41" r="4.5" fill="#10b981" stroke="#1e293b" stroke-width="1.5"/>
+        <text x="56" y="24" class="font-sans" font-size="11" font-weight="700" fill="#ffffff">Maria Elena Santos</text>
+        <text x="56" y="37" class="font-sans" font-size="8.5" font-weight="500" fill="#94a3b8">CIT-U Seeker · Student</text>
+        <rect x="56" y="43" width="88" height="13" rx="3" fill="#047857" opacity="0.3"/>
+        <text x="60" y="52" class="font-sans" font-size="7" font-weight="700" fill="#34d399">🛡️ KYC Verified</text>
+      </g>
+
+      <!-- Sidebar Section: CORE NAVIGATION -->
+      <g transform="translate(20, 160)">
+        <text x="0" y="0" class="font-sans" font-size="8.5" font-weight="800" fill="#64748b" letter-spacing="0.8px">CORE NAVIGATION</text>
+        
+        <!-- Nav: Dashboard Overview -->
+        <g transform="translate(0, 12)">
+          <rect x="-8" y="0" width="228" height="34" rx="6" fill="transparent"/>
+          <text x="8" y="21" class="font-sans" font-size="11.5" font-weight="600" fill="#cbd5e1">📊  Dashboard Overview</text>
+        </g>
+
+        <!-- Nav: Saved Rentals -->
+        <g transform="translate(0, 50)">
+          <rect x="-8" y="0" width="228" height="34" rx="6" fill="transparent"/>
+          <text x="8" y="21" class="font-sans" font-size="11.5" font-weight="600" fill="#cbd5e1">❤️  Saved Rentals</text>
+          <rect x="186" y="7" width="24" height="18" rx="9" fill="#1e293b"/>
+          <text x="198" y="20" text-anchor="middle" class="font-sans" font-size="9" font-weight="700" fill="#94a3b8">8</text>
+        </g>
+
+        <!-- Nav: Inquiries & Tours -->
+        <g transform="translate(0, 88)">
+          <rect x="-8" y="0" width="228" height="34" rx="6" fill="transparent"/>
+          <text x="8" y="21" class="font-sans" font-size="11.5" font-weight="600" fill="#cbd5e1">💬  Inquiries &amp; Tours</text>
+          <rect x="186" y="7" width="24" height="18" rx="9" fill="#047857"/>
+          <text x="198" y="20" text-anchor="middle" class="font-sans" font-size="9" font-weight="700" fill="#ffffff">3</text>
+        </g>
+
+        <!-- Nav: My Listed Units -->
+        <g transform="translate(0, 126)">
+          <rect x="-8" y="0" width="228" height="34" rx="6" fill="transparent"/>
+          <text x="8" y="21" class="font-sans" font-size="11.5" font-weight="600" fill="#cbd5e1">🏠  My Listed Units</text>
+          <rect x="186" y="7" width="24" height="18" rx="9" fill="#1e293b"/>
+          <text x="198" y="20" text-anchor="middle" class="font-sans" font-size="9" font-weight="700" fill="#94a3b8">2</text>
+        </g>
+
+        <!-- Nav: Metro Cebu Map Explorer -->
+        <g transform="translate(0, 164)">
+          <rect x="-8" y="0" width="228" height="34" rx="6" fill="transparent"/>
+          <text x="8" y="21" class="font-sans" font-size="11.5" font-weight="600" fill="#cbd5e1">🗺️  Metro Cebu Map</text>
+          <rect x="176" y="8" width="34" height="16" rx="4" fill="#1e293b"/>
+          <text x="193" y="19" text-anchor="middle" class="font-mono" font-size="8" font-weight="700" fill="#64748b">ESC</text>
+        </g>
+      </g>
+
+      <!-- Sidebar Divider -->
+      <line x1="20" y1="380" x2="240" y2="380" stroke="#1e293b" stroke-width="1"/>
+
+      <!-- Sidebar Section: SECURITY & SETTINGS -->
+      <g transform="translate(20, 400)">
+        <text x="0" y="0" class="font-sans" font-size="8.5" font-weight="800" fill="#64748b" letter-spacing="0.8px">ACCOUNT &amp; GOVERNANCE</text>
+
+        <!-- Nav: Identity & KYC Center -->
+        <g transform="translate(0, 12)">
+          <rect x="-8" y="0" width="228" height="34" rx="6" fill="transparent"/>
+          <text x="8" y="21" class="font-sans" font-size="11.5" font-weight="600" fill="#cbd5e1">🛡️  Identity &amp; KYC Center</text>
+        </g>
+
+        <!-- ① Nav: Profile & Settings (ACTIVE HIGHLIGHTED) -->
+        <g transform="translate(0, 50)">
+          <rect x="-8" y="0" width="228" height="36" rx="6" fill="#047857"/>
+          <text x="8" y="22" class="font-sans" font-size="11.5" font-weight="700" fill="#ffffff">⚙️  Profile &amp; Settings</text>
+          <circle cx="204" cy="18" r="3.5" fill="#34d399"/>
+        </g>
+      </g>
+
+      <!-- Role Switcher Segmented Control -->
+      <g transform="translate(16, 730)">
+        <rect x="0" y="0" width="228" height="42" rx="8" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+        <rect x="4" y="4" width="108" height="34" rx="6" fill="#047857"/>
+        <text x="58" y="25" text-anchor="middle" class="font-sans" font-size="10" font-weight="700" fill="#ffffff">👤 Renter</text>
+        <rect x="116" y="4" width="108" height="34" rx="6" fill="transparent"/>
+        <text x="170" y="25" text-anchor="middle" class="font-sans" font-size="10" font-weight="600" fill="#94a3b8">🏠 Landlord</text>
+      </g>
+
+      <!-- Bottom Dock: Sign Out Action -->
+      <g transform="translate(16, 786)">
+        <rect x="0" y="0" width="228" height="38" rx="8" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+        <text x="16" y="24" class="font-sans" font-size="11" font-weight="600" fill="#f87171">🚪  Sign Out</text>
+        <rect x="164" y="10" width="52" height="18" rx="4" fill="#0f172a"/>
+        <text x="190" y="22" text-anchor="middle" class="font-mono" font-size="8" font-weight="700" fill="#94a3b8">Esc + Q</text>
+      </g>
+    </g>
+
+    <!-- ========================================================================= -->
+    <!-- 3. MAIN WORKSPACE CANVAS (1180px Wide, x: 260 to 1440)                    -->
+    <!-- ========================================================================= -->
+
+    <!-- Top Workspace Navigation Header (h: 52px, y: 16) -->
+    <g transform="translate(284, 16)">
+      <!-- Breadcrumb navigation -->
+      <text x="0" y="20" class="font-sans" font-size="11" font-weight="600" fill="#64748b">Dashboard  /  <tspan fill="#0f172a" font-weight="800">Profile &amp; Account Settings</tspan></text>
+      <text x="0" y="36" class="font-sans" font-size="9" font-weight="500" fill="#94a3b8">Manage your identity, spatial corridor preferences, security credentials, and anti-scam KYC verification.</text>
+
+      <!-- Right Header Actions: Back to Dashboard & Return to Map -->
+      <g transform="translate(860, 4)">
+        <rect x="0" y="0" width="130" height="34" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+        <text x="65" y="21" text-anchor="middle" class="font-sans" font-size="10" font-weight="700" fill="#334155">← Back to Dashboard</text>
+
+        <rect x="138" y="0" width="118" height="34" rx="6" fill="#047857" filter="url(#badge-shadow)"/>
+        <text x="197" y="21" text-anchor="middle" class="font-sans" font-size="10" font-weight="700" fill="#ffffff">🗺️ Return to Map</text>
+      </g>
+    </g>
+
+    <!-- ② PROFILE HEADER HERO CARD (w: 1120px, h: 116px, y: 74) -->
+    <g transform="translate(284, 74)" filter="url(#card-shadow)">
+      <rect x="0" y="0" width="1120" height="116" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2"/>
+      
+      <!-- 88px Avatar Container with Camera Edit Trigger -->
+      <g transform="translate(18, 14)">
+        <!-- Avatar Base -->
+        <circle cx="44" cy="44" r="44" fill="#0f172a"/>
+        <text x="44" y="52" text-anchor="middle" class="font-sans" font-size="26" font-weight="800" fill="#ffffff">MS</text>
+        
+        <!-- Online Status Dot -->
+        <circle cx="74" cy="74" r="7" fill="#10b981" stroke="#ffffff" stroke-width="2.5"/>
+
+        <!-- Camera Edit Trigger Badge Overlay -->
+        <g transform="translate(18, 66)">
+          <rect x="0" y="0" width="52" height="20" rx="10" fill="#047857" stroke="#ffffff" stroke-width="1.5" filter="url(#badge-shadow)"/>
+          <text x="26" y="14" text-anchor="middle" class="font-sans" font-size="8" font-weight="700" fill="#ffffff">📷 Edit</text>
+        </g>
+      </g>
+
+      <!-- Identity & Attributes Block -->
+      <g transform="translate(126, 20)">
+        <!-- Full Name and Trust Badges -->
+        <text x="0" y="20" class="font-sans" font-size="19" font-weight="800" fill="#0f172a" letter-spacing="-0.3px">Maria Elena Santos</text>
+        
+        <!-- ③ Trust Badge Pill (Cebu Emerald) -->
+        <rect x="206" y="4" width="132" height="22" rx="11" fill="#ecfdf5" stroke="#a7f3d0" stroke-width="1"/>
+        <text x="272" y="19" text-anchor="middle" class="font-sans" font-size="9.5" font-weight="800" fill="#047857">🛡️ Verified Renter</text>
+
+        <!-- Role Badge Pill -->
+        <rect x="346" y="4" width="94" height="22" rx="11" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1"/>
+        <text x="393" y="19" text-anchor="middle" class="font-sans" font-size="9.5" font-weight="700" fill="#334155">Student Renter</text>
+
+        <!-- Member Since Date -->
+        <text x="452" y="19" class="font-sans" font-size="9.5" font-weight="600" fill="#64748b">🗓️ Member since August 2025</text>
+
+        <!-- Verified Contact Details Row -->
+        <g transform="translate(0, 42)">
+          <!-- Confirmed Email Badge -->
+          <rect x="0" y="0" width="220" height="24" rx="6" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+          <text x="10" y="16" class="font-sans" font-size="9.5" font-weight="600" fill="#334155">📧 maria.santos@cit.edu.ph</text>
+          <text x="180" y="16" class="font-sans" font-size="8.5" font-weight="700" fill="#047857">✓ Confirmed</text>
+
+          <!-- Verified Philippine Mobile Badge -->
+          <rect x="232" y="0" width="186" height="24" rx="6" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+          <text x="242" y="16" class="font-sans" font-size="9.5" font-weight="600" fill="#334155">📱 +63 917 845 2910</text>
+          <text x="372" y="16" class="font-sans" font-size="8.5" font-weight="700" fill="#047857">✓ SMS</text>
+        </g>
+      </g>
+
+      <!-- Right Header Profile Completion Meter -->
+      <g transform="translate(860, 22)">
+        <rect x="0" y="0" width="242" height="72" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+        <text x="14" y="20" class="font-sans" font-size="9.5" font-weight="800" fill="#0f172a">PROFILE TRUST SCORE</text>
+        <rect x="176" y="8" width="52" height="18" rx="4" fill="#ecfdf5"/>
+        <text x="202" y="21" text-anchor="middle" class="font-sans" font-size="9" font-weight="800" fill="#047857">100%</text>
+        
+        <!-- Progress Bar -->
+        <rect x="14" y="32" width="214" height="7" rx="3.5" fill="#e2e8f0"/>
+        <rect x="14" y="32" width="214" height="7" rx="3.5" fill="#047857"/>
+
+        <text x="14" y="56" class="font-sans" font-size="8" font-weight="600" fill="#64748b">Tier 1 KYC Verified · 2FA Active · Confirmed Student</text>
+      </g>
+    </g>
+
+    <!-- ④ ACCESSIBLE 3-TAB BAR (role="tablist", w: 1120px, h: 44px, y: 202) -->
+    <g transform="translate(284, 202)">
+      <!-- Tab Bar Track Background -->
+      <rect x="0" y="0" width="1120" height="42" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+      
+      <!-- Tab 1: Personal Information & Preferences (ACTIVE) -->
+      <g transform="translate(4, 3)">
+        <rect x="0" y="0" width="370" height="36" rx="6" fill="#ecfdf5" stroke="#a7f3d0" stroke-width="1"/>
+        <text x="185" y="22" text-anchor="middle" class="font-sans" font-size="11" font-weight="800" fill="#047857">👤  1. Personal Information &amp; Preferences</text>
+        <line x1="20" y1="35" x2="350" y2="35" stroke="#047857" stroke-width="2.5" stroke-linecap="round"/>
+      </g>
+
+      <!-- Tab 2: Security & Authentication (INACTIVE) -->
+      <g transform="translate(378, 3)">
+        <rect x="0" y="0" width="365" height="36" rx="6" fill="transparent"/>
+        <text x="182" y="22" text-anchor="middle" class="font-sans" font-size="11" font-weight="600" fill="#64748b">🔒  2. Security &amp; Authentication</text>
+      </g>
+
+      <!-- Tab 3: KYC Identity Verification (INACTIVE with Status Pill) -->
+      <g transform="translate(747, 3)">
+        <rect x="0" y="0" width="369" height="36" rx="6" fill="transparent"/>
+        <text x="160" y="22" text-anchor="middle" class="font-sans" font-size="11" font-weight="600" fill="#64748b">🛡️  3. KYC Identity Verification</text>
+        <rect x="272" y="9" width="82" height="18" rx="9" fill="#047857" opacity="0.15"/>
+        <text x="313" y="22" text-anchor="middle" class="font-sans" font-size="8" font-weight="800" fill="#047857">✓ Verified</text>
+      </g>
+    </g>
+
+    <!-- ========================================================================= -->
+    <!-- 4. WORKSPACE CONTENT: TAB 1 FORM + TAB 2 & 3 INTEGRATED CONTAINERS        -->
+    <!-- ========================================================================= -->
+
+    <!-- ⑤ LEFT COLUMN (670px w, y: 256): Personal Details & Spatial Corridor Form -->
+    <g transform="translate(284, 256)" filter="url(#card-shadow)">
+      <rect x="0" y="0" width="670" height="560" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2"/>
+      
+      <!-- Container Header -->
+      <g transform="translate(20, 20)">
+        <text x="0" y="0" class="font-sans" font-size="14" font-weight="800" fill="#0f172a">Personal Information &amp; Corridor Preferences</text>
+        <text x="0" y="16" class="font-sans" font-size="9" font-weight="500" fill="#64748b">Profile data visible to verified landlords upon submitting ocular inquiries.</text>
+      </g>
+      <line x1="20" y1="46" x2="650" y2="46" stroke="#f1f5f9" stroke-width="1.5"/>
+
+      <!-- Form Inputs Grid -->
+      <g transform="translate(20, 56)">
+        
+        <!-- Input Field: Full Legal Name -->
+        <g transform="translate(0, 8)">
+          <text x="0" y="0" class="font-sans" font-size="10" font-weight="700" fill="#334155">Full Legal Name *</text>
+          <rect x="0" y="8" width="630" height="38" rx="6" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
+          <text x="14" y="32" class="font-sans" font-size="11" font-weight="600" fill="#0f172a">Maria Elena Santos</text>
+          <text x="590" y="32" class="font-sans" font-size="9" font-weight="600" fill="#047857">✓ Match ID</text>
+        </g>
+
+        <!-- Input Field: Confirmed Email (Read-Only) -->
+        <g transform="translate(0, 68)">
+          <text x="0" y="0" class="font-sans" font-size="10" font-weight="700" fill="#334155">Institutional / Primary Email * (Locked to Supabase Auth)</text>
+          <rect x="0" y="8" width="630" height="38" rx="6" fill="#f1f5f9" stroke="#e2e8f0" stroke-width="1.2"/>
+          <text x="14" y="32" class="font-sans" font-size="11" font-weight="600" fill="#64748b">maria.santos@cit.edu.ph</text>
+          <rect x="536" y="16" width="80" height="22" rx="4" fill="#e2e8f0"/>
+          <text x="576" y="31" text-anchor="middle" class="font-sans" font-size="8.5" font-weight="700" fill="#475569">🔒 Read Only</text>
+        </g>
+
+        <!-- Input Field: Philippine Mobile Number (+63 Prefix) -->
+        <g transform="translate(0, 128)">
+          <text x="0" y="0" class="font-sans" font-size="10" font-weight="700" fill="#334155">Philippine Mobile Number (SMS Ocular Alerts) *</text>
+          <!-- Prefix dropdown -->
+          <rect x="0" y="8" width="84" height="38" rx="6" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
+          <text x="14" y="32" class="font-sans" font-size="11" font-weight="700" fill="#0f172a">🇵🇭 +63  ▾</text>
+          <!-- Mobile number digits input -->
+          <rect x="94" y="8" width="536" height="38" rx="6" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
+          <text x="108" y="32" class="font-sans" font-size="11" font-weight="600" fill="#0f172a">917 845 2910</text>
+          <text x="560" y="32" class="font-sans" font-size="9" font-weight="700" fill="#047857">✓ Verified</text>
+        </g>
+
+        <!-- Spatial Corridor Selector (Cebu-Specific Education / Work Hubs) -->
+        <g transform="translate(0, 188)">
+          <text x="0" y="0" class="font-sans" font-size="10" font-weight="700" fill="#334155">Preferred University / Employment Corridor * (Spatial Radar Match)</text>
+          <rect x="0" y="8" width="630" height="38" rx="6" fill="#ffffff" stroke="#047857" stroke-width="1.5"/>
+          <text x="14" y="32" class="font-sans" font-size="11" font-weight="700" fill="#0f172a">🎓 CIT-U Corridor (N. Bacalso Ave, Punta Princesa, Mambaling)</text>
+          <text x="600" y="32" class="font-sans" font-size="12" font-weight="700" fill="#047857">▾</text>
+          <!-- Corridor Helper Note -->
+          <text x="0" y="58" class="font-sans" font-size="8.5" font-weight="600" fill="#047857">⚡ Algorithmic matching prioritizes boarding houses within 15-min 04L / 17B jeepney routes.</text>
+        </g>
+
+        <!-- Maximum Walking / Commute Distance Preference -->
+        <g transform="translate(0, 260)">
+          <text x="0" y="0" class="font-sans" font-size="10" font-weight="700" fill="#334155">Target Commute Radius &amp; Transit Tolerance</text>
+          <g transform="translate(0, 8)">
+            <!-- Pill 1: Walking under 10m -->
+            <rect x="0" y="0" width="148" height="32" rx="6" fill="#ecfdf5" stroke="#047857" stroke-width="1.5"/>
+            <text x="74" y="20" text-anchor="middle" class="font-sans" font-size="9" font-weight="700" fill="#047857">🚶 Walking (&lt; 10 min)*</text>
+
+            <!-- Pill 2: 1-Ride Jeepney -->
+            <rect x="158" y="0" width="148" height="32" rx="6" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1"/>
+            <text x="232" y="20" text-anchor="middle" class="font-sans" font-size="9" font-weight="600" fill="#475569">🚍 1-Ride Jeepney (04L)</text>
+
+            <!-- Pill 3: Motor/Angkas -->
+            <rect x="316" y="0" width="148" height="32" rx="6" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1"/>
+            <text x="390" y="20" text-anchor="middle" class="font-sans" font-size="9" font-weight="600" fill="#475569">🛵 Habal-habal / MC Taxi</text>
+
+            <!-- Pill 4: Any Metro Cebu -->
+            <rect x="474" y="0" width="156" height="32" rx="6" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1"/>
+            <text x="552" y="20" text-anchor="middle" class="font-sans" font-size="9" font-weight="600" fill="#475569">📍 Open to Metro Cebu</text>
+          </g>
+        </g>
+
+        <!-- Input Field: Bio & Renter Notes Textarea -->
+        <g transform="translate(0, 316)">
+          <text x="0" y="0" class="font-sans" font-size="10" font-weight="700" fill="#334155">Personal Bio &amp; Boarding House Inquirer Dossier</text>
+          <rect x="0" y="8" width="630" height="76" rx="6" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
+          <text x="14" y="28" class="font-sans" font-size="10" font-weight="500" fill="#0f172a">3rd-year BS Civil Engineering student at CIT-U looking for a quiet study bedspace/room.</text>
+          <text x="14" y="44" class="font-sans" font-size="10" font-weight="500" fill="#0f172a">Non-smoker, requires own electric submeter for laptop workstation, and stable MCWD water.</text>
+          <text x="14" y="60" class="font-sans" font-size="10" font-weight="500" fill="#0f172a">Can provide certificate of enrollment and parent guarantor if required.</text>
+          <text x="550" y="74" class="font-sans" font-size="8" font-weight="600" fill="#94a3b8">234 / 500 chars</text>
+        </g>
+      </g>
+    </g>
+
+    <!-- RIGHT COLUMN (430px w, y: 256): TAB 2 & TAB 3 INTEGRATED MODULES -->
+    <g transform="translate(974, 256)">
+      
+      <!-- ⑥ CONTAINER 1: SECURITY & SESSIONS SNAPSHOT (h: 270px) -->
+      <g filter="url(#card-shadow)">
+        <rect x="0" y="0" width="430" height="270" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2"/>
+        
+        <!-- Header -->
+        <g transform="translate(18, 16)">
+          <text x="0" y="0" class="font-sans" font-size="13" font-weight="800" fill="#0f172a">🔒 Security &amp; Active Sessions</text>
+          <text x="0" y="14" class="font-sans" font-size="8.5" font-weight="500" fill="#64748b">NIST SP 800-63B credentials and active login devices.</text>
+        </g>
+        <line x1="18" y1="36" x2="412" y2="36" stroke="#f1f5f9" stroke-width="1.5"/>
+
+        <!-- Password Status Row -->
+        <g transform="translate(18, 48)">
+          <text x="0" y="14" class="font-sans" font-size="10" font-weight="700" fill="#334155">Master Password</text>
+          <text x="0" y="28" class="font-sans" font-size="8.5" font-weight="500" fill="#64748b">Last updated 42 days ago (Strong score)</text>
+          <rect x="306" y="4" width="88" height="26" rx="5" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1"/>
+          <text x="350" y="21" text-anchor="middle" class="font-sans" font-size="8.5" font-weight="700" fill="#334155">Change Key</text>
+        </g>
+
+        <!-- 2FA Status Row -->
+        <g transform="translate(18, 92)">
+          <text x="0" y="14" class="font-sans" font-size="10" font-weight="700" fill="#334155">Two-Factor Authentication (TOTP)</text>
+          <text x="0" y="28" class="font-sans" font-size="8.5" font-weight="500" fill="#047857">✓ Authenticator App Active</text>
+          <!-- Active Toggle Switch -->
+          <rect x="344" y="6" width="50" height="24" rx="12" fill="#047857"/>
+          <circle cx="380" cy="18" r="9" fill="#ffffff" filter="url(#badge-shadow)"/>
+        </g>
+
+        <!-- Active Sessions List -->
+        <g transform="translate(18, 138)">
+          <text x="0" y="0" class="font-sans" font-size="9" font-weight="800" fill="#64748b" letter-spacing="0.5px">ACTIVE RECOGNIZED SESSIONS (2)</text>
+          
+          <!-- Session 1: Current MacBook Air -->
+          <g transform="translate(0, 8)">
+            <rect x="0" y="0" width="394" height="34" rx="6" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+            <text x="10" y="16" class="font-sans" font-size="9.5" font-weight="700" fill="#0f172a">💻 MacBook Air · Cebu City, PH</text>
+            <text x="10" y="28" class="font-sans" font-size="8" font-weight="500" fill="#64748b">Chrome 129 · Current Active Session</text>
+            <rect x="312" y="8" width="72" height="18" rx="4" fill="#ecfdf5"/>
+            <text x="348" y="20" text-anchor="middle" class="font-sans" font-size="7.5" font-weight="800" fill="#047857">THIS DEVICE</text>
+          </g>
+
+          <!-- Session 2: iPhone 16 Pro -->
+          <g transform="translate(0, 48)">
+            <rect x="0" y="0" width="394" height="34" rx="6" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+            <text x="10" y="16" class="font-sans" font-size="9.5" font-weight="700" fill="#0f172a">📱 iPhone 16 Pro · Mandaue City, PH</text>
+            <text x="10" y="28" class="font-sans" font-size="8" font-weight="500" fill="#64748b">iOS Safari · Active 12 minutes ago</text>
+            <text x="354" y="22" class="font-sans" font-size="8.5" font-weight="700" fill="#e11d48">Revoke</text>
+          </g>
+        </g>
+
+        <!-- Emergency Trigger Button -->
+        <g transform="translate(18, 230)">
+          <rect x="0" y="0" width="394" height="28" rx="6" fill="#fff1f2" stroke="#fecdd3" stroke-width="1"/>
+          <text x="197" y="18" text-anchor="middle" class="font-sans" font-size="9" font-weight="800" fill="#e11d48">⚠️ Revoke All Other Recognized Sessions</text>
+        </g>
+      </g>
+
+      <!-- ⑦ CONTAINER 2: ANTI-SCAM KYC IDENTITY VERIFICATION (h: 275px, y: 285) -->
+      <g transform="translate(0, 285)" filter="url(#card-shadow)">
+        <rect x="0" y="0" width="430" height="275" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2"/>
+        
+        <!-- Header -->
+        <g transform="translate(18, 16)">
+          <text x="0" y="0" class="font-sans" font-size="13" font-weight="800" fill="#0f172a">🛡️ Anti-Scam KYC Identity Verification</text>
+          <text x="0" y="14" class="font-sans" font-size="8.5" font-weight="500" fill="#64748b">DICT &amp; Philippine Government ID Anti-Fraud Gateway</text>
+        </g>
+        <line x1="18" y1="36" x2="412" y2="36" stroke="#f1f5f9" stroke-width="1.5"/>
+
+        <!-- KYC Status Banner Tier: Verified -->
+        <g transform="translate(18, 46)">
+          <rect x="0" y="0" width="394" height="42" rx="6" fill="#ecfdf5" stroke="#a7f3d0" stroke-width="1.2"/>
+          <text x="12" y="18" class="font-sans" font-size="10" font-weight="800" fill="#047857">✓ KYC STATUS: TIER 1 VERIFIED RENTER</text>
+          <text x="12" y="32" class="font-sans" font-size="8.5" font-weight="500" fill="#065f46">Philippine PhilSys National ID verified via DICT database on Sep 15, 2026.</text>
+        </g>
+
+        <!-- Document Previews Grid -->
+        <g transform="translate(18, 98)">
+          <text x="0" y="0" class="font-sans" font-size="8.5" font-weight="800" fill="#64748b" letter-spacing="0.5px">VERIFIED ID DOCUMENTS (ENCRYPTED STORAGE)</text>
+          
+          <g transform="translate(0, 8)">
+            <!-- Front ID Blueprint Box -->
+            <rect x="0" y="0" width="190" height="74" rx="6" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1"/>
+            <rect x="6" y="6" width="178" height="62" rx="4" fill="url(#wf-crosshatch)"/>
+            <rect x="12" y="12" width="166" height="50" rx="3" fill="#ffffff" opacity="0.9"/>
+            <text x="20" y="28" class="font-sans" font-size="8.5" font-weight="800" fill="#0f172a">PHILIPPINE IDENTIFICATION CARD</text>
+            <text x="20" y="40" class="font-sans" font-size="7.5" font-weight="600" fill="#64748b">PhilSys ID Front · ••••-8291</text>
+            <text x="20" y="52" class="font-sans" font-size="7" font-weight="700" fill="#047857">✓ Cryptographically Signed</text>
+
+            <!-- Back ID Blueprint Box -->
+            <rect x="204" y="0" width="190" height="74" rx="6" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1"/>
+            <rect x="210" y="6" width="178" height="62" rx="4" fill="url(#wf-crosshatch)"/>
+            <rect x="216" y="12" width="166" height="50" rx="3" fill="#ffffff" opacity="0.9"/>
+            <text x="224" y="28" class="font-sans" font-size="8.5" font-weight="800" fill="#0f172a">PHILSYS QR CODE &amp; BARCODE</text>
+            <text x="224" y="40" class="font-sans" font-size="7.5" font-weight="600" fill="#64748b">PhilSys ID Back · Security Stamp</text>
+            <text x="224" y="52" class="font-sans" font-size="7" font-weight="700" fill="#047857">✓ OCR Verified Pass</text>
+          </g>
+        </g>
+
+        <!-- Document Security Governance & Action Button -->
+        <g transform="translate(18, 192)">
+          <text x="0" y="0" class="font-sans" font-size="7.8" font-weight="500" fill="#64748b">Encrypted with AES-256 in Supabase Vault with zero public URL exposure.</text>
+          <rect x="0" y="8" width="394" height="28" rx="6" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1"/>
+          <text x="197" y="26" text-anchor="middle" class="font-sans" font-size="9" font-weight="700" fill="#334155">📄 Update Identification Documents / Re-Verify</text>
+        </g>
+      </g>
+    </g>
+
+    <!-- ⑧ STICKY BOTTOM FORM ACTION BAR (w: 1120px, h: 54px, y: 830) -->
+    <g transform="translate(284, 830)" filter="url(#card-shadow)">
+      <rect x="0" y="0" width="1120" height="54" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5"/>
+      
+      <!-- Unsaved Changes Status Indicator -->
+      <g transform="translate(20, 18)">
+        <circle cx="6" cy="10" r="4.5" fill="#f59e0b"/>
+        <text x="18" y="14" class="font-sans" font-size="10" font-weight="700" fill="#0f172a">Unsaved Profile Changes</text>
+        <text x="160" y="14" class="font-sans" font-size="9" font-weight="500" fill="#64748b">(Commute transit corridor updated to CIT-U Corridor)</text>
+      </g>
+
+      <!-- Action Buttons -->
+      <g transform="translate(740, 7)">
+        <!-- Secondary: Cancel / Revert Changes -->
+        <rect x="0" y="0" width="140" height="40" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2"/>
+        <text x="70" y="25" text-anchor="middle" class="font-sans" font-size="10.5" font-weight="700" fill="#475569">Revert Changes</text>
+
+        <!-- Primary: Save Profile Changes (48px height, 44x44 hitbox compliance, Cebu Emerald #047857) -->
+        <rect x="152" y="0" width="216" height="40" rx="6" fill="#047857" filter="url(#action-shadow)"/>
+        <text x="260" y="25" text-anchor="middle" class="font-sans" font-size="11" font-weight="800" fill="#ffffff">💾  Save Profile Changes</text>
+      </g>
+    </g>
+
+    <!-- ========================================================================= -->
+    <!-- 5. ARCHITECTURAL TRACEABILITY BLUEPRINT CALLOUTS (① to ⑧)                  -->
+    <!-- ========================================================================= -->
+    <!-- Callout ①: Sidebar Nav -->
+    <circle cx="250" cy="450" r="11" fill="#047857" stroke="#ffffff" stroke-width="2"/>
+    <text x="250" y="454" text-anchor="middle" class="font-sans" font-size="9" font-weight="800" fill="#ffffff">①</text>
+
+    <!-- Callout ②: Hero Card -->
+    <circle cx="340" cy="130" r="11" fill="#047857" stroke="#ffffff" stroke-width="2"/>
+    <text x="340" y="134" text-anchor="middle" class="font-sans" font-size="9" font-weight="800" fill="#ffffff">②</text>
+
+    <!-- Callout ③: Badges -->
+    <circle cx="580" cy="94" r="11" fill="#047857" stroke="#ffffff" stroke-width="2"/>
+    <text x="580" y="98" text-anchor="middle" class="font-sans" font-size="9" font-weight="800" fill="#ffffff">③</text>
+
+    <!-- Callout ④: 3-Tab Bar -->
+    <circle cx="650" cy="222" r="11" fill="#047857" stroke="#ffffff" stroke-width="2"/>
+    <text x="650" y="226" text-anchor="middle" class="font-sans" font-size="9" font-weight="800" fill="#ffffff">④</text>
+
+    <!-- Callout ⑤: Personal Form -->
+    <circle cx="610" cy="276" r="11" fill="#047857" stroke="#ffffff" stroke-width="2"/>
+    <text x="610" y="280" text-anchor="middle" class="font-sans" font-size="9" font-weight="800" fill="#ffffff">⑤</text>
+
+    <!-- Callout ⑥: Security Module -->
+    <circle cx="994" cy="276" r="11" fill="#047857" stroke="#ffffff" stroke-width="2"/>
+    <text x="994" y="280" text-anchor="middle" class="font-sans" font-size="9" font-weight="800" fill="#ffffff">⑥</text>
+
+    <!-- Callout ⑦: Anti-Scam KYC -->
+    <circle cx="994" cy="560" r="11" fill="#047857" stroke="#ffffff" stroke-width="2"/>
+    <text x="994" y="564" text-anchor="middle" class="font-sans" font-size="9" font-weight="800" fill="#ffffff">⑦</text>
+
+    <!-- Callout ⑧: Save Action Bar -->
+    <circle cx="1010" cy="855" r="11" fill="#047857" stroke="#ffffff" stroke-width="2"/>
+    <text x="1010" y="859" text-anchor="middle" class="font-sans" font-size="9" font-weight="800" fill="#ffffff">⑧</text>
+
+  </g>
+</svg>

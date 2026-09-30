@@ -71,7 +71,9 @@ docs/
 │   ├── AbangCebu_UI_Styling_Guidelines.pdf
 │   ├── AbangCebu_Landing_Page_Wireframe_Specification.pdf
 │   ├── AbangCebu_Login_Page_Wireframe_Specification.pdf
-│   └── AbangCebu_Registration_Page_Wireframe_Specification.pdf
+│   ├── AbangCebu_Registration_Page_Wireframe_Specification.pdf
+│   ├── AbangCebu_User_Dashboard_Wireframe_Specification.pdf
+│   └── AbangCebu_Profile_Page_Wireframe_Specification.pdf
 │
 └── assets/                                  # Visual Diagrams & Architecture Assets
     ├── abangcebu_database_erd.png           # High-resolution ERD rendering
@@ -84,7 +86,9 @@ docs/
         ├── registration-page-desktop.svg    # 1440x900 desktop registration wireframe blueprint
         ├── registration-page-mobile.svg     # 393x852 mobile 4-state registration wireframe blueprint
         ├── user-dashboard-desktop.svg       # 1440x900 desktop user dashboard wireframe blueprint
-        └── user-dashboard-mobile.svg        # 393x852 mobile 4-state dashboard wireframe blueprint
+        ├── user-dashboard-mobile.svg        # 393x852 mobile 4-state dashboard wireframe blueprint
+        ├── profile-page-desktop.svg         # 1440x900 desktop profile & settings wireframe blueprint
+        └── profile-page-mobile.svg          # 393x852 mobile 4-state profile wireframe blueprint
 ```
 
 ---
@@ -127,6 +131,8 @@ Located in [`docs/templates/`](./templates/):
 | [AbangCebu_Registration_Page_Wireframe_Specification.pdf](./pdf/AbangCebu_Registration_Page_Wireframe_Specification.pdf) | Design (PDF) | Angel Crushein Yaun | Hermar Centillas | [SCRUM-66](https://abangcebuai.atlassian.net/browse/SCRUM-66) | Approved / Done |
 | [user-dashboard-wireframe.md](./design/user-dashboard-wireframe.md) | Design | Neah Moneva | Hermar Centillas | [SCRUM-67](https://abangcebuai.atlassian.net/browse/SCRUM-67) | Approved / Done |
 | [AbangCebu_User_Dashboard_Wireframe_Specification.pdf](./pdf/AbangCebu_User_Dashboard_Wireframe_Specification.pdf) | Design (PDF) | Neah Moneva | Hermar Centillas | [SCRUM-67](https://abangcebuai.atlassian.net/browse/SCRUM-67) | Approved / Done |
+| [profile-page-wireframe.md](./design/profile-page-wireframe.md) | Design | Angel Crushein Yaun | Hermar Centillas | [SCRUM-68](https://abangcebuai.atlassian.net/browse/SCRUM-68) | Approved / Done |
+| [AbangCebu_Profile_Page_Wireframe_Specification.pdf](./pdf/AbangCebu_Profile_Page_Wireframe_Specification.pdf) | Design (PDF) | Angel Crushein Yaun | Hermar Centillas | [SCRUM-68](https://abangcebuai.atlassian.net/browse/SCRUM-68) | Approved / Done |
 | [what-is-abangcebu-ai.md](./architecture/what-is-abangcebu-ai.md) | Architecture | Hermar Centillas | Team Lead | Product Vision | Approved |
 | [client-server-boundaries.md](./architecture/client-server-boundaries.md) | Architecture | Hermar Centillas | Team Lead | Architecture | Approved |
 | [next15-guidelines.md](./architecture/next15-guidelines.md) | Architecture | Hermar Centillas | Team Lead | [SCRUM-48](https://abangcebuai.atlassian.net/browse/SCRUM-48) | Approved |
