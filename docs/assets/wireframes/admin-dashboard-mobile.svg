@@ -1,0 +1,630 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1680 1080" width="100%" height="100%">
+  <defs>
+    <!-- Shadows -->
+    <filter id="phone-shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="18" stdDeviation="20" flood-color="#0f172a" flood-opacity="0.22"/>
+    </filter>
+    <filter id="card-shadow" x="-5%" y="-5%" width="110%" height="110%">
+      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#0f172a" flood-opacity="0.08"/>
+    </filter>
+    <filter id="modal-shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="8" stdDeviation="16" flood-color="#0f172a" flood-opacity="0.3"/>
+    </filter>
+
+    <!-- Crosshatch Patterns -->
+    <pattern id="wf-mobile-cross" width="10" height="10" patternUnits="userSpaceOnUse">
+      <path d="M 0,10 L 10,0 M 0,0 L 10,10" stroke="#cbd5e1" stroke-width="0.7"/>
+    </pattern>
+    <pattern id="doc-crosshatch" width="8" height="8" patternUnits="userSpaceOnUse">
+      <path d="M 0,8 L 8,0 M 0,0 L 8,8" stroke="#94a3b8" stroke-width="0.75"/>
+    </pattern>
+  </defs>
+
+  <style>
+    .font-sans { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif; }
+    .font-mono { font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace; }
+  </style>
+
+  <!-- Canvas Surface -->
+  <rect width="1680" height="1080" fill="#f1f5f9"/>
+
+  <!-- Blueprint Main Title -->
+  <g transform="translate(36, 24)">
+    <text x="0" y="0" class="font-sans" font-size="16" font-weight="800" fill="#0f172a" letter-spacing="0.5px">MOBILE VIEWPORT ADMIN DASHBOARD WIREFRAME SPECIFICATION (393px × 852px · 100dvh)</text>
+    <text x="0" y="16" class="font-sans" font-size="10.5" font-weight="600" fill="#475569">Sprint 1 SCRUM-74 · Mobile Rapid KYC Triage &amp; Anti-Scam Moderation · iPhone 16 Pro Titanium Chassis · iOS Safari 100dvh</text>
+  </g>
+
+  <!-- ========================================================================= -->
+  <!-- PHONE 1: MOBILE ADMIN OVERVIEW & KPI FEED                                 -->
+  <!-- ========================================================================= -->
+  <g transform="translate(36, 76)" filter="url(#phone-shadow)">
+    <!-- Header Badge -->
+    <rect x="0" y="-28" width="375" height="22" rx="4" fill="#0f172a"/>
+    <text x="187.5" y="-13" text-anchor="middle" class="font-sans" font-size="9.5" font-weight="700" fill="#ffffff">PHONE 1: ADMIN OVERVIEW &amp; KPI FEED</text>
+
+    <!-- Outer Titanium Chassis (375 x 870) -->
+    <rect x="0" y="0" width="375" height="870" rx="44" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2.5"/>
+    <rect x="6" y="6" width="363" height="858" rx="38" fill="#0f172a"/>
+    <rect x="9" y="9" width="357" height="852" rx="36" fill="#f8fafc"/>
+
+    <!-- Dynamic Island Capsule -->
+    <rect x="124" y="20" width="126" height="30" rx="15" fill="#000000"/>
+    <circle cx="226" cy="35" r="4.5" fill="#1e293b"/>
+    <circle cx="146" cy="35" r="2.5" fill="#1e293b"/>
+
+    <!-- iOS Status Bar (9:41) -->
+    <text x="38" y="38" class="font-sans" font-size="12" font-weight="700" fill="#0f172a">9:41</text>
+    <g transform="translate(290, 28)">
+      <rect x="0" y="7" width="2.5" height="5" fill="#0f172a"/>
+      <rect x="3.5" y="5" width="2.5" height="7" fill="#0f172a"/>
+      <rect x="7" y="3" width="2.5" height="9" fill="#0f172a"/>
+      <rect x="10.5" y="1" width="2.5" height="11" fill="#0f172a"/>
+      <path d="M 16 9 A 6 6 0 0 1 24 9 M 18 11 A 3 3 0 0 1 22 11" fill="none" stroke="#0f172a" stroke-width="1.2"/>
+      <rect x="28" y="2" width="19" height="9.5" rx="2.5" fill="none" stroke="#0f172a" stroke-width="1.1"/>
+      <rect x="30" y="3.5" width="13" height="6.5" rx="1.2" fill="#0f172a"/>
+      <rect x="48" y="4.5" width="1.2" height="4.5" fill="#0f172a"/>
+    </g>
+
+    <!-- Safe-Area Mobile Header (h: 48px, y: 60) -->
+    <g transform="translate(20, 64)">
+      <rect x="0" y="0" width="335" height="44" rx="8" fill="#0f172a"/>
+      <text x="14" y="27" class="font-sans" font-size="11.5" font-weight="900" fill="#ffffff">ABANGCEBU</text>
+      <!-- Admin Badge -->
+      <rect x="96" y="11" width="102" height="22" rx="4" fill="#047857"/>
+      <text x="147" y="26" text-anchor="middle" class="font-sans" font-size="8.5" font-weight="800" fill="#ffffff">🛡️ System Admin</text>
+      <!-- Bell Alert -->
+      <rect x="288" y="8" width="36" height="28" rx="6" fill="#fff1f2"/>
+      <text x="306" y="26" text-anchor="middle" class="font-sans" font-size="11" font-weight="700" fill="#e11d48">🔔 5</text>
+    </g>
+
+    <!-- Urgent Scam Alert Banner (Emergency 1-Tap Freeze) -->
+    <g transform="translate(20, 118)">
+      <rect x="0" y="0" width="335" height="64" rx="8" fill="#fff1f2" stroke="#fda4af" stroke-width="1.5"/>
+      <text x="12" y="20" class="font-sans" font-size="10" font-weight="800" fill="#9f1239">🚨 URGENT SCAM REPORT (92% RISK)</text>
+      <text x="12" y="34" class="font-sans" font-size="8.5" font-weight="500" fill="#be123c">Karlo Dizon · Asking GCash advance near CIT-U</text>
+      <!-- 1-Tap Freeze Button -->
+      <rect x="12" y="40" width="311" height="18" rx="4" fill="#e11d48"/>
+      <text x="167" y="52" text-anchor="middle" class="font-sans" font-size="8" font-weight="800" fill="#ffffff">⚡ 1-Tap Freeze Landlord Account</text>
+    </g>
+
+    <!-- 2x2 Metric Grid -->
+    <g transform="translate(20, 192)">
+      <!-- Metric 1: Verified Listings -->
+      <g transform="translate(0, 0)">
+        <rect x="0" y="0" width="162" height="64" rx="6" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+        <text x="10" y="18" class="font-sans" font-size="8" font-weight="700" fill="#64748b">VERIFIED LISTINGS</text>
+        <text x="10" y="42" class="font-sans" font-size="18" font-weight="900" fill="#0f172a">1,248</text>
+        <text x="10" y="56" class="font-sans" font-size="7.5" font-weight="700" fill="#047857">+34 this wk</text>
+      </g>
+      <!-- Metric 2: Pending KYC -->
+      <g transform="translate(172, 0)">
+        <rect x="0" y="0" width="163" height="64" rx="6" fill="#ffffff" stroke="#fcd34d" stroke-width="1.2"/>
+        <text x="10" y="18" class="font-sans" font-size="8" font-weight="700" fill="#b45309">PENDING KYC</text>
+        <text x="10" y="42" class="font-sans" font-size="18" font-weight="900" fill="#0f172a">14</text>
+        <text x="10" y="56" class="font-sans" font-size="7.5" font-weight="700" fill="#b45309">⚠️ 3 near SLA</text>
+      </g>
+      <!-- Metric 3: Reported Scam -->
+      <g transform="translate(0, 72)">
+        <rect x="0" y="0" width="162" height="64" rx="6" fill="#ffffff" stroke="#fecdd3" stroke-width="1.2"/>
+        <text x="10" y="18" class="font-sans" font-size="8" font-weight="700" fill="#e11d48">REPORTED LISTINGS</text>
+        <text x="10" y="42" class="font-sans" font-size="18" font-weight="900" fill="#0f172a">5</text>
+        <text x="10" y="56" class="font-sans" font-size="7.5" font-weight="700" fill="#e11d48">🚨 2 High-Risk</text>
+      </g>
+      <!-- Metric 4: Interception Rate -->
+      <g transform="translate(172, 72)">
+        <rect x="0" y="0" width="163" height="64" rx="6" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+        <text x="10" y="18" class="font-sans" font-size="8" font-weight="700" fill="#64748b">SCAM INTERCEPT</text>
+        <text x="10" y="42" class="font-sans" font-size="18" font-weight="900" fill="#047857">99.4%</text>
+        <text x="10" y="56" class="font-sans" font-size="7.5" font-weight="600" fill="#475569">₱412k saved</text>
+      </g>
+    </g>
+
+    <!-- Rapid Triage Quick Launcher Card -->
+    <g transform="translate(20, 342)">
+      <rect x="0" y="0" width="335" height="136" rx="8" fill="#ffffff" stroke="#047857" stroke-width="1.5" filter="url(#card-shadow)"/>
+      <rect x="0" y="0" width="335" height="28" rx="8" fill="#047857"/>
+      <text x="12" y="18" class="font-sans" font-size="9.5" font-weight="800" fill="#ffffff">⚡ RAPID KYC TRIAGE (14 LANDLORDS)</text>
+      
+      <text x="12" y="48" class="font-sans" font-size="10.5" font-weight="800" fill="#0f172a">Review Landlord Applications on Mobile</text>
+      <text x="12" y="64" class="font-sans" font-size="8.5" font-weight="500" fill="#475569">Inspect PhilSys ID, check PSA registry validation &amp; approve with 1 tap.</text>
+      
+      <!-- Primary Action CTA -->
+      <rect x="12" y="80" width="311" height="44" rx="6" fill="#047857"/>
+      <text x="167" y="107" text-anchor="middle" class="font-sans" font-size="11" font-weight="800" fill="#ffffff">Launch Rapid Triage Swiper →</text>
+    </g>
+
+    <!-- Recent Audit Activity Feed Snippet -->
+    <g transform="translate(20, 492)">
+      <text x="0" y="0" class="font-sans" font-size="9.5" font-weight="800" fill="#0f172a">RECENT AUDIT TRAIL</text>
+      <rect x="0" y="8" width="335" height="170" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+      
+      <!-- Audit Row 1 -->
+      <g transform="translate(10, 20)">
+        <circle cx="8" cy="8" r="6" fill="#ecfdf5"/>
+        <text x="8" y="11" text-anchor="middle" font-size="8" fill="#047857" font-weight="bold">✓</text>
+        <text x="22" y="10" class="font-sans" font-size="8.5" font-weight="700" fill="#0f172a">Approved: Jun Abellanosa (Lahug)</text>
+        <text x="22" y="22" class="font-sans" font-size="7.5" fill="#64748b">Verified by Hermar C. · 24m ago</text>
+      </g>
+      <line x1="10" y1="52" x2="325" y2="52" stroke="#f1f5f9" stroke-width="1"/>
+
+      <!-- Audit Row 2 -->
+      <g transform="translate(10, 60)">
+        <circle cx="8" cy="8" r="6" fill="#fff1f2"/>
+        <text x="8" y="11" text-anchor="middle" font-size="8" fill="#e11d48" font-weight="bold">🚨</text>
+        <text x="22" y="10" class="font-sans" font-size="8.5" font-weight="700" fill="#e11d48">Suspended: Fake Host "CebuRooms"</text>
+        <text x="22" y="22" class="font-sans" font-size="7.5" fill="#64748b">profiles.is_suspended = true · 1h ago</text>
+      </g>
+      <line x1="10" y1="92" x2="325" y2="92" stroke="#f1f5f9" stroke-width="1"/>
+
+      <!-- Audit Row 3 -->
+      <g transform="translate(10, 100)">
+        <circle cx="8" cy="8" r="6" fill="#fef3c7"/>
+        <text x="8" y="11" text-anchor="middle" font-size="8" fill="#b45309" font-weight="bold">✕</text>
+        <text x="22" y="10" class="font-sans" font-size="8.5" font-weight="700" fill="#0f172a">Rejected: Blurred Postal ID</text>
+        <text x="22" y="22" class="font-sans" font-size="7.5" fill="#64748b">Reason: BLURRED_IMAGE · 2h ago</text>
+      </g>
+      <line x1="10" y1="132" x2="325" y2="132" stroke="#f1f5f9" stroke-width="1"/>
+
+      <text x="167" y="152" text-anchor="middle" class="font-sans" font-size="8" font-weight="700" fill="#047857">View Full Immutable Audit Log →</text>
+    </g>
+
+    <!-- Persistent Bottom Admin Tab Bar (h: 56px, y: 700) -->
+    <g transform="translate(9, 698)">
+      <rect x="0" y="0" width="357" height="56" fill="#0f172a"/>
+      <!-- Active Overview Tab -->
+      <g transform="translate(12, 8)">
+        <rect x="0" y="0" width="70" height="40" rx="6" fill="#1e293b"/>
+        <text x="35" y="20" text-anchor="middle" font-size="14">📊</text>
+        <text x="35" y="33" text-anchor="middle" class="font-sans" font-size="7.5" font-weight="800" fill="#34d399">Overview*</text>
+      </g>
+      <!-- KYC Tab with Badge -->
+      <g transform="translate(96, 8)">
+        <text x="35" y="20" text-anchor="middle" font-size="14">🪪</text>
+        <text x="35" y="33" text-anchor="middle" class="font-sans" font-size="7.5" font-weight="600" fill="#94a3b8">KYC (14)</text>
+        <circle cx="50" cy="10" r="4.5" fill="#b45309"/>
+      </g>
+      <!-- Moderation Tab -->
+      <g transform="translate(180, 8)">
+        <text x="35" y="20" text-anchor="middle" font-size="14">🚨</text>
+        <text x="35" y="33" text-anchor="middle" class="font-sans" font-size="7.5" font-weight="600" fill="#94a3b8">Scam (5)</text>
+        <circle cx="50" cy="10" r="4.5" fill="#e11d48"/>
+      </g>
+      <!-- Audit Logs Tab -->
+      <g transform="translate(264, 8)">
+        <text x="35" y="20" text-anchor="middle" font-size="14">📜</text>
+        <text x="35" y="33" text-anchor="middle" class="font-sans" font-size="7.5" font-weight="600" fill="#94a3b8">Audit</text>
+      </g>
+    </g>
+
+    <!-- iOS Safari Address Bar & Home Indicator -->
+    <g transform="translate(9, 754)">
+      <rect x="0" y="0" width="357" height="48" fill="#1e293b"/>
+      <rect x="18" y="8" width="321" height="32" rx="16" fill="#0f172a" stroke="#334155" stroke-width="1"/>
+      <text x="34" y="28" class="font-sans" font-size="10" fill="#94a3b8">AA</text>
+      <text x="160" y="28" text-anchor="middle" class="font-sans" font-size="9.5" font-weight="600" fill="#f8fafc">🔒 abangcebu.ph/admin</text>
+      <text x="316" y="28" class="font-sans" font-size="12" fill="#94a3b8">↻</text>
+    </g>
+    <rect x="127" y="842" width="120" height="4.5" rx="2.2" fill="#0f172a"/>
+  </g>
+
+  <!-- ========================================================================= -->
+  <!-- PHONE 2: MOBILE RAPID KYC TRIAGE SWIPER                                   -->
+  <!-- ========================================================================= -->
+  <g transform="translate(444, 76)" filter="url(#phone-shadow)">
+    <!-- Header Badge -->
+    <rect x="0" y="-28" width="375" height="22" rx="4" fill="#0f172a"/>
+    <text x="187.5" y="-13" text-anchor="middle" class="font-sans" font-size="9.5" font-weight="700" fill="#ffffff">PHONE 2: RAPID KYC TRIAGE SWIPER</text>
+
+    <!-- Chassis -->
+    <rect x="0" y="0" width="375" height="870" rx="44" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2.5"/>
+    <rect x="6" y="6" width="363" height="858" rx="38" fill="#0f172a"/>
+    <rect x="9" y="9" width="357" height="852" rx="36" fill="#f8fafc"/>
+
+    <!-- Dynamic Island -->
+    <rect x="124" y="20" width="126" height="30" rx="15" fill="#000000"/>
+    <circle cx="226" cy="35" r="4.5" fill="#1e293b"/>
+    <circle cx="146" cy="35" r="2.5" fill="#1e293b"/>
+
+    <!-- Status Bar -->
+    <text x="38" y="38" class="font-sans" font-size="12" font-weight="700" fill="#0f172a">9:41</text>
+    <g transform="translate(290, 28)">
+      <rect x="0" y="7" width="2.5" height="5" fill="#0f172a"/>
+      <rect x="3.5" y="5" width="2.5" height="7" fill="#0f172a"/>
+      <rect x="7" y="3" width="2.5" height="9" fill="#0f172a"/>
+      <rect x="10.5" y="1" width="2.5" height="11" fill="#0f172a"/>
+      <path d="M 16 9 A 6 6 0 0 1 24 9 M 18 11 A 3 3 0 0 1 22 11" fill="none" stroke="#0f172a" stroke-width="1.2"/>
+      <rect x="28" y="2" width="19" height="9.5" rx="2.5" fill="none" stroke="#0f172a" stroke-width="1.1"/>
+      <rect x="30" y="3.5" width="13" height="6.5" rx="1.2" fill="#0f172a"/>
+      <rect x="48" y="4.5" width="1.2" height="4.5" fill="#0f172a"/>
+    </g>
+
+    <!-- Top Triage Header -->
+    <g transform="translate(20, 64)">
+      <rect x="0" y="0" width="335" height="44" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+      <text x="14" y="27" class="font-sans" font-size="11" font-weight="800" fill="#0f172a">KYC Queue (1 of 14)</text>
+      <!-- SLA Pill -->
+      <rect x="220" y="11" width="102" height="22" rx="4" fill="#fef3c7" stroke="#fcd34d" stroke-width="1"/>
+      <text x="271" y="26" text-anchor="middle" class="font-sans" font-size="8.5" font-weight="800" fill="#b45309">⚠️ 3h SLA Left</text>
+    </g>
+
+    <!-- 1-Card-at-a-Time KYC Triage Card (h: 460px) -->
+    <g transform="translate(20, 118)">
+      <rect x="0" y="0" width="335" height="460" rx="12" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" filter="url(#card-shadow)"/>
+      
+      <!-- Card Top Badge -->
+      <rect x="0" y="0" width="335" height="32" rx="12" fill="#047857"/>
+      <text x="14" y="21" class="font-sans" font-size="9" font-weight="800" fill="#ffffff">PHILSYS NATIONAL ID VERIFICATION</text>
+      <rect x="250" y="6" width="75" height="20" rx="4" fill="#ffffff"/>
+      <text x="287" y="20" text-anchor="middle" class="font-mono" font-size="8" font-weight="800" fill="#047857">98.7% OCR</text>
+
+      <!-- ID Thumbnail Box (h: 150px) -->
+      <g transform="translate(14, 42)">
+        <rect x="0" y="0" width="307" height="150" rx="8" fill="#f8fafc" stroke="#94a3b8" stroke-width="1"/>
+        <rect x="0" y="0" width="307" height="150" rx="8" fill="url(#doc-crosshatch)" opacity="0.1"/>
+        
+        <!-- Header of simulated ID -->
+        <rect x="0" y="0" width="307" height="24" rx="8" fill="#047857"/>
+        <text x="12" y="16" class="font-sans" font-size="7.5" font-weight="800" fill="#ffffff">REPUBLIKA NG PILIPINAS — PhilSys</text>
+        
+        <!-- ID Photo placeholder -->
+        <rect x="12" y="32" width="72" height="88" rx="4" fill="#e2e8f0" stroke="#94a3b8" stroke-width="1"/>
+        <line x1="12" y1="32" x2="84" y2="120" stroke="#cbd5e1"/>
+        
+        <!-- ID Data Lines -->
+        <text x="96" y="48" class="font-sans" font-size="9" font-weight="800" fill="#0f172a">TAN, RODRIGO "DIGONG"</text>
+        <text x="96" y="62" class="font-mono" font-size="8" font-weight="700" fill="#047857">PCN: 9104-5821-4921-0319</text>
+        <text x="96" y="76" class="font-sans" font-size="8" fill="#475569">Sambag I, Cebu City 6000</text>
+        
+        <!-- Deep Inspect Overlay Button -->
+        <rect x="96" y="92" width="195" height="28" rx="4" fill="#0f172a"/>
+        <text x="193" y="110" text-anchor="middle" class="font-sans" font-size="8.5" font-weight="700" fill="#ffffff">🔍 Deep Inspect Document →</text>
+      </g>
+
+      <!-- Landlord Dossier Info -->
+      <g transform="translate(14, 204)">
+        <text x="0" y="14" class="font-sans" font-size="12" font-weight="800" fill="#0f172a">Rodrigo "Digong" Tan</text>
+        <text x="0" y="28" class="font-sans" font-size="8.5" font-weight="500" fill="#64748b">Phone: +63 917 842 9912 · Registered 3 days ago</text>
+        
+        <rect x="0" y="36" width="307" height="64" rx="6" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+        <text x="10" y="52" class="font-sans" font-size="8.5" font-weight="700" fill="#0f172a">Target Property &amp; Proof of Ownership</text>
+        <text x="10" y="66" class="font-sans" font-size="8" font-weight="500" fill="#475569">📍 Sambag I Studio (CIT-U) · ₱4,500/mo</text>
+        <text x="10" y="80" class="font-sans" font-size="8" font-weight="500" fill="#047857">✓ Barangay Sambag I Clearance &amp; VECO Bill Attached</text>
+
+        <!-- Automated Registry Checks -->
+        <g transform="translate(0, 110)">
+          <text x="0" y="12" class="font-sans" font-size="8.5" font-weight="800" fill="#0f172a">Automated Risk &amp; Registry Verification:</text>
+          <text x="0" y="26" class="font-sans" font-size="8" font-weight="600" fill="#047857">✓ PSA PhilSys API: Valid Record</text>
+          <text x="160" y="26" class="font-sans" font-size="8" font-weight="600" fill="#047857">✓ PostGIS: In Sambag I</text>
+          <text x="0" y="38" class="font-sans" font-size="8" font-weight="600" fill="#047857">✓ VECO Bill Name: 100% Match</text>
+          <text x="160" y="38" class="font-sans" font-size="8" font-weight="600" fill="#047857">✓ Liveness Score: 96.4%</text>
+        </g>
+      </g>
+    </g>
+
+    <!-- Swipe & Action Buttons Bar (44px height hitboxes) -->
+    <g transform="translate(20, 592)">
+      <!-- Reject Button -->
+      <rect x="0" y="0" width="88" height="46" rx="8" fill="#ffffff" stroke="#e11d48" stroke-width="1.5"/>
+      <text x="44" y="28" text-anchor="middle" class="font-sans" font-size="10" font-weight="800" fill="#e11d48">✕ Reject</text>
+
+      <!-- Skip Button -->
+      <rect x="96" y="0" width="76" height="46" rx="8" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1"/>
+      <text x="134" y="28" text-anchor="middle" class="font-sans" font-size="9.5" font-weight="700" fill="#475569">⏭️ Skip</text>
+
+      <!-- Approve Button (Primary Emerald) -->
+      <rect x="180" y="0" width="155" height="46" rx="8" fill="#047857"/>
+      <text x="257" y="28" text-anchor="middle" class="font-sans" font-size="10.5" font-weight="800" fill="#ffffff">✓ Approve &amp; Verify</text>
+    </g>
+
+    <text x="187.5" y="660" text-anchor="middle" class="font-sans" font-size="8" font-weight="600" fill="#64748b">Swipe right to Approve · Swipe left to Reject</text>
+
+    <!-- Persistent Bottom Tab Bar with KYC Active -->
+    <g transform="translate(9, 698)">
+      <rect x="0" y="0" width="357" height="56" fill="#0f172a"/>
+      <!-- Overview Tab -->
+      <g transform="translate(12, 8)">
+        <text x="35" y="20" text-anchor="middle" font-size="14">📊</text>
+        <text x="35" y="33" text-anchor="middle" class="font-sans" font-size="7.5" font-weight="600" fill="#94a3b8">Overview</text>
+      </g>
+      <!-- Active KYC Tab -->
+      <g transform="translate(96, 8)">
+        <rect x="0" y="0" width="70" height="40" rx="6" fill="#1e293b"/>
+        <text x="35" y="20" text-anchor="middle" font-size="14">🪪</text>
+        <text x="35" y="33" text-anchor="middle" class="font-sans" font-size="7.5" font-weight="800" fill="#34d399">KYC (14)*</text>
+      </g>
+      <!-- Moderation Tab -->
+      <g transform="translate(180, 8)">
+        <text x="35" y="20" text-anchor="middle" font-size="14">🚨</text>
+        <text x="35" y="33" text-anchor="middle" class="font-sans" font-size="7.5" font-weight="600" fill="#94a3b8">Scam (5)</text>
+      </g>
+      <!-- Audit Logs Tab -->
+      <g transform="translate(264, 8)">
+        <text x="35" y="20" text-anchor="middle" font-size="14">📜</text>
+        <text x="35" y="33" text-anchor="middle" class="font-sans" font-size="7.5" font-weight="600" fill="#94a3b8">Audit</text>
+      </g>
+    </g>
+
+    <!-- iOS Safari Address Bar & Home Indicator -->
+    <g transform="translate(9, 754)">
+      <rect x="0" y="0" width="357" height="48" fill="#1e293b"/>
+      <rect x="18" y="8" width="321" height="32" rx="16" fill="#0f172a" stroke="#334155" stroke-width="1"/>
+      <text x="34" y="28" class="font-sans" font-size="10" fill="#94a3b8">AA</text>
+      <text x="160" y="28" text-anchor="middle" class="font-sans" font-size="9.5" font-weight="600" fill="#f8fafc">🔒 abangcebu.ph/admin/kyc</text>
+      <text x="316" y="28" class="font-sans" font-size="12" fill="#94a3b8">↻</text>
+    </g>
+    <rect x="127" y="842" width="120" height="4.5" rx="2.2" fill="#0f172a"/>
+  </g>
+
+  <!-- ========================================================================= -->
+  <!-- PHONE 3: MOBILE DOCUMENT DEEP INSPECTION VIEW                             -->
+  <!-- ========================================================================= -->
+  <g transform="translate(852, 76)" filter="url(#phone-shadow)">
+    <!-- Header Badge -->
+    <rect x="0" y="-28" width="375" height="22" rx="4" fill="#0f172a"/>
+    <text x="187.5" y="-13" text-anchor="middle" class="font-sans" font-size="9.5" font-weight="700" fill="#ffffff">PHONE 3: DOCUMENT DEEP INSPECTION</text>
+
+    <!-- Chassis -->
+    <rect x="0" y="0" width="375" height="870" rx="44" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2.5"/>
+    <rect x="6" y="6" width="363" height="858" rx="38" fill="#0f172a"/>
+    <rect x="9" y="9" width="357" height="852" rx="36" fill="#f8fafc"/>
+
+    <!-- Dynamic Island -->
+    <rect x="124" y="20" width="126" height="30" rx="15" fill="#000000"/>
+    <circle cx="226" cy="35" r="4.5" fill="#1e293b"/>
+    <circle cx="146" cy="35" r="2.5" fill="#1e293b"/>
+
+    <!-- Status Bar -->
+    <text x="38" y="38" class="font-sans" font-size="12" font-weight="700" fill="#0f172a">9:41</text>
+    <g transform="translate(290, 28)">
+      <rect x="0" y="7" width="2.5" height="5" fill="#0f172a"/>
+      <rect x="3.5" y="5" width="2.5" height="7" fill="#0f172a"/>
+      <rect x="7" y="3" width="2.5" height="9" fill="#0f172a"/>
+      <rect x="10.5" y="1" width="2.5" height="11" fill="#0f172a"/>
+      <path d="M 16 9 A 6 6 0 0 1 24 9 M 18 11 A 3 3 0 0 1 22 11" fill="none" stroke="#0f172a" stroke-width="1.2"/>
+      <rect x="28" y="2" width="19" height="9.5" rx="2.5" fill="none" stroke="#0f172a" stroke-width="1.1"/>
+      <rect x="30" y="3.5" width="13" height="6.5" rx="1.2" fill="#0f172a"/>
+      <rect x="48" y="4.5" width="1.2" height="4.5" fill="#0f172a"/>
+    </g>
+
+    <!-- Inspection Safe Header -->
+    <g transform="translate(20, 64)">
+      <rect x="0" y="0" width="335" height="44" rx="8" fill="#0f172a"/>
+      <text x="14" y="27" class="font-sans" font-size="11" font-weight="800" fill="#ffffff">← Rodrigo Tan · ID Preview</text>
+      <rect x="250" y="10" width="75" height="24" rx="4" fill="#1e293b"/>
+      <text x="287" y="26" text-anchor="middle" class="font-sans" font-size="8.5" font-weight="700" fill="#38bdf8">Front / Back</text>
+    </g>
+
+    <!-- Document Zoom Viewer Container (h: 240px) -->
+    <g transform="translate(20, 118)">
+      <rect x="0" y="0" width="335" height="240" rx="10" fill="#ffffff" stroke="#047857" stroke-width="2" filter="url(#card-shadow)"/>
+      <rect x="0" y="0" width="335" height="240" rx="10" fill="url(#doc-crosshatch)" opacity="0.1"/>
+
+      <!-- Viewer Floating Controls -->
+      <g transform="translate(14, 12)">
+        <rect x="0" y="0" width="128" height="24" rx="4" fill="#0f172a" opacity="0.85"/>
+        <text x="14" y="16" class="font-sans" font-size="8.5" font-weight="700" fill="#ffffff">🔍+  🔍-  ⟲ Rotate</text>
+      </g>
+      <rect x="230" y="12" width="90" height="24" rx="4" fill="#047857"/>
+      <text x="275" y="27" text-anchor="middle" class="font-sans" font-size="8" font-weight="800" fill="#ffffff">OCR: 98.7%</text>
+
+      <!-- Simulated ID Card Inside Viewer -->
+      <g transform="translate(18, 48)">
+        <rect x="0" y="0" width="298" height="174" rx="8" fill="#ffffff" stroke="#94a3b8" stroke-width="1"/>
+        <rect x="0" y="0" width="298" height="22" rx="8" fill="#047857"/>
+        <text x="10" y="15" class="font-sans" font-size="7.5" font-weight="800" fill="#ffffff">REPUBLIKA NG PILIPINAS (PhilSys)</text>
+
+        <!-- Photo & ID Details -->
+        <rect x="10" y="32" width="70" height="84" rx="4" fill="#e2e8f0" stroke="#94a3b8" stroke-width="1"/>
+        
+        <text x="90" y="44" class="font-sans" font-size="7" font-weight="600" fill="#64748b">Apelyido / Last Name</text>
+        <text x="90" y="56" class="font-sans" font-size="9" font-weight="800" fill="#0f172a">TAN</text>
+
+        <text x="90" y="70" class="font-sans" font-size="7" font-weight="600" fill="#64748b">Given Names</text>
+        <text x="90" y="82" class="font-sans" font-size="9" font-weight="800" fill="#0f172a">RODRIGO "DIGONG"</text>
+
+        <text x="90" y="96" class="font-sans" font-size="7" font-weight="600" fill="#64748b">PhilSys Card Number</text>
+        <text x="90" y="108" class="font-mono" font-size="8.5" font-weight="800" fill="#047857">9104-5821-4921-0319</text>
+
+        <text x="10" y="132" class="font-sans" font-size="7.5" font-weight="600" fill="#64748b">Address: Sambag I, Cebu City 6000</text>
+        <rect x="10" y="142" width="160" height="20" rx="3" fill="#ecfdf5" stroke="#86efac" stroke-width="0.5"/>
+        <text x="90" y="155" text-anchor="middle" class="font-sans" font-size="7.5" font-weight="700" fill="#047857">✓ PSA CHECKSUM MATCH</text>
+      </g>
+    </g>
+
+    <!-- Verification Audit Checklist Card -->
+    <g transform="translate(20, 370)">
+      <rect x="0" y="0" width="335" height="186" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+      <rect x="0" y="0" width="335" height="26" rx="8" fill="#0f172a"/>
+      <text x="12" y="17" class="font-sans" font-size="8.5" font-weight="800" fill="#ffffff">SYSTEM AUDIT VERIFICATION METRICS</text>
+
+      <g transform="translate(12, 36)">
+        <text x="0" y="12" class="font-sans" font-size="8.5" font-weight="700" fill="#0f172a">PhilSys PSA Registry Match</text>
+        <text x="240" y="12" class="font-sans" font-size="8.5" font-weight="800" fill="#047857">✓ PASSED</text>
+        <text x="0" y="24" class="font-sans" font-size="7.5" fill="#64748b">Validated against national registry database</text>
+      </g>
+      <line x1="12" y1="68" x2="323" y2="68" stroke="#f1f5f9"/>
+
+      <g transform="translate(12, 74)">
+        <text x="0" y="12" class="font-sans" font-size="8.5" font-weight="700" fill="#0f172a">PostGIS Corridor Validation</text>
+        <text x="240" y="12" class="font-sans" font-size="8.5" font-weight="800" fill="#047857">✓ PASSED</text>
+        <text x="0" y="24" class="font-sans" font-size="7.5" fill="#64748b">Property inside Sambag I polygon (0.2km CIT-U)</text>
+      </g>
+      <line x1="12" y1="106" x2="323" y2="106" stroke="#f1f5f9"/>
+
+      <g transform="translate(12, 112)">
+        <text x="0" y="12" class="font-sans" font-size="8.5" font-weight="700" fill="#0f172a">VECO Submeter Account Match</text>
+        <text x="240" y="12" class="font-sans" font-size="8.5" font-weight="800" fill="#047857">✓ PASSED</text>
+        <text x="0" y="24" class="font-sans" font-size="7.5" fill="#64748b">VECO bill name: Rodrigo Tan (Acct #8194-20)</text>
+      </g>
+      <line x1="12" y1="144" x2="323" y2="144" stroke="#f1f5f9"/>
+
+      <g transform="translate(12, 150)">
+        <text x="0" y="12" class="font-sans" font-size="8.5" font-weight="700" fill="#0f172a">Face Biometric Similarity</text>
+        <text x="240" y="12" class="font-sans" font-size="8.5" font-weight="800" fill="#047857">96.4%</text>
+        <text x="0" y="24" class="font-sans" font-size="7.5" fill="#047857">Selfie liveness check confirmed</text>
+      </g>
+    </g>
+
+    <!-- Bottom Decision Action Triggers (44px min touch target) -->
+    <g transform="translate(20, 568)">
+      <!-- Approve CTA -->
+      <rect x="0" y="0" width="335" height="46" rx="8" fill="#047857"/>
+      <text x="167" y="28" text-anchor="middle" class="font-sans" font-size="11" font-weight="800" fill="#ffffff">✓ Approve &amp; Issue Verified Badge</text>
+
+      <!-- Reject CTA -->
+      <rect x="0" y="54" width="335" height="44" rx="8" fill="#ffffff" stroke="#e11d48" stroke-width="1.5"/>
+      <text x="167" y="81" text-anchor="middle" class="font-sans" font-size="10.5" font-weight="800" fill="#e11d48">✕ Reject Document</text>
+
+      <text x="167" y="118" text-anchor="middle" class="font-sans" font-size="8" font-weight="700" fill="#64748b">💬 Request Higher Resolution Image from Host</text>
+    </g>
+
+    <!-- Persistent Bottom Tab Bar -->
+    <g transform="translate(9, 698)">
+      <rect x="0" y="0" width="357" height="56" fill="#0f172a"/>
+      <g transform="translate(12, 8)">
+        <text x="35" y="20" text-anchor="middle" font-size="14">📊</text>
+        <text x="35" y="33" text-anchor="middle" class="font-sans" font-size="7.5" font-weight="600" fill="#94a3b8">Overview</text>
+      </g>
+      <g transform="translate(96, 8)">
+        <rect x="0" y="0" width="70" height="40" rx="6" fill="#1e293b"/>
+        <text x="35" y="20" text-anchor="middle" font-size="14">🪪</text>
+        <text x="35" y="33" text-anchor="middle" class="font-sans" font-size="7.5" font-weight="800" fill="#34d399">KYC (14)*</text>
+      </g>
+      <g transform="translate(180, 8)">
+        <text x="35" y="20" text-anchor="middle" font-size="14">🚨</text>
+        <text x="35" y="33" text-anchor="middle" class="font-sans" font-size="7.5" font-weight="600" fill="#94a3b8">Scam (5)</text>
+      </g>
+      <g transform="translate(264, 8)">
+        <text x="35" y="20" text-anchor="middle" font-size="14">📜</text>
+        <text x="35" y="33" text-anchor="middle" class="font-sans" font-size="7.5" font-weight="600" fill="#94a3b8">Audit</text>
+      </g>
+    </g>
+
+    <!-- iOS Safari Bar -->
+    <g transform="translate(9, 754)">
+      <rect x="0" y="0" width="357" height="48" fill="#1e293b"/>
+      <rect x="18" y="8" width="321" height="32" rx="16" fill="#0f172a" stroke="#334155" stroke-width="1"/>
+      <text x="34" y="28" class="font-sans" font-size="10" fill="#94a3b8">AA</text>
+      <text x="160" y="28" text-anchor="middle" class="font-sans" font-size="9.5" font-weight="600" fill="#f8fafc">🔒 abangcebu.ph/admin/inspect</text>
+      <text x="316" y="28" class="font-sans" font-size="12" fill="#94a3b8">↻</text>
+    </g>
+    <rect x="127" y="842" width="120" height="4.5" rx="2.2" fill="#0f172a"/>
+  </g>
+
+  <!-- ========================================================================= -->
+  <!-- PHONE 4: REJECTION REASON MODAL & EMPTY QUEUE STATE                       -->
+  <!-- ========================================================================= -->
+  <g transform="translate(1260, 76)" filter="url(#phone-shadow)">
+    <!-- Header Badge -->
+    <rect x="0" y="-28" width="375" height="22" rx="4" fill="#0f172a"/>
+    <text x="187.5" y="-13" text-anchor="middle" class="font-sans" font-size="9.5" font-weight="700" fill="#ffffff">PHONE 4: REJECTION REASON MODAL &amp; ZERO STATE</text>
+
+    <!-- Chassis -->
+    <rect x="0" y="0" width="375" height="870" rx="44" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2.5"/>
+    <rect x="6" y="6" width="363" height="858" rx="38" fill="#0f172a"/>
+    <rect x="9" y="9" width="357" height="852" rx="36" fill="#f8fafc"/>
+
+    <!-- Underlying Queue Screen (or Empty State) -->
+    <g transform="translate(20, 80)">
+      <circle cx="167" cy="60" r="32" fill="#ecfdf5"/>
+      <text x="167" y="68" text-anchor="middle" font-size="28">🎉</text>
+      <text x="167" y="112" text-anchor="middle" class="font-sans" font-size="12.5" font-weight="800" fill="#0f172a">All KYC Reviews Cleared!</text>
+      <text x="167" y="130" text-anchor="middle" class="font-sans" font-size="9" font-weight="500" fill="#64748b">Zero pending reviews in queue · 100% SLA compliant</text>
+    </g>
+
+    <!-- Modal Dimmed Backdrop Overlay (55% Opacity) -->
+    <rect x="9" y="9" width="357" height="852" rx="36" fill="#0f172a" opacity="0.65"/>
+
+    <!-- Dynamic Island (Visible Above Modal) -->
+    <rect x="124" y="20" width="126" height="30" rx="15" fill="#000000"/>
+    <circle cx="226" cy="35" r="4.5" fill="#1e293b"/>
+    <circle cx="146" cy="35" r="2.5" fill="#1e293b"/>
+
+    <!-- Rejection Reason Modal Card (h: 490px, y: 140) -->
+    <g transform="translate(24, 140)" filter="url(#modal-shadow)">
+      <rect x="0" y="0" width="327" height="500" rx="14" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5"/>
+
+      <!-- Modal Header -->
+      <g transform="translate(18, 20)">
+        <!-- Warning Icon -->
+        <rect x="0" y="0" width="32" height="32" rx="16" fill="#fff1f2"/>
+        <text x="16" y="22" text-anchor="middle" font-size="16">⚠️</text>
+
+        <text x="42" y="14" class="font-sans" font-size="11.5" font-weight="800" fill="#0f172a">Select Rejection Reason</text>
+        <text x="42" y="28" class="font-sans" font-size="8.5" font-weight="500" fill="#64748b">Notify Rodrigo Tan with actionable feedback</text>
+      </g>
+      <line x1="0" y1="62" x2="327" y2="62" stroke="#e2e8f0" stroke-width="1"/>
+
+      <!-- Structured Radio Selector Options -->
+      <g transform="translate(18, 76)">
+        <text x="0" y="0" class="font-sans" font-size="9" font-weight="800" fill="#0f172a">STANDARDIZED REJECTION CODES</text>
+
+        <!-- Option 1: Blurred Image (SELECTED) -->
+        <g transform="translate(0, 12)">
+          <rect x="0" y="0" width="291" height="48" rx="6" fill="#fff1f2" stroke="#fda4af" stroke-width="1.5"/>
+          <!-- Radio Button (Selected) -->
+          <circle cx="20" cy="24" r="8" fill="#ffffff" stroke="#e11d48" stroke-width="2"/>
+          <circle cx="20" cy="24" r="4" fill="#e11d48"/>
+          <text x="36" y="20" class="font-sans" font-size="9.5" font-weight="800" fill="#9f1239">Blurred / Low-Resolution ID</text>
+          <text x="36" y="34" class="font-sans" font-size="7.5" fill="#be123c">Edges cut off or text unreadable by OCR engine</text>
+        </g>
+
+        <!-- Option 2: Name Mismatch -->
+        <g transform="translate(0, 68)">
+          <rect x="0" y="0" width="291" height="48" rx="6" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+          <circle cx="20" cy="24" r="8" fill="#ffffff" stroke="#94a3b8" stroke-width="1.5"/>
+          <text x="36" y="20" class="font-sans" font-size="9.5" font-weight="700" fill="#0f172a">Landlord Name Mismatch</text>
+          <text x="36" y="34" class="font-sans" font-size="7.5" fill="#64748b">Name on ID does not match registered profile name</text>
+        </g>
+
+        <!-- Option 3: Expired ID -->
+        <g transform="translate(0, 124)">
+          <rect x="0" y="0" width="291" height="48" rx="6" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+          <circle cx="20" cy="24" r="8" fill="#ffffff" stroke="#94a3b8" stroke-width="1.5"/>
+          <text x="36" y="20" class="font-sans" font-size="9.5" font-weight="700" fill="#0f172a">Expired Government ID</text>
+          <text x="36" y="34" class="font-sans" font-size="7.5" fill="#64748b">ID past validity period or revoked by issuing agency</text>
+        </g>
+
+        <!-- Option 4: Unofficial / Unsupported Document -->
+        <g transform="translate(0, 180)">
+          <rect x="0" y="0" width="291" height="48" rx="6" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+          <circle cx="20" cy="24" r="8" fill="#ffffff" stroke="#94a3b8" stroke-width="1.5"/>
+          <text x="36" y="20" class="font-sans" font-size="9.5" font-weight="700" fill="#0f172a">Unofficial / Unsupported Document</text>
+          <text x="36" y="34" class="font-sans" font-size="7.5" fill="#64748b">Submitted company badge, school ID, or unverified card</text>
+        </g>
+      </g>
+
+      <!-- Additional Guidance Note Input (Enforcing 16px Anti-Zoom Rule) -->
+      <g transform="translate(18, 318)">
+        <text x="0" y="0" class="font-sans" font-size="8.5" font-weight="700" fill="#475569">ADDITIONAL GUIDANCE NOTE TO HOST (16px Mobile Rule)</text>
+        <rect x="0" y="8" width="291" height="74" rx="6" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1"/>
+        <text x="10" y="26" class="font-sans" font-size="8.5" fill="#0f172a">Please re-upload a clear photo of your</text>
+        <text x="10" y="40" class="font-sans" font-size="8.5" fill="#0f172a">PhilSys National ID. Ensure all 4 corners</text>
+        <text x="10" y="54" class="font-sans" font-size="8.5" fill="#0f172a">are visible without glare or flash reflection.</text>
+        <!-- 16px rule hint -->
+        <text x="280" y="74" text-anchor="end" class="font-mono" font-size="7" font-weight="600" fill="#94a3b8">font-size: 16px</text>
+      </g>
+
+      <!-- Modal Bottom Actions (44px height) -->
+      <g transform="translate(18, 412)">
+        <!-- Confirm Rejection CTA -->
+        <rect x="0" y="0" width="291" height="44" rx="8" fill="#e11d48"/>
+        <text x="145" y="27" text-anchor="middle" class="font-sans" font-size="10.5" font-weight="800" fill="#ffffff">Confirm Rejection &amp; Notify Landlord</text>
+
+        <!-- Cancel CTA -->
+        <text x="145" y="64" text-anchor="middle" class="font-sans" font-size="9.5" font-weight="700" fill="#64748b">Dismiss &amp; Return to Queue</text>
+      </g>
+    </g>
+
+    <!-- iOS Safari Address Bar & Home Indicator -->
+    <g transform="translate(9, 754)">
+      <rect x="0" y="0" width="357" height="48" fill="#1e293b"/>
+      <rect x="18" y="8" width="321" height="32" rx="16" fill="#0f172a" stroke="#334155" stroke-width="1"/>
+      <text x="34" y="28" class="font-sans" font-size="10" fill="#94a3b8">AA</text>
+      <text x="160" y="28" text-anchor="middle" class="font-sans" font-size="9.5" font-weight="600" fill="#f8fafc">🔒 abangcebu.ph/admin/kyc</text>
+      <text x="316" y="28" class="font-sans" font-size="12" fill="#94a3b8">↻</text>
+    </g>
+    <rect x="127" y="842" width="120" height="4.5" rx="2.2" fill="#0f172a"/>
+  </g>
+
+</svg>

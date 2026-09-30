@@ -1,0 +1,634 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1680 1080" width="100%" height="100%">
+  <defs>
+    <!-- Chassis Shadows -->
+    <filter id="macbook-shadow" x="-5%" y="-5%" width="110%" height="115%">
+      <feDropShadow dx="0" dy="24" stdDeviation="30" flood-color="#0f172a" flood-opacity="0.28"/>
+    </filter>
+    <filter id="card-shadow" x="-5%" y="-5%" width="110%" height="110%">
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#0f172a" flood-opacity="0.08"/>
+    </filter>
+    <filter id="badge-shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#0f172a" flood-opacity="0.14"/>
+    </filter>
+    <filter id="pop-shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="6" stdDeviation="12" flood-color="#0f172a" flood-opacity="0.12"/>
+    </filter>
+
+    <!-- Thumbnail Crosshatch Pattern -->
+    <pattern id="wf-crosshatch" width="12" height="12" patternUnits="userSpaceOnUse">
+      <path d="M 0,12 L 12,0 M 0,0 L 12,12" stroke="#cbd5e1" stroke-width="0.8"/>
+    </pattern>
+    <pattern id="id-crosshatch" width="8" height="8" patternUnits="userSpaceOnUse">
+      <path d="M 0,8 L 8,0 M 0,0 L 8,8" stroke="#94a3b8" stroke-width="0.75"/>
+    </pattern>
+  </defs>
+
+  <style>
+    .font-sans { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif; }
+    .font-mono { font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace; }
+  </style>
+
+  <!-- Blueprint Canvas Background -->
+  <rect width="1680" height="1080" fill="#f1f5f9"/>
+
+  <!-- Top Technical Header Bar -->
+  <g transform="translate(100, 24)">
+    <text x="0" y="0" class="font-sans" font-size="16" font-weight="800" fill="#0f172a" letter-spacing="0.5px">ABANGCEBU AI — ADMIN DASHBOARD WIREFRAME SPECIFICATION (1440px × 900px)</text>
+    <text x="0" y="16" class="font-sans" font-size="10.5" font-weight="600" fill="#475569">Sprint 1 SCRUM-74 · Trust &amp; Safety Operations Console · MacBook Air 16:10 Chassis · Anti-Scam KYC Gateway</text>
+  </g>
+
+  <!-- ========================================================================= -->
+  <!-- 1. MACBOOK AIR CHASSIS (1480x950 Outer, 1440x900 Screen, 16:10 Ratio)     -->
+  <!-- ========================================================================= -->
+  <g transform="translate(100, 54)" filter="url(#macbook-shadow)">
+    <!-- Aluminum Outer Lid -->
+    <rect x="-20" y="-20" width="1480" height="950" rx="24" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/>
+    
+    <!-- Inner Bezel (Matte Black) -->
+    <rect x="-10" y="-10" width="1460" height="930" rx="14" fill="#0f172a"/>
+
+    <!-- Active Display Viewport (1440 x 900) -->
+    <rect x="0" y="0" width="1440" height="900" rx="8" fill="#f8fafc"/>
+
+    <!-- FaceTime Camera Notch -->
+    <rect x="650" y="0" width="140" height="20" rx="8" fill="#0f172a"/>
+    <circle cx="712" cy="10" r="4.5" fill="#1e293b"/>
+    <circle cx="712" cy="10" r="2" fill="#0284c7"/>
+    <circle cx="732" cy="10" r="1.5" fill="#22c55e"/>
+
+    <!-- Bottom Opening Lip -->
+    <rect x="660" y="930" width="120" height="8" rx="4" fill="#cbd5e1" stroke="#94a3b8" stroke-width="1"/>
+
+    <!-- ======================================================================= -->
+    <!-- 2. FIXED DARK SIDEBAR NAVIGATION (260px w, #0F172A)                     -->
+    <!-- ======================================================================= -->
+    <g transform="translate(0, 0)">
+      <!-- Sidebar Base -->
+      <rect x="0" y="0" width="260" height="900" fill="#0f172a"/>
+      <line x1="260" y1="0" x2="260" y2="900" stroke="#1e293b" stroke-width="1.5"/>
+
+      <!-- Admin Brand Crest & Logotype -->
+      <g transform="translate(20, 24)">
+        <!-- Crest Icon -->
+        <rect x="0" y="0" width="34" height="34" rx="8" fill="#047857"/>
+        <path d="M 17 6 L 27 11 L 27 21 C 27 26 17 30 17 30 C 17 30 7 26 7 21 L 7 11 Z" fill="none" stroke="#ffffff" stroke-width="2" stroke-linejoin="round"/>
+        <path d="M 13 18 L 16 21 L 22 14" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+
+        <text x="44" y="16" class="font-sans" font-size="14" font-weight="900" fill="#ffffff" letter-spacing="0.5px">ABANGCEBU AI</text>
+        <text x="44" y="29" class="font-sans" font-size="9" font-weight="700" fill="#34d399" letter-spacing="1px">ADMIN CONSOLE</text>
+      </g>
+
+      <!-- System Health Indicator Pill -->
+      <g transform="translate(16, 72)">
+        <rect x="0" y="0" width="228" height="28" rx="6" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+        <circle cx="14" cy="14" r="4" fill="#10b981"/>
+        <text x="26" y="18" class="font-sans" font-size="9.5" font-weight="700" fill="#f8fafc">SYSTEM STATUS: 99.98%</text>
+        <text x="168" y="18" class="font-mono" font-size="8.5" font-weight="600" fill="#94a3b8">PostGIS OK</text>
+      </g>
+
+      <!-- User Profile Dossier Pill -->
+      <g transform="translate(16, 110)">
+        <rect x="0" y="0" width="228" height="66" rx="8" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+        <circle cx="28" cy="33" r="18" fill="#047857" stroke="#34d399" stroke-width="1.5"/>
+        <text x="28" y="38" text-anchor="middle" class="font-sans" font-size="12" font-weight="800" fill="#ffffff">HC</text>
+
+        <text x="56" y="26" class="font-sans" font-size="11" font-weight="700" fill="#ffffff">Hermar Centillas</text>
+        
+        <!-- Role Badge -->
+        <rect x="56" y="33" width="118" height="18" rx="4" fill="#0f172a" stroke="#047857" stroke-width="1"/>
+        <text x="64" y="45" class="font-sans" font-size="8.5" font-weight="800" fill="#34d399">🛡️ System Admin</text>
+        
+        <!-- Online Dot -->
+        <circle cx="212" cy="24" r="3.5" fill="#22c55e"/>
+      </g>
+
+      <!-- Navigation Section: Trust & Safety -->
+      <text x="20" y="202" class="font-sans" font-size="9" font-weight="800" fill="#64748b" letter-spacing="1px">TRUST &amp; SAFETY TRIAGE</text>
+
+      <!-- Nav Item 1: KYC Queue (Active) -->
+      <g transform="translate(14, 212)">
+        <rect x="0" y="0" width="232" height="38" rx="6" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+        <!-- Active Accent Bar -->
+        <rect x="0" y="0" width="4" height="38" rx="2" fill="#047857"/>
+        <text x="14" y="24" class="font-sans" font-size="11" font-weight="700" fill="#ffffff">🪪 KYC Verification Queue</text>
+        <!-- Counter Badge -->
+        <rect x="188" y="9" width="34" height="20" rx="10" fill="#047857"/>
+        <text x="205" y="23" text-anchor="middle" class="font-mono" font-size="10" font-weight="800" fill="#ffffff">14</text>
+      </g>
+
+      <!-- Nav Item 2: Scam Moderation -->
+      <g transform="translate(14, 256)">
+        <rect x="0" y="0" width="232" height="38" rx="6" fill="transparent"/>
+        <text x="14" y="24" class="font-sans" font-size="11" font-weight="600" fill="#cbd5e1">🚨 Scam Moderation</text>
+        <!-- Urgent Badge -->
+        <rect x="194" y="9" width="28" height="20" rx="10" fill="#e11d48"/>
+        <text x="208" y="23" text-anchor="middle" class="font-mono" font-size="10" font-weight="800" fill="#ffffff">5</text>
+      </g>
+
+      <!-- Nav Item 3: Platform Analytics -->
+      <g transform="translate(14, 300)">
+        <rect x="0" y="0" width="232" height="38" rx="6" fill="transparent"/>
+        <text x="14" y="24" class="font-sans" font-size="11" font-weight="600" fill="#cbd5e1">📊 Platform Analytics</text>
+      </g>
+
+      <!-- Nav Item 4: User Directory -->
+      <g transform="translate(14, 344)">
+        <rect x="0" y="0" width="232" height="38" rx="6" fill="transparent"/>
+        <text x="14" y="24" class="font-sans" font-size="11" font-weight="600" fill="#cbd5e1">👥 User &amp; Host Directory</text>
+      </g>
+
+      <!-- Nav Item 5: Audit Logs & Security -->
+      <g transform="translate(14, 388)">
+        <rect x="0" y="0" width="232" height="38" rx="6" fill="transparent"/>
+        <text x="14" y="24" class="font-sans" font-size="11" font-weight="600" fill="#cbd5e1">📜 Immutable Audit Logs</text>
+      </g>
+
+      <!-- Navigation Section: System Settings -->
+      <text x="20" y="454" class="font-sans" font-size="9" font-weight="800" fill="#64748b" letter-spacing="1px">SYSTEM &amp; GIS GOVERNANCE</text>
+
+      <g transform="translate(14, 464)">
+        <rect x="0" y="0" width="232" height="38" rx="6" fill="transparent"/>
+        <text x="14" y="24" class="font-sans" font-size="11" font-weight="600" fill="#cbd5e1">🗺️ PostGIS Corridors &amp; Map</text>
+      </g>
+
+      <g transform="translate(14, 508)">
+        <rect x="0" y="0" width="232" height="38" rx="6" fill="transparent"/>
+        <text x="14" y="24" class="font-sans" font-size="11" font-weight="600" fill="#cbd5e1">⚙️ Admin Security Settings</text>
+      </g>
+
+      <!-- Quick Platform Switcher -->
+      <g transform="translate(16, 756)">
+        <rect x="0" y="0" width="228" height="52" rx="8" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+        <text x="12" y="22" class="font-sans" font-size="9" font-weight="700" fill="#94a3b8">PUBLIC APP ACCESS</text>
+        <text x="12" y="40" class="font-sans" font-size="10.5" font-weight="700" fill="#38bdf8">↗ Open Metro Cebu Map</text>
+        <rect x="180" y="16" width="36" height="20" rx="4" fill="#0f172a" stroke="#475569" stroke-width="1"/>
+        <text x="198" y="30" text-anchor="middle" class="font-mono" font-size="8.5" font-weight="700" fill="#94a3b8">ESC</text>
+      </g>
+
+      <!-- Sign Out Button -->
+      <g transform="translate(16, 822)">
+        <rect x="0" y="0" width="228" height="46" rx="8" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+        <text x="18" y="28" class="font-sans" font-size="11" font-weight="700" fill="#f87171">🚪 Sign Out Admin</text>
+        <rect x="156" y="13" width="60" height="20" rx="4" fill="#0f172a" stroke="#475569" stroke-width="1"/>
+        <text x="186" y="27" text-anchor="middle" class="font-mono" font-size="8.5" font-weight="700" fill="#94a3b8">Esc + Q</text>
+      </g>
+    </g>
+
+    <!-- ======================================================================= -->
+    <!-- 3. MAIN WORKSPACE HEADER (1180px w, h: 64px, x: 260)                    -->
+    <!-- ======================================================================= -->
+    <g transform="translate(260, 0)">
+      <rect x="0" y="0" width="1180" height="64" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+
+      <!-- Title & Subtitle -->
+      <g transform="translate(24, 18)">
+        <text x="0" y="16" class="font-sans" font-size="15" font-weight="800" fill="#0f172a">Trust &amp; Safety Operations Command</text>
+        <text x="0" y="33" class="font-sans" font-size="10" font-weight="500" fill="#64748b">Metro Cebu Landlord Verification Gateway &amp; Anti-Scam Interception Engine</text>
+      </g>
+
+      <!-- Global Search Field -->
+      <g transform="translate(480, 14)">
+        <rect x="0" y="0" width="400" height="36" rx="6" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1"/>
+        <text x="14" y="23" class="font-sans" font-size="10.5" fill="#64748b">🔍 Search landlords, PhilSys ID, barangay, or report token...</text>
+        <rect x="350" y="8" width="40" height="20" rx="4" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+        <text x="370" y="22" text-anchor="middle" class="font-mono" font-size="9" font-weight="700" fill="#64748b">⌘K</text>
+      </g>
+
+      <!-- Right Header Actions -->
+      <g transform="translate(900, 14)">
+        <!-- Live Sync Pill -->
+        <rect x="0" y="6" width="110" height="24" rx="12" fill="#ecfdf5" stroke="#a7f3d0" stroke-width="1"/>
+        <circle cx="12" cy="18" r="3.5" fill="#047857"/>
+        <text x="22" y="22" class="font-sans" font-size="9" font-weight="700" fill="#047857">LIVE SYNC ACTIVE</text>
+
+        <!-- Audit Log CTA -->
+        <rect x="122" y="2" width="78" height="32" rx="6" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1"/>
+        <text x="161" y="22" text-anchor="middle" class="font-sans" font-size="9.5" font-weight="700" fill="#0f172a">Audit Log</text>
+
+        <!-- Alert Bell -->
+        <rect x="210" y="2" width="48" height="32" rx="6" fill="#fff1f2" stroke="#fecdd3" stroke-width="1"/>
+        <text x="234" y="22" text-anchor="middle" class="font-sans" font-size="11" font-weight="700" fill="#e11d48">🔔 5</text>
+      </g>
+    </g>
+
+    <!-- ======================================================================= -->
+    <!-- 4. EXECUTIVE KPI METRIC SUITE (4 Cards, y: 76)                           -->
+    <!-- ======================================================================= -->
+    <g transform="translate(280, 76)">
+      <!-- Metric Card 1: Verified Listings -->
+      <g transform="translate(0, 0)">
+        <rect x="0" y="0" width="270" height="82" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1" filter="url(#card-shadow)"/>
+        <rect x="0" y="0" width="4" height="82" rx="2" fill="#047857"/>
+        <text x="16" y="22" class="font-sans" font-size="9.5" font-weight="700" fill="#64748b" letter-spacing="0.5px">TOTAL VERIFIED LISTINGS</text>
+        <text x="16" y="52" class="font-sans" font-size="24" font-weight="900" fill="#0f172a">1,248</text>
+        <text x="16" y="70" class="font-sans" font-size="9" font-weight="600" fill="#047857">📈 +34 this week · 94.2% verified ratio</text>
+        <!-- Icon Bubble -->
+        <circle cx="236" cy="41" r="18" fill="#ecfdf5"/>
+        <text x="236" y="47" text-anchor="middle" font-size="16">🛡️</text>
+      </g>
+
+      <!-- Metric Card 2: Pending KYC Queue -->
+      <g transform="translate(284, 0)">
+        <rect x="0" y="0" width="270" height="82" rx="8" fill="#ffffff" stroke="#fcd34d" stroke-width="1.5" filter="url(#card-shadow)"/>
+        <rect x="0" y="0" width="4" height="82" rx="2" fill="#b45309"/>
+        <text x="16" y="22" class="font-sans" font-size="9.5" font-weight="700" fill="#b45309" letter-spacing="0.5px">PENDING KYC QUEUE</text>
+        <text x="16" y="52" class="font-sans" font-size="24" font-weight="900" fill="#0f172a">14</text>
+        <text x="16" y="70" class="font-sans" font-size="9" font-weight="700" fill="#b45309">⚠️ 3 approaching 24h SLA limit</text>
+        <!-- Icon Bubble -->
+        <circle cx="236" cy="41" r="18" fill="#fef3c7"/>
+        <text x="236" y="47" text-anchor="middle" font-size="16">🪪</text>
+      </g>
+
+      <!-- Metric Card 3: Reported Listings -->
+      <g transform="translate(568, 0)">
+        <rect x="0" y="0" width="270" height="82" rx="8" fill="#ffffff" stroke="#fecdd3" stroke-width="1.5" filter="url(#card-shadow)"/>
+        <rect x="0" y="0" width="4" height="82" rx="2" fill="#e11d48"/>
+        <text x="16" y="22" class="font-sans" font-size="9.5" font-weight="700" fill="#e11d48" letter-spacing="0.5px">REPORTED LISTINGS</text>
+        <text x="16" y="52" class="font-sans" font-size="24" font-weight="900" fill="#0f172a">5</text>
+        <text x="16" y="70" class="font-sans" font-size="9" font-weight="700" fill="#e11d48">🚨 2 high-risk deposit fraud reports</text>
+        <!-- Icon Bubble -->
+        <circle cx="236" cy="41" r="18" fill="#fff1f2"/>
+        <text x="236" y="47" text-anchor="middle" font-size="16">🚨</text>
+      </g>
+
+      <!-- Metric Card 4: Scam Interception Rate -->
+      <g transform="translate(852, 0)">
+        <rect x="0" y="0" width="288" height="82" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1" filter="url(#card-shadow)"/>
+        <rect x="0" y="0" width="4" height="82" rx="2" fill="#047857"/>
+        <text x="16" y="22" class="font-sans" font-size="9.5" font-weight="700" fill="#64748b" letter-spacing="0.5px">SCAM INTERCEPTION RATE</text>
+        <text x="16" y="52" class="font-sans" font-size="24" font-weight="900" fill="#047857">99.4%</text>
+        <text x="16" y="70" class="font-sans" font-size="9" font-weight="600" fill="#475569">₱412k deposit theft prevented</text>
+        <!-- Icon Bubble -->
+        <circle cx="254" cy="41" r="18" fill="#ecfdf5"/>
+        <text x="254" y="47" text-anchor="middle" font-size="16">🎯</text>
+      </g>
+    </g>
+
+    <!-- ======================================================================= -->
+    <!-- 5. MAIN OPERATIONAL WORKSPACE (TWO COLUMNS, y: 172)                     -->
+    <!-- ======================================================================= -->
+
+    <!-- COLUMN 1: KYC QUEUE & SCAM FEED (720px w, x: 280) -->
+    <g transform="translate(280, 172)">
+
+      <!-- SECTION A: KYC TRIAGE TABLE (h: 360px) -->
+      <g transform="translate(0, 0)">
+        <rect x="0" y="0" width="720" height="360" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1" filter="url(#card-shadow)"/>
+        
+        <!-- Table Top Control Bar -->
+        <rect x="0" y="0" width="720" height="46" rx="8" fill="#f8fafc"/>
+        <line x1="0" y1="46" x2="720" y2="46" stroke="#e2e8f0" stroke-width="1"/>
+        <text x="16" y="28" class="font-sans" font-size="12" font-weight="800" fill="#0f172a">KYC Verification Review Queue (14 Pending)</text>
+
+        <!-- Filter Segmented Tabs -->
+        <g transform="translate(340, 10)">
+          <rect x="0" y="0" width="365" height="26" rx="5" fill="#e2e8f0"/>
+          <!-- Active All Tab -->
+          <rect x="2" y="2" width="76" height="22" rx="4" fill="#ffffff"/>
+          <text x="40" y="16" text-anchor="middle" class="font-sans" font-size="9.5" font-weight="800" fill="#0f172a">All (14)</text>
+          <text x="120" y="16" text-anchor="middle" class="font-sans" font-size="9.5" font-weight="600" fill="#475569">Urgent SLA (3)</text>
+          <text x="205" y="16" text-anchor="middle" class="font-sans" font-size="9.5" font-weight="600" fill="#475569">PhilSys ID (8)</text>
+          <text x="285" y="16" text-anchor="middle" class="font-sans" font-size="9.5" font-weight="600" fill="#475569">UMID / PRC (3)</text>
+          <text x="345" y="16" text-anchor="middle" class="font-sans" font-size="9.5" font-weight="600" fill="#475569">Filters</text>
+        </g>
+
+        <!-- Table Column Headers (h: 28px) -->
+        <g transform="translate(0, 46)">
+          <rect x="0" y="0" width="720" height="26" fill="#0f172a"/>
+          <text x="16" y="17" class="font-sans" font-size="9" font-weight="700" fill="#f8fafc">LANDLORD APPLICANT</text>
+          <text x="180" y="17" class="font-sans" font-size="9" font-weight="700" fill="#f8fafc">ID TYPE SUBMITTED</text>
+          <text x="310" y="17" class="font-sans" font-size="9" font-weight="700" fill="#f8fafc">TARGET BARANGAY / CORRIDOR</text>
+          <text x="495" y="17" class="font-sans" font-size="9" font-weight="700" fill="#f8fafc">SLA STATUS</text>
+          <text x="600" y="17" class="font-sans" font-size="9" font-weight="700" fill="#f8fafc">ACTION</text>
+        </g>
+
+        <!-- Table Row 1 (ACTIVE / INSPECTED ITEM) -->
+        <g transform="translate(0, 72)">
+          <rect x="0" y="0" width="720" height="66" fill="#f0fdf4" stroke="#86efac" stroke-width="1.5"/>
+          <rect x="0" y="0" width="4" height="66" fill="#047857"/>
+
+          <!-- Landlord Name & Subtitle -->
+          <text x="16" y="24" class="font-sans" font-size="11" font-weight="800" fill="#0f172a">Rodrigo "Digong" Tan</text>
+          <text x="16" y="40" class="font-sans" font-size="9" font-weight="500" fill="#475569">Submitted 1h ago · 2 Units listed</text>
+          <rect x="16" y="46" width="74" height="14" rx="3" fill="#ecfdf5" stroke="#86efac" stroke-width="0.5"/>
+          <text x="53" y="56" text-anchor="middle" class="font-sans" font-size="7.5" font-weight="700" fill="#047857">PHONE VERIFIED</text>
+
+          <!-- ID Type -->
+          <text x="180" y="26" class="font-sans" font-size="10.5" font-weight="700" fill="#0f172a">PhilSys National ID</text>
+          <text x="180" y="42" class="font-mono" font-size="8.5" font-weight="600" fill="#64748b">OCR Match: 98.7%</text>
+
+          <!-- Property & Corridor -->
+          <text x="310" y="25" class="font-sans" font-size="10" font-weight="700" fill="#0f172a">Sambag I, Cebu City</text>
+          <text x="310" y="41" class="font-sans" font-size="8.5" font-weight="600" fill="#047857">📍 0.2km to CIT-U Corridor</text>
+
+          <!-- SLA Status Badge -->
+          <rect x="495" y="16" width="86" height="22" rx="4" fill="#fef3c7" stroke="#fcd34d" stroke-width="1"/>
+          <text x="538" y="31" text-anchor="middle" class="font-sans" font-size="8.5" font-weight="800" fill="#b45309">⚠️ 3h SLA Left</text>
+
+          <!-- Inspect Action CTA -->
+          <rect x="595" y="14" width="112" height="32" rx="6" fill="#047857"/>
+          <text x="651" y="34" text-anchor="middle" class="font-sans" font-size="9.5" font-weight="800" fill="#ffffff">🔍 Inspecting →</text>
+        </g>
+
+        <!-- Table Row 2 -->
+        <g transform="translate(0, 138)">
+          <rect x="0" y="0" width="720" height="66" fill="#ffffff"/>
+          <line x1="0" y1="66" x2="720" y2="66" stroke="#f1f5f9" stroke-width="1"/>
+
+          <text x="16" y="24" class="font-sans" font-size="11" font-weight="700" fill="#0f172a">Maria Socorro Lim</text>
+          <text x="16" y="40" class="font-sans" font-size="9" font-weight="500" fill="#64748b">Submitted 3h ago · 4 Units</text>
+
+          <text x="180" y="26" class="font-sans" font-size="10.5" font-weight="600" fill="#0f172a">UMID Card</text>
+          <text x="180" y="42" class="font-mono" font-size="8.5" fill="#64748b">CRN: 0111-8293-41</text>
+
+          <text x="310" y="25" class="font-sans" font-size="10" font-weight="600" fill="#0f172a">Urgello St, Sambag II</text>
+          <text x="310" y="41" class="font-sans" font-size="8.5" fill="#64748b">📍 Near SWU / Sacred Heart</text>
+
+          <rect x="495" y="18" width="76" height="20" rx="4" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1"/>
+          <text x="533" y="32" text-anchor="middle" class="font-sans" font-size="8.5" font-weight="600" fill="#475569">⏳ In Queue</text>
+
+          <rect x="595" y="16" width="76" height="26" rx="4" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1"/>
+          <text x="633" y="33" text-anchor="middle" class="font-sans" font-size="9" font-weight="700" fill="#0f172a">Inspect</text>
+          <rect x="678" y="16" width="30" height="26" rx="4" fill="#fff1f2" stroke="#fecdd3" stroke-width="1"/>
+          <text x="693" y="33" text-anchor="middle" class="font-sans" font-size="9" font-weight="700" fill="#e11d48">✕</text>
+        </g>
+
+        <!-- Table Row 3 -->
+        <g transform="translate(0, 204)">
+          <rect x="0" y="0" width="720" height="66" fill="#f8fafc"/>
+          <line x1="0" y1="66" x2="720" y2="66" stroke="#f1f5f9" stroke-width="1"/>
+
+          <text x="16" y="24" class="font-sans" font-size="11" font-weight="700" fill="#0f172a">Danilo "Kuya Danny" Yap</text>
+          <text x="16" y="40" class="font-sans" font-size="9" font-weight="500" fill="#64748b">Submitted 6h ago · 1 Unit</text>
+
+          <text x="180" y="26" class="font-sans" font-size="10.5" font-weight="600" fill="#0f172a">Driver's License (LTO)</text>
+          <text x="180" y="42" class="font-mono" font-size="8.5" fill="#64748b">Lic: G01-19-204918</text>
+
+          <text x="310" y="25" class="font-sans" font-size="10" font-weight="600" fill="#0f172a">Banilad, Cebu City</text>
+          <text x="310" y="41" class="font-sans" font-size="8.5" fill="#64748b">📍 0.4km to USC-TC Talamban</text>
+
+          <rect x="495" y="18" width="76" height="20" rx="4" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1"/>
+          <text x="533" y="32" text-anchor="middle" class="font-sans" font-size="8.5" font-weight="600" fill="#475569">⏳ In Queue</text>
+
+          <rect x="595" y="16" width="76" height="26" rx="4" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1"/>
+          <text x="633" y="33" text-anchor="middle" class="font-sans" font-size="9" font-weight="700" fill="#0f172a">Inspect</text>
+          <rect x="678" y="16" width="30" height="26" rx="4" fill="#fff1f2" stroke="#fecdd3" stroke-width="1"/>
+          <text x="693" y="33" text-anchor="middle" class="font-sans" font-size="9" font-weight="700" fill="#e11d48">✕</text>
+        </g>
+
+        <!-- Table Row 4 -->
+        <g transform="translate(0, 270)">
+          <rect x="0" y="0" width="720" height="54" fill="#ffffff"/>
+          <line x1="0" y1="54" x2="720" y2="54" stroke="#f1f5f9" stroke-width="1"/>
+
+          <text x="16" y="22" class="font-sans" font-size="11" font-weight="700" fill="#0f172a">Lourdes "Nanay Lou" Vega</text>
+          <text x="16" y="36" class="font-sans" font-size="9" font-weight="500" fill="#64748b">Submitted 8h ago · 3 Units</text>
+
+          <text x="180" y="24" class="font-sans" font-size="10.5" font-weight="600" fill="#0f172a">Postal ID (PhilPost)</text>
+          <text x="180" y="38" class="font-mono" font-size="8.5" fill="#64748b">PRN: 9283-1102-44</text>
+
+          <text x="310" y="23" class="font-sans" font-size="10" font-weight="600" fill="#0f172a">Lahug, Salinas Drive</text>
+          <text x="310" y="37" class="font-sans" font-size="8.5" fill="#64748b">📍 Near Cebu IT Park Gate 2</text>
+
+          <rect x="495" y="16" width="76" height="20" rx="4" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1"/>
+          <text x="533" y="30" text-anchor="middle" class="font-sans" font-size="8.5" font-weight="600" fill="#475569">⏳ In Queue</text>
+
+          <rect x="595" y="14" width="76" height="26" rx="4" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1"/>
+          <text x="633" y="31" text-anchor="middle" class="font-sans" font-size="9" font-weight="700" fill="#0f172a">Inspect</text>
+          <rect x="678" y="14" width="30" height="26" rx="4" fill="#fff1f2" stroke="#fecdd3" stroke-width="1"/>
+          <text x="693" y="31" text-anchor="middle" class="font-sans" font-size="9" font-weight="700" fill="#e11d48">✕</text>
+        </g>
+
+        <!-- Table Footer / Pagination -->
+        <g transform="translate(0, 324)">
+          <rect x="0" y="0" width="720" height="36" rx="8" fill="#f8fafc"/>
+          <text x="16" y="22" class="font-sans" font-size="9.5" font-weight="600" fill="#64748b">Showing 1-4 of 14 Pending Reviews · 24h SLA Compliance: 97.8%</text>
+          <g transform="translate(560, 6)">
+            <rect x="0" y="0" width="68" height="24" rx="4" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+            <text x="34" y="16" text-anchor="middle" class="font-sans" font-size="9" font-weight="600" fill="#475569">← Prev</text>
+            <rect x="76" y="0" width="68" height="24" rx="4" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+            <text x="110" y="16" text-anchor="middle" class="font-sans" font-size="9" font-weight="700" fill="#0f172a">Next →</text>
+          </g>
+        </g>
+      </g>
+
+      <!-- SECTION B: SCAM MODERATION FEED (h: 338px, y: 374) -->
+      <g transform="translate(0, 374)">
+        <rect x="0" y="0" width="720" height="338" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1" filter="url(#card-shadow)"/>
+        
+        <!-- Feed Header -->
+        <rect x="0" y="0" width="720" height="42" rx="8" fill="#fff1f2" stroke="#fecdd3" stroke-width="1"/>
+        <text x="16" y="26" class="font-sans" font-size="11.5" font-weight="800" fill="#e11d48">🚨 REPORTED LISTINGS &amp; SCAM RADAR (5 Active Cases)</text>
+        <rect x="575" y="9" width="130" height="24" rx="4" fill="#e11d48"/>
+        <text x="640" y="25" text-anchor="middle" class="font-sans" font-size="9" font-weight="800" fill="#ffffff">⚡ BATCH ACTIONS (5)</text>
+
+        <!-- Scam Card 1 (High Risk 92%) -->
+        <g transform="translate(14, 52)">
+          <rect x="0" y="0" width="692" height="126" rx="6" fill="#fff1f2" stroke="#fda4af" stroke-width="1"/>
+          
+          <!-- Card Header & Badge -->
+          <text x="14" y="22" class="font-sans" font-size="11" font-weight="800" fill="#9f1239">₱1,800 Furnished Studio near CIT-U — "Asks for GCash advance fee"</text>
+          
+          <rect x="580" y="10" width="98" height="20" rx="4" fill="#e11d48"/>
+          <text x="629" y="24" text-anchor="middle" class="font-sans" font-size="8.5" font-weight="800" fill="#ffffff">92% SCAM RISK</text>
+
+          <!-- Landlord Profile & Details -->
+          <text x="14" y="44" class="font-sans" font-size="9.5" font-weight="700" fill="#0f172a">Target Account: Karlo Dizon (Registered 2 days ago · Unverified Landlord · IP: 112.198.*)</text>
+          <text x="14" y="60" class="font-sans" font-size="9" font-weight="500" fill="#475569">Reported By: 2 CIT-U Students (Mikaela S., Kevin T.) · Category: Advance Fee Fraud</text>
+          
+          <!-- Student Quote Box -->
+          <rect x="14" y="68" width="664" height="22" rx="4" fill="#ffffff" stroke="#fecdd3" stroke-width="0.8"/>
+          <text x="22" y="83" class="font-sans" font-size="8.5" font-style="italic" fill="#be123c">"Student Note: Refused physical ocular visit unless ₱1,000 reservation is transferred to GCash 0917-***-4912."</text>
+
+          <!-- 1-Click Action Bar -->
+          <g transform="translate(14, 96)">
+            <!-- Urgent Freeze Action Button -->
+            <rect x="0" y="0" width="310" height="24" rx="4" fill="#e11d48"/>
+            <text x="155" y="16" text-anchor="middle" class="font-sans" font-size="9" font-weight="800" fill="#ffffff">🚨 Suspend Listing &amp; Freeze Landlord Account</text>
+            
+            <rect x="318" y="0" width="160" height="24" rx="4" fill="#ffffff" stroke="#fda4af" stroke-width="1"/>
+            <text x="398" y="16" text-anchor="middle" class="font-sans" font-size="8.5" font-weight="700" fill="#9f1239">Inspect Account Dossier</text>
+
+            <rect x="486" y="0" width="178" height="24" rx="4" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+            <text x="575" y="16" text-anchor="middle" class="font-sans" font-size="8.5" font-weight="600" fill="#475569">Dismiss False Positive</text>
+          </g>
+        </g>
+
+        <!-- Scam Card 2 (Medium Risk 76%) -->
+        <g transform="translate(14, 188)">
+          <rect x="0" y="0" width="692" height="120" rx="6" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+
+          <text x="14" y="22" class="font-sans" font-size="11" font-weight="800" fill="#0f172a">₱2,200 Bedspace near USC-TC Banilad — "Stolen photos from FB Marketplace"</text>
+          
+          <rect x="580" y="10" width="98" height="20" rx="4" fill="#f59e0b"/>
+          <text x="629" y="24" text-anchor="middle" class="font-sans" font-size="8.5" font-weight="800" fill="#ffffff">76% RISK SCORE</text>
+
+          <text x="14" y="44" class="font-sans" font-size="9.5" font-weight="700" fill="#0f172a">Target Account: Jessie M. (Listed 1 unit · Banilad corridor)</text>
+          
+          <!-- Note Box -->
+          <rect x="14" y="52" width="664" height="22" rx="4" fill="#ffffff" stroke="#cbd5e1" stroke-width="0.8"/>
+          <text x="22" y="67" class="font-sans" font-size="8.5" font-style="italic" fill="#475569">"Student Note: Image search indicates these exact pictures belong to a condo unit in Ortigas, Pasig."</text>
+
+          <!-- Actions -->
+          <g transform="translate(14, 82)">
+            <rect x="0" y="0" width="180" height="24" rx="4" fill="#b45309"/>
+            <text x="90" y="16" text-anchor="middle" class="font-sans" font-size="8.5" font-weight="700" fill="#ffffff">⚠️ Restrict Listing Visibility</text>
+
+            <rect x="188" y="0" width="180" height="24" rx="4" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+            <text x="278" y="16" text-anchor="middle" class="font-sans" font-size="8.5" font-weight="700" fill="#0f172a">Request Landlord Title Deed</text>
+
+            <rect x="376" y="0" width="140" height="24" rx="4" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+            <text x="446" y="16" text-anchor="middle" class="font-sans" font-size="8.5" font-weight="600" fill="#475569">Open Chat Audit</text>
+          </g>
+        </g>
+
+        <!-- Card Count Indicator -->
+        <text x="20" y="324" class="font-sans" font-size="8.5" font-weight="600" fill="#64748b">+ 3 more moderation alerts in queue (Urgello, Banilad, Lahug)</text>
+      </g>
+    </g>
+
+    <!-- COLUMN 2: SIDE-BY-SIDE DOCUMENT INSPECTION DRAWER (420px w, x: 1012, y: 172) -->
+    <g transform="translate(1012, 172)">
+      <rect x="0" y="0" width="414" height="712" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1" filter="url(#card-shadow)"/>
+
+      <!-- Drawer Header Bar -->
+      <rect x="0" y="0" width="414" height="52" rx="8" fill="#0f172a"/>
+      <g transform="translate(16, 16)">
+        <text x="0" y="12" class="font-sans" font-size="11" font-weight="800" fill="#ffffff" letter-spacing="0.5px">SIDE-BY-SIDE DOCUMENT INSPECTION</text>
+        <text x="0" y="27" class="font-sans" font-size="9" font-weight="500" fill="#94a3b8">Reviewing: Rodrigo "Digong" Tan · ID: PhilSys National ID</text>
+      </g>
+      <rect x="366" y="12" width="32" height="28" rx="4" fill="#1e293b"/>
+      <text x="382" y="30" text-anchor="middle" class="font-sans" font-size="12" font-weight="700" fill="#94a3b8">⛶</text>
+
+      <!-- Landlord Dossier Snapshot -->
+      <g transform="translate(14, 62)">
+        <rect x="0" y="0" width="386" height="88" rx="6" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+        <text x="12" y="18" class="font-sans" font-size="10" font-weight="800" fill="#0f172a">Applicant Dossier &amp; Property Binding</text>
+        <text x="12" y="34" class="font-sans" font-size="9" font-weight="600" fill="#475569">Target Unit: Green Dormitory Sambag I (CIT-U)</text>
+        <text x="12" y="49" class="font-sans" font-size="9" font-weight="500" fill="#475569">Declared Phone: +63 917 842 9912 (SMS OTP Confirmed)</text>
+        <text x="12" y="64" class="font-sans" font-size="9" font-weight="500" fill="#475569">Supporting: Sambag I Brgy Clearance + VECO #8194-20</text>
+        <rect x="12" y="70" width="130" height="14" rx="3" fill="#ecfdf5" stroke="#86efac" stroke-width="0.5"/>
+        <text x="77" y="80" text-anchor="middle" class="font-sans" font-size="7.5" font-weight="700" fill="#047857">VECO MATCH: RODRIGO TAN</text>
+      </g>
+
+      <!-- High-Res Document Preview Box -->
+      <g transform="translate(14, 158)">
+        <text x="0" y="0" class="font-sans" font-size="9.5" font-weight="800" fill="#0f172a">PHILIPPINE NATIONAL ID (FRONT SPECIMEN)</text>
+        
+        <!-- Viewer Controls -->
+        <g transform="translate(240, -12)">
+          <rect x="0" y="0" width="32" height="18" rx="3" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1"/>
+          <text x="16" y="13" text-anchor="middle" class="font-sans" font-size="8" font-weight="700">🔍+</text>
+          <rect x="36" y="0" width="32" height="18" rx="3" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1"/>
+          <text x="52" y="13" text-anchor="middle" class="font-sans" font-size="8" font-weight="700">🔍-</text>
+          <rect x="72" y="0" width="34" height="18" rx="3" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1"/>
+          <text x="89" y="13" text-anchor="middle" class="font-sans" font-size="8" font-weight="700">⟲ 90°</text>
+        </g>
+
+        <!-- Simulated Philippine National ID Card (386px x 214px) -->
+        <g transform="translate(0, 8)">
+          <rect x="0" y="0" width="386" height="214" rx="10" fill="#ffffff" stroke="#047857" stroke-width="2"/>
+          <rect x="0" y="0" width="386" height="214" rx="10" fill="url(#id-crosshatch)" opacity="0.12"/>
+          
+          <!-- ID Header Bar -->
+          <rect x="0" y="0" width="386" height="34" rx="10" fill="#047857"/>
+          <circle cx="20" cy="17" r="10" fill="#facc15"/>
+          <text x="36" y="16" class="font-sans" font-size="8.5" font-weight="800" fill="#ffffff">REPUBLIKA NG PILIPINAS</text>
+          <text x="36" y="27" class="font-sans" font-size="7" font-weight="600" fill="#ecfdf5">PHILIPPINE IDENTIFICATION SYSTEM (PhilSys)</text>
+
+          <!-- Photo Container -->
+          <g transform="translate(16, 44)">
+            <rect x="0" y="0" width="94" height="114" rx="4" fill="#e2e8f0" stroke="#94a3b8" stroke-width="1"/>
+            <line x1="0" y1="0" x2="94" y2="114" stroke="#94a3b8" stroke-width="1"/>
+            <line x1="94" y1="0" x2="0" y2="114" stroke="#94a3b8" stroke-width="1"/>
+            <text x="47" y="128" text-anchor="middle" class="font-sans" font-size="8" font-weight="700" fill="#047857">PHOTO VALID</text>
+          </g>
+
+          <!-- ID Fields & Data -->
+          <g transform="translate(122, 44)">
+            <text x="0" y="12" class="font-sans" font-size="7.5" font-weight="600" fill="#64748b">Apelyido / Last Name</text>
+            <text x="0" y="25" class="font-sans" font-size="10.5" font-weight="800" fill="#0f172a">TAN</text>
+
+            <text x="0" y="42" class="font-sans" font-size="7.5" font-weight="600" fill="#64748b">Mga Pangalan / Given Names</text>
+            <text x="0" y="55" class="font-sans" font-size="10" font-weight="800" fill="#0f172a">RODRIGO "DIGONG"</text>
+
+            <text x="0" y="72" class="font-sans" font-size="7.5" font-weight="600" fill="#64748b">PhilSys Card Number (PCN)</text>
+            <text x="0" y="85" class="font-mono" font-size="9" font-weight="800" fill="#047857">9104 - 5821 - 4921 - 0319</text>
+
+            <text x="0" y="102" class="font-sans" font-size="7.5" font-weight="600" fill="#64748b">Tirahan / Address</text>
+            <text x="0" y="115" class="font-sans" font-size="8.5" font-weight="700" fill="#0f172a">Sambag I, Cebu City 6000</text>
+          </g>
+
+          <!-- Ghost QR Specimen & Microprint -->
+          <g transform="translate(290, 44)">
+            <rect x="0" y="0" width="80" height="80" rx="4" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1"/>
+            <rect x="10" y="10" width="60" height="60" fill="none" stroke="#047857" stroke-width="2"/>
+            <rect x="25" y="25" width="30" height="30" fill="#047857"/>
+            <text x="40" y="94" text-anchor="middle" class="font-mono" font-size="7" font-weight="700" fill="#64748b">QR: PSA-VAL</text>
+          </g>
+
+          <!-- Bounding Box Annotation (OCR Overlay) -->
+          <rect x="118" y="40" width="160" height="80" fill="none" stroke="#047857" stroke-width="1.5" stroke-dasharray="3 3"/>
+          <rect x="118" y="32" width="62" height="12" rx="2" fill="#047857"/>
+          <text x="149" y="41" text-anchor="middle" class="font-mono" font-size="7.5" font-weight="800" fill="#ffffff">OCR 98.7%</text>
+        </g>
+      </g>
+
+      <!-- OCR Validation & Verification Results Box -->
+      <g transform="translate(14, 400)">
+        <rect x="0" y="0" width="386" height="170" rx="6" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1"/>
+        <rect x="0" y="0" width="386" height="26" rx="6" fill="#0f172a"/>
+        <text x="12" y="17" class="font-sans" font-size="9" font-weight="800" fill="#ffffff">AUTOMATED TRUST &amp; REGISTRY AUDIT</text>
+
+        <!-- Audit Item 1 -->
+        <g transform="translate(12, 38)">
+          <circle cx="6" cy="6" r="5" fill="#ecfdf5" stroke="#10b981" stroke-width="1.5"/>
+          <text x="6" y="9" text-anchor="middle" font-size="7" fill="#047857" font-weight="bold">✓</text>
+          <text x="18" y="10" class="font-sans" font-size="9" font-weight="700" fill="#0f172a">PhilSys PSA Registry Query Match</text>
+          <text x="18" y="22" class="font-sans" font-size="8" font-weight="500" fill="#64748b">PCN 9104-***-0319 verified against national database</text>
+        </g>
+
+        <!-- Audit Item 2 -->
+        <g transform="translate(12, 68)">
+          <circle cx="6" cy="6" r="5" fill="#ecfdf5" stroke="#10b981" stroke-width="1.5"/>
+          <text x="6" y="9" text-anchor="middle" font-size="7" fill="#047857" font-weight="bold">✓</text>
+          <text x="18" y="10" class="font-sans" font-size="9" font-weight="700" fill="#0f172a">PostGIS Corridor Geofence Validation</text>
+          <text x="18" y="22" class="font-sans" font-size="8" font-weight="500" fill="#64748b">Declared coordinates lie inside Sambag I polygon (CIT-U zone)</text>
+        </g>
+
+        <!-- Audit Item 3 -->
+        <g transform="translate(12, 98)">
+          <circle cx="6" cy="6" r="5" fill="#ecfdf5" stroke="#10b981" stroke-width="1.5"/>
+          <text x="6" y="9" text-anchor="middle" font-size="7" fill="#047857" font-weight="bold">✓</text>
+          <text x="18" y="10" class="font-sans" font-size="9" font-weight="700" fill="#0f172a">Proof of Ownership Cross-Check</text>
+          <text x="18" y="22" class="font-sans" font-size="8" font-weight="500" fill="#64748b">VECO Electricity Bill name matches landlord profile 100%</text>
+        </g>
+
+        <!-- Audit Item 4 -->
+        <g transform="translate(12, 128)">
+          <circle cx="6" cy="6" r="5" fill="#ecfdf5" stroke="#10b981" stroke-width="1.5"/>
+          <text x="6" y="9" text-anchor="middle" font-size="7" fill="#047857" font-weight="bold">✓</text>
+          <text x="18" y="10" class="font-sans" font-size="9" font-weight="700" fill="#0f172a">Face Liveness Match Confidence</text>
+          <text x="18" y="22" class="font-sans" font-size="8" font-weight="500" fill="#047857">96.4% biometric similarity score between selfie and ID</text>
+        </g>
+      </g>
+
+      <!-- Decision Action Triggers (h: 120px) -->
+      <g transform="translate(14, 582)">
+        <!-- Primary Action: Approve & Issue Verified Badge -->
+        <rect x="0" y="0" width="386" height="42" rx="6" fill="#047857" filter="url(#badge-shadow)"/>
+        <text x="193" y="26" text-anchor="middle" class="font-sans" font-size="11" font-weight="800" fill="#ffffff">✓ Approve &amp; Issue Verified Landlord Badge</text>
+
+        <!-- Secondary Action: Reject Document -->
+        <rect x="0" y="48" width="386" height="36" rx="6" fill="#ffffff" stroke="#e11d48" stroke-width="1.5"/>
+        <text x="193" y="71" text-anchor="middle" class="font-sans" font-size="10.5" font-weight="800" fill="#e11d48">✕ Reject Document (Triggers Structured Reason Modal)</text>
+
+        <!-- Tertiary Action: Request Re-upload -->
+        <text x="193" y="104" text-anchor="middle" class="font-sans" font-size="8.5" font-weight="700" fill="#64748b">💬 Request Higher-Resolution Image from Host</text>
+      </g>
+
+    </g>
+
+  </g>
+
+</svg>
