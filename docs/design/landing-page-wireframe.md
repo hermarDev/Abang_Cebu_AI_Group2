@@ -9,8 +9,14 @@
 **Design Reference Standard:** Google Maps Web & Mobile Architecture (v11+), Apple Maps, MapLibre GL JS v6  
 **Companion Assets:**
 - Desktop Vector Blueprint: [`docs/assets/wireframes/landing-page-desktop.svg`](../assets/wireframes/landing-page-desktop.svg)
+- Desktop High-Resolution Blueprint PNG: [`docs/assets/wireframes/AbangCebu_Landing_Page_Desktop_Wireframe_Blueprint.png`](../assets/wireframes/AbangCebu_Landing_Page_Desktop_Wireframe_Blueprint.png)
 - Mobile Vector Blueprint: [`docs/assets/wireframes/landing-page-mobile.svg`](../assets/wireframes/landing-page-mobile.svg)
+- Mobile High-Resolution Blueprint PNG: [`docs/assets/wireframes/AbangCebu_Landing_Page_Mobile_Wireframe_Blueprint.png`](../assets/wireframes/AbangCebu_Landing_Page_Mobile_Wireframe_Blueprint.png)
 - Formal Engineering PDF: [`docs/pdf/AbangCebu_Landing_Page_Wireframe_Specification.pdf`](../pdf/AbangCebu_Landing_Page_Wireframe_Specification.pdf)
+- Specification Sheet Previews:
+  - Page 1 (Desktop Architecture): [`docs/assets/wireframes/AbangCebu_Landing_Page_Specification_Sheet_Page1.png`](../assets/wireframes/AbangCebu_Landing_Page_Specification_Sheet_Page1.png)
+  - Page 2 (Mobile 3-Snap Architecture): [`docs/assets/wireframes/AbangCebu_Landing_Page_Specification_Sheet_Page2.png`](../assets/wireframes/AbangCebu_Landing_Page_Specification_Sheet_Page2.png)
+  - Page 3 (Contracts & Governance): [`docs/assets/wireframes/AbangCebu_Landing_Page_Specification_Sheet_Page3.png`](../assets/wireframes/AbangCebu_Landing_Page_Specification_Sheet_Page3.png)
 - Mobile Viewport Specification: [`docs/design/mobile-map-wireframes.md`](./mobile-map-wireframes.md)
 - Styling Tokens & Design Guidelines: [`docs/design/styling-guidelines.md`](./styling-guidelines.md)
 - Renter Persona & Capabilities: [`docs/design/renter-persona.md`](./renter-persona.md)
@@ -37,8 +43,10 @@ In AbangCebu AI, **the landing page IS the map**.
 |    geographic context across Cebu City, Mandaue City, Lapu-Lapu City, and Talisay City.           |
 |                                                                                                   |
 | 3. Signature Google Maps Floating Surfaces:                                                      |
-|    - Desktop: Floating left search & results card (400px width) with collapsible chevron toggle.  |
-|    - Mobile: Floating search bar + 3-snap bottom sheet drawer (Peek 88px, Mid 48dvh, Full 88dvh). |
+|    - Desktop: Left 68px icon rail + 392px floating search box + horizontal category chips bar +   |
+|      408px floating results drawer + bottom-left Layers tile + bottom-right zoom stack.           |
+|    - Mobile: iPhone 16 Pro chassis + Dynamic Island + top search + horizontal chips bar +         |
+|      docked GPS pill + 3-snap bottom sheet (Peek 88px, Mid 48dvh, Full 88dvh) + Safari bar.       |
 |                                                                                                   |
 | 4. Metro Cebu Local Grounding:                                                                    |
 |    Anchor searches around key universities (CIT-U, USC, UC, UV, CNU) and employment epicenters    |
@@ -55,9 +63,9 @@ In accordance with professional UX/UI engineering and architectural wireframing 
    - High-contrast charcoal/slate strokes (`#0F172A`, `#1E293B`, `#475569`), light slate surfaces (`#FFFFFF`, `#F8FAFC`, `#F1F5F9`, `#E2E8F0`), and minimal single-tint focus accents (`#0F172A`).
 2. **Universal Image Placeholder Standard (`[X]`)**:
    - All visual assets, room galleries, and thumbnails are explicitly demarcated using the universal wireframe convention: a rectangular bounding box with **two corner-to-corner diagonal crossed lines (`X`)** accompanied by photo count badges (e.g. `📷 1/8 PHOTOS`).
-3. **Authentic Device & Browser Chrome Frames**:
-   - **Desktop (1440px)**: Enclosed in a browser window chrome with Mac-style window controls (`● ● ●`), active browser tab, and secure URL bar (`https://abangcebu.ph/...`).
-   - **Mobile (390px, 100dvh)**: Enclosed in a smartphone chassis with Dynamic Island / speaker notch, standard status bar (`9:41`, Signal, Wi-Fi, Battery), and iOS home indicator.
+3. **Authentic Hardware & Device Chassis Mockups**:
+   - **Desktop (1440px × 900px, 16:10)**: Enclosed in an authentic **MacBook Air aluminum chassis** featuring the top FaceTime camera notch, 16:10 display ratio, inner matte black bezels, and bottom display thumb lip.
+   - **Mobile (393px × 852px, 100dvh)**: Enclosed in an authentic **iPhone 16 Pro Titanium chassis** featuring Apple's Dynamic Island capsule, standard iOS status bar (`9:41`, Signal, Wi-Fi, Battery), persistent bottom iOS Safari navigation bar (`🔒 abangcebu.ph ↻`), and home indicator bar.
 4. **Architectural Map Schematic**:
    - Base map surface rendered with coordinate blueprint grid lines, arterial street double-lines with street names (`N. BACALSO AVE`, `OSMEÑA BLVD`, `SALINAS DR`), campus boundary parcels (`CIT-U`, `CEBU IT PARK`), and hatched waterways.
 5. **Numbered Blueprint Callouts (`①` – `⑦`)**:
@@ -65,34 +73,34 @@ In accordance with professional UX/UI engineering and architectural wireframing 
 
 ---
 
-## 2. Desktop Viewport Specification (1280px – 1440px+)
+## 2. Desktop Viewport Specification (1280px – 1440px+ · MacBook Air Enclosure)
 
 ### 2.1 Viewport Geometry & Optical Map Centering
 
-On desktop displays (1440px × 900px), a 400px floating left panel leaves **1040px (72.2%)** of vector canvas visible. When the panel is expanded, map navigation must not center on physical screen center (720px), but rather on the **optical center of the unobstructed map canvas** (~928px).
+On desktop displays (1440px × 900px, 16:10 ratio), the interface features an authentic Google Maps desktop layout: a **68px left vertical icon rail**, a **392px floating search box**, a **horizontal category chips bar**, and a **408px floating results drawer**. When the results drawer is expanded, the unobstructed map canvas spans **948px (65.8%)**. Centering must not target the physical screen midpoint (720px), but rather the **optical center of the unobstructed map canvas** (~980px).
 
 ```
-0px                     416px                                                                                   1440px
-|<---- Panel Width ---->| |<----------------------- Visible Map Canvas (1024px) ----------------------------------->|
-+-----------------------+                                                                                               
-| FLOATING LEFT PANEL   |                           Physical Screen Center (720px)                              
-| (Width: 400px)        |                                      |                                                        
-|                       |                                      v                                                        
-|                       |                                              +-----------------------+                        
-|                       |                                              | Optical Map Center    |                        
-|                       |                                              | (X: 928px, Y: 450px)  |                        
-|                       |                                              +-----------------------+                        
-+-----------------------+                                                                                               
+0px     68px    84px                     492px                                                                  1440px
+| Rail  | Gap   |<---- Drawer: 408px --->| |<------------------- Visible Map Canvas (948px) ------------------------>|
++-------+-------+------------------------+                                                                            
+| LEFT  |       | FLOATING RESULTS DRAWER|                       Physical Center (720px)                              
+| ICON  |       | (Width: 408px)         |                                  |                                         
+| RAIL  |       |                        |                                  v                                         
+| 68px  |       |                        |                                          +-----------------------+         
+|       |       |                        |                                          | Optical Map Center    |         
+|       |       |                        |                                          | (X: 980px, Y: 450px)  |         
+|       |       |                        |                                          +-----------------------+         
++-------+-------+------------------------+                                                                            
 ```
 
 #### MapLibre Camera Padding Synchronization
 ```typescript
-// Smoothly centers landmark (e.g., CIT-U) without obstruction by the floating card:
+// Smoothly centers landmark (e.g., CIT-U) without obstruction by the floating drawer:
 map.easeTo({
   center: [123.8659, 10.2942], // CIT-U coordinates
   zoom: 15,
   padding: {
-    left: isPanelOpen ? 432 : 32, // 400px card + 16px margin + 16px clearance
+    left: isPanelOpen ? 516 : 92, // 492px drawer boundary + 24px clearance (or 68px rail + 24px)
     right: 32,
     top: 32,
     bottom: 32
@@ -466,9 +474,10 @@ On mobile browsers (iOS Safari, Android Chrome), classic `100vh` fails because d
 ## 7. Definition of Done (DoD) & Sign-Off
 
 * [x] Mobile-first landing page wireframe with full-bleed map layout designed.
-* [x] Desktop floating left search & results card (400px) with collapsible chevron specified.
+* [x] Desktop floating left search & results card (408px) with 68px left rail, horizontal chips, and collapsible chevron specified.
 * [x] Mobile 3-snap bottom sheet drawer (Peek, Mid, Full) and listing detail modal documented.
 * [x] Landmark auto-suggest and quick category pills mapped to authentic Metro Cebu locations (CIT-U, USC, IT Park).
+* [x] Standardized Delivery Artifacts: Mid-fidelity blueprints rendered in authentic hardware chassis (MacBook Air desktop & iPhone 16 Pro mobile), high-resolution PNGs for Jira inline preview, and formal engineering PDF.
 * [x] Touch target ergonomics (44×44px WCAG 2.2 AA) and 16px mobile input zoom prevention rule enforced.
 * [x] Clean human engineering attribution: **Angel Crushein Yaun (UI/UX Designer)** and **Hermar Centillas (Lead / Scrum Master)** with zero AI markers.
 * [x] Sprint 1 Boundary Verified: ZERO premature React/JSX feature code created.
