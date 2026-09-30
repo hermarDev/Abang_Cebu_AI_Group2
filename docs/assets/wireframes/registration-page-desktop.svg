@@ -1,0 +1,472 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1680 1080" width="100%" height="100%">
+  <defs>
+    <!-- Shadows -->
+    <filter id="macbook-shadow" x="-5%" y="-5%" width="110%" height="115%">
+      <feDropShadow dx="0" dy="24" stdDeviation="30" flood-color="#0f172a" flood-opacity="0.28"/>
+    </filter>
+    <filter id="card-shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#0f172a" flood-opacity="0.14"/>
+    </filter>
+    <filter id="pill-shadow" x="-15%" y="-15%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#0f172a" flood-opacity="0.12"/>
+    </filter>
+    
+    <!-- Waterway Hatch -->
+    <pattern id="wf-water" width="10" height="10" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="10" stroke="#cbd5e1" stroke-width="1.2"/>
+    </pattern>
+
+    <!-- Campus Boundary Hatch -->
+    <pattern id="wf-campus" width="12" height="12" patternUnits="userSpaceOnUse">
+      <path d="M 0,12 L 12,0 M 0,0 L 12,12" stroke="#e2e8f0" stroke-width="0.9"/>
+    </pattern>
+  </defs>
+
+  <style>
+    .font-sans { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif; }
+    .font-mono { font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace; }
+  </style>
+
+  <!-- Canvas Background -->
+  <rect width="1680" height="1080" fill="#f1f5f9"/>
+
+  <!-- Blueprint Header Bar -->
+  <g transform="translate(100, 24)">
+    <text x="0" y="0" class="font-sans" font-size="16" font-weight="800" fill="#0f172a" letter-spacing="0.5px">ABANGCEBU AI — DESKTOP REGISTRATION PAGE WIREFRAME BLUEPRINT (1440px × 900px)</text>
+    <text x="0" y="16" class="font-sans" font-size="10.5" font-weight="600" fill="#475569">Sprint 1 SCRUM-66 Specification · 50/50 Split-Screen Spatial Trust &amp; Registration Architecture · MacBook Air 16:10 Frame</text>
+  </g>
+
+  <!-- ========================================================================= -->
+  <!-- 1. MACBOOK AIR CHASSIS (16:10 Display Enclosure)                         -->
+  <!-- ========================================================================= -->
+  <g transform="translate(100, 54)" filter="url(#macbook-shadow)">
+    <!-- Aluminum Outer Lid (1440 screen + 20px bezels = 1480x950) -->
+    <rect x="-20" y="-20" width="1480" height="950" rx="24" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/>
+    
+    <!-- Inner Bezel (Matte Black) -->
+    <rect x="-10" y="-10" width="1460" height="930" rx="14" fill="#0f172a"/>
+
+    <!-- Active Display Viewport (1440 x 900) -->
+    <rect x="0" y="0" width="1440" height="900" rx="8" fill="#ffffff"/>
+
+    <!-- FaceTime Camera Notch -->
+    <path d="M 640 0 L 640 14 Q 640 20 646 20 L 794 20 Q 800 20 800 14 L 800 0 Z" fill="#0f172a"/>
+    <!-- Camera Lens & Green LED Indicator -->
+    <circle cx="720" cy="10" r="3.5" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+    <circle cx="734" cy="10" r="1.2" fill="#22c55e"/>
+
+    <!-- MacBook Aluminum Hinge & Opening Notch (Bottom Lip) -->
+    <path d="M -60 930 L 1500 930 L 1520 946 L -80 946 Z" fill="#cbd5e1" stroke="#94a3b8" stroke-width="1.5"/>
+    <rect x="660" y="930" width="120" height="6" rx="3" fill="#94a3b8"/>
+    <!-- Engraved MacBook Air text -->
+    <text x="720" y="942" text-anchor="middle" class="font-sans" font-size="8.5" font-weight="600" fill="#64748b" letter-spacing="1px">MacBook Air</text>
+
+    <!-- ======================================================================= -->
+    <!-- 2. LEFT HALF (0px to 720px): SPATIAL TRUST & DUAL VALUE PROPOSITIONS    -->
+    <!-- ======================================================================= -->
+    <g id="left-branding-pane">
+      <!-- Background Map Canvas Surface -->
+      <rect x="0" y="0" width="720" height="900" fill="#f8fafc"/>
+
+      <!-- Architectural Blueprint Coordinate Grid -->
+      <g stroke="#e2e8f0" stroke-width="1" stroke-dasharray="4,4">
+        <line x1="0" y1="120" x2="720" y2="120"/>
+        <line x1="0" y1="240" x2="720" y2="240"/>
+        <line x1="0" y1="360" x2="720" y2="360"/>
+        <line x1="0" y1="480" x2="720" y2="480"/>
+        <line x1="0" y1="600" x2="720" y2="600"/>
+        <line x1="0" y1="720" x2="720" y2="720"/>
+        <line x1="0" y1="840" x2="720" y2="840"/>
+        <line x1="120" y1="0" x2="120" y2="900"/>
+        <line x1="240" y1="0" x2="240" y2="900"/>
+        <line x1="360" y1="0" x2="360" y2="900"/>
+        <line x1="480" y1="0" x2="480" y2="900"/>
+        <line x1="600" y1="0" x2="600" y2="900"/>
+      </g>
+
+      <!-- Waterway: Mactan Channel / Cebu Strait (Eastern edge) -->
+      <path d="M 640 0 Q 660 300 680 540 T 720 900 L 720 0 Z" fill="url(#wf-water)" stroke="#cbd5e1" stroke-width="1.2"/>
+      <text x="696" y="380" transform="rotate(90 696 380)" class="font-mono" font-size="8" font-weight="700" fill="#94a3b8" letter-spacing="2px">◄ CEBU STRAIT ►</text>
+
+      <!-- Road Arteries -->
+      <!-- N. Bacalso Avenue (National Highway South) -->
+      <path d="M 0 740 Q 260 670 480 570 T 720 460" fill="none" stroke="#e2e8f0" stroke-width="16"/>
+      <path d="M 0 740 Q 260 670 480 570 T 720 460" fill="none" stroke="#94a3b8" stroke-width="10"/>
+      <path d="M 0 740 Q 260 670 480 570 T 720 460" fill="none" stroke="#ffffff" stroke-width="1.5" stroke-dasharray="6,4"/>
+      <text x="210" y="682" transform="rotate(-15 210 682)" class="font-mono" font-size="8" font-weight="700" fill="#ffffff" letter-spacing="1px">N. BACALSO AVE</text>
+
+      <!-- Osmeña Boulevard (Capitol to Colon) -->
+      <path d="M 380 900 L 410 520 L 460 220 L 490 0" fill="none" stroke="#94a3b8" stroke-width="8"/>
+      <text x="430" y="440" transform="rotate(-78 430 440)" class="font-mono" font-size="7.5" font-weight="700" fill="#475569">OSMEÑA BLVD</text>
+
+      <!-- Salinas Drive / Lahug (IT Park connector) -->
+      <path d="M 360 300 L 680 230" fill="none" stroke="#94a3b8" stroke-width="7"/>
+      <text x="480" y="274" transform="rotate(-12 480 274)" class="font-mono" font-size="7.5" font-weight="700" fill="#475569">SALINAS DRIVE</text>
+
+      <!-- CCLEX Bridge representation -->
+      <path d="M 500 880 Q 600 840 720 820" fill="none" stroke="#94a3b8" stroke-width="3" stroke-dasharray="6,3"/>
+      <text x="560" y="855" transform="rotate(-10 560 855)" class="font-mono" font-size="7" font-weight="700" fill="#64748b">CCLEX</text>
+
+      <!-- Anchor Node 1: CIT-U (Cebu Institute of Technology - University) -->
+      <rect x="48" y="600" width="110" height="60" rx="4" fill="url(#wf-campus)" stroke="#64748b" stroke-width="1.2" stroke-dasharray="3,2"/>
+      <rect x="52" y="604" width="102" height="18" rx="2" fill="#0f172a"/>
+      <text x="103" y="617" text-anchor="middle" class="font-sans" font-size="8" font-weight="700" fill="#ffffff">CIT-U CAMPUS</text>
+      <!-- Pin Marker -->
+      <circle cx="103" cy="642" r="4.5" fill="#047857" stroke="#ffffff" stroke-width="1.5"/>
+      <circle cx="103" cy="642" r="9" fill="none" stroke="#047857" stroke-width="1" opacity="0.6"/>
+
+      <!-- Anchor Node 2: Cebu IT Park (BPO Epicenter) -->
+      <rect x="470" y="160" width="120" height="65" rx="4" fill="url(#wf-campus)" stroke="#64748b" stroke-width="1.2" stroke-dasharray="3,2"/>
+      <rect x="474" y="164" width="112" height="18" rx="2" fill="#0f172a"/>
+      <text x="530" y="177" text-anchor="middle" class="font-sans" font-size="8" font-weight="700" fill="#ffffff">CEBU IT PARK</text>
+      <circle cx="530" cy="202" r="4.5" fill="#047857" stroke="#ffffff" stroke-width="1.5"/>
+
+      <!-- Anchor Node 3: USC (University of San Carlos) -->
+      <rect x="290" y="440" width="90" height="55" rx="4" fill="url(#wf-campus)" stroke="#64748b" stroke-width="1.2" stroke-dasharray="3,2"/>
+      <rect x="294" y="444" width="82" height="18" rx="2" fill="#0f172a"/>
+      <text x="335" y="457" text-anchor="middle" class="font-sans" font-size="8" font-weight="700" fill="#ffffff">USC MAIN</text>
+      <circle cx="335" cy="475" r="4" fill="#047857" stroke="#ffffff" stroke-width="1.5"/>
+
+      <!-- Left Branding & Value Proposition Container -->
+      <g transform="translate(48, 40)">
+        <!-- Brand Header Container -->
+        <g>
+          <!-- Logo Mark: Compass + Map Pin Shield -->
+          <rect x="0" y="0" width="44" height="44" rx="10" fill="#047857"/>
+          <path d="M 22 10 L 26 19 L 34 22 L 26 25 L 22 34 L 18 25 L 10 22 L 18 19 Z" fill="#ffffff"/>
+          <circle cx="22" cy="22" r="3" fill="#047857"/>
+          
+          <text x="54" y="22" class="font-sans" font-size="19" font-weight="800" fill="#0f172a" letter-spacing="-0.3px">AbangCebu <tspan fill="#047857">AI</tspan></text>
+          <text x="54" y="38" class="font-sans" font-size="9.5" font-weight="600" fill="#64748b">Map-Centric Rental Discovery Platform for Metro Cebu</text>
+        </g>
+
+        <!-- Live Listing Stats Badge -->
+        <g transform="translate(0, 56)">
+          <rect x="0" y="0" width="370" height="30" rx="15" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2" filter="url(#pill-shadow)"/>
+          <circle cx="16" cy="15" r="4" fill="#10b981"/>
+          <text x="28" y="19" class="font-sans" font-size="10" font-weight="700" fill="#0f172a">1,248+ Verified Beds &amp; Rooms</text>
+          <text x="210" y="19" class="font-mono" font-size="8.5" fill="#64748b">CIT-U · IT Park · USC</text>
+        </g>
+
+        <!-- Dynamic Role Value Propositions Stack -->
+        <g transform="translate(0, 102)">
+          <text x="0" y="0" class="font-mono" font-size="8.5" font-weight="800" fill="#047857" letter-spacing="1px">DYNAMIC ROLE VALUE PROPOSITIONS</text>
+
+          <!-- Renter Perks Showcase Card -->
+          <g transform="translate(0, 12)">
+            <rect x="0" y="0" width="420" height="126" rx="10" fill="#ffffff" stroke="#047857" stroke-width="1.5" filter="url(#pill-shadow)"/>
+            <!-- Active Indicator Pill -->
+            <rect x="12" y="10" width="102" height="18" rx="4" fill="#ecfdf5"/>
+            <text x="63" y="22" text-anchor="middle" class="font-mono" font-size="7.5" font-weight="800" fill="#047857">👤 RENTER PERKS</text>
+            <text x="122" y="23" class="font-sans" font-size="9" font-weight="700" fill="#0f172a">Zero Brokerage &amp; Student Boarding Hubs</text>
+            
+            <!-- Bullet 1 -->
+            <g transform="translate(14, 38)">
+              <circle cx="6" cy="6" r="3" fill="#047857"/>
+              <text x="16" y="10" class="font-sans" font-size="9" font-weight="700" fill="#0f172a">Direct Landlord Inquiries:</text>
+              <text x="128" y="10" class="font-sans" font-size="9" fill="#475569">Zero agent commissions or middleman markups.</text>
+            </g>
+            <!-- Bullet 2 -->
+            <g transform="translate(14, 60)">
+              <circle cx="6" cy="6" r="3" fill="#047857"/>
+              <text x="16" y="10" class="font-sans" font-size="9" font-weight="700" fill="#0f172a">Verified Student Dorms:</text>
+              <text x="128" y="10" class="font-sans" font-size="9" fill="#475569">100% verified boarding houses near CIT-U, USC, &amp; UC.</text>
+            </g>
+            <!-- Bullet 3 -->
+            <g transform="translate(14, 82)">
+              <circle cx="6" cy="6" r="3" fill="#047857"/>
+              <text x="16" y="10" class="font-sans" font-size="9" font-weight="700" fill="#0f172a">Transit Proximity Radar:</text>
+              <text x="128" y="10" class="font-sans" font-size="9" fill="#475569">Exact walking minutes to 04L, 17B, and 12L jeepneys.</text>
+            </g>
+            <rect x="12" y="104" width="396" height="14" rx="3" fill="#f8fafc"/>
+            <text x="210" y="114" text-anchor="middle" class="font-mono" font-size="7" fill="#64748b">TRANSPARENT SUBMETERS (WATER / KWH) &amp; DEPOSIT PROTECTION</text>
+          </g>
+
+          <!-- Landlord Perks Showcase Card -->
+          <g transform="translate(0, 150)">
+            <rect x="0" y="0" width="420" height="114" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2" filter="url(#pill-shadow)"/>
+            <rect x="12" y="10" width="112" height="18" rx="4" fill="#f1f5f9"/>
+            <text x="68" y="22" text-anchor="middle" class="font-mono" font-size="7.5" font-weight="800" fill="#475569">🏠 LANDLORD PERKS</text>
+            <text x="132" y="23" class="font-sans" font-size="9" font-weight="700" fill="#0f172a">100% Free Listing &amp; Pre-Screened Tenants</text>
+
+            <!-- Bullet 1 -->
+            <g transform="translate(14, 38)">
+              <circle cx="6" cy="6" r="3" fill="#0d9488"/>
+              <text x="16" y="10" class="font-sans" font-size="9" font-weight="700" fill="#0f172a">100% Free Listing:</text>
+              <text x="112" y="10" class="font-sans" font-size="9" fill="#475569">Zero listing fees, zero monthly dues, zero deductions.</text>
+            </g>
+            <!-- Bullet 2 -->
+            <g transform="translate(14, 60)">
+              <circle cx="6" cy="6" r="3" fill="#0d9488"/>
+              <text x="16" y="10" class="font-sans" font-size="9" font-weight="700" fill="#0f172a">Pre-Screened Boarders:</text>
+              <text x="128" y="10" class="font-sans" font-size="9" fill="#475569">Direct verified student &amp; BPO professional inquiries.</text>
+            </g>
+            <!-- Bullet 3 -->
+            <g transform="translate(14, 82)">
+              <circle cx="6" cy="6" r="3" fill="#0d9488"/>
+              <text x="16" y="10" class="font-sans" font-size="9" font-weight="700" fill="#0f172a">Direct Map Visibility:</text>
+              <text x="128" y="10" class="font-sans" font-size="9" fill="#475569">Pinpoint room inventory on OpenFreeMap coordinate grid.</text>
+            </g>
+          </g>
+        </g>
+
+        <!-- Return to Map Button (Clean Placement) -->
+        <g transform="translate(0, 396)">
+          <rect x="0" y="0" width="220" height="38" rx="8" fill="#ffffff" stroke="#0f172a" stroke-width="1.4" filter="url(#pill-shadow)"/>
+          <text x="16" y="23" class="font-sans" font-size="11" font-weight="700" fill="#0f172a">← Return to Map Explorer</text>
+          <text x="176" y="23" class="font-mono" font-size="8.5" font-weight="700" fill="#64748b">[ESC]</text>
+        </g>
+
+        <!-- Sub-Footer Attribution & GIS Engine -->
+        <g transform="translate(0, 446)">
+          <text x="0" y="0" class="font-mono" font-size="8" fill="#64748b">Metro Cebu Vector Canvas • OpenFreeMap &amp; MapLibre GL v6</text>
+          <text x="0" y="12" class="font-mono" font-size="7.5" fill="#94a3b8">PostGIS Coordinates [123.89°E, 10.31°N] • Session Preserved</text>
+        </g>
+      </g>
+    </g>
+
+    <!-- Split-Screen Vertical Boundary Rule -->
+    <line x1="720" y1="0" x2="720" y2="900" stroke="#e2e8f0" stroke-width="1.5"/>
+
+    <!-- ======================================================================= -->
+    <!-- 3. RIGHT HALF (720px to 1440px): 460px REGISTRATION CARD SURFACE        -->
+    <!-- ======================================================================= -->
+    <g id="right-registration-pane">
+      <!-- Background Surface -->
+      <rect x="720" y="0" width="720" height="900" fill="#ffffff"/>
+
+      <!-- Centered Card Container (Width: 460px, Positioned at x=850, y=36, h=828) -->
+      <g transform="translate(850, 36)" filter="url(#card-shadow)">
+        <!-- Card Outer Box -->
+        <rect x="0" y="0" width="460" height="828" rx="16" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
+
+        <!-- Inner Content (Padding 28px: width 404px, left 28px) -->
+        <g transform="translate(28, 26)">
+
+          <!-- Eyebrow Tag -->
+          <text x="0" y="0" class="font-mono" font-size="8.5" font-weight="800" fill="#047857" letter-spacing="1.5px">METRO CEBU RENTAL PLATFORM</text>
+
+          <!-- Headline & Subtitle -->
+          <text x="0" y="22" class="font-sans" font-size="19" font-weight="800" fill="#0f172a" letter-spacing="-0.3px">Create your AbangCebu Account</text>
+          <text x="0" y="38" class="font-sans" font-size="10.5" font-weight="500" fill="#64748b">Join thousands of verified renters &amp; landlords across Metro Cebu.</text>
+
+          <!-- 1. Role Selector Segmented Control (WCAG 2.2 AA Tablist) -->
+          <g transform="translate(0, 52)">
+            <text x="0" y="-6" class="font-sans" font-size="9.5" font-weight="700" fill="#475569">I AM REGISTERING AS:</text>
+            <rect x="0" y="0" width="404" height="38" rx="8" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1"/>
+            
+            <!-- Renter Tab (Selected State) -->
+            <rect x="3" y="3" width="197" height="32" rx="6" fill="#ffffff" stroke="#047857" stroke-width="1.5"/>
+            <text x="101" y="21" text-anchor="middle" class="font-sans" font-size="10.5" font-weight="700" fill="#047857">👤 Looking for a Rental</text>
+
+            <!-- Landlord Tab (Unselected State) -->
+            <rect x="204" y="3" width="197" height="32" rx="6" fill="transparent"/>
+            <text x="302" y="21" text-anchor="middle" class="font-sans" font-size="10.5" font-weight="600" fill="#64748b">🏠 Listing a Property</text>
+
+            <!-- Callout ① Badge -->
+            <g transform="translate(412, 10)">
+              <circle cx="8" cy="8" r="8" fill="#047857"/>
+              <text x="8" y="12" text-anchor="middle" class="font-mono" font-size="9" font-weight="800" fill="#ffffff">1</text>
+            </g>
+          </g>
+
+          <!-- 2. Full Name Input Field -->
+          <g transform="translate(0, 114)">
+            <text x="0" y="0" class="font-sans" font-size="10.5" font-weight="700" fill="#0f172a">Full Name <tspan fill="#e11d48">*</tspan></text>
+            <rect x="0" y="6" width="404" height="40" rx="8" fill="#ffffff" stroke="#94a3b8" stroke-width="1.2"/>
+            <!-- User Vector Icon -->
+            <g transform="translate(12, 17)">
+              <circle cx="8" cy="6" r="4" fill="none" stroke="#64748b" stroke-width="1.3"/>
+              <path d="M 1 17 C 1 13 4 11 8 11 C 12 11 15 13 15 17" fill="none" stroke="#64748b" stroke-width="1.3"/>
+            </g>
+            <text x="36" y="29" class="font-sans" font-size="11.5" font-weight="600" fill="#0f172a">Mikaela Santos</text>
+
+            <!-- Callout ② Badge -->
+            <g transform="translate(412, 16)">
+              <circle cx="8" cy="8" r="8" fill="#047857"/>
+              <text x="8" y="12" text-anchor="middle" class="font-mono" font-size="9" font-weight="800" fill="#ffffff">2</text>
+            </g>
+          </g>
+
+          <!-- 3. Email Address Input Field -->
+          <g transform="translate(0, 180)">
+            <text x="0" y="0" class="font-sans" font-size="10.5" font-weight="700" fill="#0f172a">Email Address <tspan fill="#e11d48">*</tspan></text>
+            <rect x="0" y="6" width="404" height="40" rx="8" fill="#ffffff" stroke="#94a3b8" stroke-width="1.2"/>
+            <!-- Mail Vector Icon -->
+            <g transform="translate(12, 18)">
+              <rect x="0" y="0" width="16" height="12" rx="2" fill="none" stroke="#64748b" stroke-width="1.3"/>
+              <path d="M 0 0 L 8 7 L 16 0" fill="none" stroke="#64748b" stroke-width="1.3"/>
+            </g>
+            <text x="36" y="29" class="font-sans" font-size="11.5" font-weight="600" fill="#0f172a">mikaela.santos@cit.edu.ph</text>
+
+            <!-- Callout ③ Badge -->
+            <g transform="translate(412, 16)">
+              <circle cx="8" cy="8" r="8" fill="#047857"/>
+              <text x="8" y="12" text-anchor="middle" class="font-mono" font-size="9" font-weight="800" fill="#ffffff">3</text>
+            </g>
+          </g>
+
+          <!-- 4. Password Input Field (with Show/Hide Toggle) -->
+          <g transform="translate(0, 246)">
+            <text x="0" y="0" class="font-sans" font-size="10.5" font-weight="700" fill="#0f172a">Password <tspan fill="#e11d48">*</tspan></text>
+            <rect x="0" y="6" width="404" height="40" rx="8" fill="#ffffff" stroke="#94a3b8" stroke-width="1.2"/>
+            <!-- Lock Vector Icon -->
+            <g transform="translate(12, 16)">
+              <rect x="2" y="6" width="12" height="10" rx="2" fill="none" stroke="#64748b" stroke-width="1.3"/>
+              <path d="M 4 6 L 4 3 A 4 4 0 0 1 12 3 L 12 6" fill="none" stroke="#64748b" stroke-width="1.3"/>
+              <circle cx="8" cy="11" r="1.2" fill="#64748b"/>
+            </g>
+            <text x="36" y="30" class="font-mono" font-size="14" fill="#0f172a" letter-spacing="2.5px">••••••••••••••••</text>
+            
+            <!-- Show/Hide Toggle Button (44x44px Touch Target) -->
+            <g transform="translate(360, 4)">
+              <rect x="0" y="0" width="44" height="44" rx="6" fill="#f8fafc" stroke="#cbd5e1" stroke-width="0.8"/>
+              <path d="M 12 22 Q 22 14 32 22 Q 22 30 12 22 Z" fill="none" stroke="#475569" stroke-width="1.4"/>
+              <circle cx="22" cy="22" r="2.8" fill="#475569"/>
+            </g>
+
+            <!-- Callout ④ Badge -->
+            <g transform="translate(412, 16)">
+              <circle cx="8" cy="8" r="8" fill="#047857"/>
+              <text x="8" y="12" text-anchor="middle" class="font-mono" font-size="9" font-weight="800" fill="#ffffff">4</text>
+            </g>
+          </g>
+
+          <!-- 5. NIST SP 800-63B Password Strength Meter & Requirement Pills -->
+          <g transform="translate(0, 312)">
+            <g>
+              <text x="0" y="0" class="font-sans" font-size="9.5" font-weight="700" fill="#475569">PASSWORD STRENGTH: <tspan fill="#047857" font-weight="800">GOOD (NIST COMPLIANT)</tspan></text>
+              <!-- 4-segment visual gauge bar (3/4 filled) -->
+              <g transform="translate(0, 8)">
+                <rect x="0" y="0" width="96" height="5" rx="2.5" fill="#047857"/>
+                <rect x="102" y="0" width="96" height="5" rx="2.5" fill="#047857"/>
+                <rect x="204" y="0" width="96" height="5" rx="2.5" fill="#047857"/>
+                <rect x="306" y="0" width="96" height="5" rx="2.5" fill="#e2e8f0"/>
+              </g>
+
+              <!-- 5 Requirement Pills (NIST Guidelines) -->
+              <g transform="translate(0, 20)">
+                <!-- Pill 1: 8+ Chars -->
+                <rect x="0" y="0" width="68" height="18" rx="4" fill="#ecfdf5" stroke="#86efac" stroke-width="0.8"/>
+                <text x="34" y="12" text-anchor="middle" class="font-mono" font-size="7.5" font-weight="700" fill="#047857">✓ 8+ chars</text>
+                <!-- Pill 2: Uppercase -->
+                <rect x="73" y="0" width="76" height="18" rx="4" fill="#ecfdf5" stroke="#86efac" stroke-width="0.8"/>
+                <text x="111" y="12" text-anchor="middle" class="font-mono" font-size="7.5" font-weight="700" fill="#047857">✓ Uppercase</text>
+                <!-- Pill 3: Lowercase -->
+                <rect x="154" y="0" width="76" height="18" rx="4" fill="#ecfdf5" stroke="#86efac" stroke-width="0.8"/>
+                <text x="192" y="12" text-anchor="middle" class="font-mono" font-size="7.5" font-weight="700" fill="#047857">✓ Lowercase</text>
+                <!-- Pill 4: Number -->
+                <rect x="235" y="0" width="66" height="18" rx="4" fill="#ecfdf5" stroke="#86efac" stroke-width="0.8"/>
+                <text x="268" y="12" text-anchor="middle" class="font-mono" font-size="7.5" font-weight="700" fill="#047857">✓ Number</text>
+                <!-- Pill 5: Symbol -->
+                <rect x="306" y="0" width="62" height="18" rx="4" fill="#f8fafc" stroke="#cbd5e1" stroke-width="0.8"/>
+                <text x="337" y="12" text-anchor="middle" class="font-mono" font-size="7.5" font-weight="600" fill="#64748b">Symbol</text>
+              </g>
+
+              <!-- Callout ⑤ Badge -->
+              <g transform="translate(412, 6)">
+                <circle cx="8" cy="8" r="8" fill="#047857"/>
+                <text x="8" y="12" text-anchor="middle" class="font-mono" font-size="9" font-weight="800" fill="#ffffff">5</text>
+              </g>
+            </g>
+          </g>
+
+          <!-- 6. Conditional Context Dropdown (Renter Corridor vs Landlord Municipality) -->
+          <g transform="translate(0, 368)">
+            <text x="0" y="0" class="font-sans" font-size="10.5" font-weight="700" fill="#0f172a">Preferred Landmark / University Corridor <tspan fill="#e11d48">*</tspan></text>
+            <rect x="0" y="6" width="404" height="40" rx="8" fill="#ffffff" stroke="#94a3b8" stroke-width="1.2"/>
+            <!-- Map Pin Icon -->
+            <g transform="translate(12, 17)">
+              <circle cx="7" cy="7" r="3" fill="#047857"/>
+              <path d="M 4 8 L 7 14 L 10 8" fill="#047857"/>
+            </g>
+            <text x="34" y="29" class="font-sans" font-size="11.5" font-weight="600" fill="#0f172a">Near CIT-U Campus (N. Bacalso Ave, Cebu City)</text>
+            <!-- Dropdown Chevron -->
+            <path d="M 382 22 L 387 28 L 392 22" fill="none" stroke="#64748b" stroke-width="1.5" stroke-linecap="round"/>
+
+            <!-- Callout ⑥ Badge -->
+            <g transform="translate(412, 16)">
+              <circle cx="8" cy="8" r="8" fill="#047857"/>
+              <text x="8" y="12" text-anchor="middle" class="font-mono" font-size="9" font-weight="800" fill="#ffffff">6</text>
+            </g>
+          </g>
+
+          <!-- 7. Philippine Mobile Number Input (+63 prefix + 10 digits) -->
+          <g transform="translate(0, 434)">
+            <text x="0" y="0" class="font-sans" font-size="10.5" font-weight="700" fill="#0f172a">Philippine Mobile Number <tspan fill="#e11d48">*</tspan></text>
+            <!-- Country Code Pill (+63) -->
+            <rect x="0" y="6" width="58" height="40" rx="8" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.2"/>
+            <text x="29" y="30" text-anchor="middle" class="font-mono" font-size="11" font-weight="700" fill="#0f172a">+63</text>
+            <!-- Number Field -->
+            <rect x="66" y="6" width="338" height="40" rx="8" fill="#ffffff" stroke="#94a3b8" stroke-width="1.2"/>
+            <text x="80" y="30" class="font-mono" font-size="12" font-weight="600" fill="#0f172a">917 555 0192</text>
+
+            <!-- Callout ⑦ Badge -->
+            <g transform="translate(412, 16)">
+              <circle cx="8" cy="8" r="8" fill="#047857"/>
+              <text x="8" y="12" text-anchor="middle" class="font-mono" font-size="9" font-weight="800" fill="#ffffff">7</text>
+            </g>
+          </g>
+
+          <!-- Terms of Service & Privacy Policy Checkbox -->
+          <g transform="translate(0, 498)">
+            <rect x="0" y="0" width="18" height="18" rx="4" fill="#047857" stroke="#047857" stroke-width="1.2"/>
+            <path d="M 4 9 L 8 13 L 14 5" fill="none" stroke="#ffffff" stroke-width="2"/>
+            <text x="26" y="13" class="font-sans" font-size="10.5" font-weight="500" fill="#334155">
+              I agree to the <tspan font-weight="700" fill="#047857">Terms of Service</tspan> &amp; <tspan font-weight="700" fill="#047857">Privacy Policy</tspan>
+            </text>
+          </g>
+
+          <!-- 8. Primary Create Account CTA Button (46px Height · Cebu Emerald #047857) -->
+          <g transform="translate(0, 532)">
+            <rect x="0" y="0" width="404" height="46" rx="8" fill="#047857" stroke="#065f46" stroke-width="1.2" filter="url(#pill-shadow)"/>
+            <text x="202" y="28" text-anchor="middle" class="font-sans" font-size="13" font-weight="800" fill="#ffffff" letter-spacing="0.3px">Create your AbangCebu Account →</text>
+
+            <!-- Callout ⑧ Badge -->
+            <g transform="translate(412, 14)">
+              <circle cx="8" cy="8" r="8" fill="#047857"/>
+              <text x="8" y="12" text-anchor="middle" class="font-mono" font-size="9" font-weight="800" fill="#ffffff">8</text>
+            </g>
+          </g>
+
+          <!-- Divider -->
+          <g transform="translate(0, 600)">
+            <line x1="0" y1="0" x2="404" y2="0" stroke="#e2e8f0" stroke-width="1"/>
+            <rect x="122" y="-9" width="160" height="18" rx="3" fill="#ffffff"/>
+            <text x="202" y="4" text-anchor="middle" class="font-mono" font-size="8" font-weight="700" fill="#94a3b8" letter-spacing="1px">OR REGISTER WITH</text>
+          </g>
+
+          <!-- Google OAuth Button -->
+          <g transform="translate(0, 622)">
+            <rect x="0" y="0" width="404" height="40" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2"/>
+            <g transform="translate(136, 11)">
+              <!-- Google "G" Vector Icon -->
+              <circle cx="9" cy="9" r="8" fill="#ffffff" stroke="#ea4335" stroke-width="1.3"/>
+              <text x="9" y="12.5" text-anchor="middle" class="font-sans" font-size="10.5" font-weight="800" fill="#4285f4">G</text>
+            </g>
+            <text x="216" y="25" text-anchor="middle" class="font-sans" font-size="11.5" font-weight="700" fill="#1e293b">Continue with Google</text>
+          </g>
+
+          <!-- Sign In Link Prompt -->
+          <g transform="translate(0, 680)">
+            <text x="202" y="0" text-anchor="middle" class="font-sans" font-size="11" fill="#475569">
+              Already have an account? <tspan font-weight="800" fill="#047857">Sign In to AbangCebu →</tspan>
+            </text>
+          </g>
+
+          <!-- Security & Privacy Reassurance Notice -->
+          <g transform="translate(0, 706)">
+            <rect x="0" y="0" width="404" height="64" rx="8" fill="#f0fdf4" stroke="#86efac" stroke-width="0.9"/>
+            <!-- Vector Lock Shield -->
+            <rect x="10" y="14" width="24" height="24" rx="6" fill="#047857"/>
+            <path d="M 18 20 L 22 24 L 26 18" fill="none" stroke="#ffffff" stroke-width="1.6"/>
+            <text x="42" y="24" class="font-sans" font-size="9" font-weight="700" fill="#047857">NIST SP 800-63B Authentication Perimeter</text>
+            <text x="42" y="37" class="font-sans" font-size="8" fill="#334155">256-bit SSL encrypted. Passwords hashed with Supabase GoTrue bcrypt.</text>
+            <text x="42" y="48" class="font-sans" font-size="8" fill="#334155">Mobile number verified via OTP SMS before listing activation.</text>
+          </g>
+
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>
