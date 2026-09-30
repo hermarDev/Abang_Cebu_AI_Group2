@@ -148,6 +148,8 @@ Located in [`docs/templates/`](./templates/):
 | [AbangCebu_Auth_Test_Plan_Specification.pdf](./pdf/AbangCebu_Auth_Test_Plan_Specification.pdf) | QA Testing (PDF) | Jenny Villamor | Hermar Centillas | [SCRUM-69](https://abangcebuai.atlassian.net/browse/SCRUM-69) | Approved / Done |
 | [rbac-test-cases.md](./testing/rbac-test-cases.md) | QA Testing | Anne KC M. Casinay | Hermar Centillas | [SCRUM-70](https://abangcebuai.atlassian.net/browse/SCRUM-70) | Approved / Done |
 | [AbangCebu_RBAC_Test_Verification_Matrix.pdf](./pdf/AbangCebu_RBAC_Test_Verification_Matrix.pdf) | QA Testing (PDF) | Anne KC M. Casinay | Hermar Centillas | [SCRUM-70](https://abangcebuai.atlassian.net/browse/SCRUM-70) | Approved / Done |
+| [middleware-test-scenarios.md](./testing/middleware-test-scenarios.md) | QA Testing | Karla Hiyas | Hermar Centillas | [SCRUM-71](https://abangcebuai.atlassian.net/browse/SCRUM-71) | Approved / Done |
+| [AbangCebu_Middleware_Test_Scenarios.pdf](./pdf/AbangCebu_Middleware_Test_Scenarios.pdf) | QA Testing (PDF) | Karla Hiyas | Hermar Centillas | [SCRUM-71](https://abangcebuai.atlassian.net/browse/SCRUM-71) | Approved / Done |
 
 ---
 
