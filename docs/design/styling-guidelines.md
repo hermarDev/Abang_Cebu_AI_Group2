@@ -1,6 +1,9 @@
 # AbangCebuAI UI Framework & Styling Guidelines Specification
 **Sprint 1 System Architecture Specification**  
 *Document Version:* 1.0.0  
+*Jira Ticket Reference:* [SCRUM-50](https://abangcebuai.atlassian.net/browse/SCRUM-50) — *Configure UI Framework & Styling Guidelines*  
+*Author:* Angel Crushein Yaun (UI/UX Designer)  
+*Reviewed & Audited by:* Hermar Centillas (Lead / Scrum Master)  
 *Framework:* Next.js 16 (App Router) + React 19  
 *Styling Engine:* Tailwind CSS v4 (`@tailwindcss/postcss`)  
 *Design Token Standard:* CSS Custom Properties with `@theme` / `@theme inline`  
