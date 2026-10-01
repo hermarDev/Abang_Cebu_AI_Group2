@@ -61,7 +61,16 @@ docs/
 │   ├── middleware-test-scenarios.md         # SCRUM-71: Protected route & middleware test scenarios
 │   └── auth-performance-baseline.md         # SCRUM-72: Authentication baseline latency & load strategy
 │
+├── flowcharts/                              # Module 1: Authentication Architecture Flowcharts (.drawio)
+│   ├── auth-master-orchestration.drawio     # SCRUM-92: Master auth lifecycle & session state engine
+│   ├── auth-registration-pkce.drawio        # SCRUM-92: User registration, validation & PKCE email
+│   ├── auth-login-session-rtr.drawio        # SCRUM-92: Login, credential verification & token rotation
+│   ├── auth-password-reset-recovery.drawio  # SCRUM-92: Self-service recovery & global token revocation
+│   ├── auth-signout-multitab.drawio         # SCRUM-92: Sign-out, cookie chunk purging & broadcast sync
+│   └── auth-error-handling-suspension.drawio # SCRUM-92: Auth error boundary & suspension enforcement
+│
 ├── pdf/                                     # Formal Architecture & Governance PDFs
+│   ├── AbangCebu_Authentication_Method_Module_Flowcharts.pdf # SCRUM-92: Formally compiled 6-page A4 flowcharts
 │   ├── AbangCebu_Auth_Registration_Specification.pdf
 │   ├── AbangCebu_Auth_Session_Lifecycle_Specification.pdf
 │   ├── AbangCebu_Auth_Logout_Specification.pdf
@@ -85,6 +94,13 @@ docs/
 └── assets/                                  # Visual Diagrams & Architecture Assets
     ├── abangcebu_database_erd.png           # High-resolution ERD rendering
     ├── abangcebu_database_erd.svg           # Vector source ERD
+    ├── flowcharts/                          # Vector SVGs & 150 DPI PNG Flowchart Renderings
+    │   ├── auth-master-orchestration.png    # Master auth lifecycle diagram
+    │   ├── auth-registration-pkce.png       # Registration & PKCE flow diagram
+    │   ├── auth-login-session-rtr.png       # Login & token rotation diagram
+    │   ├── auth-password-reset-recovery.png # Password reset & recovery diagram
+    │   ├── auth-signout-multitab.png        # Sign-out & multi-tab sync diagram
+    │   └── auth-error-handling-suspension.png # Error boundary & suspension diagram
     └── wireframes/                          # Visual wireframe blueprints
         ├── landing-page-desktop.svg         # 1440x900 desktop Google Maps wireframe blueprint
         ├── landing-page-mobile.svg          # 390x844 mobile 100dvh wireframe blueprint
@@ -158,6 +174,13 @@ Located in [`docs/templates/`](./templates/):
 | [AbangCebu_Middleware_Test_Scenarios.pdf](./pdf/AbangCebu_Middleware_Test_Scenarios.pdf) | QA Testing (PDF) | Karla Hiyas | Hermar Centillas | [SCRUM-71](https://abangcebuai.atlassian.net/browse/SCRUM-71) | Approved / Done |
 | [auth-performance-baseline.md](./testing/auth-performance-baseline.md) | QA Testing | Ryza Albiso | Hermar Centillas | [SCRUM-72](https://abangcebuai.atlassian.net/browse/SCRUM-72) | Approved / Done |
 | [AbangCebu_Auth_Performance_Baseline.pdf](./pdf/AbangCebu_Auth_Performance_Baseline.pdf) | QA Testing (PDF) | Ryza Albiso | Hermar Centillas | [SCRUM-72](https://abangcebuai.atlassian.net/browse/SCRUM-72) | Approved / Done |
+| [AbangCebu_Authentication_Method_Module_Flowcharts.pdf](./pdf/AbangCebu_Authentication_Method_Module_Flowcharts.pdf) | Flowcharts (PDF Bundle) | Hermar Centillas | Group 2 Review | [SCRUM-92](https://abangcebuai.atlassian.net/browse/SCRUM-92) | Approved / Done |
+| [auth-master-orchestration.drawio](./flowcharts/auth-master-orchestration.drawio) | Flowchart (Draw.io) | Hermar Centillas | Group 2 Review | [SCRUM-92](https://abangcebuai.atlassian.net/browse/SCRUM-92) | Approved / Done |
+| [auth-registration-pkce.drawio](./flowcharts/auth-registration-pkce.drawio) | Flowchart (Draw.io) | John Lloyd Ando | Hermar Centillas | [SCRUM-92](https://abangcebuai.atlassian.net/browse/SCRUM-92) | Approved / Done |
+| [auth-login-session-rtr.drawio](./flowcharts/auth-login-session-rtr.drawio) | Flowchart (Draw.io) | John Lloyd Ando | Hermar Centillas | [SCRUM-92](https://abangcebuai.atlassian.net/browse/SCRUM-92) | Approved / Done |
+| [auth-password-reset-recovery.drawio](./flowcharts/auth-password-reset-recovery.drawio) | Flowchart (Draw.io) | Joan Marie Encallado Inting | Hermar Centillas | [SCRUM-92](https://abangcebuai.atlassian.net/browse/SCRUM-92) | Approved / Done |
+| [auth-signout-multitab.drawio](./flowcharts/auth-signout-multitab.drawio) | Flowchart (Draw.io) | junrilldisoy90 | Hermar Centillas | [SCRUM-92](https://abangcebuai.atlassian.net/browse/SCRUM-92) | Approved / Done |
+| [auth-error-handling-suspension.drawio](./flowcharts/auth-error-handling-suspension.drawio) | Flowchart (Draw.io) | junrilldisoy90 | Hermar Centillas | [SCRUM-92](https://abangcebuai.atlassian.net/browse/SCRUM-92) | Approved / Done |
 
 ---
 

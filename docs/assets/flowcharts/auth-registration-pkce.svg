@@ -1,0 +1,138 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 1650" width="1100" height="1650">
+    <defs>
+        <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1 L 10 5 L 0 9 z" fill="#0F172A"/>
+        </marker>
+    </defs>
+    <rect width="1100" height="1650" fill="#FFFFFF"/>
+    
+    <rect x="150" y="30" width="800" height="70" rx="8" fill="#F8FAFC" stroke="#0F172A" stroke-width="2"/>
+    <text x="550" y="60" font-family="'Segoe UI', sans-serif" font-size="16" font-weight="700" fill="#0F172A" text-anchor="middle">AbangCebu AI — Sub-Process 1: User Registration & PKCE Activation</text>
+    <text x="550" y="82" font-family="'Segoe UI', sans-serif" font-size="12" font-weight="500" fill="#64748B" text-anchor="middle">Triple-Firewall Anti-Privilege Escalation & Account Activation</text>
+    
+            <g transform="translate(380, 140)">
+                <rect width="340" height="46" rx="23" fill="#0F172A" stroke="#0F172A" stroke-width="2"/>
+                <text x="170" y="28" font-family="'Segoe UI', sans-serif" font-size="11" font-weight="700" fill="#FFFFFF" text-anchor="middle">User Navigates to Registration Page (/register)</text>
+            </g>
+            
+            <g transform="translate(370, 230)">
+                <rect width="360" height="52" rx="6" fill="#FFFFFF" stroke="#0F172A" stroke-width="1.5"/>
+                <text x="180" y="31" font-family="'Segoe UI', sans-serif" font-size="10" font-weight="500" fill="#0F172A" text-anchor="middle">Role Switch Selection (Renter vs Landlord Context)</text>
+            </g>
+            
+            <g transform="translate(370, 320)">
+                <rect width="360" height="52" rx="6" fill="#FFFFFF" stroke="#0F172A" stroke-width="1.5"/>
+                <text x="180" y="31" font-family="'Segoe UI', sans-serif" font-size="10" font-weight="500" fill="#0F172A" text-anchor="middle">Fill Form (Full Name, Email, Password, Mobile 09XX, Landmark)</text>
+            </g>
+            
+            <g transform="translate(370, 410)">
+                <rect width="360" height="52" rx="6" fill="#FFFFFF" stroke="#0F172A" stroke-width="1.5"/>
+                <text x="180" y="31" font-family="'Segoe UI', sans-serif" font-size="10" font-weight="500" fill="#0F172A" text-anchor="middle">Client Validation (NIST SP 800-63B Password + E.164 Phone Normalizer)</text>
+            </g>
+            
+            <g transform="translate(550, 532)">
+                <path d="M 0 -32 L 190 0 L 0 32 L -190 0 Z" fill="#FEF3C7" stroke="#D97706" stroke-width="1.5"/>
+                <text x="0" y="4" font-family="'Segoe UI', sans-serif" font-size="10.5" font-weight="600" fill="#92400E" text-anchor="middle">Cloudflare Turnstile Bot Token Verification Valid?</text>
+            </g>
+            
+            <g transform="translate(370, 590)">
+                <rect width="360" height="52" rx="6" fill="#FFFFFF" stroke="#0F172A" stroke-width="1.5"/>
+                <text x="180" y="31" font-family="'Segoe UI', sans-serif" font-size="10" font-weight="500" fill="#0F172A" text-anchor="middle">Submit to Server Action registerUserAction</text>
+            </g>
+            
+            <g transform="translate(550, 712)">
+                <path d="M 0 -32 L 190 0 L 0 32 L -190 0 Z" fill="#FEF3C7" stroke="#D97706" stroke-width="1.5"/>
+                <text x="0" y="4" font-family="'Segoe UI', sans-serif" font-size="10.5" font-weight="600" fill="#92400E" text-anchor="middle">Anti-Privilege Escalation Check: Is Role == 'admin'?</text>
+            </g>
+            
+            <g transform="translate(370, 770)">
+                <rect width="360" height="52" rx="6" fill="#FFFFFF" stroke="#0F172A" stroke-width="1.5"/>
+                <text x="180" y="31" font-family="'Segoe UI', sans-serif" font-size="10" font-weight="500" fill="#0F172A" text-anchor="middle">HTTP 403 Forbidden: PRIVILEGE_ESCALATION_ATTEMPT (Security Log)</text>
+            </g>
+            
+            <g transform="translate(370, 860)">
+                <rect width="360" height="52" rx="6" fill="#FFFFFF" stroke="#0F172A" stroke-width="1.5"/>
+                <text x="180" y="31" font-family="'Segoe UI', sans-serif" font-size="10" font-weight="500" fill="#0F172A" text-anchor="middle">Supabase auth.signUp() &amp; PostgreSQL handle_new_user() Trigger</text>
+            </g>
+            
+            <g transform="translate(370, 950)">
+                <rect width="360" height="52" rx="6" fill="#FFFFFF" stroke="#0F172A" stroke-width="1.5"/>
+                <text x="180" y="31" font-family="'Segoe UI', sans-serif" font-size="10" font-weight="500" fill="#0F172A" text-anchor="middle">Dispatch Transactional Verification Email with Single-Use PKCE Link</text>
+            </g>
+            
+            <g transform="translate(370, 1040)">
+                <rect width="360" height="52" rx="6" fill="#FFFFFF" stroke="#0F172A" stroke-width="1.5"/>
+                <text x="180" y="31" font-family="'Segoe UI', sans-serif" font-size="10" font-weight="500" fill="#0F172A" text-anchor="middle">User Clicks Email Link -&gt; GET /auth/callback?code=CODE&amp;type=signup</text>
+            </g>
+            
+            <g transform="translate(370, 1130)">
+                <rect width="360" height="52" rx="6" fill="#FFFFFF" stroke="#0F172A" stroke-width="1.5"/>
+                <text x="180" y="31" font-family="'Segoe UI', sans-serif" font-size="10" font-weight="500" fill="#0F172A" text-anchor="middle">Next.js Route Handler Exchanges Code via @supabase/ssr</text>
+            </g>
+            
+            <g transform="translate(550, 1252)">
+                <path d="M 0 -32 L 190 0 L 0 32 L -190 0 Z" fill="#FEF3C7" stroke="#D97706" stroke-width="1.5"/>
+                <text x="0" y="4" font-family="'Segoe UI', sans-serif" font-size="10.5" font-weight="600" fill="#92400E" text-anchor="middle">isSafeRedirectUrl() Whitelist Validation Check?</text>
+            </g>
+            
+            <g transform="translate(370, 1310)">
+                <rect width="360" height="52" rx="6" fill="#FFFFFF" stroke="#0F172A" stroke-width="1.5"/>
+                <text x="180" y="31" font-family="'Segoe UI', sans-serif" font-size="10" font-weight="500" fill="#0F172A" text-anchor="middle">Set Chunked HTTP-Only Session Cookies (sb-*-auth-token.[0..n])</text>
+            </g>
+            
+            <g transform="translate(380, 1400)">
+                <rect width="340" height="46" rx="23" fill="#0F766E" stroke="#0D9488" stroke-width="2"/>
+                <text x="170" y="28" font-family="'Segoe UI', sans-serif" font-size="11" font-weight="700" fill="#FFFFFF" text-anchor="middle">Redirect to Authenticated Target (/search or /landlord/onboarding)</text>
+            </g>
+            
+            <line x1="550" y1="190" x2="550" y2="230" stroke="#0F172A" stroke-width="1.5" marker-end="url(#arrow)"/>
+            
+            <line x1="550" y1="280" x2="550" y2="320" stroke="#0F172A" stroke-width="1.5" marker-end="url(#arrow)"/>
+            
+            <line x1="550" y1="370" x2="550" y2="410" stroke="#0F172A" stroke-width="1.5" marker-end="url(#arrow)"/>
+            
+            <line x1="550" y1="460" x2="550" y2="500" stroke="#0F172A" stroke-width="1.5" marker-end="url(#arrow)"/>
+            
+            <path d="M 370 525 L 280 525 L 280 345 L 370 345" fill="none" stroke="#64748B" stroke-width="1.5" stroke-dasharray="4,4" marker-end="url(#arrow)"/>
+            
+                <rect x="290" y="425" width="136" height="18" fill="#F1F5F9" rx="3" stroke="#CBD5E1" stroke-width="1"/>
+                <text x="295" y="438" font-family="'Segoe UI', sans-serif" font-size="9" font-weight="600" fill="#64748B">No (Invalid Token)</text>
+                
+            <line x1="550" y1="550" x2="550" y2="590" stroke="#0F172A" stroke-width="1.5" marker-end="url(#arrow)"/>
+            
+                <rect x="558" y="560" width="31" height="18" fill="#F1F5F9" rx="3" stroke="#CBD5E1" stroke-width="1"/>
+                <text x="563" y="573" font-family="'Segoe UI', sans-serif" font-size="9" font-weight="600" fill="#0F766E">Yes</text>
+                
+            <line x1="550" y1="640" x2="550" y2="680" stroke="#0F172A" stroke-width="1.5" marker-end="url(#arrow)"/>
+            
+            <line x1="550" y1="730" x2="550" y2="770" stroke="#0F172A" stroke-width="1.5" marker-end="url(#arrow)"/>
+            
+                <rect x="558" y="740" width="164" height="18" fill="#F1F5F9" rx="3" stroke="#CBD5E1" stroke-width="1"/>
+                <text x="563" y="753" font-family="'Segoe UI', sans-serif" font-size="9" font-weight="600" fill="#0F766E">Yes ('admin' Injected)</text>
+                
+            <line x1="550" y1="730" x2="550" y2="860" stroke="#0F172A" stroke-width="1.5" marker-end="url(#arrow)"/>
+            
+                <rect x="558" y="785" width="192" height="18" fill="#F1F5F9" rx="3" stroke="#CBD5E1" stroke-width="1"/>
+                <text x="563" y="798" font-family="'Segoe UI', sans-serif" font-size="9" font-weight="600" fill="#0F766E">No ('renter' | 'landlord')</text>
+                
+            <line x1="550" y1="910" x2="550" y2="950" stroke="#0F172A" stroke-width="1.5" marker-end="url(#arrow)"/>
+            
+            <line x1="550" y1="1000" x2="550" y2="1040" stroke="#0F172A" stroke-width="1.5" marker-end="url(#arrow)"/>
+            
+            <line x1="550" y1="1090" x2="550" y2="1130" stroke="#0F172A" stroke-width="1.5" marker-end="url(#arrow)"/>
+            
+            <line x1="550" y1="1180" x2="550" y2="1220" stroke="#0F172A" stroke-width="1.5" marker-end="url(#arrow)"/>
+            
+            <line x1="550" y1="1270" x2="550" y2="1310" stroke="#0F172A" stroke-width="1.5" marker-end="url(#arrow)"/>
+            
+                <rect x="558" y="1280" width="115" height="18" fill="#F1F5F9" rx="3" stroke="#CBD5E1" stroke-width="1"/>
+                <text x="563" y="1293" font-family="'Segoe UI', sans-serif" font-size="9" font-weight="600" fill="#0F766E">Valid Whitelist</text>
+                
+            <line x1="550" y1="1270" x2="550" y2="1310" stroke="#0F172A" stroke-width="1.5" marker-end="url(#arrow)"/>
+            
+                <rect x="558" y="1280" width="192" height="18" fill="#F1F5F9" rx="3" stroke="#CBD5E1" stroke-width="1"/>
+                <text x="563" y="1293" font-family="'Segoe UI', sans-serif" font-size="9" font-weight="600" fill="#0F766E">Invalid (Fallback /search)</text>
+                
+            <line x1="550" y1="1360" x2="550" y2="1400" stroke="#0F172A" stroke-width="1.5" marker-end="url(#arrow)"/>
+            
+    </svg>
