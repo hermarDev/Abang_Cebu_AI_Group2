@@ -56,7 +56,10 @@ docs/
 │
 ├── testing/                                 # Quality Assurance & Verification Test Plans
 │   ├── auth-test-plan.md                    # SCRUM-69: Comprehensive QA test plan & matrix
-│   └── AbangCebu_Auth_Test_Specification.xlsx # SCRUM-69: Populated Capstone test workbook
+│   ├── AbangCebu_Auth_Test_Specification.xlsx # SCRUM-69: Populated Capstone test workbook
+│   ├── rbac-test-cases.md                   # SCRUM-70: Role & access permission verification test cases
+│   ├── middleware-test-scenarios.md         # SCRUM-71: Protected route & middleware test scenarios
+│   └── auth-performance-baseline.md         # SCRUM-72: Authentication baseline latency & load strategy
 │
 ├── pdf/                                     # Formal Architecture & Governance PDFs
 │   ├── AbangCebu_Auth_Registration_Specification.pdf
@@ -74,7 +77,10 @@ docs/
 │   ├── AbangCebu_Registration_Page_Wireframe_Specification.pdf
 │   ├── AbangCebu_User_Dashboard_Wireframe_Specification.pdf
 │   ├── AbangCebu_Profile_Page_Wireframe_Specification.pdf
-│   └── AbangCebu_Admin_Dashboard_Wireframe_Specification.pdf
+│   ├── AbangCebu_Admin_Dashboard_Wireframe_Specification.pdf
+│   ├── AbangCebu_RBAC_Test_Verification_Matrix.pdf
+│   ├── AbangCebu_Middleware_Test_Scenarios.pdf
+│   └── AbangCebu_Auth_Performance_Baseline.pdf
 │
 └── assets/                                  # Visual Diagrams & Architecture Assets
     ├── abangcebu_database_erd.png           # High-resolution ERD rendering
@@ -150,6 +156,8 @@ Located in [`docs/templates/`](./templates/):
 | [AbangCebu_RBAC_Test_Verification_Matrix.pdf](./pdf/AbangCebu_RBAC_Test_Verification_Matrix.pdf) | QA Testing (PDF) | Anne KC M. Casinay | Hermar Centillas | [SCRUM-70](https://abangcebuai.atlassian.net/browse/SCRUM-70) | Approved / Done |
 | [middleware-test-scenarios.md](./testing/middleware-test-scenarios.md) | QA Testing | Karla Hiyas | Hermar Centillas | [SCRUM-71](https://abangcebuai.atlassian.net/browse/SCRUM-71) | Approved / Done |
 | [AbangCebu_Middleware_Test_Scenarios.pdf](./pdf/AbangCebu_Middleware_Test_Scenarios.pdf) | QA Testing (PDF) | Karla Hiyas | Hermar Centillas | [SCRUM-71](https://abangcebuai.atlassian.net/browse/SCRUM-71) | Approved / Done |
+| [auth-performance-baseline.md](./testing/auth-performance-baseline.md) | QA Testing | Ryza Albiso | Hermar Centillas | [SCRUM-72](https://abangcebuai.atlassian.net/browse/SCRUM-72) | Approved / Done |
+| [AbangCebu_Auth_Performance_Baseline.pdf](./pdf/AbangCebu_Auth_Performance_Baseline.pdf) | QA Testing (PDF) | Ryza Albiso | Hermar Centillas | [SCRUM-72](https://abangcebuai.atlassian.net/browse/SCRUM-72) | Approved / Done |
 
 ---
 
