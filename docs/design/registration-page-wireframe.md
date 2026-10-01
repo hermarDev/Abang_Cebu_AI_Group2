@@ -23,7 +23,7 @@
   - Landing Page Wireframes: [`docs/design/landing-page-wireframe.md`](./landing-page-wireframe.md)
   - Mobile Map Wireframes: [`docs/design/mobile-map-wireframes.md`](./mobile-map-wireframes.md)
   - Styling Tokens & Guidelines: [`docs/design/styling-guidelines.md`](./styling-guidelines.md)
-  - Auth Registration Workflow Specification: [`docs/specifications/auth/auth-registration.md`](../specifications/auth/auth-registration.md)
+  - Auth Registration Workflow Specification: [`docs/specifications/auth/auth-registration-spec.md`](../specifications/auth/auth-registration-spec.md)
   - Auth Error Handling Specification: [`docs/specifications/auth/auth-error-handling.md`](../specifications/auth/auth-error-handling.md)
   - Users and Profiles Schema: [`docs/database/users-and-profiles-schema.md`](../database/users-and-profiles-schema.md)
   - Renter Persona & Capabilities: [`docs/design/renter-persona.md`](./renter-persona.md)

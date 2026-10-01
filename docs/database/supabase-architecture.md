@@ -12,7 +12,7 @@ AbangCebuAI requires specific PostgreSQL extensions to handle geospatial queries
 | **`pg_trgm`** | `extensions` | Trigram matching for fast fuzzy text search | Searching misspelled Cebu barangays (e.g., "Lahug", "Kasambagan", "Banilad") |
 
 ### Installation Migration:
-All extensions are version-controlled in [`supabase/migrations/20260929000000_init_extensions.sql`](/supabase/migrations/20260929000000_init_extensions.sql):
+All extensions are version-controlled in [`supabase/migrations/20260929000000_init_extensions.sql`](../../supabase/migrations/20260929000000_init_extensions.sql):
 ```sql
 CREATE EXTENSION IF NOT EXISTS postgis WITH SCHEMA extensions;
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA extensions;

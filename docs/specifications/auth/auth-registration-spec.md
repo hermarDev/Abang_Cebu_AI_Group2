@@ -7,13 +7,13 @@
 **Author:** John Lloyd Ando (Engineering Team)  
 **Database Foundation:** [SCRUM-54](https://abangcebuai.atlassian.net/browse/SCRUM-54) (`supabase/migrations/20260929000001_users_and_profiles.sql`)  
 **Related Specifications:**
-- Users & Profiles Table Schema: [docs/users-and-profiles-schema.md](file:///home/hrmr/AbangCebuAI/docs/users-and-profiles-schema.md)
-- Product Vision & Platform Goals: [docs/what-is-abangcebu-ai.md](file:///home/hrmr/AbangCebuAI/docs/what-is-abangcebu-ai.md)
-- Renter Persona & Capabilities: [docs/renter-persona.md](file:///home/hrmr/AbangCebuAI/docs/renter-persona.md)
-- Role-Based Access Control (RBAC) Matrix: [docs/rbac-matrix.md](file:///home/hrmr/AbangCebuAI/docs/rbac-matrix.md)
-- Row Level Security (RLS) Policies: [docs/rls-policies.md](file:///home/hrmr/AbangCebuAI/docs/rls-policies.md)
-- TypeScript Database Definitions: [src/types/database.ts](file:///home/hrmr/AbangCebuAI/src/types/database.ts)
-- TypeScript Authentication Definitions: [src/types/auth.ts](file:///home/hrmr/AbangCebuAI/src/types/auth.ts)
+- Users & Profiles Table Schema: [`docs/database/users-and-profiles-schema.md`](../../database/users-and-profiles-schema.md)
+- Product Vision & Platform Goals: [`docs/architecture/what-is-abangcebu-ai.md`](../../architecture/what-is-abangcebu-ai.md)
+- Renter Persona & Capabilities: [`docs/design/renter-persona.md`](../../design/renter-persona.md)
+- Role-Based Access Control (RBAC) Matrix: [`docs/security/rbac-matrix.md`](../../security/rbac-matrix.md)
+- Row Level Security (RLS) Policies: [`docs/security/rls-policies.md`](../../security/rls-policies.md)
+- TypeScript Database Definitions: [`src/types/database.ts`](../../../src/types/database.ts)
+- TypeScript Authentication Definitions: [`src/types/auth.ts`](../../../src/types/auth.ts)
 
 ---
 

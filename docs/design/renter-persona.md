@@ -4,10 +4,10 @@
 **Status:** Approved / Active Specification  
 **Jira Reference:** [SCRUM-61](https://abangcebuai.atlassian.net/browse/SCRUM-61)  
 **Related Documents:**
-- Role-Based Access Control (RBAC) Matrix: [docs/rbac-matrix.md](file:///home/hrmr/abang-cebu-ai/docs/rbac-matrix.md)
-- Database ERD Architecture: [docs/database-erd.md](file:///home/hrmr/abang-cebu-ai/docs/database-erd.md)
-- Users & Profiles Table Schema: [docs/users-and-profiles-schema.md](file:///home/hrmr/abang-cebu-ai/docs/users-and-profiles-schema.md)
-- Row Level Security (RLS) Policies: [docs/rls-policies.md](file:///home/hrmr/abang-cebu-ai/docs/rls-policies.md)
+- Role-Based Access Control (RBAC) Matrix: [`docs/security/rbac-matrix.md`](../security/rbac-matrix.md)
+- Database ERD Architecture: [`docs/database/database-erd.md`](../database/database-erd.md)
+- Users & Profiles Table Schema: [`docs/database/users-and-profiles-schema.md`](../database/users-and-profiles-schema.md)
+- Row Level Security (RLS) Policies: [`docs/security/rls-policies.md`](../security/rls-policies.md)
 
 ---
 

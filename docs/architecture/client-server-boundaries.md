@@ -111,7 +111,7 @@ AbangCebuAI uses **OpenStreetMap** as its primary geographic data foundation. Ma
 ### Standard Configuration: Option A (Direct OpenStreetMap Tiles)
 We have selected **Option A** as the project standard. It uses OpenStreetMap standard raster tiles directly with zero external API key requirements.
 
-The style specification is maintained locally in the repository at [`public/styles/osm.json`](/styles/osm.json):
+The style specification is maintained locally in the repository at [`public/styles/osm.json`](../../public/styles/osm.json):
 ```json
 {
   "version": 8,

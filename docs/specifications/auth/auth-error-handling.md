@@ -8,18 +8,18 @@
 **Reviewed & Audited by:** Hermar Centillas (Lead / Scrum Master)  
 **Database Foundation:** [SCRUM-54](https://abangcebuai.atlassian.net/browse/SCRUM-54) (`supabase/migrations/20260929000001_users_and_profiles.sql`)  
 **Related Specifications:**
-- Password Reset & Recovery Specification: [docs/auth-password-reset-spec.md](file:///home/hrmr/abang-cebu-ai/docs/auth-password-reset-spec.md)
-- User Logout & Session Invalidation: [docs/auth-logout-spec.md](file:///home/hrmr/abang-cebu-ai/docs/auth-logout-spec.md)
-- User Login & Session Token Lifecycle: [docs/auth-session-lifecycle.md](file:///home/hrmr/abang-cebu-ai/docs/auth-session-lifecycle.md)
-- User Registration Specification: [docs/auth-registration-spec.md](file:///home/hrmr/abang-cebu-ai/docs/auth-registration-spec.md)
-- Product Vision & Platform Goals: [docs/what-is-abangcebu-ai.md](file:///home/hrmr/abang-cebu-ai/docs/what-is-abangcebu-ai.md)
-- Users & Profiles Table Schema: [docs/users-and-profiles-schema.md](file:///home/hrmr/abang-cebu-ai/docs/users-and-profiles-schema.md)
-- Role-Based Access Control Matrix: [docs/rbac-matrix.md](file:///home/hrmr/abang-cebu-ai/docs/rbac-matrix.md)
-- Row Level Security Policies: [docs/rls-policies.md](file:///home/hrmr/abang-cebu-ai/docs/rls-policies.md)
-- Next.js 15+ Engineering Guidelines: [docs/next15-guidelines.md](file:///home/hrmr/abang-cebu-ai/docs/next15-guidelines.md)
-- Client-Server Boundaries: [docs/client-server-boundaries.md](file:///home/hrmr/abang-cebu-ai/docs/client-server-boundaries.md)
-- TypeScript Database Definitions: [src/types/database.ts](file:///home/hrmr/abang-cebu-ai/src/types/database.ts)
-- TypeScript Authentication Definitions: [src/types/auth.ts](file:///home/hrmr/abang-cebu-ai/src/types/auth.ts)
+- Password Reset & Recovery Specification: [`docs/specifications/auth/auth-password-reset-spec.md`](./auth-password-reset-spec.md)
+- User Logout & Session Invalidation: [`docs/specifications/auth/auth-logout-spec.md`](./auth-logout-spec.md)
+- User Login & Session Token Lifecycle: [`docs/specifications/auth/auth-session-lifecycle.md`](./auth-session-lifecycle.md)
+- User Registration Specification: [`docs/specifications/auth/auth-registration-spec.md`](./auth-registration-spec.md)
+- Product Vision & Platform Goals: [`docs/architecture/what-is-abangcebu-ai.md`](../../architecture/what-is-abangcebu-ai.md)
+- Users & Profiles Table Schema: [`docs/database/users-and-profiles-schema.md`](../../database/users-and-profiles-schema.md)
+- Role-Based Access Control Matrix: [`docs/security/rbac-matrix.md`](../../security/rbac-matrix.md)
+- Row Level Security Policies: [`docs/security/rls-policies.md`](../../security/rls-policies.md)
+- Next.js Guidelines: [`docs/architecture/next15-guidelines.md`](../../architecture/next15-guidelines.md)
+- Client-Server Boundaries: [`docs/architecture/client-server-boundaries.md`](../../architecture/client-server-boundaries.md)
+- TypeScript Database Definitions: [`src/types/database.ts`](../../../src/types/database.ts)
+- TypeScript Authentication Definitions: [`src/types/auth.ts`](../../../src/types/auth.ts)
 
 ---
 
@@ -40,7 +40,7 @@ This specification establishes a **universal error handling standard** for Abang
 
 ## 2. Standardized JSON Error Contract
 
-All authentication API Route Handlers and Server Actions across AbangCebu AI emit a standardized JSON payload adhering to the `AuthErrorResponse` TypeScript contract defined in [`src/types/auth.ts`](file:///home/hrmr/abang-cebu-ai/src/types/auth.ts).
+All authentication API Route Handlers and Server Actions across AbangCebu AI emit a standardized JSON payload adhering to the `AuthErrorResponse` TypeScript contract defined in [`src/types/auth.ts`](../../../src/types/auth.ts).
 
 ### 2.1 Error Response Schema Definition
 
@@ -267,7 +267,7 @@ graph TD
 ### 5.5 Scenario E: Open-Redirect Phishing Attack
 * **The Problem:** An attacker constructs a phishing link: `https://abangcebu.com/login?redirectUrl=https://scam-cebu-rentals.com`.
 * **The Solution:**
-  1. The route handler validates `redirectUrl` using [`isSafeRedirectUrl()`](file:///home/hrmr/abang-cebu-ai/src/types/auth.ts).
+  1. The route handler validates `redirectUrl` using [`isSafeRedirectUrl()`](../../../src/types/auth.ts):
   2. If the URL contains protocols, protocol-relative prefixes (`//`), or backslashes (`\`), it is immediately rejected.
   3. Safe fallback defaults to `/search` or `/dashboard`.
 
