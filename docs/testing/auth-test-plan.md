@@ -80,7 +80,7 @@ This QA Test Plan establishes a formal, production-grade quality assurance frame
 
 ## 4. Master QA Test Case Execution Matrix
 
-This matrix corresponds directly to the official Capstone [`Test_Specification_Template.xlsx`](./AbangCebu_Auth_Test_Specification.xlsx) structure.
+This matrix corresponds directly to the official [`Test_Specification_Template.xlsx`](./AbangCebu_Auth_Test_Specification.xlsx) structure.
 
 > **Pre-Implementation Test Specification Notice (Sprint 1):**  
 > In strict accordance with the Sprint 1 scope (Architectural Foundations & Specifications), the test scenarios detailed below are **pre-implementation specifications**. The test steps and expected criteria are established in advance. Physical test execution and pass/fail logging will occur during feature implementation (Sprint 2) upon deployment of the authentication route handlers and frontend forms. The companion Excel specification (`AbangCebu_Auth_Test_Specification.xlsx`) maintains blank execution results awaiting active testing.
@@ -177,7 +177,7 @@ This matrix corresponds directly to the official Capstone [`Test_Specification_T
 ## 6. Definition of Done (DoD) & QA Sign-Off
 
 * [x] All 36 QA test scenarios formulated, categorized, and prioritized.
-* [x] Test plan fully aligned with Capstone `Test_Specification_Template.xlsx` structure.
+* [x] Test plan fully aligned with standard `Test_Specification_Template.xlsx` structure.
 * [x] Clean human attribution: Author `Jenny Villamor (QA Team)`, Reviewer `Hermar Centillas (Lead / Scrum Master)`.
 * [x] 100% type-checked and linted with zero errors.
 * [x] Traceability mapped across all foundational Sprint 1 authentication tickets.

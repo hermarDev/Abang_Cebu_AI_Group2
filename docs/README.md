@@ -1,7 +1,7 @@
 # 📚 AbangCebu AI — Engineering Documentation Hub
 
 **Project:** AbangCebu AI (AI-Powered Map-Centric Rental Discovery Platform for Metro Cebu)  
-**Course / Track:** Capstone Project (Group 2)  
+**Engineering Team:** Group 2  
 **Lead / Scrum Master:** Hermar Centillas  
 **Frontend Framework:** Next.js 16 (App Router, Turbopack) + React 19 + Tailwind CSS v4  
 **Backend & Database:** Supabase BaaS (PostgreSQL 15+ with PostGIS, GoTrue Auth, Row Level Security)  
@@ -10,13 +10,13 @@
 
 ## 1. Documentation Architecture
 
-The `docs/` repository is organized into modular engineering domains aligned with our Capstone submission rubrics and enterprise software standards:
+The `docs/` repository is organized into modular engineering domains aligned with enterprise software architecture and quality standards:
 
 ```
 docs/
 ├── README.md                                # Master Documentation Map (This Document)
 │
-├── templates/                               # Official Instructor Capstone Templates
+├── templates/                               # Standard Engineering Templates
 │   ├── Database_Specification_Template.xlsx # Data Dictionary & Database Spec Template
 │   ├── Function_Specification_Document.docx # Functional Specification Document (FSD) Template
 │   └── Test_Specification_Template.xlsx     # QA Test Plan & Test Execution Template
@@ -56,7 +56,7 @@ docs/
 │
 ├── testing/                                 # Quality Assurance & Verification Test Plans
 │   ├── auth-test-plan.md                    # SCRUM-69: Comprehensive QA test plan & matrix
-│   ├── AbangCebu_Auth_Test_Specification.xlsx # SCRUM-69: Populated Capstone test workbook
+│   ├── AbangCebu_Auth_Test_Specification.xlsx # SCRUM-69: Populated QA test workbook
 │   ├── rbac-test-cases.md                   # SCRUM-70: Role & access permission verification test cases
 │   ├── middleware-test-scenarios.md         # SCRUM-71: Protected route & middleware test scenarios
 │   └── auth-performance-baseline.md         # SCRUM-72: Authentication baseline latency & load strategy
@@ -102,11 +102,11 @@ docs/
 
 ---
 
-## 2. Capstone Instructor Templates Alignment
+## 2. Standard Specification Templates Alignment
 
 Located in [`docs/templates/`](./templates/):
 
-| Template File | Academic & Industry Role | How AbangCebu AI Implements It |
+| Template File | Standard & Industry Role | How AbangCebu AI Implements It |
 |---|---|---|
 | **`Function_Specification_Document.docx`** | Official **Functional Specification Document (FSD)** template defining user stories, acceptance criteria, preconditions, 4-column data movements, UI wireframes, and error handling. | Implemented modularly in `docs/specifications/` (e.g. Module 1: Auth, Module 2: Map & Search, Module 3: Landlord Listing). |
 | **`Database_Specification_Template.xlsx`** | Official **Data Dictionary** workbook defining table indexes, column datatypes, size/length, nullability, primary/foreign keys, and constraints. | Populated by `docs/database/database-erd.md` and `docs/database/users-and-profiles-schema.md` covering all 11 relational entities. |
