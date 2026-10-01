@@ -249,7 +249,7 @@ These helper functions avoid expensive and recursive subqueries in RLS policies:
 
 ## 5. TypeScript Database Types Mapping
 
-The database schema is mapped in [`src/types/database.ts`](file:///home/hrmr/AbangCebuAI/src/types/database.ts) and exported through [`src/types/index.ts`](file:///home/hrmr/AbangCebuAI/src/types/index.ts).
+The database schema is mapped in [`src/types/database.ts`](../../src/types/database.ts) and exported through [`src/types/index.ts`](../../src/types/index.ts).
 
 ### Key Type Definitions:
 - `UserRole = 'renter' | 'landlord' | 'admin'`

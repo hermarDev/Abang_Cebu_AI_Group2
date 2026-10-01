@@ -405,7 +405,7 @@ The platform provides a dedicated utility `@utility focus-ring`:
 
 ## 10. Mobile Map-First Viewport & Stacking Architecture
 
-For detailed ASCII wireframes and full component specifications across all 3 snap states, refer to [docs/design/mobile-map-wireframes.md](file:///home/hrmr/abang-cebu-ai/docs/design/mobile-map-wireframes.md).
+For detailed ASCII wireframes and full component specifications across all 3 snap states, refer to [`docs/design/mobile-map-wireframes.md`](./mobile-map-wireframes.md).
 
 ### 10.1 Mobile Viewport (100dvh) & Safe Areas
 On mobile browsers (iOS Safari, Android Chrome), classic `100vh` fails due to dynamic address bar shifts. AbangCebuAI standardizes on:

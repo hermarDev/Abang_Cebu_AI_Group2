@@ -188,8 +188,8 @@ erDiagram
 
 > **Visual Assets:**  
 > High-resolution diagram render available at:  
-> - PNG: [`docs/assets/abangcebu_database_erd.png`](file:///home/hrmr/abang-cebu-ai/docs/assets/abangcebu_database_erd.png)  
-> - Scalable Vector: [`docs/assets/abangcebu_database_erd.svg`](file:///home/hrmr/abang-cebu-ai/docs/assets/abangcebu_database_erd.svg)
+> - PNG: [`docs/assets/abangcebu_database_erd.png`](../assets/abangcebu_database_erd.png)  
+> - Scalable Vector: [`docs/assets/abangcebu_database_erd.svg`](../assets/abangcebu_database_erd.svg)
 
 ---
 
