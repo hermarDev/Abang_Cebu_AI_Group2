@@ -55,11 +55,13 @@ docs/
 │   └── git-workflow.md                      # SCRUM-49: Branching, PRs, and commit guidelines
 │
 ├── testing/                                 # Quality Assurance & Verification Test Plans
-│   ├── auth-test-plan.md                    # SCRUM-69: Comprehensive QA test plan & matrix
-│   ├── AbangCebu_Auth_Test_Specification.xlsx # SCRUM-69: Populated QA test workbook
+│   ├── auth-test-plan.md                    # SCRUM-69: Comprehensive QA test plan & matrix (Sprint 1)
+│   ├── AbangCebu_Auth_Test_Specification.xlsx # SCRUM-69: Populated QA test workbook (Sprint 1)
 │   ├── rbac-test-cases.md                   # SCRUM-70: Role & access permission verification test cases
 │   ├── middleware-test-scenarios.md         # SCRUM-71: Protected route & middleware test scenarios
-│   └── auth-performance-baseline.md         # SCRUM-72: Authentication baseline latency & load strategy
+│   ├── auth-performance-baseline.md         # SCRUM-72: Authentication baseline latency & load strategy
+│   ├── sprint-2-master-test-plan.md         # SCRUM-88: Sprint 2 Master QA Test Plan (16 Modules, 77 Tests)
+│   └── AbangCebu_Sprint2_Master_Test_Specification.xlsx # SCRUM-90: Sprint 2 Multi-Sheet Master Test Workbook
 │
 ├── pdf/                                     # Formal Architecture & Governance PDFs
 │   ├── AbangCebu_Auth_Registration_Specification.pdf
@@ -87,7 +89,8 @@ docs/
 │   ├── AbangCebu_Map_And_Search_Flowcharts.pdf
 │   ├── AbangCebu_AI_And_Inquiry_Flowcharts.pdf
 │   ├── AbangCebu_Trust_And_Messaging_Flowcharts.pdf
-│   └── AbangCebu_Governance_And_Notification_Flowcharts.pdf
+│   ├── AbangCebu_Governance_And_Notification_Flowcharts.pdf
+│   └── AbangCebu_Sprint2_Master_Test_Plan.pdf
 │
 ├── flowcharts/                               # Sprint 2 System Module Flowcharts (.drawio)
 │   ├── user-registration.drawio             # Module 01: Registration, validation & PKCE activation
@@ -224,6 +227,16 @@ Located in [`docs/templates/`](./templates/):
 | [admin-management.drawio](./flowcharts/admin-management.drawio) | Admin Flowcharts | Ryza Albiso | Hermar Centillas | [SCRUM-81](https://abangcebuai.atlassian.net/browse/SCRUM-81) | Approved / Done |
 | [notification.drawio](./flowcharts/notification.drawio) | Notification Flowcharts | Jenny Villamor | Hermar Centillas | [SCRUM-81](https://abangcebuai.atlassian.net/browse/SCRUM-81) | Approved / Done |
 | [AbangCebu_Governance_And_Notification_Flowcharts.pdf](./pdf/AbangCebu_Governance_And_Notification_Flowcharts.pdf) | Governance Flowcharts (PDF) | Group 2 | Hermar Centillas | [SCRUM-81](https://abangcebuai.atlassian.net/browse/SCRUM-81) | Approved / Done |
+| [sprint-2-master-test-plan.md](./testing/sprint-2-master-test-plan.md) | QA Testing (Auth/Identity) | Jenny Villamor | Hermar Centillas | [SCRUM-82](https://abangcebuai.atlassian.net/browse/SCRUM-82) | Approved / Active |
+| [sprint-2-master-test-plan.md](./testing/sprint-2-master-test-plan.md) | QA Testing (Property/Units) | Dency Marie Bosque | Hermar Centillas | [SCRUM-83](https://abangcebuai.atlassian.net/browse/SCRUM-83) | Approved / Active |
+| [sprint-2-master-test-plan.md](./testing/sprint-2-master-test-plan.md) | QA Testing (Map/Search) | Angel Crushein / Neah | Hermar Centillas | [SCRUM-84](https://abangcebuai.atlassian.net/browse/SCRUM-84) | Approved / Active |
+| [sprint-2-master-test-plan.md](./testing/sprint-2-master-test-plan.md) | QA Testing (AI/Inquiries) | Michelle / Edrich | Hermar Centillas | [SCRUM-85](https://abangcebuai.atlassian.net/browse/SCRUM-85) | Approved / Active |
+| [sprint-2-master-test-plan.md](./testing/sprint-2-master-test-plan.md) | QA Testing (Trust/KYC) | Michelle / Edrich | Hermar Centillas | [SCRUM-86](https://abangcebuai.atlassian.net/browse/SCRUM-86) | Approved / Active |
+| [sprint-2-master-test-plan.md](./testing/sprint-2-master-test-plan.md) | QA Testing (Governance) | Anne KC / Karla / Ryza | Hermar Centillas | [SCRUM-87](https://abangcebuai.atlassian.net/browse/SCRUM-87) | Approved / Active |
+| [sprint-2-master-test-plan.md](./testing/sprint-2-master-test-plan.md) | QA Testing (Master Plan) | Jenny Villamor | Hermar Centillas | [SCRUM-88](https://abangcebuai.atlassian.net/browse/SCRUM-88) | Approved / Active |
+| [auth-performance-baseline.md](./testing/auth-performance-baseline.md) | QA Testing (Performance) | Ryza Albiso | Hermar Centillas | [SCRUM-89](https://abangcebuai.atlassian.net/browse/SCRUM-89) | Approved / Active |
+| [AbangCebu_Sprint2_Master_Test_Specification.xlsx](./testing/AbangCebu_Sprint2_Master_Test_Specification.xlsx) | QA Testing (Excel Workbook) | Jenny Villamor | Hermar Centillas | [SCRUM-90](https://abangcebuai.atlassian.net/browse/SCRUM-90) | Approved / Active |
+| [AbangCebu_Sprint2_Master_Test_Plan.pdf](./pdf/AbangCebu_Sprint2_Master_Test_Plan.pdf) | QA Testing (PDF Plan) | Jenny Villamor | Hermar Centillas | [SCRUM-91](https://abangcebuai.atlassian.net/browse/SCRUM-91) | Approved / Active |
 
 ---
 

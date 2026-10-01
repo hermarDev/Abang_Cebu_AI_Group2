@@ -71,86 +71,93 @@ docs/
 
 ---
 
-## 4. Section C: Sprint 2 Task Breakdown (Option B Alignment)
+## 4. Section C: Revised Sprint 2 Task Breakdown (Sprint 1 Standard Alignment)
 
 ```text
-SPRINT 2 TASK STRUCTURE (16 GRANULAR MODULES)
-├── STREAM 1: Analysis & Architecture Finalization
-├── STREAM 2: Flowchart Authoring (.drawio across 16 files)
-├── STREAM 3: Feature Development (UI, Server Actions, Route Handlers)
-├── STREAM 4: Quality Assurance & Testing
-└── STREAM 5: Review, Audit & Release Verification
+SPRINT 2 TASK STRUCTURE (MODULES, FLOWCHARTS & TEST SPECIFICATIONS)
+├── STREAM 1: System Module Architecture & Boundaries (SCRUM-75)
+├── STREAM 2: System Module Flowchart Authoring & Visual Verification (SCRUM-76 to SCRUM-81)
+├── STREAM 3: Modular QA Test Specifications & Test Case Migration (SCRUM-82 to SCRUM-87)
+├── STREAM 4: Security RBAC & Middleware Route Test Matrices (SCRUM-88)
+├── STREAM 5: Spatial & AI Performance Baseline Strategy (SCRUM-89)
+└── STREAM 6: Master QA Workbook & Deliverable Sign-Off (SCRUM-90 to SCRUM-91)
 ```
 
-### Stream 1: Analysis & Architecture Finalization
-- **TASK-S2-01: Module Architecture Finalization (Option B)** (0.5d / Lead)  
-  Finalize 16 granular modules in documentation; confirm exclusion of payment processing.
-- **TASK-S2-02: Supabase Schema Migration for Marketplace Entities** (1.5d / Senior Fullstack)  
-  Deploy SQL migration for remaining tables: `properties`, `rental_units`, `property_photos`, `amenities`, `property_amenities`, `inquiries`, `reviews`, `saved_listings`, `audit_logs`.
+### Stream 1: System Module Architecture & Boundaries
+- **SCRUM-75: Module Architecture Finalization & System Boundary Sign-Off** (Done / Lead)  
+  Finalize 16 granular modules across Identity, Marketplace, Discovery, AI, Trust, and Governance; sign off on zero in-app payment / escrow boundary.
 
-### Stream 2: Documentation & Flowchart Authoring
-- **TASK-S2-03: Create `docs/flowcharts/` & Author Authentication & User Flowcharts (4 Files)** (1.5d / Lead)  
-  Author `user-registration.drawio`, `user-login.drawio`, `password-reset.drawio`, `user-profile-management.drawio`.
-- **TASK-S2-04: Author Property & Search Flowcharts (4 Files)** (1.5d / Lead)  
-  Author `property-listing-creation.drawio`, `unit-availability.drawio`, `interactive-map.drawio`, `property-search.drawio`.
-- **TASK-S2-05: Author AI, Inquiry & Trust Flowcharts (4 Files)** (1.5d / Lead)  
-  Author `ai-rental-assistant.drawio`, `inquiry-reservation.drawio`, `landlord-verification.drawio`, `messaging-contact.drawio`.
-- **TASK-S2-06: Author Review, Moderation & Notification Flowcharts (4 Files)** (1.5d / Lead)  
-  Author `review-rating.drawio`, `report-moderation.drawio`, `admin-management.drawio`, `notification.drawio`.
+### Stream 2: System Module Flowchart Authoring & Visual Verification
+- **SCRUM-76: Author Authentication & User Management Flowcharts (4 .drawio files)** (Done / John Lloyd Ando & Lead)  
+  Modules 01–04 (`user-registration.drawio`, `user-login.drawio`, `password-reset.drawio`, `user-profile-management.drawio`).
+- **SCRUM-77: Author Property Listing & Availability Flowcharts (2 .drawio files)** (Done / Dency Marie Bosque & Lead)  
+  Modules 05–06 (`property-listing-creation.drawio`, `unit-availability.drawio`).
+- **SCRUM-78: Author Interactive Map & Search Filter Flowcharts (2 .drawio files)** (Done / Angel Crushein Yaun, Neah Moneva & Lead)  
+  Modules 07–08 (`interactive-map.drawio`, `property-search.drawio`).
+- **SCRUM-79: Author AI Assistant & Viewing Reservation Flowcharts (2 .drawio files)** (Done / Michelle Estoy, Edrich Bardilas & Lead)  
+  Modules 09–10 (`ai-rental-assistant.drawio`, `inquiry-reservation.drawio`).
+- **SCRUM-80: Author Landlord KYC & Direct Messaging Flowcharts (2 .drawio files)** (Done / Michelle Estoy, Edrich Bardilas & Lead)  
+  Modules 11–12 (`landlord-verification.drawio`, `messaging-contact.drawio`).
+- **SCRUM-81: Author Review, Moderation & Notification Flowcharts (4 .drawio files)** (Done / Anne KC, Karla, Ryza & Lead)  
+  Modules 13–16 (`review-rating.drawio`, `report-moderation.drawio`, `admin-management.drawio`, `notification.drawio`).
 
-### Stream 3: Feature Development (Implementation)
-- **TASK-S2-07: Registration & Login UI Implementation** (2.0d / Frontend Engineer)  
-  Build interactive forms matching `registration-page-wireframe.md` and `login-page-wireframe.md`.
-- **TASK-S2-08: User Profile & Avatar Storage Integration** (1.5d / Fullstack Engineer)  
-  Implement profile update Server Action and Supabase avatar upload bucket.
-- **TASK-S2-09: MapLibre GL Canvas & Viewport Bounds Integration** (2.5d / Fullstack Engineer)  
-  Connect MapLibre map to Supabase PostGIS `ST_MakeEnvelope` query function.
-- **TASK-S2-10: Multi-Unit Property Listing Wizard** (2.0d / Fullstack Engineer)  
-  Implement landlord listing creation wizard and unit configuration forms.
-- **TASK-S2-11: Landlord KYC Document Upload & Admin Review Screen** (1.5d / Fullstack Engineer)  
-  Implement document upload with private bucket RLS and Admin approval actions.
+### Stream 3: Modular QA Test Specifications & Test Case Migration
+- **SCRUM-82: Author Auth & Identity Lifecycle QA Test Specification (Modules 01–04)** (1.5d / Jenny Villamor & John Lloyd)  
+  Migrate and expand 24 test cases (`TC-REG-01..07`, `TC-LOG-01..07`, `TC-RST-01..05`, `TC-PROF-01..05`) from Sprint 1 foundations.
+- **SCRUM-83: Author Property Listing & Availability QA Test Specification (Modules 05–06)** (1.5d / Dency Marie Bosque & Jenny Villamor)  
+  Author 10 test cases (`TC-PROP-01..06`, `TC-AVAIL-01..04`) covering multi-unit wizard, PostGIS coordinate validation, and occupancy toggles.
+- **SCRUM-84: Author Interactive Map & Parametric Search QA Test Specification (Modules 07–08)** (1.5d / Angel Crushein & Neah Moneva)  
+  Author 11 test cases (`TC-MAP-01..05`, `TC-SRCH-01..06`) covering viewport bounding box (`ST_MakeEnvelope`), clustering, and landmark radius (`ST_DWithin`).
+- **SCRUM-85: Author AI Rental Assistant & Viewing Reservation QA Test Specification (Modules 09–10)** (1.5d / Michelle Estoy & Edrich Bardilas)  
+  Author 10 test cases (`TC-AI-01..05`, `TC-INQ-01..05`) covering natural language Bisaya/English queries, grounding defenses, and ocular viewing scheduling.
+- **SCRUM-86: Author Landlord KYC Verification & Direct Messaging QA Test Specification (Modules 11–12)** (1.5d / Michelle Estoy & Edrich Bardilas)  
+  Author 9 test cases (`TC-KYC-01..05`, `TC-MSG-01..04`) covering PhilSys/Passport validation, private storage RLS, and direct verified messaging.
+- **SCRUM-87: Author Governance, Moderation & Notification QA Test Specification (Modules 13–16)** (1.5d / Anne KC, Karla & Ryza)  
+  Author 14 test cases (`TC-REV-01..04`, `TC-REP-01..04`, `TC-ADM-01..04`, `TC-NOTIF-01..02`) covering reviews, scam reports, admin console, and alerts.
 
-### Stream 4: Quality Assurance & Testing
-- **TASK-S2-12: Author Sprint 2 Master QA Test Plan** (1.5d / QA Lead)  
-  Model after `docs/testing/auth-test-plan.md` across all 16 granular modules.
-- **TASK-S2-13: Execute Automated & Manual Test Cases** (2.0d / QA Team)  
-  Run Vitest validation tests, PostGIS spatial queries, and Playwright integration tests.
+### Stream 4: Security RBAC & Middleware Route Test Matrices
+- **SCRUM-88: Author Sprint 2 RBAC & Route Middleware Test Specification (All 16 Modules)** (1.0d / Karla Hiyas & Anne KC)  
+  Expand Sprint 1 RBAC and middleware test scenarios to govern route permissions across all 16 granular modules.
 
-### Stream 5: Review, Audit & Release Verification
-- **TASK-S2-14: Security Audit of Storage & PostgreSQL RLS Policies** (1.0d / Security Auditor)  
-  Verify zero-trust policies for private KYC documents, listing access, and admin actions.
-- **TASK-S2-15: Release Packaging & Presentation Package** (0.5d / Lead)  
-  Package flowcharts, test execution matrices, and documentation for academic defense.
+### Stream 5: Spatial & AI Performance Baseline Strategy
+- **SCRUM-89: Author Sprint 2 Spatial & AI Query Performance Baseline Strategy** (1.0d / Ryza Albiso)  
+  Formulate latency SLAs (<200ms PostGIS viewport, <1.5s AI streaming) mirroring Sprint 1 `auth-performance-baseline.md`.
+
+### Stream 6: Master QA Workbook & Deliverable Sign-Off
+- **SCRUM-90: Compile Sprint 2 Master QA Test Specification Workbook (Excel .xlsx Companion)** (1.0d / Jenny Villamor)  
+  Generate multi-sheet workbook `AbangCebu_Sprint2_Master_Test_Specification.xlsx` adhering to `Test_Specification_Template.xlsx`.
+- **SCRUM-91: Compile Sprint 2 Master QA Test Plan & Audit Sign-Off Package (PDF)** (0.5d / Lead & Jenny Villamor)  
+  Compile `AbangCebu_Sprint2_Master_Test_Plan.pdf` and synchronize all Jira issues for Sprint 2 defense.
 
 ---
 
-## 5. Section D: Master QA Test Plan (Option B Mappings)
+## 5. Section D: Master QA Test Plan (Option B Mappings — 77 Test Cases)
 
-All 16 granular modules are mapped to corresponding test suites following the structure in `docs/testing/auth-test-plan.md`:
+All 16 granular modules are mapped to corresponding test suites in `docs/testing/sprint-2-master-test-plan.md` and `docs/testing/AbangCebu_Sprint2_Master_Test_Specification.xlsx`:
 
 ```
-+---------------------------------------------------------------------------------------------------+
-|                              GRANULAR QA TEST SUITE TRACEABILITY MATRIX                           |
-+---------------------+-----------------------------------+-----------------------------------------+
-| Module #            | Granular Module Name              | Covered QA Suite & Test Case IDs        |
-+---------------------+-----------------------------------+-----------------------------------------+
-| **Module 01**       | User Registration Module          | Suite 1: Registration (`TC-REG-01..07`) |
-| **Module 02**       | User Login & Session Module       | Suite 2: Login & Session (`TC-LOG-01..08`)|
-| **Module 03**       | Password Reset & Recovery Module  | Suite 3: Recovery (`TC-RST-01..05`)     |
-| **Module 04**       | User Profile Management Module    | Suite 4: Profiles (`TC-PROF-01..04`)    |
-| **Module 05**       | Property Listing Creation Module  | Suite 5: Listing Creation (`TC-PROP-01..04`)|
-| **Module 06**       | Unit Availability Module          | Suite 6: Unit Controls (`TC-AVAIL-01..03`)|
-| **Module 07**       | Interactive Map Discovery Module  | Suite 7: Map Spatial (`TC-MAP-01..04`)  |
-| **Module 08**       | Property Search & Filter Module   | Suite 8: Filters & Search (`TC-SRCH-01..04`)|
-| **Module 09**       | AI Rental Assistant Module        | Suite 9: AI Grounding (`TC-AI-01..04`)  |
-| **Module 10**       | Inquiry & Viewing Reservation     | Suite 10: Inquiries (`TC-INQ-01..04`)   |
-| **Module 11**       | Landlord KYC & Verification       | Suite 11: Trust & KYC (`TC-KYC-01..04`) |
-| **Module 12**       | Messaging & Contact Module        | Suite 12: Communication (`TC-MSG-01..03`)|
-| **Module 13**       | Review & Rating Module            | Suite 13: Reviews (`TC-REV-01..03`)     |
-| **Module 14**       | Reporting & Scam Flagging Module  | Suite 14: Moderation Flags (`TC-REP-01..03`)|
-| **Module 15**       | Admin Management & Moderation     | Suite 15: Admin Controls (`TC-ADM-01..04`)|
-| **Module 16**       | Notification Module               | Suite 16: System Alerts (`TC-NOTIF-01..03`)|
-+---------------------+-----------------------------------+-----------------------------------------+
++-------------------------------------------------------------------------------------------------------------------+
+|                                  GRANULAR QA TEST SUITE TRACEABILITY MATRIX (77 CASES)                            |
++---------------------+-----------------------------------+-----------------------------------------+---------------+
+| Domain              | Granular Module Name              | Covered QA Suite & Test Case IDs        | Jira Ticket   |
++---------------------+-----------------------------------+-----------------------------------------+---------------+
+| **Identity**        | User Registration Module          | Suite 1: Registration (`TC-REG-01..07`) | SCRUM-82      |
+| **Identity**        | User Login & Session Module       | Suite 2: Login & Session (`TC-LOG-01..07`)| SCRUM-82    |
+| **Identity**        | Password Reset & Recovery Module  | Suite 3: Recovery (`TC-RST-01..05`)     | SCRUM-82      |
+| **Identity**        | User Profile Management Module    | Suite 4: Profiles (`TC-PROF-01..05`)    | SCRUM-82      |
+| **Marketplace**     | Property Listing Creation Module  | Suite 5: Listing Creation (`TC-PROP-01..06`)| SCRUM-83   |
+| **Marketplace**     | Unit Availability Module          | Suite 6: Unit Controls (`TC-AVAIL-01..04`)| SCRUM-83     |
+| **Discovery**       | Interactive Map Discovery Module  | Suite 7: Map Spatial (`TC-MAP-01..05`)  | SCRUM-84      |
+| **Discovery**       | Property Search & Filter Module   | Suite 8: Filters & Search (`TC-SRCH-01..06`)| SCRUM-84    |
+| **Intelligence**    | AI Rental Assistant Module        | Suite 9: AI Grounding (`TC-AI-01..05`)  | SCRUM-85      |
+| **Intelligence**    | Inquiry & Viewing Reservation     | Suite 10: Inquiries (`TC-INQ-01..05`)   | SCRUM-85      |
+| **Trust**           | Landlord KYC & Verification       | Suite 11: Trust & KYC (`TC-KYC-01..05`) | SCRUM-86      |
+| **Trust**           | Messaging & Contact Module        | Suite 12: Communication (`TC-MSG-01..04`)| SCRUM-86     |
+| **Governance**      | Review & Rating Module            | Suite 13: Reviews (`TC-REV-01..04`)     | SCRUM-87      |
+| **Governance**      | Reporting & Scam Flagging Module  | Suite 14: Moderation Flags (`TC-REP-01..04`)| SCRUM-87   |
+| **Governance**      | Admin Management & Moderation     | Suite 15: Admin Controls (`TC-ADM-01..05`)| SCRUM-87     |
+| **Governance**      | Notification Module               | Suite 16: System Alerts (`TC-NOTIF-01..04`)| SCRUM-87    |
++---------------------+-----------------------------------+-----------------------------------------+---------------+
 ```
 
 ---
