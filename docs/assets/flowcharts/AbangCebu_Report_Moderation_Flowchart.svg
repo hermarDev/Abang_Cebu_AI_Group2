@@ -1,0 +1,91 @@
+<svg width="1050" height="1250" viewBox="0 0 1050 1250" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="3" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 3 L 0 6 z" fill="#0f172a" />
+    </marker>
+    <filter id="shadow" x="-5%" y="-5%" width="110%" height="115%" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="1" dy="2" stdDeviation="2" flood-color="#000000" flood-opacity="0.08" />
+    </filter>
+  </defs>
+  <rect width="1050" height="1250" fill="#f8fafc" />
+  <!-- Title Banner -->
+  <rect x="50" y="20" width="950" height="45" rx="6" fill="#0f172a" />
+  <text x="525" y="48" font-family="system-ui, -apple-system, sans-serif" font-size="15" font-weight="bold" text-anchor="middle" fill="#ffffff" letter-spacing="0.5">AbangCebu AI: Fraud Reporting & Moderation Flagging Flowchart</text>
+  <path d="M 520 120 L 520 150 " fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#arrow)" />
+  <path d="M 520 200 L 520 225 " fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#arrow)" />
+  <path d="M 520 270 L 520 295 " fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#arrow)" />
+  <path d="M 520 350 L 520 375 " fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#arrow)" />
+  <path d="M 520 425 L 520 450 " fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#arrow)" />
+  <path d="M 520 495 L 520 525 " fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#arrow)" />
+  <path d="M 520 580 L 250 520 " fill="none" stroke="#0284c7" stroke-width="1.8" stroke-dasharray="6,4" marker-end="url(#arrow)" />
+  <path d="M 520 580 L 520 610 " fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#arrow)" />
+  <path d="M 520 675 L 775 615 " fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#arrow)" />
+  <rect x="574" y="602" width="33" height="18" rx="3" fill="#ffffff" stroke="#94a3b8" stroke-width="1" />
+  <text x="590" y="615" font-family="system-ui, sans-serif" font-size="10" font-weight="bold" fill="#0f172a" text-anchor="middle">YES</text>
+  <path d="M 775 732 L 625 732 " fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#arrow)" />
+  <path d="M 520 675 L 520 705 " fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#arrow)" />
+  <rect x="441" y="647" width="32" height="18" rx="3" fill="#ffffff" stroke="#94a3b8" stroke-width="1" />
+  <text x="457" y="660" font-family="system-ui, sans-serif" font-size="10" font-weight="bold" fill="#0f172a" text-anchor="middle">NO</text>
+  <path d="M 520 760 L 520 790 " fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#arrow)" />
+  <path d="M 520 845 L 520 875 " fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#arrow)" />
+  <path d="M 295 907 L 295 975 " fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#arrow)" />
+  <rect x="265" y="923" width="61" height="18" rx="3" fill="#ffffff" stroke="#94a3b8" stroke-width="1" />
+  <text x="295" y="936" font-family="system-ui, sans-serif" font-size="10" font-weight="bold" fill="#0f172a" text-anchor="middle">Dismiss</text>
+  <path d="M 750 907 L 750 975 " fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#arrow)" />
+  <rect x="720" y="923" width="61" height="18" rx="3" fill="#ffffff" stroke="#94a3b8" stroke-width="1" />
+  <text x="750" y="936" font-family="system-ui, sans-serif" font-size="10" font-weight="bold" fill="#0f172a" text-anchor="middle">Suspend</text>
+  <path d="M 295 1092 L 415 1092 " fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#arrow)" />
+  <path d="M 750 1092 L 625 1092 " fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#arrow)" />
+  <path d="M 520 1120 L 520 1150 " fill="none" stroke="#334155" stroke-width="1.8" marker-end="url(#arrow)" />
+  <rect x="450" y="80" width="140" height="40" rx="20" fill="#0f172a" stroke="#0f172a" stroke-width="2" filter="url(#shadow)" />
+  <text x="520" y="103" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="bold" fill="#ffffff" text-anchor="middle">START</text>
+  <polygon points="427,150 625,150 613,200 415,200" fill="#f1f5f9" stroke="#0284c7" stroke-width="1.8" filter="url(#shadow)" />
+  <text x="520" y="172" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="500" fill="#0369a1" text-anchor="middle">User Clicks "Report Listing / User"</text>
+  <text x="520" y="185" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="500" fill="#0369a1" text-anchor="middle">(Fraud, Scam, Inaccurate Data)</text>
+  <polygon points="442,225 610,225 598,270 430,270" fill="#f1f5f9" stroke="#0284c7" stroke-width="1.8" filter="url(#shadow)" />
+  <text x="520" y="251" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="500" fill="#0369a1" text-anchor="middle">Open Report Modal Dialogue</text>
+  <polygon points="422,295 630,295 618,350 410,350" fill="#f1f5f9" stroke="#0284c7" stroke-width="1.8" filter="url(#shadow)" />
+  <text x="520" y="319" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="500" fill="#0369a1" text-anchor="middle">Select Reason Category (Fake Photos, Scam,</text>
+  <text x="520" y="332" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="500" fill="#0369a1" text-anchor="middle">Advance Deposit Demand, Duplicate, Abusive)</text>
+  <polygon points="427,375 625,375 613,425 415,425" fill="#f1f5f9" stroke="#0284c7" stroke-width="1.8" filter="url(#shadow)" />
+  <text x="520" y="397" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="500" fill="#0369a1" text-anchor="middle">Provide Explanation Details &</text>
+  <text x="520" y="410" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="500" fill="#0369a1" text-anchor="middle">Optional Screenshot Evidence</text>
+  <rect x="430" y="450" width="180" height="45" rx="6" fill="#ffffff" stroke="#334155" stroke-width="1.8" filter="url(#shadow)" />
+  <text x="520" y="476" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="500" fill="#0f172a" text-anchor="middle">Submit Report to Server Action</text>
+  <rect x="415" y="525" width="210" height="55" rx="6" fill="#ffffff" stroke="#334155" stroke-width="1.8" filter="url(#shadow)" />
+  <text x="520" y="549" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="500" fill="#0f172a" text-anchor="middle">Insert Immutable Row into audit_logs</text>
+  <text x="520" y="562" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="500" fill="#0f172a" text-anchor="middle">(action="listing.report", details, IP)</text>
+  <g filter="url(#shadow)">
+    <rect x="180" y="530" width="140" height="55" fill="#f8fafc" stroke="#475569" stroke-width="1.8" />
+    <ellipse cx="250" cy="530" rx="70" ry="10" fill="#e2e8f0" stroke="#475569" stroke-width="1.8" />
+    <ellipse cx="250" cy="585" rx="70" ry="10" fill="#f8fafc" stroke="#475569" stroke-width="1.8" />
+  </g>
+  <text x="250" y="554" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="600" fill="#1e293b" text-anchor="middle">audit_logs &</text>
+  <text x="250" y="567" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="600" fill="#1e293b" text-anchor="middle">properties</text>
+  <polygon points="520,610 600,642 520,675 440,642" fill="#ffffff" stroke="#0f172a" stroke-width="2" filter="url(#shadow)" />
+  <text x="520" y="639" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="600" fill="#0f172a" text-anchor="middle">Listing Reports</text>
+  <text x="520" y="652" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="600" fill="#0f172a" text-anchor="middle">>= 3 Flags?</text>
+  <rect x="680" y="615" width="190" height="55" rx="6" fill="#ffffff" stroke="#334155" stroke-width="1.8" filter="url(#shadow)" />
+  <text x="775" y="639" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="500" fill="#0f172a" text-anchor="middle">Temporarily Flag Listing with</text>
+  <text x="775" y="652" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="500" fill="#0f172a" text-anchor="middle">"Under Moderation Review" Badge</text>
+  <rect x="415" y="705" width="210" height="55" rx="6" fill="#ffffff" stroke="#334155" stroke-width="1.8" filter="url(#shadow)" />
+  <text x="520" y="729" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="500" fill="#0f172a" text-anchor="middle">Push Urgent Item to Admin Moderation</text>
+  <text x="520" y="742" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="500" fill="#0f172a" text-anchor="middle">Queue (/admin/reports)</text>
+  <polygon points="427,790 625,790 613,845 415,845" fill="#f1f5f9" stroke="#0284c7" stroke-width="1.8" filter="url(#shadow)" />
+  <text x="520" y="814" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="500" fill="#0369a1" text-anchor="middle">Admin Moderator Investigates Evidence,</text>
+  <text x="520" y="827" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="500" fill="#0369a1" text-anchor="middle">Listing History & Landlord Record</text>
+  <polygon points="520,875 600,907 520,940 440,907" fill="#ffffff" stroke="#0f172a" stroke-width="2" filter="url(#shadow)" />
+  <text x="520" y="904" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="600" fill="#0f172a" text-anchor="middle">Admin Action on</text>
+  <text x="520" y="917" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="600" fill="#0f172a" text-anchor="middle">Reported Entity?</text>
+  <rect x="200" y="975" width="190" height="50" rx="6" fill="#ffffff" stroke="#334155" stroke-width="1.8" filter="url(#shadow)" />
+  <text x="295" y="997" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="500" fill="#0f172a" text-anchor="middle">Dismiss Report as False Alarm;</text>
+  <text x="295" y="1010" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="500" fill="#0f172a" text-anchor="middle">Remove Warning Badge</text>
+  <rect x="640" y="975" width="220" height="55" rx="6" fill="#ffffff" stroke="#334155" stroke-width="1.8" filter="url(#shadow)" />
+  <text x="750" y="999" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="500" fill="#0f172a" text-anchor="middle">Suspend Listing & Impose Landlord Account</text>
+  <text x="750" y="1012" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="500" fill="#0f172a" text-anchor="middle">Suspension (profiles.is_suspended = true)</text>
+  <rect x="415" y="1065" width="210" height="55" rx="6" fill="#ffffff" stroke="#334155" stroke-width="1.8" filter="url(#shadow)" />
+  <text x="520" y="1089" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="500" fill="#0f172a" text-anchor="middle">Log Investigation Resolution into audit_logs</text>
+  <text x="520" y="1102" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="500" fill="#0f172a" text-anchor="middle">& Dispatch Notice to Reporter/Landlord</text>
+  <rect x="460" y="1150" width="120" height="40" rx="20" fill="#0f172a" stroke="#0f172a" stroke-width="2" filter="url(#shadow)" />
+  <text x="520" y="1173" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="bold" fill="#ffffff" text-anchor="middle">END</text>
+</svg>

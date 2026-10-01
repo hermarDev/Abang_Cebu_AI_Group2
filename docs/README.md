@@ -80,7 +80,14 @@ docs/
 │   ├── AbangCebu_Admin_Dashboard_Wireframe_Specification.pdf
 │   ├── AbangCebu_RBAC_Test_Verification_Matrix.pdf
 │   ├── AbangCebu_Middleware_Test_Scenarios.pdf
-│   └── AbangCebu_Auth_Performance_Baseline.pdf
+│   ├── AbangCebu_Auth_Performance_Baseline.pdf
+│   ├── AbangCebu_Sprint2_Master_Plan.pdf
+│   ├── AbangCebu_Auth_And_User_Management_Flowcharts.pdf
+│   ├── AbangCebu_Property_Listing_Flowcharts.pdf
+│   ├── AbangCebu_Map_And_Search_Flowcharts.pdf
+│   ├── AbangCebu_AI_And_Inquiry_Flowcharts.pdf
+│   ├── AbangCebu_Trust_And_Messaging_Flowcharts.pdf
+│   └── AbangCebu_Governance_And_Notification_Flowcharts.pdf
 │
 ├── flowcharts/                               # Sprint 2 System Module Flowcharts (.drawio)
 │   ├── user-registration.drawio             # Module 01: Registration, validation & PKCE activation
@@ -103,6 +110,23 @@ docs/
 └── assets/                                  # Visual Diagrams & Architecture Assets
     ├── abangcebu_database_erd.png           # High-resolution ERD rendering
     ├── abangcebu_database_erd.svg           # Vector source ERD
+    ├── flowcharts/                          # 16 High-Resolution PNG & SVG Flowcharts (150 DPI)
+    │   ├── AbangCebu_User_Registration_Flowchart.png
+    │   ├── AbangCebu_User_Login_Flowchart.png
+    │   ├── AbangCebu_Password_Reset_Flowchart.png
+    │   ├── AbangCebu_User_Profile_Management_Flowchart.png
+    │   ├── AbangCebu_Property_Listing_Creation_Flowchart.png
+    │   ├── AbangCebu_Unit_Availability_Flowchart.png
+    │   ├── AbangCebu_Interactive_Map_Discovery_Flowchart.png
+    │   ├── AbangCebu_Property_Search_Filter_Flowchart.png
+    │   ├── AbangCebu_AI_Rental_Assistant_Flowchart.png
+    │   ├── AbangCebu_Inquiry_Viewing_Reservation_Flowchart.png
+    │   ├── AbangCebu_Landlord_KYC_Verification_Flowchart.png
+    │   ├── AbangCebu_Messaging_Contact_Flowchart.png
+    │   ├── AbangCebu_Review_Rating_Flowchart.png
+    │   ├── AbangCebu_Report_Moderation_Flowchart.png
+    │   ├── AbangCebu_Admin_Management_Flowchart.png
+    │   └── AbangCebu_Notification_Flowchart.png
     └── wireframes/                          # Visual wireframe blueprints
         ├── landing-page-desktop.svg         # 1440x900 desktop Google Maps wireframe blueprint
         ├── landing-page-mobile.svg          # 390x844 mobile 100dvh wireframe blueprint
@@ -176,6 +200,30 @@ Located in [`docs/templates/`](./templates/):
 | [AbangCebu_Middleware_Test_Scenarios.pdf](./pdf/AbangCebu_Middleware_Test_Scenarios.pdf) | QA Testing (PDF) | Karla Hiyas | Hermar Centillas | [SCRUM-71](https://abangcebuai.atlassian.net/browse/SCRUM-71) | Approved / Done |
 | [auth-performance-baseline.md](./testing/auth-performance-baseline.md) | QA Testing | Ryza Albiso | Hermar Centillas | [SCRUM-72](https://abangcebuai.atlassian.net/browse/SCRUM-72) | Approved / Done |
 | [AbangCebu_Auth_Performance_Baseline.pdf](./pdf/AbangCebu_Auth_Performance_Baseline.pdf) | QA Testing (PDF) | Ryza Albiso | Hermar Centillas | [SCRUM-72](https://abangcebuai.atlassian.net/browse/SCRUM-72) | Approved / Done |
+| [sprint-2-plan.md](../sprint-2-plan.md) | Sprint 2 Master Plan | Hermar Centillas | Team Lead | [SCRUM-75](https://abangcebuai.atlassian.net/browse/SCRUM-75) | Approved / Done |
+| [AbangCebu_Sprint2_Master_Plan.pdf](./pdf/AbangCebu_Sprint2_Master_Plan.pdf) | Sprint 2 Plan (PDF) | Hermar Centillas | Team Lead | [SCRUM-75](https://abangcebuai.atlassian.net/browse/SCRUM-75) | Approved / Done |
+| [user-registration.drawio](./flowcharts/user-registration.drawio) | Auth Flowcharts | John Lloyd Ando | Hermar Centillas | [SCRUM-76](https://abangcebuai.atlassian.net/browse/SCRUM-76) | Approved / Done |
+| [user-login.drawio](./flowcharts/user-login.drawio) | Auth Flowcharts | John Lloyd Ando | Hermar Centillas | [SCRUM-76](https://abangcebuai.atlassian.net/browse/SCRUM-76) | Approved / Done |
+| [password-reset.drawio](./flowcharts/password-reset.drawio) | Auth Flowcharts | Joan Marie Encallado Inting | Hermar Centillas | [SCRUM-76](https://abangcebuai.atlassian.net/browse/SCRUM-76) | Approved / Done |
+| [user-profile-management.drawio](./flowcharts/user-profile-management.drawio) | Auth Flowcharts | junrilldisoy90 | Hermar Centillas | [SCRUM-76](https://abangcebuai.atlassian.net/browse/SCRUM-76) | Approved / Done |
+| [AbangCebu_Auth_And_User_Management_Flowcharts.pdf](./pdf/AbangCebu_Auth_And_User_Management_Flowcharts.pdf) | Auth Flowcharts (PDF) | Group 2 | Hermar Centillas | [SCRUM-76](https://abangcebuai.atlassian.net/browse/SCRUM-76) | Approved / Done |
+| [property-listing-creation.drawio](./flowcharts/property-listing-creation.drawio) | Property Flowcharts | Dency Marie Bosque | Hermar Centillas | [SCRUM-77](https://abangcebuai.atlassian.net/browse/SCRUM-77) | Approved / Done |
+| [unit-availability.drawio](./flowcharts/unit-availability.drawio) | Property Flowcharts | Dency Marie Bosque | Hermar Centillas | [SCRUM-77](https://abangcebuai.atlassian.net/browse/SCRUM-77) | Approved / Done |
+| [AbangCebu_Property_Listing_Flowcharts.pdf](./pdf/AbangCebu_Property_Listing_Flowcharts.pdf) | Property Flowcharts (PDF) | Group 2 | Hermar Centillas | [SCRUM-77](https://abangcebuai.atlassian.net/browse/SCRUM-77) | Approved / Done |
+| [interactive-map.drawio](./flowcharts/interactive-map.drawio) | Map Flowcharts | Angel Crushein Yaun | Hermar Centillas | [SCRUM-78](https://abangcebuai.atlassian.net/browse/SCRUM-78) | Approved / Done |
+| [property-search.drawio](./flowcharts/property-search.drawio) | Search Flowcharts | Neah Moneva | Hermar Centillas | [SCRUM-78](https://abangcebuai.atlassian.net/browse/SCRUM-78) | Approved / Done |
+| [AbangCebu_Map_And_Search_Flowcharts.pdf](./pdf/AbangCebu_Map_And_Search_Flowcharts.pdf) | Map/Search Flowcharts (PDF) | Group 2 | Hermar Centillas | [SCRUM-78](https://abangcebuai.atlassian.net/browse/SCRUM-78) | Approved / Done |
+| [ai-rental-assistant.drawio](./flowcharts/ai-rental-assistant.drawio) | AI Flowcharts | Michelle Estoy | Hermar Centillas | [SCRUM-79](https://abangcebuai.atlassian.net/browse/SCRUM-79) | Approved / Done |
+| [inquiry-reservation.drawio](./flowcharts/inquiry-reservation.drawio) | Inquiry Flowcharts | Edrich Bardilas | Hermar Centillas | [SCRUM-79](https://abangcebuai.atlassian.net/browse/SCRUM-79) | Approved / Done |
+| [AbangCebu_AI_And_Inquiry_Flowcharts.pdf](./pdf/AbangCebu_AI_And_Inquiry_Flowcharts.pdf) | AI/Inquiry Flowcharts (PDF) | Group 2 | Hermar Centillas | [SCRUM-79](https://abangcebuai.atlassian.net/browse/SCRUM-79) | Approved / Done |
+| [landlord-verification.drawio](./flowcharts/landlord-verification.drawio) | Trust Flowcharts | Michelle Estoy | Hermar Centillas | [SCRUM-80](https://abangcebuai.atlassian.net/browse/SCRUM-80) | Approved / Done |
+| [messaging-contact.drawio](./flowcharts/messaging-contact.drawio) | Messaging Flowcharts | Edrich Bardilas | Hermar Centillas | [SCRUM-80](https://abangcebuai.atlassian.net/browse/SCRUM-80) | Approved / Done |
+| [AbangCebu_Trust_And_Messaging_Flowcharts.pdf](./pdf/AbangCebu_Trust_And_Messaging_Flowcharts.pdf) | Trust/Messaging Flowcharts (PDF) | Group 2 | Hermar Centillas | [SCRUM-80](https://abangcebuai.atlassian.net/browse/SCRUM-80) | Approved / Done |
+| [review-rating.drawio](./flowcharts/review-rating.drawio) | Governance Flowcharts | Anne KC M. Casinay | Hermar Centillas | [SCRUM-81](https://abangcebuai.atlassian.net/browse/SCRUM-81) | Approved / Done |
+| [report-moderation.drawio](./flowcharts/report-moderation.drawio) | Governance Flowcharts | Karla Hiyas | Hermar Centillas | [SCRUM-81](https://abangcebuai.atlassian.net/browse/SCRUM-81) | Approved / Done |
+| [admin-management.drawio](./flowcharts/admin-management.drawio) | Admin Flowcharts | Ryza Albiso | Hermar Centillas | [SCRUM-81](https://abangcebuai.atlassian.net/browse/SCRUM-81) | Approved / Done |
+| [notification.drawio](./flowcharts/notification.drawio) | Notification Flowcharts | Jenny Villamor | Hermar Centillas | [SCRUM-81](https://abangcebuai.atlassian.net/browse/SCRUM-81) | Approved / Done |
+| [AbangCebu_Governance_And_Notification_Flowcharts.pdf](./pdf/AbangCebu_Governance_And_Notification_Flowcharts.pdf) | Governance Flowcharts (PDF) | Group 2 | Hermar Centillas | [SCRUM-81](https://abangcebuai.atlassian.net/browse/SCRUM-81) | Approved / Done |
 
 ---
 
