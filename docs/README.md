@@ -55,13 +55,11 @@ docs/
 │   └── git-workflow.md                      # SCRUM-49: Branching, PRs, and commit guidelines
 │
 ├── testing/                                 # Quality Assurance & Verification Test Plans
-│   ├── auth-test-plan.md                    # SCRUM-69: Comprehensive QA test plan & matrix (Sprint 1)
-│   ├── AbangCebu_Auth_Test_Specification.xlsx # SCRUM-69: Populated QA test workbook (Sprint 1)
+│   ├── auth-test-plan.md                    # SCRUM-69: Comprehensive QA test plan & matrix
+│   ├── AbangCebu_Auth_Test_Specification.xlsx # SCRUM-69: Populated QA test workbook
 │   ├── rbac-test-cases.md                   # SCRUM-70: Role & access permission verification test cases
 │   ├── middleware-test-scenarios.md         # SCRUM-71: Protected route & middleware test scenarios
-│   ├── auth-performance-baseline.md         # SCRUM-72: Authentication baseline latency & load strategy
-│   ├── sprint-2-master-test-plan.md         # SCRUM-88: Sprint 2 Master QA Test Plan (16 Modules, 77 Tests)
-│   └── AbangCebu_Sprint2_Master_Test_Specification.xlsx # SCRUM-90: Sprint 2 Multi-Sheet Master Test Workbook
+│   └── auth-performance-baseline.md         # SCRUM-72: Authentication baseline latency & load strategy
 │
 ├── pdf/                                     # Formal Architecture & Governance PDFs
 │   ├── AbangCebu_Auth_Registration_Specification.pdf
@@ -82,54 +80,11 @@ docs/
 │   ├── AbangCebu_Admin_Dashboard_Wireframe_Specification.pdf
 │   ├── AbangCebu_RBAC_Test_Verification_Matrix.pdf
 │   ├── AbangCebu_Middleware_Test_Scenarios.pdf
-│   ├── AbangCebu_Auth_Performance_Baseline.pdf
-│   ├── AbangCebu_Sprint2_Master_Plan.pdf
-│   ├── AbangCebu_Auth_And_User_Management_Flowcharts.pdf
-│   ├── AbangCebu_Property_Listing_Flowcharts.pdf
-│   ├── AbangCebu_Map_And_Search_Flowcharts.pdf
-│   ├── AbangCebu_AI_And_Inquiry_Flowcharts.pdf
-│   ├── AbangCebu_Trust_And_Messaging_Flowcharts.pdf
-│   ├── AbangCebu_Governance_And_Notification_Flowcharts.pdf
-│   └── AbangCebu_Sprint2_Master_Test_Plan.pdf
-│
-├── flowcharts/                               # Sprint 2 System Module Flowcharts (.drawio)
-│   ├── user-registration.drawio             # Module 01: Registration, validation & PKCE activation
-│   ├── user-login.drawio                    # Module 02: Login, session token lifecycle & role routing
-│   ├── password-reset.drawio                # Module 03: Self-service recovery & global session revocation
-│   ├── user-profile-management.drawio       # Module 04: Profile details, phone validation & avatar upload
-│   ├── property-listing-creation.drawio     # Module 05: Landlord multi-unit property creation wizard
-│   ├── unit-availability.drawio             # Module 06: Real-time room/bedspace occupancy toggle
-│   ├── interactive-map.drawio               # Module 07: MapLibre GL viewport bounds & spatial query
-│   ├── property-search.drawio               # Module 08: Parametric filter drawer & landmark radius
-│   ├── ai-rental-assistant.drawio           # Module 09: Natural language parser & recommendation engine
-│   ├── inquiry-reservation.drawio           # Module 10: Ocular viewing scheduling & inquiry state machine
-│   ├── landlord-verification.drawio         # Module 11: Government ID & title document verification (KYC)
-│   ├── messaging-contact.drawio             # Module 12: Direct inquiry messaging & verified contact
-│   ├── review-rating.drawio                 # Module 13: Verified tenant rating & reviews workflow
-│   ├── report-moderation.drawio             # Module 14: Fraud reporting & listing moderation flag
-│   ├── admin-management.drawio              # Module 15: Admin command center, moderation & audit logs
-│   └── notification.drawio                  # Module 16: Transactional email & in-app badge alerts
+│   └── AbangCebu_Auth_Performance_Baseline.pdf
 │
 └── assets/                                  # Visual Diagrams & Architecture Assets
     ├── abangcebu_database_erd.png           # High-resolution ERD rendering
     ├── abangcebu_database_erd.svg           # Vector source ERD
-    ├── flowcharts/                          # 16 High-Resolution PNG & SVG Flowcharts (150 DPI)
-    │   ├── AbangCebu_User_Registration_Flowchart.png
-    │   ├── AbangCebu_User_Login_Flowchart.png
-    │   ├── AbangCebu_Password_Reset_Flowchart.png
-    │   ├── AbangCebu_User_Profile_Management_Flowchart.png
-    │   ├── AbangCebu_Property_Listing_Creation_Flowchart.png
-    │   ├── AbangCebu_Unit_Availability_Flowchart.png
-    │   ├── AbangCebu_Interactive_Map_Discovery_Flowchart.png
-    │   ├── AbangCebu_Property_Search_Filter_Flowchart.png
-    │   ├── AbangCebu_AI_Rental_Assistant_Flowchart.png
-    │   ├── AbangCebu_Inquiry_Viewing_Reservation_Flowchart.png
-    │   ├── AbangCebu_Landlord_KYC_Verification_Flowchart.png
-    │   ├── AbangCebu_Messaging_Contact_Flowchart.png
-    │   ├── AbangCebu_Review_Rating_Flowchart.png
-    │   ├── AbangCebu_Report_Moderation_Flowchart.png
-    │   ├── AbangCebu_Admin_Management_Flowchart.png
-    │   └── AbangCebu_Notification_Flowchart.png
     └── wireframes/                          # Visual wireframe blueprints
         ├── landing-page-desktop.svg         # 1440x900 desktop Google Maps wireframe blueprint
         ├── landing-page-mobile.svg          # 390x844 mobile 100dvh wireframe blueprint
@@ -203,40 +158,6 @@ Located in [`docs/templates/`](./templates/):
 | [AbangCebu_Middleware_Test_Scenarios.pdf](./pdf/AbangCebu_Middleware_Test_Scenarios.pdf) | QA Testing (PDF) | Karla Hiyas | Hermar Centillas | [SCRUM-71](https://abangcebuai.atlassian.net/browse/SCRUM-71) | Approved / Done |
 | [auth-performance-baseline.md](./testing/auth-performance-baseline.md) | QA Testing | Ryza Albiso | Hermar Centillas | [SCRUM-72](https://abangcebuai.atlassian.net/browse/SCRUM-72) | Approved / Done |
 | [AbangCebu_Auth_Performance_Baseline.pdf](./pdf/AbangCebu_Auth_Performance_Baseline.pdf) | QA Testing (PDF) | Ryza Albiso | Hermar Centillas | [SCRUM-72](https://abangcebuai.atlassian.net/browse/SCRUM-72) | Approved / Done |
-| [sprint-2-plan.md](../sprint-2-plan.md) | Sprint 2 Master Plan | Hermar Centillas | Team Lead | [SCRUM-75](https://abangcebuai.atlassian.net/browse/SCRUM-75) | Approved / Done |
-| [AbangCebu_Sprint2_Master_Plan.pdf](./pdf/AbangCebu_Sprint2_Master_Plan.pdf) | Sprint 2 Plan (PDF) | Hermar Centillas | Team Lead | [SCRUM-75](https://abangcebuai.atlassian.net/browse/SCRUM-75) | Approved / Done |
-| [user-registration.drawio](./flowcharts/user-registration.drawio) | Auth Flowcharts | John Lloyd Ando | Hermar Centillas | [SCRUM-76](https://abangcebuai.atlassian.net/browse/SCRUM-76) | Approved / Done |
-| [user-login.drawio](./flowcharts/user-login.drawio) | Auth Flowcharts | John Lloyd Ando | Hermar Centillas | [SCRUM-76](https://abangcebuai.atlassian.net/browse/SCRUM-76) | Approved / Done |
-| [password-reset.drawio](./flowcharts/password-reset.drawio) | Auth Flowcharts | Joan Marie Encallado Inting | Hermar Centillas | [SCRUM-76](https://abangcebuai.atlassian.net/browse/SCRUM-76) | Approved / Done |
-| [user-profile-management.drawio](./flowcharts/user-profile-management.drawio) | Auth Flowcharts | junrilldisoy90 | Hermar Centillas | [SCRUM-76](https://abangcebuai.atlassian.net/browse/SCRUM-76) | Approved / Done |
-| [AbangCebu_Auth_And_User_Management_Flowcharts.pdf](./pdf/AbangCebu_Auth_And_User_Management_Flowcharts.pdf) | Auth Flowcharts (PDF) | Group 2 | Hermar Centillas | [SCRUM-76](https://abangcebuai.atlassian.net/browse/SCRUM-76) | Approved / Done |
-| [property-listing-creation.drawio](./flowcharts/property-listing-creation.drawio) | Property Flowcharts | Dency Marie Bosque | Hermar Centillas | [SCRUM-77](https://abangcebuai.atlassian.net/browse/SCRUM-77) | Approved / Done |
-| [unit-availability.drawio](./flowcharts/unit-availability.drawio) | Property Flowcharts | Dency Marie Bosque | Hermar Centillas | [SCRUM-77](https://abangcebuai.atlassian.net/browse/SCRUM-77) | Approved / Done |
-| [AbangCebu_Property_Listing_Flowcharts.pdf](./pdf/AbangCebu_Property_Listing_Flowcharts.pdf) | Property Flowcharts (PDF) | Group 2 | Hermar Centillas | [SCRUM-77](https://abangcebuai.atlassian.net/browse/SCRUM-77) | Approved / Done |
-| [interactive-map.drawio](./flowcharts/interactive-map.drawio) | Map Flowcharts | Angel Crushein Yaun | Hermar Centillas | [SCRUM-78](https://abangcebuai.atlassian.net/browse/SCRUM-78) | Approved / Done |
-| [property-search.drawio](./flowcharts/property-search.drawio) | Search Flowcharts | Neah Moneva | Hermar Centillas | [SCRUM-78](https://abangcebuai.atlassian.net/browse/SCRUM-78) | Approved / Done |
-| [AbangCebu_Map_And_Search_Flowcharts.pdf](./pdf/AbangCebu_Map_And_Search_Flowcharts.pdf) | Map/Search Flowcharts (PDF) | Group 2 | Hermar Centillas | [SCRUM-78](https://abangcebuai.atlassian.net/browse/SCRUM-78) | Approved / Done |
-| [ai-rental-assistant.drawio](./flowcharts/ai-rental-assistant.drawio) | AI Flowcharts | Michelle Estoy | Hermar Centillas | [SCRUM-79](https://abangcebuai.atlassian.net/browse/SCRUM-79) | Approved / Done |
-| [inquiry-reservation.drawio](./flowcharts/inquiry-reservation.drawio) | Inquiry Flowcharts | Edrich Bardilas | Hermar Centillas | [SCRUM-79](https://abangcebuai.atlassian.net/browse/SCRUM-79) | Approved / Done |
-| [AbangCebu_AI_And_Inquiry_Flowcharts.pdf](./pdf/AbangCebu_AI_And_Inquiry_Flowcharts.pdf) | AI/Inquiry Flowcharts (PDF) | Group 2 | Hermar Centillas | [SCRUM-79](https://abangcebuai.atlassian.net/browse/SCRUM-79) | Approved / Done |
-| [landlord-verification.drawio](./flowcharts/landlord-verification.drawio) | Trust Flowcharts | Michelle Estoy | Hermar Centillas | [SCRUM-80](https://abangcebuai.atlassian.net/browse/SCRUM-80) | Approved / Done |
-| [messaging-contact.drawio](./flowcharts/messaging-contact.drawio) | Messaging Flowcharts | Edrich Bardilas | Hermar Centillas | [SCRUM-80](https://abangcebuai.atlassian.net/browse/SCRUM-80) | Approved / Done |
-| [AbangCebu_Trust_And_Messaging_Flowcharts.pdf](./pdf/AbangCebu_Trust_And_Messaging_Flowcharts.pdf) | Trust/Messaging Flowcharts (PDF) | Group 2 | Hermar Centillas | [SCRUM-80](https://abangcebuai.atlassian.net/browse/SCRUM-80) | Approved / Done |
-| [review-rating.drawio](./flowcharts/review-rating.drawio) | Governance Flowcharts | Anne KC M. Casinay | Hermar Centillas | [SCRUM-81](https://abangcebuai.atlassian.net/browse/SCRUM-81) | Approved / Done |
-| [report-moderation.drawio](./flowcharts/report-moderation.drawio) | Governance Flowcharts | Karla Hiyas | Hermar Centillas | [SCRUM-81](https://abangcebuai.atlassian.net/browse/SCRUM-81) | Approved / Done |
-| [admin-management.drawio](./flowcharts/admin-management.drawio) | Admin Flowcharts | Ryza Albiso | Hermar Centillas | [SCRUM-81](https://abangcebuai.atlassian.net/browse/SCRUM-81) | Approved / Done |
-| [notification.drawio](./flowcharts/notification.drawio) | Notification Flowcharts | Jenny Villamor | Hermar Centillas | [SCRUM-81](https://abangcebuai.atlassian.net/browse/SCRUM-81) | Approved / Done |
-| [AbangCebu_Governance_And_Notification_Flowcharts.pdf](./pdf/AbangCebu_Governance_And_Notification_Flowcharts.pdf) | Governance Flowcharts (PDF) | Group 2 | Hermar Centillas | [SCRUM-81](https://abangcebuai.atlassian.net/browse/SCRUM-81) | Approved / Done |
-| [sprint-2-master-test-plan.md](./testing/sprint-2-master-test-plan.md) | QA Testing (Auth/Identity) | Jenny Villamor | Hermar Centillas | [SCRUM-82](https://abangcebuai.atlassian.net/browse/SCRUM-82) | Approved / Active |
-| [sprint-2-master-test-plan.md](./testing/sprint-2-master-test-plan.md) | QA Testing (Property/Units) | Dency Marie Bosque | Hermar Centillas | [SCRUM-83](https://abangcebuai.atlassian.net/browse/SCRUM-83) | Approved / Active |
-| [sprint-2-master-test-plan.md](./testing/sprint-2-master-test-plan.md) | QA Testing (Map/Search) | Angel Crushein / Neah | Hermar Centillas | [SCRUM-84](https://abangcebuai.atlassian.net/browse/SCRUM-84) | Approved / Active |
-| [sprint-2-master-test-plan.md](./testing/sprint-2-master-test-plan.md) | QA Testing (AI/Inquiries) | Michelle / Edrich | Hermar Centillas | [SCRUM-85](https://abangcebuai.atlassian.net/browse/SCRUM-85) | Approved / Active |
-| [sprint-2-master-test-plan.md](./testing/sprint-2-master-test-plan.md) | QA Testing (Trust/KYC) | Michelle / Edrich | Hermar Centillas | [SCRUM-86](https://abangcebuai.atlassian.net/browse/SCRUM-86) | Approved / Active |
-| [sprint-2-master-test-plan.md](./testing/sprint-2-master-test-plan.md) | QA Testing (Governance) | Anne KC / Karla / Ryza | Hermar Centillas | [SCRUM-87](https://abangcebuai.atlassian.net/browse/SCRUM-87) | Approved / Active |
-| [sprint-2-master-test-plan.md](./testing/sprint-2-master-test-plan.md) | QA Testing (Master Plan) | Jenny Villamor | Hermar Centillas | [SCRUM-88](https://abangcebuai.atlassian.net/browse/SCRUM-88) | Approved / Active |
-| [auth-performance-baseline.md](./testing/auth-performance-baseline.md) | QA Testing (Performance) | Ryza Albiso | Hermar Centillas | [SCRUM-89](https://abangcebuai.atlassian.net/browse/SCRUM-89) | Approved / Active |
-| [AbangCebu_Sprint2_Master_Test_Specification.xlsx](./testing/AbangCebu_Sprint2_Master_Test_Specification.xlsx) | QA Testing (Excel Workbook) | Jenny Villamor | Hermar Centillas | [SCRUM-90](https://abangcebuai.atlassian.net/browse/SCRUM-90) | Approved / Active |
-| [AbangCebu_Sprint2_Master_Test_Plan.pdf](./pdf/AbangCebu_Sprint2_Master_Test_Plan.pdf) | QA Testing (PDF Plan) | Jenny Villamor | Hermar Centillas | [SCRUM-91](https://abangcebuai.atlassian.net/browse/SCRUM-91) | Approved / Active |
 
 ---
 
