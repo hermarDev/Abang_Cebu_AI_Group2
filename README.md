@@ -2,7 +2,7 @@
 
 An intelligent, AI-enhanced geospatial rental and property discovery platform in Cebu, Philippines.
 
-Built with **Next.js 16 (App Router)**, **React 19**, **TypeScript**, **Supabase (PostgreSQL & PostGIS)**, and **MapLibre GL**.
+Built with **Next.js 16 (App Router)**, **React 19**, **TypeScript**, **Supabase (PostgreSQL & PostGIS)**, **MapLibre GL**, and **OpenStreetMap**.
 
 ---
 
@@ -13,7 +13,7 @@ Built with **Next.js 16 (App Router)**, **React 19**, **TypeScript**, **Supabase
 - **Language**: [TypeScript](https://www.typescriptlang.org/) (Strict mode)
 - **Styling**: [Tailwind CSS v4](https://tailwindcss.com/)
 - **Backend / Database**: [Supabase](https://supabase.com/) (`@supabase/ssr`, PostgreSQL, RLS)
-- **Geospatial & Mapping**: [MapLibre GL](https://maplibre.org/)
+- **Geospatial & Mapping**: [MapLibre GL](https://maplibre.org/) & [OpenStreetMap](https://www.openstreetmap.org/) (via [`public/styles/osm.json`](./public/styles/osm.json))
 - **Package Manager**: [pnpm](https://pnpm.io/)
 
 ---
