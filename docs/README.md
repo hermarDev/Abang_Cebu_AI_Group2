@@ -62,15 +62,15 @@ docs/
 │   └── auth-performance-baseline.md         # SCRUM-72: Authentication baseline latency & load strategy
 │
 ├── flowcharts/                              # Module 1: Authentication Architecture Flowcharts (.drawio)
-│   ├── auth-master-orchestration.drawio     # SCRUM-103: Master auth lifecycle & session state engine
-│   ├── auth-registration-pkce.drawio        # SCRUM-103: User registration, validation & PKCE email
-│   ├── auth-login-session-rtr.drawio        # SCRUM-103: Login, credential verification & token rotation
-│   ├── auth-password-reset-recovery.drawio  # SCRUM-103: Self-service recovery & global token revocation
-│   ├── auth-signout-multitab.drawio         # SCRUM-103: Sign-out, cookie chunk purging & broadcast sync
-│   └── auth-error-handling-suspension.drawio # SCRUM-103: Auth error boundary & suspension enforcement
+│   ├── auth-master-orchestration.drawio     # SCRUM-115: Master auth lifecycle & session state engine
+│   ├── auth-registration-pkce.drawio        # SCRUM-115: User registration, validation & PKCE email
+│   ├── auth-login-session-rtr.drawio        # SCRUM-115: Login, credential verification & token rotation
+│   ├── auth-password-reset-recovery.drawio  # SCRUM-115: Self-service recovery & global token revocation
+│   ├── auth-signout-multitab.drawio         # SCRUM-115: Sign-out, cookie chunk purging & broadcast sync
+│   └── auth-error-handling-suspension.drawio # SCRUM-115: Auth error boundary & suspension enforcement
 │
 ├── pdf/                                     # Formal Architecture & Governance PDFs
-│   ├── AbangCebu_Authentication_Method_Module_Flowcharts.pdf # SCRUM-103: Formally compiled 6-page A4 flowcharts
+│   ├── AbangCebu_Authentication_Method_Module_Flowcharts.pdf # SCRUM-115: Formally compiled 6-page A4 flowcharts
 │   ├── AbangCebu_Auth_Registration_Specification.pdf
 │   ├── AbangCebu_Auth_Session_Lifecycle_Specification.pdf
 │   ├── AbangCebu_Auth_Logout_Specification.pdf
@@ -174,13 +174,13 @@ Located in [`docs/templates/`](./templates/):
 | [AbangCebu_Middleware_Test_Scenarios.pdf](./pdf/AbangCebu_Middleware_Test_Scenarios.pdf) | QA Testing (PDF) | Karla Hiyas | Hermar Centillas | [SCRUM-71](https://abangcebuai.atlassian.net/browse/SCRUM-71) | Approved / Done |
 | [auth-performance-baseline.md](./testing/auth-performance-baseline.md) | QA Testing | Ryza Albiso | Hermar Centillas | [SCRUM-72](https://abangcebuai.atlassian.net/browse/SCRUM-72) | Approved / Done |
 | [AbangCebu_Auth_Performance_Baseline.pdf](./pdf/AbangCebu_Auth_Performance_Baseline.pdf) | QA Testing (PDF) | Ryza Albiso | Hermar Centillas | [SCRUM-72](https://abangcebuai.atlassian.net/browse/SCRUM-72) | Approved / Done |
-| [AbangCebu_Authentication_Method_Module_Flowcharts.pdf](./pdf/AbangCebu_Authentication_Method_Module_Flowcharts.pdf) | Flowcharts (PDF Bundle) | Hermar Centillas | Group 2 Review | [SCRUM-103](https://abangcebuai.atlassian.net/browse/SCRUM-103) | Approved / Done |
-| [auth-master-orchestration.drawio](./flowcharts/auth-master-orchestration.drawio) | Flowchart (Draw.io) | Hermar Centillas | Group 2 Review | [SCRUM-103](https://abangcebuai.atlassian.net/browse/SCRUM-103) | Approved / Done |
-| [auth-registration-pkce.drawio](./flowcharts/auth-registration-pkce.drawio) | Flowchart (Draw.io) | John Lloyd Ando | Hermar Centillas | [SCRUM-103](https://abangcebuai.atlassian.net/browse/SCRUM-103) | Approved / Done |
-| [auth-login-session-rtr.drawio](./flowcharts/auth-login-session-rtr.drawio) | Flowchart (Draw.io) | John Lloyd Ando | Hermar Centillas | [SCRUM-103](https://abangcebuai.atlassian.net/browse/SCRUM-103) | Approved / Done |
-| [auth-password-reset-recovery.drawio](./flowcharts/auth-password-reset-recovery.drawio) | Flowchart (Draw.io) | Joan Marie Encallado Inting | Hermar Centillas | [SCRUM-103](https://abangcebuai.atlassian.net/browse/SCRUM-103) | Approved / Done |
-| [auth-signout-multitab.drawio](./flowcharts/auth-signout-multitab.drawio) | Flowchart (Draw.io) | junrilldisoy90 | Hermar Centillas | [SCRUM-103](https://abangcebuai.atlassian.net/browse/SCRUM-103) | Approved / Done |
-| [auth-error-handling-suspension.drawio](./flowcharts/auth-error-handling-suspension.drawio) | Flowchart (Draw.io) | junrilldisoy90 | Hermar Centillas | [SCRUM-103](https://abangcebuai.atlassian.net/browse/SCRUM-103) | Approved / Done |
+| [AbangCebu_Authentication_Method_Module_Flowcharts.pdf](./pdf/AbangCebu_Authentication_Method_Module_Flowcharts.pdf) | Flowcharts (PDF Bundle) | Hermar Centillas | Group 2 Review | [SCRUM-115](https://abangcebuai.atlassian.net/browse/SCRUM-115) | Planned / Ready |
+| [auth-master-orchestration.drawio](./flowcharts/auth-master-orchestration.drawio) | Flowchart (Draw.io) | Hermar Centillas | Group 2 Review | [SCRUM-115](https://abangcebuai.atlassian.net/browse/SCRUM-115) | Planned / Ready |
+| [auth-registration-pkce.drawio](./flowcharts/auth-registration-pkce.drawio) | Flowchart (Draw.io) | John Lloyd Ando | Hermar Centillas | [SCRUM-115](https://abangcebuai.atlassian.net/browse/SCRUM-115) | Planned / Ready |
+| [auth-login-session-rtr.drawio](./flowcharts/auth-login-session-rtr.drawio) | Flowchart (Draw.io) | John Lloyd Ando | Hermar Centillas | [SCRUM-115](https://abangcebuai.atlassian.net/browse/SCRUM-115) | Planned / Ready |
+| [auth-password-reset-recovery.drawio](./flowcharts/auth-password-reset-recovery.drawio) | Flowchart (Draw.io) | Joan Marie Encallado Inting | Hermar Centillas | [SCRUM-115](https://abangcebuai.atlassian.net/browse/SCRUM-115) | Planned / Ready |
+| [auth-signout-multitab.drawio](./flowcharts/auth-signout-multitab.drawio) | Flowchart (Draw.io) | junrilldisoy90 | Hermar Centillas | [SCRUM-115](https://abangcebuai.atlassian.net/browse/SCRUM-115) | Planned / Ready |
+| [auth-error-handling-suspension.drawio](./flowcharts/auth-error-handling-suspension.drawio) | Flowchart (Draw.io) | junrilldisoy90 | Hermar Centillas | [SCRUM-115](https://abangcebuai.atlassian.net/browse/SCRUM-115) | Planned / Ready |
 
 ---
 
