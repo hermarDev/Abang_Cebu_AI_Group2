@@ -1,0 +1,159 @@
+<mxfile host="Electron" agent="AbangCebu-AI-Engine" pages="1">
+  <diagram id="diag_map" name="07 - Interactive Map Discovery Flow">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1050" pageHeight="1300" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1;fontColor=#000000;" value="AbangCebu AI: MapLibre Viewport Geospatial Discovery Flowchart" vertex="1">
+          <mxGeometry height="30" width="800" x="125" y="20" as="geometry" />
+        </mxCell>
+        <mxCell id="start" parent="1" style="rounded=1;arcSize=50;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.8;fontSize=12;fontStyle=1;fontColor=#000000;" value="START" vertex="1">
+          <mxGeometry height="40" width="140" x="450" y="80" as="geometry" />
+        </mxCell>
+        <mxCell id="nav_search" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;fixedSize=1;strokeWidth=1.5;fillColor=#FFFFFF;strokeColor=#000000;fontSize=11;fontColor=#000000;" value="User Accesses Discovery Map&#xa;(/search)" vertex="1">
+          <mxGeometry height="50" width="180" x="430" y="150" as="geometry" />
+        </mxCell>
+        <mxCell id="init_map" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=11;fontColor=#000000;" value="Initialize MapLibre GL Canvas&#xa;at Cebu Center (123.90, 10.31)" vertex="1">
+          <mxGeometry height="55" width="200" x="420" y="230" as="geometry" />
+        </mxCell>
+        <mxCell id="user_gps" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=11;fontStyle=1;fontColor=#000000;" value="User Requests GPS&#xa;Current Location?" vertex="1">
+          <mxGeometry height="65" width="160" x="440" y="315" as="geometry" />
+        </mxCell>
+        <mxCell id="fly_loc" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=11;fontColor=#000000;" value="Browser Geolocation resolves;&#xa;map.flyTo([userLng, userLat])" vertex="1">
+          <mxGeometry height="55" width="190" x="220" y="410" as="geometry" />
+        </mxCell>
+        <mxCell id="pan_zoom" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;fixedSize=1;strokeWidth=1.5;fillColor=#FFFFFF;strokeColor=#000000;fontSize=11;fontColor=#000000;" value="User Pans, Zooms or Resizes&#xa;Map Viewport" vertex="1">
+          <mxGeometry height="50" width="180" x="430" y="410" as="geometry" />
+        </mxCell>
+        <mxCell id="move_end" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=11;fontColor=#000000;" value="Map triggers &quot;moveend&quot; Event;&#xa;Extract Viewport Bounds [SW, NE]" vertex="1">
+          <mxGeometry height="55" width="200" x="420" y="490" as="geometry" />
+        </mxCell>
+        <mxCell id="query_postgis" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=11;fontColor=#000000;" value="Invoke PostGIS Viewport Query:&#xa;coordinates &amp;&amp; ST_MakeEnvelope(&#xa;minLng, minLat, maxLng, maxLat)" vertex="1">
+          <mxGeometry height="65" width="210" x="415" y="575" as="geometry" />
+        </mxCell>
+        <mxCell id="spatial_db" parent="1" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=10;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=11;fontStyle=1;fontColor=#000000;" value="properties&#xa;(GIST spatial index)" vertex="1">
+          <mxGeometry height="75" width="140" x="180" y="575" as="geometry" />
+        </mxCell>
+        <mxCell id="res_found" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=11;fontStyle=1;fontColor=#000000;" value="Approved Properties&#xa;in Viewport?" vertex="1">
+          <mxGeometry height="65" width="160" x="440" y="670" as="geometry" />
+        </mxCell>
+        <mxCell id="empty_pin" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;fixedSize=1;strokeWidth=1.5;fillColor=#FFFFFF;strokeColor=#000000;fontSize=11;fontColor=#000000;" value="Display &quot;No rentals in this area&quot;&#xa;Banner &amp; Zoom Out CTA" vertex="1">
+          <mxGeometry height="45" width="180" x="680" y="680" as="geometry" />
+        </mxCell>
+        <mxCell id="render_pins" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=11;fontColor=#000000;" value="MapLibre Renders Dynamic Price&#xa;Marker HTML Elements (₱3,500/mo)" vertex="1">
+          <mxGeometry height="55" width="210" x="415" y="765" as="geometry" />
+        </mxCell>
+        <mxCell id="click_pin" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;fixedSize=1;strokeWidth=1.5;fillColor=#FFFFFF;strokeColor=#000000;fontSize=11;fontColor=#000000;" value="User Clicks on Specific Price Marker" vertex="1">
+          <mxGeometry height="50" width="180" x="430" y="850" as="geometry" />
+        </mxCell>
+        <mxCell id="open_card" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;fixedSize=1;strokeWidth=1.5;fillColor=#FFFFFF;strokeColor=#000000;fontSize=11;fontColor=#000000;" value="Open Bottom Sheet Preview Card&#xa;(Cover Photo, Title, Price, Units)" vertex="1">
+          <mxGeometry height="55" width="200" x="420" y="930" as="geometry" />
+        </mxCell>
+        <mxCell id="click_more" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=11;fontStyle=1;fontColor=#000000;" value="User Clicks &quot;View Details&quot;&#xa;on Card?" vertex="1">
+          <mxGeometry height="65" width="160" x="440" y="1015" as="geometry" />
+        </mxCell>
+        <mxCell id="nav_details" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=11;fontColor=#000000;" value="Navigate to Property Details Page&#xa;(/properties/[id])" vertex="1">
+          <mxGeometry height="50" width="200" x="420" y="1110" as="geometry" />
+        </mxCell>
+        <mxCell id="end" parent="1" style="rounded=1;arcSize=50;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.8;fontSize=12;fontStyle=1;fontColor=#000000;" value="END" vertex="1">
+          <mxGeometry height="40" width="120" x="460" y="1190" as="geometry" />
+        </mxCell>
+        <mxCell id="e1" edge="1" parent="1" source="start" target="nav_search" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;fontSize=10;fontStyle=1;fontColor=#000000;" value="">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e2" edge="1" parent="1" source="nav_search" target="init_map" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;fontSize=10;fontStyle=1;fontColor=#000000;" value="">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e3" edge="1" parent="1" source="init_map" target="user_gps" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;fontSize=10;fontStyle=1;fontColor=#000000;" value="">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e4" edge="1" parent="1" source="user_gps" target="fly_loc" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;fontSize=10;fontStyle=1;fontColor=#000000;" value="YES">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="315" y="347" />
+              <mxPoint x="315" y="410" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e5" edge="1" parent="1" source="user_gps" target="pan_zoom" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;fontSize=10;fontStyle=1;fontColor=#000000;" value="NO">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e6" edge="1" parent="1" source="fly_loc" target="move_end" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;fontSize=10;fontStyle=1;fontColor=#000000;" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="315" y="517" />
+              <mxPoint x="420" y="517" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e7" edge="1" parent="1" source="pan_zoom" target="move_end" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;fontSize=10;fontStyle=1;fontColor=#000000;" value="">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e8" edge="1" parent="1" source="move_end" target="query_postgis" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;fontSize=10;fontStyle=1;fontColor=#000000;" value="">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e9" edge="1" parent="1" source="query_postgis" target="spatial_db" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;fontSize=10;fontStyle=1;fontColor=#000000;dashed=1;" value="">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e10" edge="1" parent="1" source="query_postgis" target="res_found" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;fontSize=10;fontStyle=1;fontColor=#000000;" value="">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e11" edge="1" parent="1" source="res_found" target="empty_pin" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;fontSize=10;fontStyle=1;fontColor=#000000;" value="NO">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e12" edge="1" parent="1" source="empty_pin" target="pan_zoom" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;fontSize=10;fontStyle=1;fontColor=#000000;" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="880" y="702" />
+              <mxPoint x="880" y="435" />
+              <mxPoint x="610" y="435" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e13" edge="1" parent="1" source="res_found" target="render_pins" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;fontSize=10;fontStyle=1;fontColor=#000000;" value="YES">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e14" edge="1" parent="1" source="render_pins" target="click_pin" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;fontSize=10;fontStyle=1;fontColor=#000000;" value="">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e15" edge="1" parent="1" source="click_pin" target="open_card" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;fontSize=10;fontStyle=1;fontColor=#000000;" value="">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e16" edge="1" parent="1" source="open_card" target="click_more" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;fontSize=10;fontStyle=1;fontColor=#000000;" value="">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e17" edge="1" parent="1" source="click_more" target="nav_details" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;fontSize=10;fontStyle=1;fontColor=#000000;" value="YES">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e18" edge="1" parent="1" source="click_more" target="pan_zoom" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;fontSize=10;fontStyle=1;fontColor=#000000;" value="NO (Dismiss)">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="600" y="1047" />
+              <mxPoint x="680" y="1047" />
+              <mxPoint x="680" y="435" />
+              <mxPoint x="610" y="435" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e19" edge="1" parent="1" source="nav_details" target="end" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;fontSize=10;fontStyle=1;fontColor=#000000;" value="">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

@@ -1,0 +1,179 @@
+<mxfile host="Electron" agent="AbangCebu-AI-Engine" pages="1">
+  <diagram id="diag_prof" name="04 - User Profile Management Module Flow">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1050" pageHeight="1150" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1;fontColor=#000000;" value="AbangCebu AI: User Profile &amp; Avatar Management Flowchart" vertex="1">
+          <mxGeometry height="30" width="800" x="125" y="20" as="geometry" />
+        </mxCell>
+        <mxCell id="start" parent="1" style="rounded=1;arcSize=50;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.8;fontSize=12;fontStyle=1;fontColor=#000000;" value="START" vertex="1">
+          <mxGeometry height="40" width="140" x="450" y="80" as="geometry" />
+        </mxCell>
+        <mxCell id="nav_prof" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;fixedSize=1;strokeWidth=1.5;fillColor=#FFFFFF;strokeColor=#000000;fontSize=11;fontColor=#000000;" value="User Navigates to /profile" vertex="1">
+          <mxGeometry height="50" width="170" x="435" y="150" as="geometry" />
+        </mxCell>
+        <mxCell id="chk_auth" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=11;fontStyle=1;fontColor=#000000;" value="Authenticated&#xa;Session Active?" vertex="1">
+          <mxGeometry height="65" width="160" x="440" y="230" as="geometry" />
+        </mxCell>
+        <mxCell id="redir_login" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=11;fontColor=#000000;" value="HTTP 307 Redirect to /login" vertex="1">
+          <mxGeometry height="45" width="170" x="680" y="240" as="geometry" />
+        </mxCell>
+        <mxCell id="fetch_prof" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=11;fontColor=#000000;" value="Fetch public.profiles Data&#xa;(Name, Phone, Bio, Avatar)" vertex="1">
+          <mxGeometry height="55" width="190" x="425" y="325" as="geometry" />
+        </mxCell>
+        <mxCell id="prof_db" parent="1" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=10;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=11;fontStyle=1;fontColor=#000000;" value="public.profiles" vertex="1">
+          <mxGeometry height="70" width="120" x="200" y="325" as="geometry" />
+        </mxCell>
+        <mxCell id="disp_form" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;fixedSize=1;strokeWidth=1.5;fillColor=#FFFFFF;strokeColor=#000000;fontSize=11;fontColor=#000000;" value="Render Profile Settings Page" vertex="1">
+          <mxGeometry height="50" width="180" x="430" y="410" as="geometry" />
+        </mxCell>
+        <mxCell id="choose_action" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=11;fontStyle=1;fontColor=#000000;" value="User Action?" vertex="1">
+          <mxGeometry height="65" width="160" x="440" y="490" as="geometry" />
+        </mxCell>
+        <mxCell id="edit_info" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;fixedSize=1;strokeWidth=1.5;fillColor=#FFFFFF;strokeColor=#000000;fontSize=11;fontColor=#000000;" value="Edit Name, Phone, or Bio" vertex="1">
+          <mxGeometry height="50" width="170" x="250" y="590" as="geometry" />
+        </mxCell>
+        <mxCell id="val_phone" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=11;fontStyle=1;fontColor=#000000;" value="Phone matches PH&#xa;+639XXXXXXXXX?" vertex="1">
+          <mxGeometry height="65" width="160" x="255" y="670" as="geometry" />
+        </mxCell>
+        <mxCell id="err_phone" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=11;fontColor=#000000;" value="Show Phone Format Error" vertex="1">
+          <mxGeometry height="45" width="160" x="40" y="680" as="geometry" />
+        </mxCell>
+        <mxCell id="upload_av" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;fixedSize=1;strokeWidth=1.5;fillColor=#FFFFFF;strokeColor=#000000;fontSize=11;fontColor=#000000;" value="Select New Avatar File" vertex="1">
+          <mxGeometry height="50" width="170" x="630" y="590" as="geometry" />
+        </mxCell>
+        <mxCell id="val_img" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=11;fontStyle=1;fontColor=#000000;" value="MIME is JPEG/PNG &amp;&#xa;Size &lt; 2MB?" vertex="1">
+          <mxGeometry height="65" width="160" x="635" y="670" as="geometry" />
+        </mxCell>
+        <mxCell id="err_img" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=11;fontColor=#000000;" value="Show Image Type/Size Error" vertex="1">
+          <mxGeometry height="45" width="170" x="840" y="680" as="geometry" />
+        </mxCell>
+        <mxCell id="up_storage" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=11;fontColor=#000000;" value="Upload File to Supabase&#xa;Storage &quot;avatars&quot; Bucket" vertex="1">
+          <mxGeometry height="50" width="170" x="630" y="765" as="geometry" />
+        </mxCell>
+        <mxCell id="stor_db" parent="1" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=10;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=11;fontStyle=1;fontColor=#000000;" value="Storage &quot;avatars&quot;" vertex="1">
+          <mxGeometry height="65" width="120" x="860" y="760" as="geometry" />
+        </mxCell>
+        <mxCell id="save_action" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=11;fontColor=#000000;" value="Execute Server Action to&#xa;Update public.profiles Row" vertex="1">
+          <mxGeometry height="55" width="190" x="425" y="860" as="geometry" />
+        </mxCell>
+        <mxCell id="succ_toast" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;fixedSize=1;strokeWidth=1.5;fillColor=#FFFFFF;strokeColor=#000000;fontSize=11;fontColor=#000000;" value="Display &quot;Profile Updated&quot;&#xa;Success Toast Notification" vertex="1">
+          <mxGeometry height="50" width="180" x="430" y="945" as="geometry" />
+        </mxCell>
+        <mxCell id="end" parent="1" style="rounded=1;arcSize=50;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.8;fontSize=12;fontStyle=1;fontColor=#000000;" value="END" vertex="1">
+          <mxGeometry height="40" width="120" x="460" y="1030" as="geometry" />
+        </mxCell>
+        <mxCell id="e1" edge="1" parent="1" source="start" target="nav_prof" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;fontSize=10;fontStyle=1;fontColor=#000000;" value="">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e2" edge="1" parent="1" source="nav_prof" target="chk_auth" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;fontSize=10;fontStyle=1;fontColor=#000000;" value="">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e3" edge="1" parent="1" source="chk_auth" target="redir_login" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;fontSize=10;fontStyle=1;fontColor=#000000;" value="NO">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e4" edge="1" parent="1" source="redir_login" target="end" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;fontSize=10;fontStyle=1;fontColor=#000000;" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="880" y="262" />
+              <mxPoint x="880" y="1050" />
+              <mxPoint x="580" y="1050" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e5" edge="1" parent="1" source="chk_auth" target="fetch_prof" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;fontSize=10;fontStyle=1;fontColor=#000000;" value="YES">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e6" edge="1" parent="1" source="fetch_prof" target="prof_db" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;fontSize=10;fontStyle=1;fontColor=#000000;dashed=1;" value="">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e7" edge="1" parent="1" source="fetch_prof" target="disp_form" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;fontSize=10;fontStyle=1;fontColor=#000000;" value="">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e8" edge="1" parent="1" source="disp_form" target="choose_action" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;fontSize=10;fontStyle=1;fontColor=#000000;" value="">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e9" edge="1" parent="1" source="choose_action" target="edit_info" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;fontSize=10;fontStyle=1;fontColor=#000000;" value="Edit Text">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e10" edge="1" parent="1" source="choose_action" target="upload_av" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;fontSize=10;fontStyle=1;fontColor=#000000;" value="New Avatar">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e11" edge="1" parent="1" source="edit_info" target="val_phone" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;fontSize=10;fontStyle=1;fontColor=#000000;" value="">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e12" edge="1" parent="1" source="val_phone" target="err_phone" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;fontSize=10;fontStyle=1;fontColor=#000000;" value="NO">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e13" edge="1" parent="1" source="err_phone" target="edit_info" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;fontSize=10;fontStyle=1;fontColor=#000000;" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="120" y="615" />
+              <mxPoint x="250" y="615" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e14" edge="1" parent="1" source="val_phone" target="save_action" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;fontSize=10;fontStyle=1;fontColor=#000000;" value="YES">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="335" y="887" />
+              <mxPoint x="425" y="887" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e15" edge="1" parent="1" source="upload_av" target="val_img" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;fontSize=10;fontStyle=1;fontColor=#000000;" value="">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e16" edge="1" parent="1" source="val_img" target="err_img" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;fontSize=10;fontStyle=1;fontColor=#000000;" value="NO">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e17" edge="1" parent="1" source="err_img" target="upload_av" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;fontSize=10;fontStyle=1;fontColor=#000000;" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="925" y="615" />
+              <mxPoint x="800" y="615" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e18" edge="1" parent="1" source="val_img" target="up_storage" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;fontSize=10;fontStyle=1;fontColor=#000000;" value="YES">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e19" edge="1" parent="1" source="up_storage" target="stor_db" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;fontSize=10;fontStyle=1;fontColor=#000000;dashed=1;" value="">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e20" edge="1" parent="1" source="up_storage" target="save_action" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;fontSize=10;fontStyle=1;fontColor=#000000;" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="715" y="887" />
+              <mxPoint x="615" y="887" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e21" edge="1" parent="1" source="save_action" target="succ_toast" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;fontSize=10;fontStyle=1;fontColor=#000000;" value="">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e22" edge="1" parent="1" source="succ_toast" target="end" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;fontSize=10;fontStyle=1;fontColor=#000000;" value="">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

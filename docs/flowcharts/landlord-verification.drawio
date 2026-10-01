@@ -1,0 +1,164 @@
+<mxfile host="Electron" agent="AbangCebu-AI-Engine" pages="1">
+  <diagram id="diag_kyc" name="11 - Landlord KYC Verification Flow">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1050" pageHeight="1280" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1;fontColor=#000000;" value="AbangCebu AI: Landlord Verification &amp; Anti-Scam Trust Flowchart" vertex="1">
+          <mxGeometry height="30" width="800" x="125" y="20" as="geometry" />
+        </mxCell>
+        <mxCell id="start" parent="1" style="rounded=1;arcSize=50;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.8;fontSize=12;fontStyle=1;fontColor=#000000;" value="START" vertex="1">
+          <mxGeometry height="40" width="140" x="450" y="80" as="geometry" />
+        </mxCell>
+        <mxCell id="nav_kyc" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;fixedSize=1;strokeWidth=1.5;fillColor=#FFFFFF;strokeColor=#000000;fontSize=11;fontColor=#000000;" value="Landlord Navigates to&#xa;/landlord/verification" vertex="1">
+          <mxGeometry height="50" width="180" x="430" y="150" as="geometry" />
+        </mxCell>
+        <mxCell id="sel_id_type" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;fixedSize=1;strokeWidth=1.5;fillColor=#FFFFFF;strokeColor=#000000;fontSize=11;fontColor=#000000;" value="Select Philippine Gov ID Type&#xa;(PhilSys, Passport, PRC, UMID, Postal)" vertex="1">
+          <mxGeometry height="55" width="200" x="420" y="225" as="geometry" />
+        </mxCell>
+        <mxCell id="upload_docs" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;fixedSize=1;strokeWidth=1.5;fillColor=#FFFFFF;strokeColor=#000000;fontSize=11;fontColor=#000000;" value="Upload Clear Government ID Image&#xa;&amp; Proof of Property Ownership (Title/Bill)" vertex="1">
+          <mxGeometry height="55" width="210" x="415" y="305" as="geometry" />
+        </mxCell>
+        <mxCell id="val_files" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=11;fontStyle=1;fontColor=#000000;" value="MIME is JPEG/PNG/PDF&#xa;&amp; Size &lt;= 5MB?" vertex="1">
+          <mxGeometry height="65" width="160" x="440" y="390" as="geometry" />
+        </mxCell>
+        <mxCell id="err_files" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=11;fontColor=#000000;" value="Show File Validation Error&#xa;(Type or Size Exceeded)" vertex="1">
+          <mxGeometry height="45" width="180" x="680" y="400" as="geometry" />
+        </mxCell>
+        <mxCell id="up_private" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=11;fontColor=#000000;" value="Upload to Supabase Storage Private&#xa;&quot;kyc-documents&quot; Bucket (RLS Restricted)" vertex="1">
+          <mxGeometry height="55" width="210" x="415" y="485" as="geometry" />
+        </mxCell>
+        <mxCell id="kyc_bucket" parent="1" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=10;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=11;fontStyle=1;fontColor=#000000;" value="Private Bucket&#xa;&quot;kyc-documents&quot;" vertex="1">
+          <mxGeometry height="75" width="140" x="180" y="480" as="geometry" />
+        </mxCell>
+        <mxCell id="ins_kyc" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=11;fontColor=#000000;" value="Insert Row into kyc_verifications&#xa;(status=&quot;pending&quot;, landlord_id)" vertex="1">
+          <mxGeometry height="55" width="200" x="420" y="570" as="geometry" />
+        </mxCell>
+        <mxCell id="kyc_db" parent="1" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=10;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=11;fontStyle=1;fontColor=#000000;" value="kyc_verifications&#xa;&amp; audit_logs" vertex="1">
+          <mxGeometry height="75" width="140" x="180" y="565" as="geometry" />
+        </mxCell>
+        <mxCell id="queue_admin" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=11;fontColor=#000000;" value="Alert Administrative Verification Queue;&#xa;Landlord Status displays &quot;Pending Review&quot;" vertex="1">
+          <mxGeometry height="55" width="210" x="415" y="655" as="geometry" />
+        </mxCell>
+        <mxCell id="admin_review" parent="1" style="shape=parallelogram;perimeter=parallelogramPerimeter;fixedSize=1;strokeWidth=1.5;fillColor=#FFFFFF;strokeColor=#000000;fontSize=11;fontColor=#000000;" value="Admin Moderator Reviews Document&#xa;Photos in /admin/kyc Queue" vertex="1">
+          <mxGeometry height="55" width="200" x="420" y="740" as="geometry" />
+        </mxCell>
+        <mxCell id="admin_dec" parent="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=11;fontStyle=1;fontColor=#000000;" value="Admin Decision:&#xa;Valid ID &amp; Ownership?" vertex="1">
+          <mxGeometry height="65" width="160" x="440" y="825" as="geometry" />
+        </mxCell>
+        <mxCell id="admin_reject" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=11;fontColor=#000000;" value="Admin Enters Rejection Reason;&#xa;UPDATE kyc_verifications&#xa;SET status=&quot;rejected&quot;, rejection_reason" vertex="1">
+          <mxGeometry height="65" width="200" x="180" y="920" as="geometry" />
+        </mxCell>
+        <mxCell id="admin_approve" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=11;fontColor=#000000;" value="Admin Confirms Verification;&#xa;UPDATE kyc_verifications SET&#xa;status=&quot;verified&quot;, reviewed_by, reviewed_at" vertex="1">
+          <mxGeometry height="65" width="210" x="660" y="920" as="geometry" />
+        </mxCell>
+        <mxCell id="log_audit" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=11;fontColor=#000000;" value="Insert Immutable Row into audit_logs&#xa;(action=&quot;kyc.verify&quot;, actor_id, details)" vertex="1">
+          <mxGeometry height="55" width="200" x="420" y="1015" as="geometry" />
+        </mxCell>
+        <mxCell id="notif_ll" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontSize=11;fontColor=#000000;" value="Dispatch Transactional Notification&#xa;to Landlord (Approved vs Rejected)" vertex="1">
+          <mxGeometry height="55" width="200" x="420" y="1100" as="geometry" />
+        </mxCell>
+        <mxCell id="end" parent="1" style="rounded=1;arcSize=50;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.8;fontSize=12;fontStyle=1;fontColor=#000000;" value="END" vertex="1">
+          <mxGeometry height="40" width="120" x="460" y="1185" as="geometry" />
+        </mxCell>
+        <mxCell id="e1" edge="1" parent="1" source="start" target="nav_kyc" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;fontSize=10;fontStyle=1;fontColor=#000000;" value="">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e2" edge="1" parent="1" source="nav_kyc" target="sel_id_type" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;fontSize=10;fontStyle=1;fontColor=#000000;" value="">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e3" edge="1" parent="1" source="sel_id_type" target="upload_docs" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;fontSize=10;fontStyle=1;fontColor=#000000;" value="">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e4" edge="1" parent="1" source="upload_docs" target="val_files" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;fontSize=10;fontStyle=1;fontColor=#000000;" value="">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e5" edge="1" parent="1" source="val_files" target="err_files" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;fontSize=10;fontStyle=1;fontColor=#000000;" value="NO">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e6" edge="1" parent="1" source="err_files" target="upload_docs" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;fontSize=10;fontStyle=1;fontColor=#000000;" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="880" y="422" />
+              <mxPoint x="880" y="332" />
+              <mxPoint x="625" y="332" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e7" edge="1" parent="1" source="val_files" target="up_private" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;fontSize=10;fontStyle=1;fontColor=#000000;" value="YES">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e8" edge="1" parent="1" source="up_private" target="kyc_bucket" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;fontSize=10;fontStyle=1;fontColor=#000000;dashed=1;" value="">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e9" edge="1" parent="1" source="up_private" target="ins_kyc" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;fontSize=10;fontStyle=1;fontColor=#000000;" value="">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e10" edge="1" parent="1" source="ins_kyc" target="kyc_db" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;fontSize=10;fontStyle=1;fontColor=#000000;dashed=1;" value="">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e11" edge="1" parent="1" source="ins_kyc" target="queue_admin" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;fontSize=10;fontStyle=1;fontColor=#000000;" value="">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e12" edge="1" parent="1" source="queue_admin" target="admin_review" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;fontSize=10;fontStyle=1;fontColor=#000000;" value="">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e13" edge="1" parent="1" source="admin_review" target="admin_dec" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;fontSize=10;fontStyle=1;fontColor=#000000;" value="">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e14" edge="1" parent="1" source="admin_dec" target="admin_reject" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;fontSize=10;fontStyle=1;fontColor=#000000;" value="REJECT">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="280" y="857" />
+              <mxPoint x="280" y="920" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e15" edge="1" parent="1" source="admin_dec" target="admin_approve" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;fontSize=10;fontStyle=1;fontColor=#000000;" value="APPROVE">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="765" y="857" />
+              <mxPoint x="765" y="920" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e16" edge="1" parent="1" source="admin_reject" target="log_audit" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;fontSize=10;fontStyle=1;fontColor=#000000;" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="280" y="1042" />
+              <mxPoint x="420" y="1042" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e17" edge="1" parent="1" source="admin_approve" target="log_audit" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;fontSize=10;fontStyle=1;fontColor=#000000;" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="765" y="1042" />
+              <mxPoint x="620" y="1042" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e18" edge="1" parent="1" source="log_audit" target="notif_ll" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;fontSize=10;fontStyle=1;fontColor=#000000;" value="">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e19" edge="1" parent="1" source="notif_ll" target="end" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;fontSize=10;fontStyle=1;fontColor=#000000;" value="">
+          <mxGeometry relative="1" as="geometry">
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

@@ -82,6 +82,24 @@ docs/
 │   ├── AbangCebu_Middleware_Test_Scenarios.pdf
 │   └── AbangCebu_Auth_Performance_Baseline.pdf
 │
+├── flowcharts/                               # Sprint 2 System Module Flowcharts (.drawio)
+│   ├── user-registration.drawio             # Module 01: Registration, validation & PKCE activation
+│   ├── user-login.drawio                    # Module 02: Login, session token lifecycle & role routing
+│   ├── password-reset.drawio                # Module 03: Self-service recovery & global session revocation
+│   ├── user-profile-management.drawio       # Module 04: Profile details, phone validation & avatar upload
+│   ├── property-listing-creation.drawio     # Module 05: Landlord multi-unit property creation wizard
+│   ├── unit-availability.drawio             # Module 06: Real-time room/bedspace occupancy toggle
+│   ├── interactive-map.drawio               # Module 07: MapLibre GL viewport bounds & spatial query
+│   ├── property-search.drawio               # Module 08: Parametric filter drawer & landmark radius
+│   ├── ai-rental-assistant.drawio           # Module 09: Natural language parser & recommendation engine
+│   ├── inquiry-reservation.drawio           # Module 10: Ocular viewing scheduling & inquiry state machine
+│   ├── landlord-verification.drawio         # Module 11: Government ID & title document verification (KYC)
+│   ├── messaging-contact.drawio             # Module 12: Direct inquiry messaging & verified contact
+│   ├── review-rating.drawio                 # Module 13: Verified tenant rating & reviews workflow
+│   ├── report-moderation.drawio             # Module 14: Fraud reporting & listing moderation flag
+│   ├── admin-management.drawio              # Module 15: Admin command center, moderation & audit logs
+│   └── notification.drawio                  # Module 16: Transactional email & in-app badge alerts
+│
 └── assets/                                  # Visual Diagrams & Architecture Assets
     ├── abangcebu_database_erd.png           # High-resolution ERD rendering
     ├── abangcebu_database_erd.svg           # Vector source ERD
