@@ -16,6 +16,7 @@
 - Row Level Security Policies: [`docs/security/rls-policies.md`](../../security/rls-policies.md)
 - Next.js Guidelines: [`docs/architecture/next15-guidelines.md`](../../architecture/next15-guidelines.md)
 - Client-Server Boundaries: [`docs/architecture/client-server-boundaries.md`](../../architecture/client-server-boundaries.md)
+- Architecture Flowchart (SCRUM-107): [`docs/flowcharts/auth-signout-multitab.drawio`](../../flowcharts/auth-signout-multitab.drawio)
 - TypeScript Database Definitions: [`src/types/database.ts`](../../../src/types/database.ts)
 - TypeScript Authentication Definitions: [`src/types/auth.ts`](../../../src/types/auth.ts)
 
@@ -479,3 +480,22 @@ When a landlord is reported and verified as a scammer:
 - **Zero Premature UI Components:** Strictly limited to technical specifications, architectural contracts, data types, and protocol state machines. No JSX widgets, buttons, or form cards were created.
 - **Authentic Engineering Attribution:** Author `junrilldisoy90 (Engineering Team)`, Reviewer `Hermar Centillas (Lead / Scrum Master)`. Zero AI markers.
 - **Type Safety:** 100% type-checked via TypeScript strict mode (`tsc --noEmit`) and linted via `oxlint`.
+
+---
+
+## 12. Sub-Process Architecture Flowchart (SCRUM-107)
+
+The complete user sign-out lifecycle—including modal confirmation, scope selection (`local` vs `global`), offline resilience fallback, Supabase GoTrue server-side token revocation, chunked cookie zeroing (`sb-*-auth-token.0...N`), `Clear-Site-Data` security headers, and HTML5 `BroadcastChannel('supabase.auth.token')` multi-tab synchronization—is modeled in the official sub-process architecture flowchart below:
+
+* **Draw.io Editable Source:** [`docs/flowcharts/auth-signout-multitab.drawio`](../../flowcharts/auth-signout-multitab.drawio)
+* **Vector PDF Specification:** [`docs/pdf/auth-signout-multitab.pdf`](../../pdf/auth-signout-multitab.pdf)
+* **High-Resolution PNG Asset:** [`docs/assets/flowcharts/auth-signout-multitab.png`](../../assets/flowcharts/auth-signout-multitab.png)
+
+> [!NOTE]
+> **Atomic Session Purge & Multi-Tab Synchronization:**
+> 1. **Zero-Trust Token Revocation:** Invoking `signOut({ scope })` executes server-side revocation on Supabase GoTrue, invalidating rows in `auth.sessions` and severing refresh token family reuse lineage in `auth.refresh_tokens`.
+> 2. **Cross-Tab Eviction:** Active background and sibling tabs listening on `BroadcastChannel('supabase.auth.token')` reactively flush client query caches (React Query / SWR), clear in-memory credentials, and redirect simultaneously to `/login?reason=signed_out`.
+> 3. **Offline Safety:** In the event of network disruption, client-side fallback immediately zeros all auth cookies locally, preventing unauthorized access on shared terminals.
+
+![SCRUM-107 User Sign-Out and Multi-Tab Synchronization Flowchart](../../assets/flowcharts/auth-signout-multitab.png)
+

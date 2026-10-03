@@ -1,4 +1,32 @@
-<mxfile host="Electron" modified="2026-10-03T11:35:00.000Z" agent="Antigravity" version="21.0.0" type="device">
+#!/usr/bin/env python3
+"""
+Generates the SCRUM-107 User Sign-Out & Multi-Tab Synchronization Flowchart in 3 formats:
+1. docs/flowcharts/auth-signout-multitab.drawio (Draw.io XML)
+2. docs/pdf/auth-signout-multitab.pdf (Vector PDF via weasyprint)
+3. docs/assets/flowcharts/auth-signout-multitab.png (High-Res 200 DPI PNG via pdftoppm)
+
+Design Style:
+- Strict Black & White: white fills (#FFFFFF), black strokes (#000000), black text (#000000).
+- Standard classic flowchart shapes:
+  * Terminal: Rounded Stadium / Pill
+  * Process: Rectangle
+  * Input/Output: Parallelogram
+  * Decision: Rhombus / Diamond
+  * Database: Cylinder
+  * Connector: Circle with letter (L)
+  * Step: Arrow banner
+- Grid pattern background.
+- Clean, balanced, standardized flowchart terminology.
+- Parallel multi-tab coordination for Primary Tab vs Peer Tabs.
+"""
+
+import os
+import shutil
+import subprocess
+import weasyprint
+
+def build_drawio_xml():
+    xml = '''<mxfile host="Electron" modified="2026-10-03T11:35:00.000Z" agent="Antigravity" version="21.0.0" type="device">
   <diagram id="scrum-107-signout-multitab" name="User Sign-Out &amp; Multi-Tab Synchronization Flow">
     <mxGraphModel dx="1200" dy="1800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1050" pageHeight="1760" math="0" shadow="0">
       <root>
@@ -312,3 +340,296 @@
     </mxGraphModel>
   </diagram>
 </mxfile>
+'''
+    return xml
+
+def build_vector_svg():
+    svg = '''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1740" width="1000" height="1740" style="background:#ffffff; font-family:Helvetica, Arial, sans-serif;">
+  <defs>
+    <!-- Arrow marker for end of lines -->
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#000000" />
+    </marker>
+    <!-- Arrow marker for start of lines (bidirectional) -->
+    <marker id="arrow-start" viewBox="0 0 10 10" refX="2" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 8 1.5 L 0 5 L 8 8.5 z" fill="#000000" />
+    </marker>
+    <!-- Pattern for grid background -->
+    <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#E2E8F0" stroke-width="0.8"/>
+    </pattern>
+  </defs>
+
+  <!-- Grid Background -->
+  <rect width="100%" height="100%" fill="url(#grid)" />
+
+  <!-- Flowchart Title -->
+  <text x="500" y="45" text-anchor="middle" font-size="18" font-weight="bold" fill="#000000" letter-spacing="1">SCRUM-107: USER SIGN-OUT &amp; MULTI-TAB SYNCHRONIZATION WORKFLOW</text>
+
+  <!-- ==================== CONNECTING EDGES ==================== -->
+
+  <!-- START -> Authenticated Viewport -->
+  <line x1="500" y1="130" x2="500" y2="165" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+
+  <!-- Authenticated Viewport -> User Clicks Sign Out -->
+  <line x1="500" y1="220" x2="500" y2="255" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+
+  <!-- User Clicks Sign Out -> Confirm Sign Out? -->
+  <line x1="500" y1="315" x2="500" y2="350" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+
+  <!-- Confirm Sign Out? -> NO -> Loop back to Authenticated Viewport -->
+  <path d="M 405 395 L 260 395 L 260 192.5 L 350 192.5" fill="none" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <text x="332" y="387" font-size="11" font-weight="bold" fill="#000000">NO (Cancel)</text>
+
+  <!-- Confirm Sign Out? -> YES -> Scope: All Devices? -->
+  <line x1="500" y1="440" x2="500" y2="475" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <text x="508" y="460" font-size="11" font-weight="bold" fill="#000000">YES</text>
+
+  <!-- Scope: All Devices? -> YES -> Set Scope: 'global' -->
+  <path d="M 400 520 L 300 520 L 300 580" fill="none" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <text x="350" y="512" font-size="11" font-weight="bold" fill="#000000">YES</text>
+
+  <!-- Scope: All Devices? -> NO -> Set Scope: 'local' -->
+  <path d="M 600 520 L 700 520 L 700 580" fill="none" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <text x="650" y="512" font-size="11" font-weight="bold" fill="#000000">NO</text>
+
+  <!-- Scope global and local -> converge into Network Available? -->
+  <path d="M 300 625 L 300 645 L 700 645 L 700 625" fill="none" stroke="#000000" stroke-width="1.8" />
+  <line x1="500" y1="645" x2="500" y2="665" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+
+  <!-- Network Available? -> NO -> Client Offline Fallback -->
+  <line x1="405" y1="710" x2="340" y2="710" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <text x="375" y="702" font-size="11" font-weight="bold" fill="#000000">NO</text>
+
+  <!-- Client Offline Fallback -> Iterative Cookie Purge -->
+  <path d="M 230 735 L 230 982.5 L 320 982.5" fill="none" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+
+  <!-- Network Available? -> YES -> Execute Server Action -->
+  <line x1="500" y1="755" x2="500" y2="785" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <text x="508" y="772" font-size="11" font-weight="bold" fill="#000000">YES</text>
+
+  <!-- Execute Server Action -> Supabase GoTrue Revocation -->
+  <line x1="500" y1="835" x2="500" y2="865" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+
+  <!-- Supabase GoTrue Revocation <-> dashed Verify/Revoke <-> User & Session Db -->
+  <line x1="670" y1="892.5" x2="780" y2="892.5" stroke="#000000" stroke-width="1.8" stroke-dasharray="6,4" marker-start="url(#arrow-start)" marker-end="url(#arrow)" />
+  <text x="725" y="885" text-anchor="middle" font-size="10.5" fill="#000000">Verify / Revoke</text>
+
+  <!-- Supabase GoTrue Revocation -> Iterative Cookie Purge -->
+  <line x1="500" y1="920" x2="500" y2="955" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+
+  <!-- Iterative Cookie Purge -> Emit Security & Cache Headers -->
+  <line x1="500" y1="1010" x2="500" y2="1045" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+
+  <!-- Emit Security & Cache Headers -> Emit BroadcastChannel Event -->
+  <line x1="500" y1="1100" x2="500" y2="1135" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+
+  <!-- Emit BroadcastChannel Event -> Fork to Primary Tab & Peer Tabs -->
+  <line x1="500" y1="1190" x2="500" y2="1215" stroke="#000000" stroke-width="1.8" />
+  <path d="M 500 1215 L 300 1215 L 300 1245" fill="none" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <path d="M 500 1215 L 700 1215 L 700 1245" fill="none" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+
+  <!-- Primary Tab: Flush Cache -> Purge In-Memory State -->
+  <line x1="300" y1="1300" x2="300" y2="1335" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+
+  <!-- Primary Tab: Purge In-Memory State -> Redirect Primary Tab -->
+  <line x1="300" y1="1390" x2="300" y2="1425" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+
+  <!-- Peer Tabs: Receive Event -> Flush Peer Tab Cache -->
+  <line x1="700" y1="1300" x2="700" y2="1335" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+
+  <!-- Peer Tabs: Flush Peer Tab Cache -> Redirect Peer Tabs -->
+  <line x1="700" y1="1390" x2="700" y2="1425" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+
+  <!-- Primary Tab & Peer Tabs Redirect -> Converge to Connector (L) -->
+  <path d="M 300 1475 L 300 1495 L 700 1495 L 700 1475" fill="none" stroke="#000000" stroke-width="1.8" />
+  <line x1="500" y1="1495" x2="500" y2="1510" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+
+  <!-- Connector (L) -> END -->
+  <line x1="500" y1="1555" x2="500" y2="1615" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+
+
+  <!-- ==================== FLOWCHART NODES ==================== -->
+
+  <!-- 1. START -->
+  <rect x="420" y="80" width="160" height="50" rx="25" ry="25" fill="#FFFFFF" stroke="#000000" stroke-width="2.2" />
+  <text x="500" y="111" text-anchor="middle" font-size="14" font-weight="bold" fill="#000000">START</text>
+
+  <!-- 2. Authenticated Viewport -->
+  <rect x="350" y="165" width="300" height="55" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="500" y="189" text-anchor="middle" font-size="13" font-weight="bold" fill="#000000">Authenticated Viewport</text>
+  <text x="500" y="206" text-anchor="middle" font-size="11" fill="#333333">(/dashboard, /landlord/*, /profile, /search)</text>
+
+  <!-- 3. User Clicks "Sign Out" (Parallelogram) -->
+  <polygon points="375,255 645,255 625,315 355,315" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="500" y="280" text-anchor="middle" font-size="12" font-weight="bold" fill="#000000">User Clicks "Sign Out"</text>
+  <text x="500" y="297" text-anchor="middle" font-size="10.5" fill="#333333">(Profile menu / Navbar action)</text>
+
+  <!-- 4. Confirm Sign Out? -->
+  <polygon points="500,350 595,395 500,440 405,395" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="500" y="390" text-anchor="middle" font-size="12" font-weight="bold" fill="#000000">Confirm Sign Out?</text>
+  <text x="500" y="406" text-anchor="middle" font-size="10.5" fill="#333333">(Modal dialog)</text>
+
+  <!-- 5. Scope: All Devices? -->
+  <polygon points="500,475 600,520 500,565 400,520" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="500" y="515" text-anchor="middle" font-size="12" font-weight="bold" fill="#000000">Scope: All Devices?</text>
+  <text x="500" y="531" text-anchor="middle" font-size="10.5" fill="#333333">(Global vs Local)</text>
+
+  <!-- Set Scope: 'global' -->
+  <rect x="210" y="580" width="180" height="45" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="300" y="608" text-anchor="middle" font-size="12" font-weight="bold" fill="#000000">Set Scope: 'global'</text>
+
+  <!-- Set Scope: 'local' -->
+  <rect x="610" y="580" width="180" height="45" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="700" y="608" text-anchor="middle" font-size="12" font-weight="bold" fill="#000000">Set Scope: 'local'</text>
+
+  <!-- 6. Network Available? -->
+  <polygon points="500,665 595,710 500,755 405,710" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="500" y="705" text-anchor="middle" font-size="12" font-weight="bold" fill="#000000">Network Available?</text>
+  <text x="500" y="721" text-anchor="middle" font-size="10.5" fill="#333333">(Offline check)</text>
+
+  <!-- Client Offline Fallback -->
+  <rect x="120" y="685" width="220" height="50" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="230" y="705" text-anchor="middle" font-size="11" font-weight="bold" fill="#000000">Client Offline Fallback</text>
+  <text x="230" y="721" text-anchor="middle" font-size="9.5" fill="#333333">(Purge local credentials)</text>
+
+  <!-- 7. Execute Server Action -->
+  <rect x="340" y="785" width="320" height="50" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="500" y="806" text-anchor="middle" font-size="12" font-weight="bold" fill="#000000">Execute Server Action</text>
+  <text x="500" y="822" text-anchor="middle" font-size="10.5" fill="#333333">(POST /auth/signout via @supabase/ssr)</text>
+
+  <!-- 8. Supabase GoTrue Revocation -->
+  <rect x="330" y="865" width="340" height="55" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="500" y="888" text-anchor="middle" font-size="12" font-weight="bold" fill="#000000">Supabase GoTrue Revocation</text>
+  <text x="500" y="905" text-anchor="middle" font-size="10" fill="#333333">(Invalidate auth.sessions &amp; refresh token family)</text>
+
+  <!-- Database: User & Session Db (Cylinder) -->
+  <g>
+    <path d="M 780 862.5 A 70 15 0 0 0 920 862.5 A 70 15 0 0 0 780 862.5 Z" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+    <path d="M 780 862.5 L 780 922.5 A 70 15 0 0 0 920 922.5 L 920 862.5" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+    <path d="M 780 922.5 A 70 15 0 0 0 920 922.5" fill="none" stroke="#000000" stroke-width="1.8" />
+    <text x="850" y="890" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#000000">User &amp; Session Db</text>
+    <text x="850" y="904" text-anchor="middle" font-size="9" fill="#333333">(auth.sessions &amp;</text>
+    <text x="850" y="916" text-anchor="middle" font-size="9" fill="#333333">auth.refresh_tokens)</text>
+  </g>
+
+  <!-- 9. Iterative Cookie Purge -->
+  <rect x="320" y="955" width="360" height="55" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="500" y="977" text-anchor="middle" font-size="12" font-weight="bold" fill="#000000">Iterative Cookie Purge</text>
+  <text x="500" y="995" text-anchor="middle" font-size="10" fill="#333333">(Scan jar: sb-*-auth-token.0...N -> Max-Age=0, Exp: 1970)</text>
+
+  <!-- 10. Emit Security & Cache Headers -->
+  <rect x="320" y="1045" width="360" height="55" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="500" y="1067" text-anchor="middle" font-size="12" font-weight="bold" fill="#000000">Emit Security &amp; Cache Headers</text>
+  <text x="500" y="1084" text-anchor="middle" font-size="9.5" fill="#333333">(Clear-Site-Data: "cache","cookies","storage" | Cache-Control: no-store)</text>
+
+  <!-- 11. Emit BroadcastChannel Event -->
+  <rect x="310" y="1135" width="380" height="55" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="500" y="1157" text-anchor="middle" font-size="12" font-weight="bold" fill="#000000">Emit BroadcastChannel Event</text>
+  <text x="500" y="1174" text-anchor="middle" font-size="9.5" fill="#333333">(BroadcastChannel('supabase.auth.token').postMessage('SIGNED_OUT'))</text>
+
+  <!-- Fork Column Headers -->
+  <text x="300" y="1210" text-anchor="middle" font-size="12" font-weight="bold" fill="#000000" letter-spacing="0.5">[ PRIMARY TAB A ]</text>
+  <text x="700" y="1210" text-anchor="middle" font-size="12" font-weight="bold" fill="#000000" letter-spacing="0.5">[ PEER TABS B, C ]</text>
+
+  <!-- Primary Tab: Flush Cache -->
+  <rect x="155" y="1245" width="290" height="55" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="300" y="1267" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#000000">Flush Primary Tab Cache</text>
+  <text x="300" y="1284" text-anchor="middle" font-size="9.5" fill="#333333">(Clear React Query / SWR &amp; router.refresh())</text>
+
+  <!-- Primary Tab: Purge In-Memory State -->
+  <rect x="155" y="1335" width="290" height="55" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="300" y="1357" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#000000">Purge In-Memory State</text>
+  <text x="300" y="1374" text-anchor="middle" font-size="9.5" fill="#333333">(Zero memory tokens &amp; reset auth context)</text>
+
+  <!-- Primary Tab: Redirect Step Banner -->
+  <polygon points="155,1425 430,1425 445,1450 430,1475 155,1475 170,1450" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="300" y="1446" text-anchor="middle" font-size="11" font-weight="bold" fill="#000000">Redirect Primary Tab</text>
+  <text x="300" y="1462" text-anchor="middle" font-size="9.5" fill="#333333">(/login?reason=signed_out)</text>
+
+  <!-- Peer Tabs: Receive Event (Parallelogram) -->
+  <polygon points="575,1245 845,1245 825,1300 555,1300" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="700" y="1268" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#000000">Peer Tabs Receive Event</text>
+  <text x="700" y="1285" text-anchor="middle" font-size="10" fill="#333333">(Active listener receives SIGNED_OUT)</text>
+
+  <!-- Peer Tabs: Flush Cache -->
+  <rect x="555" y="1335" width="290" height="55" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="700" y="1357" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#000000">Flush Peer Tab Cache</text>
+  <text x="700" y="1374" text-anchor="middle" font-size="10" fill="#333333">(Invalidate queries, memory tokens &amp; state)</text>
+
+  <!-- Peer Tabs: Redirect Step Banner -->
+  <polygon points="555,1425 830,1425 845,1450 830,1475 555,1475 570,1450" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="700" y="1446" text-anchor="middle" font-size="11" font-weight="bold" fill="#000000">Redirect Peer Tabs</text>
+  <text x="700" y="1462" text-anchor="middle" font-size="9.5" fill="#333333">(/login?reason=signed_out)</text>
+
+  <!-- 12. Connector (L) -->
+  <circle cx="500" cy="1532.5" r="22.5" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="500" y="1538.5" text-anchor="middle" font-size="14" font-weight="bold" fill="#000000">L</text>
+  <text x="535" y="1528" text-anchor="start" font-size="11" font-weight="bold" fill="#000000">Login Flow</text>
+  <text x="535" y="1542" text-anchor="start" font-size="9.5" fill="#333333">(SCRUM-105)</text>
+
+  <!-- 13. END -->
+  <rect x="420" y="1615" width="160" height="50" rx="25" ry="25" fill="#FFFFFF" stroke="#000000" stroke-width="2.2" />
+  <text x="500" y="1646" text-anchor="middle" font-size="14" font-weight="bold" fill="#000000">END</text>
+
+</svg>'''
+    return svg
+
+def main():
+    print("1. Generating Draw.io XML...")
+    drawio_path = "docs/flowcharts/auth-signout-multitab.drawio"
+    with open(drawio_path, "w", encoding="utf-8") as f:
+        f.write(build_drawio_xml())
+    print(f"Saved: {drawio_path}")
+
+    print("2. Generating Vector SVG and PDF...")
+    svg_content = build_vector_svg()
+    svg_path = "docs/assets/flowcharts/auth-signout-multitab.svg"
+    with open(svg_path, "w", encoding="utf-8") as f:
+        f.write(svg_content)
+    print(f"Saved: {svg_path}")
+
+    pdf_path = "docs/pdf/auth-signout-multitab.pdf"
+    html_content = f"""<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    @page {{
+      size: 1040px 1780px;
+      margin: 0;
+    }}
+    body {{
+      margin: 0;
+      padding: 20px;
+      background: #FFFFFF;
+      display: flex;
+      justify-content: center;
+    }}
+  </style>
+</head>
+<body>
+  {svg_content}
+</body>
+</html>"""
+    weasyprint.HTML(string=html_content).write_pdf(pdf_path)
+    print(f"Saved: {pdf_path}")
+
+    print("3. Generating High-Res PNG via pdftoppm...")
+    png_base = "/tmp/scrum107_render"
+    subprocess.run(["pdftoppm", "-png", "-r", "200", pdf_path, png_base], check=True)
+    rendered_png = f"{png_base}-1.png"
+    target_png = "docs/assets/flowcharts/auth-signout-multitab.png"
+    shutil.move(rendered_png, target_png)
+    print(f"Saved: {target_png}")
+
+    # Copy to brain artifact directory if specified
+    brain_target = "/home/hrmr/.gemini/antigravity-cli/brain/e06feeb1-eae1-4d85-a539-8f5611d91249/auth-signout-multitab.png"
+    if os.path.exists(os.path.dirname(brain_target)):
+        shutil.copyfile(target_png, brain_target)
+        print(f"Copied to brain directory: {brain_target}")
+
+    print("\nAll deliverables successfully generated!")
+
+if __name__ == "__main__":
+    main()

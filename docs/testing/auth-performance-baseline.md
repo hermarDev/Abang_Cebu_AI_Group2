@@ -2,7 +2,7 @@
 
 **Document Version:** 1.0.0  
 **Status:** Approved  
-**Jira Ticket Reference:** [SCRUM-72](https://abangcebuai.atlassian.net/browse/SCRUM-72) — *Plan Authentication Baseline Latency & Load Strategy*  
+**Jira Ticket References:** [SCRUM-72](https://abangcebuai.atlassian.net/browse/SCRUM-72), [SCRUM-114](https://abangcebuai.atlassian.net/browse/SCRUM-114) (Authentication Baseline Latency & Load Strategy)
 **Sprint:** Sprint 1 (Foundations & Core Infrastructure)  
 **Author:** Ryza Albiso (QA Engineer / Performance)  
 **Reviewed & Audited by:** Hermar Centillas (Lead / Scrum Master)  

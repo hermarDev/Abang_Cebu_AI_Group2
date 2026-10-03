@@ -1,138 +1,213 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 1650" width="1100" height="1650">
-    <defs>
-        <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-            <path d="M 0 1 L 10 5 L 0 9 z" fill="#0F172A"/>
-        </marker>
-    </defs>
-    <rect width="1100" height="1650" fill="#FFFFFF"/>
-    
-    <rect x="150" y="30" width="800" height="70" rx="8" fill="#F8FAFC" stroke="#0F172A" stroke-width="2"/>
-    <text x="550" y="60" font-family="'Segoe UI', sans-serif" font-size="16" font-weight="700" fill="#0F172A" text-anchor="middle">AbangCebu AI — Sub-Process 1: User Registration & PKCE Activation</text>
-    <text x="550" y="82" font-family="'Segoe UI', sans-serif" font-size="12" font-weight="500" fill="#64748B" text-anchor="middle">Triple-Firewall Anti-Privilege Escalation & Account Activation</text>
-    
-            <g transform="translate(380, 140)">
-                <rect width="340" height="46" rx="23" fill="#0F172A" stroke="#0F172A" stroke-width="2"/>
-                <text x="170" y="28" font-family="'Segoe UI', sans-serif" font-size="11" font-weight="700" fill="#FFFFFF" text-anchor="middle">User Navigates to Registration Page (/register)</text>
-            </g>
-            
-            <g transform="translate(370, 230)">
-                <rect width="360" height="52" rx="6" fill="#FFFFFF" stroke="#0F172A" stroke-width="1.5"/>
-                <text x="180" y="31" font-family="'Segoe UI', sans-serif" font-size="10" font-weight="500" fill="#0F172A" text-anchor="middle">Role Switch Selection (Renter vs Landlord Context)</text>
-            </g>
-            
-            <g transform="translate(370, 320)">
-                <rect width="360" height="52" rx="6" fill="#FFFFFF" stroke="#0F172A" stroke-width="1.5"/>
-                <text x="180" y="31" font-family="'Segoe UI', sans-serif" font-size="10" font-weight="500" fill="#0F172A" text-anchor="middle">Fill Form (Full Name, Email, Password, Mobile 09XX, Landmark)</text>
-            </g>
-            
-            <g transform="translate(370, 410)">
-                <rect width="360" height="52" rx="6" fill="#FFFFFF" stroke="#0F172A" stroke-width="1.5"/>
-                <text x="180" y="31" font-family="'Segoe UI', sans-serif" font-size="10" font-weight="500" fill="#0F172A" text-anchor="middle">Client Validation (NIST SP 800-63B Password + E.164 Phone Normalizer)</text>
-            </g>
-            
-            <g transform="translate(550, 532)">
-                <path d="M 0 -32 L 190 0 L 0 32 L -190 0 Z" fill="#FEF3C7" stroke="#D97706" stroke-width="1.5"/>
-                <text x="0" y="4" font-family="'Segoe UI', sans-serif" font-size="10.5" font-weight="600" fill="#92400E" text-anchor="middle">Cloudflare Turnstile Bot Token Verification Valid?</text>
-            </g>
-            
-            <g transform="translate(370, 590)">
-                <rect width="360" height="52" rx="6" fill="#FFFFFF" stroke="#0F172A" stroke-width="1.5"/>
-                <text x="180" y="31" font-family="'Segoe UI', sans-serif" font-size="10" font-weight="500" fill="#0F172A" text-anchor="middle">Submit to Server Action registerUserAction</text>
-            </g>
-            
-            <g transform="translate(550, 712)">
-                <path d="M 0 -32 L 190 0 L 0 32 L -190 0 Z" fill="#FEF3C7" stroke="#D97706" stroke-width="1.5"/>
-                <text x="0" y="4" font-family="'Segoe UI', sans-serif" font-size="10.5" font-weight="600" fill="#92400E" text-anchor="middle">Anti-Privilege Escalation Check: Is Role == 'admin'?</text>
-            </g>
-            
-            <g transform="translate(370, 770)">
-                <rect width="360" height="52" rx="6" fill="#FFFFFF" stroke="#0F172A" stroke-width="1.5"/>
-                <text x="180" y="31" font-family="'Segoe UI', sans-serif" font-size="10" font-weight="500" fill="#0F172A" text-anchor="middle">HTTP 403 Forbidden: PRIVILEGE_ESCALATION_ATTEMPT (Security Log)</text>
-            </g>
-            
-            <g transform="translate(370, 860)">
-                <rect width="360" height="52" rx="6" fill="#FFFFFF" stroke="#0F172A" stroke-width="1.5"/>
-                <text x="180" y="31" font-family="'Segoe UI', sans-serif" font-size="10" font-weight="500" fill="#0F172A" text-anchor="middle">Supabase auth.signUp() &amp; PostgreSQL handle_new_user() Trigger</text>
-            </g>
-            
-            <g transform="translate(370, 950)">
-                <rect width="360" height="52" rx="6" fill="#FFFFFF" stroke="#0F172A" stroke-width="1.5"/>
-                <text x="180" y="31" font-family="'Segoe UI', sans-serif" font-size="10" font-weight="500" fill="#0F172A" text-anchor="middle">Dispatch Transactional Verification Email with Single-Use PKCE Link</text>
-            </g>
-            
-            <g transform="translate(370, 1040)">
-                <rect width="360" height="52" rx="6" fill="#FFFFFF" stroke="#0F172A" stroke-width="1.5"/>
-                <text x="180" y="31" font-family="'Segoe UI', sans-serif" font-size="10" font-weight="500" fill="#0F172A" text-anchor="middle">User Clicks Email Link -&gt; GET /auth/callback?code=CODE&amp;type=signup</text>
-            </g>
-            
-            <g transform="translate(370, 1130)">
-                <rect width="360" height="52" rx="6" fill="#FFFFFF" stroke="#0F172A" stroke-width="1.5"/>
-                <text x="180" y="31" font-family="'Segoe UI', sans-serif" font-size="10" font-weight="500" fill="#0F172A" text-anchor="middle">Next.js Route Handler Exchanges Code via @supabase/ssr</text>
-            </g>
-            
-            <g transform="translate(550, 1252)">
-                <path d="M 0 -32 L 190 0 L 0 32 L -190 0 Z" fill="#FEF3C7" stroke="#D97706" stroke-width="1.5"/>
-                <text x="0" y="4" font-family="'Segoe UI', sans-serif" font-size="10.5" font-weight="600" fill="#92400E" text-anchor="middle">isSafeRedirectUrl() Whitelist Validation Check?</text>
-            </g>
-            
-            <g transform="translate(370, 1310)">
-                <rect width="360" height="52" rx="6" fill="#FFFFFF" stroke="#0F172A" stroke-width="1.5"/>
-                <text x="180" y="31" font-family="'Segoe UI', sans-serif" font-size="10" font-weight="500" fill="#0F172A" text-anchor="middle">Set Chunked HTTP-Only Session Cookies (sb-*-auth-token.[0..n])</text>
-            </g>
-            
-            <g transform="translate(380, 1400)">
-                <rect width="340" height="46" rx="23" fill="#0F766E" stroke="#0D9488" stroke-width="2"/>
-                <text x="170" y="28" font-family="'Segoe UI', sans-serif" font-size="11" font-weight="700" fill="#FFFFFF" text-anchor="middle">Redirect to Authenticated Target (/search or /landlord/onboarding)</text>
-            </g>
-            
-            <line x1="550" y1="190" x2="550" y2="230" stroke="#0F172A" stroke-width="1.5" marker-end="url(#arrow)"/>
-            
-            <line x1="550" y1="280" x2="550" y2="320" stroke="#0F172A" stroke-width="1.5" marker-end="url(#arrow)"/>
-            
-            <line x1="550" y1="370" x2="550" y2="410" stroke="#0F172A" stroke-width="1.5" marker-end="url(#arrow)"/>
-            
-            <line x1="550" y1="460" x2="550" y2="500" stroke="#0F172A" stroke-width="1.5" marker-end="url(#arrow)"/>
-            
-            <path d="M 370 525 L 280 525 L 280 345 L 370 345" fill="none" stroke="#64748B" stroke-width="1.5" stroke-dasharray="4,4" marker-end="url(#arrow)"/>
-            
-                <rect x="290" y="425" width="136" height="18" fill="#F1F5F9" rx="3" stroke="#CBD5E1" stroke-width="1"/>
-                <text x="295" y="438" font-family="'Segoe UI', sans-serif" font-size="9" font-weight="600" fill="#64748B">No (Invalid Token)</text>
-                
-            <line x1="550" y1="550" x2="550" y2="590" stroke="#0F172A" stroke-width="1.5" marker-end="url(#arrow)"/>
-            
-                <rect x="558" y="560" width="31" height="18" fill="#F1F5F9" rx="3" stroke="#CBD5E1" stroke-width="1"/>
-                <text x="563" y="573" font-family="'Segoe UI', sans-serif" font-size="9" font-weight="600" fill="#0F766E">Yes</text>
-                
-            <line x1="550" y1="640" x2="550" y2="680" stroke="#0F172A" stroke-width="1.5" marker-end="url(#arrow)"/>
-            
-            <line x1="550" y1="730" x2="550" y2="770" stroke="#0F172A" stroke-width="1.5" marker-end="url(#arrow)"/>
-            
-                <rect x="558" y="740" width="164" height="18" fill="#F1F5F9" rx="3" stroke="#CBD5E1" stroke-width="1"/>
-                <text x="563" y="753" font-family="'Segoe UI', sans-serif" font-size="9" font-weight="600" fill="#0F766E">Yes ('admin' Injected)</text>
-                
-            <line x1="550" y1="730" x2="550" y2="860" stroke="#0F172A" stroke-width="1.5" marker-end="url(#arrow)"/>
-            
-                <rect x="558" y="785" width="192" height="18" fill="#F1F5F9" rx="3" stroke="#CBD5E1" stroke-width="1"/>
-                <text x="563" y="798" font-family="'Segoe UI', sans-serif" font-size="9" font-weight="600" fill="#0F766E">No ('renter' | 'landlord')</text>
-                
-            <line x1="550" y1="910" x2="550" y2="950" stroke="#0F172A" stroke-width="1.5" marker-end="url(#arrow)"/>
-            
-            <line x1="550" y1="1000" x2="550" y2="1040" stroke="#0F172A" stroke-width="1.5" marker-end="url(#arrow)"/>
-            
-            <line x1="550" y1="1090" x2="550" y2="1130" stroke="#0F172A" stroke-width="1.5" marker-end="url(#arrow)"/>
-            
-            <line x1="550" y1="1180" x2="550" y2="1220" stroke="#0F172A" stroke-width="1.5" marker-end="url(#arrow)"/>
-            
-            <line x1="550" y1="1270" x2="550" y2="1310" stroke="#0F172A" stroke-width="1.5" marker-end="url(#arrow)"/>
-            
-                <rect x="558" y="1280" width="115" height="18" fill="#F1F5F9" rx="3" stroke="#CBD5E1" stroke-width="1"/>
-                <text x="563" y="1293" font-family="'Segoe UI', sans-serif" font-size="9" font-weight="600" fill="#0F766E">Valid Whitelist</text>
-                
-            <line x1="550" y1="1270" x2="550" y2="1310" stroke="#0F172A" stroke-width="1.5" marker-end="url(#arrow)"/>
-            
-                <rect x="558" y="1280" width="192" height="18" fill="#F1F5F9" rx="3" stroke="#CBD5E1" stroke-width="1"/>
-                <text x="563" y="1293" font-family="'Segoe UI', sans-serif" font-size="9" font-weight="600" fill="#0F766E">Invalid (Fallback /search)</text>
-                
-            <line x1="550" y1="1360" x2="550" y2="1400" stroke="#0F172A" stroke-width="1.5" marker-end="url(#arrow)"/>
-            
-    </svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1620" width="1000" height="1620" style="background:#ffffff; font-family:Helvetica, Arial, sans-serif;">
+  <defs>
+    <!-- Arrow marker for end of lines -->
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#000000" />
+    </marker>
+    <!-- Arrow marker for start of lines (bidirectional) -->
+    <marker id="arrow-start" viewBox="0 0 10 10" refX="2" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 8 1.5 L 0 5 L 8 8.5 z" fill="#000000" />
+    </marker>
+    <!-- Pattern for grid background -->
+    <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#E2E8F0" stroke-width="0.8"/>
+    </pattern>
+  </defs>
+
+  <!-- Grid Background -->
+  <rect width="100%" height="100%" fill="url(#grid)" />
+
+  <!-- Flowchart Title -->
+  <text x="500" y="45" text-anchor="middle" font-size="18" font-weight="bold" fill="#000000" letter-spacing="1">SCRUM-104: SIGN UP &amp; PKCE VERIFICATION FLOW</text>
+
+  <!-- ==================== CONNECTING EDGES ==================== -->
+
+  <!-- START -> Signup Page -->
+  <line x1="500" y1="130" x2="500" y2="170" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+
+  <!-- Signup Page -> have an Account? -->
+  <line x1="500" y1="225" x2="500" y2="265" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+
+  <!-- have an Account? -> YES -> (L) -->
+  <line x1="420" y1="310" x2="265" y2="310" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <text x="350" y="303" font-size="11" font-weight="bold" fill="#000000">YES</text>
+
+  <!-- have an Account? -> NO -> Input User details -->
+  <line x1="500" y1="355" x2="500" y2="405" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <text x="508" y="380" font-size="11" font-weight="bold" fill="#000000">NO</text>
+
+  <!-- Input User details -> Valid Data? -->
+  <line x1="500" y1="470" x2="500" y2="510" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+
+  <!-- Valid Data? -> NO -> loops back to Input User details -->
+  <path d="M 580 555 L 680 555 L 680 437.5 L 630 437.5" fill="none" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <text x="600" y="547" font-size="11" font-weight="bold" fill="#000000">NO</text>
+
+  <!-- Valid Data? -> YES -> Account Exists? -->
+  <line x1="500" y1="600" x2="500" y2="645" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <text x="508" y="623" font-size="11" font-weight="bold" fill="#000000">YES</text>
+
+  <!-- Account Exists? <-> Verify (dashed) <-> User DB -->
+  <line x1="580" y1="690" x2="775" y2="690" stroke="#000000" stroke-width="1.8" stroke-dasharray="6,4" marker-start="url(#arrow-start)" marker-end="url(#arrow)" />
+  <text x="675" y="682" text-anchor="middle" font-size="11" fill="#000000">Verify</text>
+
+  <!-- Account Exists? -> YES -> Prompt Exists -->
+  <line x1="420" y1="690" x2="330" y2="690" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <text x="375" y="682" font-size="11" font-weight="bold" fill="#000000">YES</text>
+
+  <!-- Prompt Exists -> (L) -->
+  <line x1="242.5" y1="662.5" x2="242.5" y2="337" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <text x="252" y="500" font-size="11" fill="#000000">Proceed</text>
+
+  <!-- Account Exists? -> NO -> Create Inactive User -->
+  <line x1="500" y1="735" x2="500" y2="780" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <text x="508" y="760" font-size="11" font-weight="bold" fill="#000000">NO</text>
+
+  <!-- Create Inactive User -> Write User (dashed) -> User DB -->
+  <path d="M 620 807.5 L 820 807.5 L 820 735" fill="none" stroke="#000000" stroke-width="1.8" stroke-dasharray="6,4" marker-end="url(#arrow)" />
+  <text x="690" y="800" font-size="11" fill="#000000">Write User</text>
+
+  <!-- Create Inactive User -> Mail with Activation link -->
+  <line x1="500" y1="835" x2="500" y2="875" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+
+  <!-- Mail with Activation link -> User Clicks Email Link -->
+  <line x1="500" y1="930" x2="500" y2="970" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+
+  <!-- User Clicks Email Link -> Valid Code? -->
+  <line x1="500" y1="1030" x2="500" y2="1070" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+
+  <!-- Valid Code? <-> Verify Token (dashed) <-> User DB -->
+  <path d="M 580 1112.5 L 850 1112.5 L 850 735" fill="none" stroke="#000000" stroke-width="1.8" stroke-dasharray="6,4" marker-start="url(#arrow-start)" marker-end="url(#arrow)" />
+  <text x="690" y="1105" font-size="11" fill="#000000">Verify Token</text>
+
+  <!-- Valid Code? -> NO -> Invalid Link Error -->
+  <line x1="420" y1="1112.5" x2="330" y2="1112.5" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <text x="375" y="1105" font-size="11" font-weight="bold" fill="#000000">NO</text>
+
+  <!-- Invalid Link Error -> END (Left drop down) -->
+  <path d="M 160 1112.5 L 100 1112.5 L 100 1535 L 420 1535" fill="none" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+
+  <!-- Valid Code? -> YES -> Account Activated -->
+  <line x1="500" y1="1155" x2="500" y2="1195" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <text x="508" y="1178" font-size="11" font-weight="bold" fill="#000000">YES</text>
+
+  <!-- Account Activated -> Update Status (dashed) -> User DB -->
+  <path d="M 620 1222.5 L 880 1222.5 L 880 735" fill="none" stroke="#000000" stroke-width="1.8" stroke-dasharray="6,4" marker-end="url(#arrow)" />
+  <text x="690" y="1215" font-size="11" fill="#000000">Update Status</text>
+
+  <!-- Account Activated -> Landlord? -->
+  <line x1="500" y1="1250" x2="500" y2="1290" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+
+  <!-- Landlord? -> YES -> LANDLORD_ONBOARDING_KYC -->
+  <line x1="575" y1="1330" x2="650" y2="1330" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <text x="610" y="1322" font-size="11" font-weight="bold" fill="#000000">YES</text>
+
+  <!-- LANDLORD_ONBOARDING_KYC -> END -->
+  <path d="M 770 1357.5 L 770 1535 L 580 1535" fill="none" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+
+  <!-- Landlord? -> NO -> RENTER_CATALOG -->
+  <line x1="500" y1="1370" x2="500" y2="1410" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <text x="508" y="1392" font-size="11" font-weight="bold" fill="#000000">NO</text>
+
+  <!-- RENTER_CATALOG -> END -->
+  <line x1="500" y1="1465" x2="500" y2="1510" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+
+
+  <!-- ==================== FLOWCHART NODES ==================== -->
+
+  <!-- 1. START -->
+  <rect x="420" y="80" width="160" height="50" rx="25" ry="25" fill="#FFFFFF" stroke="#000000" stroke-width="2.2" />
+  <text x="500" y="111" text-anchor="middle" font-size="14" font-weight="bold" fill="#000000">START</text>
+
+  <!-- 2. Signup Page -->
+  <rect x="400" y="170" width="200" height="55" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="500" y="203" text-anchor="middle" font-size="13" fill="#000000">Signup Page</text>
+
+  <!-- 3. have an Account? -->
+  <polygon points="500,265 580,310 500,355 420,310" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="500" y="306" text-anchor="middle" font-size="12" fill="#000000">have an</text>
+  <text x="500" y="322" text-anchor="middle" font-size="12" fill="#000000">Account?</text>
+
+  <!-- Connector (L) -->
+  <circle cx="242.5" cy="310" r="22.5" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="242.5" y="316" text-anchor="middle" font-size="14" font-weight="bold" fill="#000000">L</text>
+  <text x="205" y="314" text-anchor="end" font-size="11" font-weight="bold" fill="#000000">Login Flow</text>
+
+  <!-- 4. Input User details (Parallelogram) -->
+  <polygon points="385,405 645,405 615,470 355,470" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="500" y="427" text-anchor="middle" font-size="12" font-weight="bold" fill="#000000">Input User details</text>
+  <text x="500" y="444" text-anchor="middle" font-size="10.5" fill="#333333">(Name, Email, Phone, Password,</text>
+  <text x="500" y="459" text-anchor="middle" font-size="10.5" fill="#333333">Role: Renter / Landlord)</text>
+
+  <!-- 5. Valid Data? -->
+  <polygon points="500,510 580,555 500,600 420,555" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="500" y="547" text-anchor="middle" font-size="12" font-weight="bold" fill="#000000">Valid Data?</text>
+  <text x="500" y="563" text-anchor="middle" font-size="10" fill="#444444">(Phone, Password, Role)</text>
+
+  <!-- 6. Account Exists? -->
+  <polygon points="500,645 580,690 500,735 420,690" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="500" y="686" text-anchor="middle" font-size="12" fill="#000000">Account</text>
+  <text x="500" y="701" text-anchor="middle" font-size="12" fill="#000000">Exists?</text>
+
+  <!-- Prompt Exists -->
+  <rect x="160" y="662.5" width="170" height="55" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="245" y="687" text-anchor="middle" font-size="12" fill="#000000">Prompt</text>
+  <text x="245" y="703" text-anchor="middle" font-size="12" font-weight="bold" fill="#000000">"Account Exists"</text>
+
+  <!-- Database: User DB (Cylinder) -->
+  <g>
+    <!-- cylinder top ellipse -->
+    <path d="M 780 660 A 60 15 0 0 0 900 660 A 60 15 0 0 0 780 660 Z" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+    <!-- cylinder body -->
+    <path d="M 780 660 L 780 720 A 60 15 0 0 0 900 720 L 900 660" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+    <path d="M 780 720 A 60 15 0 0 0 900 720" fill="none" stroke="#000000" stroke-width="1.8" />
+    <text x="840" y="700" text-anchor="middle" font-size="13" font-weight="bold" fill="#000000">User Db</text>
+  </g>
+
+  <!-- 7. Create Inactive User & Profile -->
+  <rect x="380" y="780" width="240" height="55" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="500" y="804" text-anchor="middle" font-size="12" font-weight="bold" fill="#000000">Create Inactive User &amp;</text>
+  <text x="500" y="821" text-anchor="middle" font-size="11" fill="#333333">Profile (Role: Renter/Landlord)</text>
+
+  <!-- 8. Mail with Activation link -->
+  <rect x="390" y="875" width="220" height="55" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="500" y="899" text-anchor="middle" font-size="12" font-weight="bold" fill="#000000">Mail with Activation link</text>
+  <text x="500" y="916" text-anchor="middle" font-size="11" fill="#333333">(PKCE Verification Link)</text>
+
+  <!-- 9. User Clicks Email Link (Parallelogram) -->
+  <polygon points="380,970 630,970 605,1030 355,1030" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="495" y="997" text-anchor="middle" font-size="12" font-weight="bold" fill="#000000">User Clicks Email Link</text>
+  <text x="495" y="1014" text-anchor="middle" font-size="11" fill="#333333">(/auth/callback?code=...)</text>
+
+  <!-- 10. Valid Code? -->
+  <polygon points="500,1070 580,1112.5 500,1155 420,1112.5" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="500" y="1109" text-anchor="middle" font-size="12" fill="#000000">Valid</text>
+  <text x="500" y="1124" text-anchor="middle" font-size="12" fill="#000000">Code?</text>
+
+  <!-- Invalid Link Error -->
+  <rect x="160" y="1085" width="170" height="55" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="245" y="1109" text-anchor="middle" font-size="12" font-weight="bold" fill="#000000">Show Error</text>
+  <text x="245" y="1126" text-anchor="middle" font-size="11" fill="#333333">(Invalid / Expired Link)</text>
+
+  <!-- 11. Account Activated -->
+  <rect x="380" y="1195" width="240" height="55" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="500" y="1219" text-anchor="middle" font-size="12" font-weight="bold" fill="#000000">Account Activated</text>
+  <text x="500" y="1236" text-anchor="middle" font-size="11" fill="#333333">&amp; Session Cookies Set</text>
+
+  <!-- 12. Landlord? -->
+  <polygon points="500,1290 575,1330 500,1370 425,1330" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="500" y="1335" text-anchor="middle" font-size="12" font-weight="bold" fill="#000000">Landlord?</text>
+
+  <!-- Landlord KYC (Step banner) -->
+  <polygon points="650,1302.5 865,1302.5 890,1330 865,1357.5 650,1357.5 675,1330" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="770" y="1334" text-anchor="middle" font-size="11" font-weight="bold" fill="#000000">LANDLORD_ONBOARDING_KYC</text>
+
+  <!-- Renter Catalog (Step banner) -->
+  <polygon points="390,1410 585,1410 610,1437.5 585,1465 390,1465 415,1437.5" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="500" y="1442" text-anchor="middle" font-size="12" font-weight="bold" fill="#000000">RENTER_CATALOG</text>
+
+  <!-- 13. END -->
+  <rect x="420" y="1510" width="160" height="50" rx="25" ry="25" fill="#FFFFFF" stroke="#000000" stroke-width="2.2" />
+  <text x="500" y="1541" text-anchor="middle" font-size="14" font-weight="bold" fill="#000000">END</text>
+
+</svg>

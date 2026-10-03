@@ -575,3 +575,21 @@ This specification adheres to all Sprint 1 Iron Rules:
 - **Zero Frontend Feature UI:** Contains zero premature JSX components, visual widgets, or form templates.
 - **Strict Role Boundaries:** Fully prevents self-assignment of administrative roles.
 - **Contract Parity:** `src/types/auth.ts` provides complete compile-time type parity with this specification and passes `pnpm exec tsc --noEmit` with zero errors.
+
+---
+
+## 9. Sub-Process Architecture Flowchart (SCRUM-104)
+
+The registration workflow and PKCE authorization code exchange are modeled in the official sub-process architecture flowchart below:
+
+* **Draw.io Editable Source:** [`docs/flowcharts/auth-registration-pkce.drawio`](../../flowcharts/auth-registration-pkce.drawio)
+* **Vector PDF Specification:** [`docs/pdf/auth-registration-pkce.pdf`](../../pdf/auth-registration-pkce.pdf)
+* **High-Resolution PNG Asset:** [`docs/assets/flowcharts/auth-registration-pkce.png`](../../assets/flowcharts/auth-registration-pkce.png)
+
+> [!NOTE]
+> **Public Registration Role Boundaries:**
+> The public sign-up workflow supports exclusively self-registration for `renter` and `landlord` roles. Administrative (`admin`) accounts are strictly prohibited from public self-registration and are provisioned exclusively via seed script or direct administrative invitation per [`docs/security/rbac-matrix.md`](../../security/rbac-matrix.md).
+
+![SCRUM-104 Sign Up and PKCE Verification Flowchart](../../assets/flowcharts/auth-registration-pkce.png)
+
+

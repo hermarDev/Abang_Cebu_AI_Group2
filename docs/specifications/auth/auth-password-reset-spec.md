@@ -17,6 +17,7 @@
 - Row Level Security Policies: [`docs/security/rls-policies.md`](../../security/rls-policies.md)
 - Next.js Guidelines: [`docs/architecture/next15-guidelines.md`](../../architecture/next15-guidelines.md)
 - Client-Server Boundaries: [`docs/architecture/client-server-boundaries.md`](../../architecture/client-server-boundaries.md)
+- Architecture Flowchart (SCRUM-106): [`docs/flowcharts/auth-password-reset-recovery.drawio`](../../flowcharts/auth-password-reset-recovery.drawio)
 - TypeScript Database Definitions: [`src/types/database.ts`](../../../src/types/database.ts)
 - TypeScript Authentication Definitions: [`src/types/auth.ts`](../../../src/types/auth.ts)
 
@@ -416,3 +417,21 @@ To protect against malicious open-redirect injection in the email action link (e
 - **Zero Premature UI Components:** Strictly limited to technical specifications, architectural contracts, data types, and protocol state machines. No JSX widgets, buttons, or form cards were created.
 - **Authentic Engineering Attribution:** Author `Joan Marie Encallado Inting (Engineering Team)`, Reviewer `Hermar Centillas (Lead / Scrum Master)`. Zero AI markers.
 - **Type Safety:** 100% type-checked via TypeScript strict mode (`tsc --noEmit`) and linted via `oxlint`.
+
+---
+
+## 12. Sub-Process Architecture Flowchart (SCRUM-106)
+
+The password reset request, anti-enumeration timing jitter, PKCE recovery link dispatch, single-use token verification, NIST SP 800-63B password validation, and mandatory global session revocation (`scope: 'global'`) are modeled in the official sub-process architecture flowchart below:
+
+* **Draw.io Editable Source:** [`docs/flowcharts/auth-password-reset-recovery.drawio`](../../flowcharts/auth-password-reset-recovery.drawio)
+* **Vector PDF Specification:** [`docs/pdf/auth-password-reset-recovery.pdf`](../../pdf/auth-password-reset-recovery.pdf)
+* **High-Resolution PNG Asset:** [`docs/assets/flowcharts/auth-password-reset-recovery.png`](../../assets/flowcharts/auth-password-reset-recovery.png)
+
+> [!NOTE]
+> **Anti-Enumeration & Global Revocation Guarantees:**
+> 1. **Anti-Enumeration Jitter:** Uniform response timing (200–400ms synthetic jitter) and constant generic response messaging prevent account enumeration and scraper harvesting on `/api/auth/reset-password/request`.
+> 2. **Global Session Purge:** Successful password updates immediately execute `supabase.auth.signOut({ scope: 'global' })`, revoking all active refresh tokens in `auth.refresh_tokens`, invalidating active browser cookies, and propagating `SIGNED_OUT` via `BroadcastChannel('supabase.auth.token')`.
+
+![SCRUM-106 Password Reset & Recovery Flowchart](../../assets/flowcharts/auth-password-reset-recovery.png)
+

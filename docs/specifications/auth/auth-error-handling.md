@@ -8,6 +8,7 @@
 **Reviewed & Audited by:** Hermar Centillas (Lead / Scrum Master)  
 **Database Foundation:** [SCRUM-54](https://abangcebuai.atlassian.net/browse/SCRUM-54) (`supabase/migrations/20260929000001_users_and_profiles.sql`)  
 **Related Specifications:**
+- Architecture Flowchart (SCRUM-108): [`docs/flowcharts/auth-error-handling-suspension.drawio`](../../flowcharts/auth-error-handling-suspension.drawio)
 - Password Reset & Recovery Specification: [`docs/specifications/auth/auth-password-reset-spec.md`](./auth-password-reset-spec.md)
 - User Logout & Session Invalidation: [`docs/specifications/auth/auth-logout-spec.md`](./auth-logout-spec.md)
 - User Login & Session Token Lifecycle: [`docs/specifications/auth/auth-session-lifecycle.md`](./auth-session-lifecycle.md)
@@ -298,3 +299,21 @@ graph TD
 - **Zero Premature UI Components:** Strictly architectural specifications, data contracts, and protocol guidelines. Zero JSX widgets, form components, or visual cards were created.
 - **Authentic Engineering Attribution:** Author `junrilldisoy90 (Engineering Team)`, Reviewer `Hermar Centillas (Lead / Scrum Master)`. Zero AI markers.
 - **Type Safety:** 100% type-checked via TypeScript strict mode (`tsc --noEmit`) and linted via `oxlint`.
+
+---
+
+## 9. Sub-Process Architecture Flowchart (SCRUM-108)
+
+The universal error handling taxonomy, GoTrue/system error translation, account suspension enforcement pipeline (`profiles.is_suspended` check, immediate session expulsion, zeroing session cookies, and route redirection to `/suspended`), and the 4 UX feedback branches (`inline`, `toast`, `banner`, `boundary`) are modeled in the official sub-process architecture flowchart below:
+
+* **Draw.io Editable Source:** [`docs/flowcharts/auth-error-handling-suspension.drawio`](../../flowcharts/auth-error-handling-suspension.drawio)
+* **Vector PDF Specification:** [`docs/pdf/auth-error-handling-suspension.pdf`](../../pdf/auth-error-handling-suspension.pdf)
+* **High-Resolution PNG Asset:** [`docs/assets/flowcharts/auth-error-handling-suspension.png`](../../assets/flowcharts/auth-error-handling-suspension.png)
+
+> [!NOTE]
+> **Suspension Pipeline & Feedback Taxonomy Guarantees:**
+> 1. **Administrative Suspension Immediate Expulsion:** When `profiles.is_suspended == true` or HTTP 403 Forbidden is detected, the pipeline immediately purges client memory state, wipes active session cookies (`Max-Age=0`), and dispatches the user to `/suspended?code=AUTH_ACCOUNT_SUSPENDED` to render the appeals interface.
+> 2. **Context-Aware UX Presentation Routing:** Unauthenticated/unverified states route to docked alert banners with resend actions (linking to Login Flow SCRUM-105 `Connector (L)`), form validation errors trigger targeted inline warnings, rate-limiting/offline errors display ephemeral toasts with exponential backoff timers, and fatal unhandled errors trigger React Error Boundaries with app reload actions.
+
+![SCRUM-108 Authentication Error Handling & Account Suspension Flowchart](../../assets/flowcharts/auth-error-handling-suspension.png)
+

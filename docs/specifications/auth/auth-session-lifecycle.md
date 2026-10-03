@@ -15,6 +15,7 @@
 - Row Level Security Policies: [`docs/security/rls-policies.md`](../../security/rls-policies.md)
 - Next.js Guidelines: [`docs/architecture/next15-guidelines.md`](../../architecture/next15-guidelines.md)
 - Client-Server Boundaries: [`docs/architecture/client-server-boundaries.md`](../../architecture/client-server-boundaries.md)
+- Architecture Flowchart (SCRUM-105): [`docs/flowcharts/auth-login-session-rtr.drawio`](../../flowcharts/auth-login-session-rtr.drawio)
 - TypeScript Database Definitions: [`src/types/database.ts`](../../../src/types/database.ts)
 - TypeScript Authentication Definitions: [`src/types/auth.ts`](../../../src/types/auth.ts)
 
@@ -45,7 +46,7 @@ The login and session architecture synthesizes constraints and business rules es
 | **`docs/auth-registration-spec.md`** | Establishes identity creation rules, password complexity enforcement, canonical Philippine phone number normalization (`+639XXXXXXXXX`), and the PKCE email verification requirement. Login enforces that `auth.users.email_confirmed_at` is non-null before granting an active session. |
 | **`docs/users-and-profiles-schema.md`** | Governs the foreign key binding between `auth.users.id` and `public.profiles.id`. Login and middleware evaluate `profiles.is_suspended` and `profiles.role` to ensure synchronized role claims and enforce instantaneous platform expulsion for suspended users. |
 | **`docs/renter-persona.md`** | Emphasizes low-friction authentication for mobile-first users—such as "Mika", a CIT-U/USC student or IT Park BPO worker commuting along Cebu transit corridors. Mandates persistent "Remember Me" sessions (30-day lifespan), resilient network error recovery, and seamless background token rotation. |
-| **`docs/rbac-matrix.md` & `docs/rls-policies.md`** | Directs post-login role routing (`renter` -> `/search`, `landlord` -> `/dashboard`, `admin` -> `/admin`) and dictates JWT claim ingestion by PostgreSQL RLS (`auth.jwt() ->> 'role'`). Guarantees landlord contact information is masked until a valid `authenticated` role is verified. |
+| **`docs/rbac-matrix.md` & `docs/rls-policies.md`** | Directs post-login role routing (`renter` -> `/search`, `landlord` -> `/landlord/dashboard`, `admin` -> `/admin`) and dictates JWT claim ingestion by PostgreSQL RLS (`auth.jwt() ->> 'role'`). Guarantees landlord contact information is masked until a valid `authenticated` role is verified. |
 
 ### 1.3 Scope of Session Lifecycle Management
 
@@ -691,3 +692,20 @@ flowchart TD
 - [x] **Zero Premature UI Policy:** This deliverable provides complete architectural specifications, data dictionaries, state machines, and TypeScript contracts. No JSX form widgets or frontend UI components have been introduced.
 - [x] **Strict Type Synchronization:** All TypeScript contracts (`LoginPayload`, `SessionTokens`, `LoginSuccessResponse`, `SupabaseJwtClaims`, `SessionState`, `CookieConfig`, `AuthErrorCode`) are compiled and validated with `pnpm exec tsc --noEmit` yielding 0 errors.
 - [x] **Engineering Authorship:** Engineered by John Lloyd Ando (Engineering Team) under ticket [SCRUM-57](https://abangcebuai.atlassian.net/browse/SCRUM-57).
+
+---
+
+## 12. Sub-Process Architecture Flowchart (SCRUM-105)
+
+The user login, credential verification, dual-lifespan session cookie issuance, and Refresh Token Rotation (RTR) lifecycle are modeled in the official sub-process architecture flowchart below:
+
+* **Draw.io Editable Source:** [`docs/flowcharts/auth-login-session-rtr.drawio`](../../flowcharts/auth-login-session-rtr.drawio)
+* **Vector PDF Specification:** [`docs/pdf/auth-login-session-rtr.pdf`](../../pdf/auth-login-session-rtr.pdf)
+* **High-Resolution PNG Asset:** [`docs/assets/flowcharts/auth-login-session-rtr.png`](../../assets/flowcharts/auth-login-session-rtr.png)
+
+> [!NOTE]
+> **Session Governance & Role Routing:**
+> The authentication engine strictly validates active account status (`profiles.is_suspended = false`) and verified email (`auth.users.email_confirmed_at IS NOT NULL`) prior to issuing Refresh Token Rotation (RTR) cookie families. Role resolution deterministically routes authenticated users to their corresponding platform surface: `/admin` for Administrators, `/landlord/dashboard` for Landlords, and `/search` for Renters.
+
+![SCRUM-105 User Login and Session Token Lifecycle Flowchart](../../assets/flowcharts/auth-login-session-rtr.png)
+
