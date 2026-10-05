@@ -1,0 +1,274 @@
+<mxfile host="Electron" modified="2026-10-03T13:30:00.000Z" agent="Antigravity" version="21.0.0" type="device">
+  <diagram id="scrum-117-map-init-geolocation" name="Sub-Process 2.1: Map Initialization &amp; Geolocation">
+    <mxGraphModel dx="1200" dy="1600" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1050" pageHeight="1500" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- Title -->
+        <mxCell id="title" value="SCRUM-117: SUB-PROCESS 2.1 — MAP INITIALIZATION, VIEWPORT &amp; GEOLOCATION" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontFamily=Helvetica;fontSize=17;fontStyle=1;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="75" y="25" width="850" height="35" as="geometry" />
+        </mxCell>
+
+        <!-- 1. START -->
+        <mxCell id="node_start" value="START" style="rounded=1;arcSize=50;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Helvetica;fontSize=14;fontStyle=1;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="420" y="70" width="160" height="45" as="geometry" />
+        </mxCell>
+
+        <!-- 2. Mount Map Shell Component -->
+        <mxCell id="node_mount_shell" value="Initialize Map Shell Component&#xa;(Mount #map-viewport container, 100vw x 100dvh)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=12;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="315" y="145" width="370" height="55" as="geometry" />
+        </mxCell>
+
+        <!-- 3. WebGL Supported? -->
+        <mxCell id="node_webgl_decision" value="WebGL Canvas&#xa;Supported?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=12;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="400" y="230" width="200" height="75" as="geometry" />
+        </mxCell>
+
+        <!-- Fallback 2D Canvas / Static Map (Right Branch) -->
+        <mxCell id="node_fallback_2d" value="Mount Graceful Static Map / 2D Canvas&#xa;(Raster fallback image + basic touch pan)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11.5;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="670" y="325" width="260" height="55" as="geometry" />
+        </mxCell>
+
+        <!-- WebGL Compatibility Alert -->
+        <mxCell id="node_webgl_alert" value="Display Compatibility Warning Toast&#xa;(&quot;Hardware acceleration disabled&quot;)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11.5;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="680" y="410" width="240" height="45" as="geometry" />
+        </mxCell>
+
+        <!-- 4. Load Vector Tile Style Spec -->
+        <mxCell id="node_load_style" value="Load Vector Tile Style Spec&#xa;(OpenFreeMap Liberty Vector Style via MapLibre GL)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=12;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="315" y="335" width="370" height="55" as="geometry" />
+        </mxCell>
+
+        <!-- 5. Stored Viewport in URL / Session? -->
+        <mxCell id="node_url_coords_decision" value="Stored Viewport&#xa;in URL / Session?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=12;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="390" y="420" width="220" height="75" as="geometry" />
+        </mxCell>
+
+        <!-- Restore Saved Viewport (Left Branch) -->
+        <mxCell id="node_restore_viewport" value="Restore Viewport Coordinates&#xa;(Parse URL ?lat=..&amp;lng=..&amp;zoom=..)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11.5;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="100" y="525" width="250" height="55" as="geometry" />
+        </mxCell>
+
+        <!-- 6. Request Browser Geolocation (Parallelogram) -->
+        <mxCell id="node_request_geo" value="Request Browser Geolocation&#xa;(navigator.geolocation.getCurrentPosition)" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;size=20;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=12;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="375" y="525" width="250" height="55" as="geometry" />
+        </mxCell>
+
+        <!-- 7. Geolocation Permission Granted? -->
+        <mxCell id="node_geo_decision" value="GPS Geolocation&#xa;Granted?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=12;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="395" y="610" width="210" height="75" as="geometry" />
+        </mxCell>
+
+        <!-- Parse GPS Coordinates -->
+        <mxCell id="node_parse_gps" value="Extract High-Accuracy Coordinates&#xa;(enableHighAccuracy: true, timeout: 8000ms)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11.5;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="130" y="715" width="260" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- Render Pulsing Blue Dot -->
+        <mxCell id="node_render_blue_dot" value="Render Pulsing Live User Marker&#xa;(MapLibre Marker with accuracy radius circle)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11.5;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="130" y="795" width="260" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- Animate Camera Fly-To User -->
+        <mxCell id="node_fly_gps" value="Animate Camera Fly-To User Position&#xa;(map.flyTo({ center: [lng, lat], zoom: 15.5 }))" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11.5;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="130" y="875" width="260" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- Fallback Centroid (Right Branch) -->
+        <mxCell id="node_fallback_centroid" value="Fallback to Metro Cebu Centroid&#xa;(Fuente Osmeña [10.3157, 123.8854], zoom 13.0)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11.5;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="610" y="715" width="260" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- Fallback Centroid Notice -->
+        <mxCell id="node_notify_centroid" value="Display Centroid Toast Notice&#xa;(&quot;Positioned at Metro Cebu Hub&quot;)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11.5;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="635" y="795" width="210" height="45" as="geometry" />
+        </mxCell>
+
+        <!-- 8. Extract Viewport Bounding Box -->
+        <mxCell id="node_extract_bounds" value="Extract Visible Bounding Box (bbox)&#xa;(map.getBounds() -&gt; [minLng, minLat, maxLng, maxLat])" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=12;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="315" y="960" width="370" height="55" as="geometry" />
+        </mxCell>
+
+        <!-- 9. Attach Debounced Listeners -->
+        <mxCell id="node_attach_listeners" value="Attach Debounced Map Move &amp; Zoom Listeners&#xa;(map.on('moveend') debounced 300ms for spatial re-query)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=12;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="315" y="1045" width="370" height="55" as="geometry" />
+        </mxCell>
+
+        <!-- 10. WebGL Context Loss Recovery Watcher -->
+        <mxCell id="node_listen_context_loss" value="Register WebGL Context Loss / Restore Watcher&#xa;(canvas.addEventListener('webglcontextrestored'))" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=12;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="315" y="1130" width="370" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- 11. Dispatch Viewport Ready -->
+        <mxCell id="node_sync_state" value="Dispatch Viewport Ready Event &amp; Sync State&#xa;(Update React MapContext &amp; URL SearchParams)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=12;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="315" y="1210" width="370" height="55" as="geometry" />
+        </mxCell>
+
+        <!-- 12. Connector (S) to Spatial Search -->
+        <mxCell id="node_connector_s" value="S" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Helvetica;fontSize=14;fontStyle=1;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="477.5" y="1295" width="45" height="45" as="geometry" />
+        </mxCell>
+
+        <mxCell id="node_connector_label" value="To Spatial Search Sub-Process 2.2 (SCRUM-118)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontFamily=Helvetica;fontSize=11;fontStyle=2;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="530" y="1302" width="280" height="30" as="geometry" />
+        </mxCell>
+
+        <!-- 13. END -->
+        <mxCell id="node_end" value="END" style="rounded=1;arcSize=50;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Helvetica;fontSize=14;fontStyle=1;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="420" y="1375" width="160" height="45" as="geometry" />
+        </mxCell>
+
+        <!-- EDGES -->
+        <!-- Start -> Mount Shell -->
+        <mxCell id="edge1" edge="1" parent="1" source="node_start" target="node_mount_shell" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Mount Shell -> WebGL Decision -->
+        <mxCell id="edge2" edge="1" parent="1" source="node_mount_shell" target="node_webgl_decision" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- WebGL Decision -> NO -> Fallback 2D -->
+        <mxCell id="edge_webgl_no" value="NO" edge="1" parent="1" source="node_webgl_decision" target="node_fallback_2d" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11;fontStyle=1;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="800" y="267" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Fallback 2D -> WebGL Alert -->
+        <mxCell id="edge_webgl_alert" edge="1" parent="1" source="node_fallback_2d" target="node_webgl_alert" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- WebGL Alert -> END (Far right bypass) -->
+        <mxCell id="edge_webgl_to_end" edge="1" parent="1" source="node_webgl_alert" target="node_end" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="800" y="1397" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- WebGL Decision -> YES -> Load Style -->
+        <mxCell id="edge_webgl_yes" value="YES" edge="1" parent="1" source="node_webgl_decision" target="node_load_style" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11;fontStyle=1;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Load Style -> URL Coords Decision -->
+        <mxCell id="edge4" edge="1" parent="1" source="node_load_style" target="node_url_coords_decision" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- URL Coords Decision -> YES -> Restore Viewport -->
+        <mxCell id="edge_url_yes" value="YES" edge="1" parent="1" source="node_url_coords_decision" target="node_restore_viewport" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11;fontStyle=1;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="225" y="457" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Restore Viewport -> Extract Bounds (Bypass Geo) -->
+        <mxCell id="edge_restore_to_bounds" edge="1" parent="1" source="node_restore_viewport" target="node_extract_bounds" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="80" y="552" />
+              <mxPoint x="80" y="987" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- URL Coords Decision -> NO -> Request Geo -->
+        <mxCell id="edge_url_no" value="NO" edge="1" parent="1" source="node_url_coords_decision" target="node_request_geo" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11;fontStyle=1;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Request Geo -> Geo Decision -->
+        <mxCell id="edge6" edge="1" parent="1" source="node_request_geo" target="node_geo_decision" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Geo Decision -> YES -> Parse GPS -->
+        <mxCell id="edge_geo_yes" value="YES" edge="1" parent="1" source="node_geo_decision" target="node_parse_gps" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11;fontStyle=1;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="260" y="647" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Parse GPS -> Render Blue Dot -->
+        <mxCell id="edge_parse_to_dot" edge="1" parent="1" source="node_parse_gps" target="node_render_blue_dot" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Render Blue Dot -> Fly GPS -->
+        <mxCell id="edge_dot_to_fly" edge="1" parent="1" source="node_render_blue_dot" target="node_fly_gps" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Fly GPS -> Extract Bounds -->
+        <mxCell id="edge_fly_to_bounds" edge="1" parent="1" source="node_fly_gps" target="node_extract_bounds" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="260" y="987" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Geo Decision -> NO -> Fallback Centroid -->
+        <mxCell id="edge_geo_no" value="NO / TIMEOUT" edge="1" parent="1" source="node_geo_decision" target="node_fallback_centroid" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11;fontStyle=1;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="740" y="647" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Fallback Centroid -> Notify Centroid -->
+        <mxCell id="edge_centroid_to_notice" edge="1" parent="1" source="node_fallback_centroid" target="node_notify_centroid" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Notify Centroid -> Extract Bounds -->
+        <mxCell id="edge_notice_to_bounds" edge="1" parent="1" source="node_notify_centroid" target="node_extract_bounds" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="740" y="987" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Extract Bounds -> Attach Listeners -->
+        <mxCell id="edge8" edge="1" parent="1" source="node_extract_bounds" target="node_attach_listeners" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Attach Listeners -> Listen Context Loss -->
+        <mxCell id="edge9" edge="1" parent="1" source="node_attach_listeners" target="node_listen_context_loss" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Listen Context Loss -> Sync State -->
+        <mxCell id="edge10" edge="1" parent="1" source="node_listen_context_loss" target="node_sync_state" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Sync State -> Connector S -->
+        <mxCell id="edge11" edge="1" parent="1" source="node_sync_state" target="node_connector_s" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Connector S -> END -->
+        <mxCell id="edge12" edge="1" parent="1" source="node_connector_s" target="node_end" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

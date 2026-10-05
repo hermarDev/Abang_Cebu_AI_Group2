@@ -1,0 +1,240 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1040 1480" width="1040" height="1480">
+  <defs>
+    <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#E2E8F0" stroke-width="1"/>
+    </pattern>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1.5 L 9 5 L 0 8.5 z" fill="#000000" />
+    </marker>
+    <marker id="arrow-start" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 9 1.5 L 0 5 L 9 8.5 z" fill="#000000" />
+    </marker>
+  </defs>
+
+  <!-- Background Grid -->
+  <rect width="100%" height="100%" fill="url(#grid)" />
+
+  <!-- Flowchart Title -->
+  <text x="520" y="42" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="16" font-weight="bold" fill="#000000" letter-spacing="0.5">SCRUM-116: LANDING PAGE &amp; MAP-FIRST SPATIAL DISCOVERY MASTER ORCHESTRATION</text>
+
+  <!-- ==================== FLOWCHART CONNECTING LINES ==================== -->
+
+  <!-- START -> Access Landing Page -->
+  <line x1="520" y1="115" x2="520" y2="145" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+
+  <!-- Access Landing Page -> Mount Full-Bleed Map Canvas -->
+  <line x1="520" y1="200" x2="520" y2="230" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+
+  <!-- Mount Map -> GPS Geolocation Granted? -->
+  <line x1="520" y1="285" x2="520" y2="315" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+
+  <!-- GPS -> YES -> Fly to Coordinates -->
+  <polyline points="415,352.5 270,352.5 270,415" fill="none" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <rect x="325" y="342" width="36" height="20" fill="#FFFFFF" stroke="#000000" stroke-width="1" rx="3" />
+  <text x="343" y="356.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#000000">YES</text>
+
+  <!-- GPS -> NO -> Fallback Centroid -->
+  <polyline points="625,352.5 770,352.5 770,415" fill="none" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <rect x="682" y="342" width="32" height="20" fill="#FFFFFF" stroke="#000000" stroke-width="1" rx="3" />
+  <text x="698" y="356.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#000000">NO</text>
+
+  <!-- Fly to Coordinates -> Execute Spatial Query -->
+  <polyline points="270,465 270,485 520,485 520,510" fill="none" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+
+  <!-- Fallback Centroid -> Execute Spatial Query -->
+  <polyline points="770,465 770,485 520,485" fill="none" stroke="#000000" stroke-width="1.8" />
+
+  <!-- Spatial Query <---> PostGIS Database (Dashed) -->
+  <line x1="710" y1="537.5" x2="790" y2="537.5" stroke="#000000" stroke-width="1.8" stroke-dasharray="5,4" marker-start="url(#arrow-start)" marker-end="url(#arrow)" />
+  <rect x="715" y="513" width="70" height="18" fill="#FFFFFF" />
+  <text x="750" y="525" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="8.5" fill="#333333">Spatial Query</text>
+
+  <!-- Execute Spatial Query -> Render Floating UI -->
+  <line x1="520" y1="565" x2="520" y2="600" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+
+  <!-- Render Floating UI -> Ask AI Trigger -->
+  <line x1="270" y1="627.5" x2="245" y2="627.5" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+
+  <!-- Ask AI Trigger -> Connector A -->
+  <line x1="177.5" y1="652.5" x2="177.5" y2="677" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+
+  <!-- Render Floating UI -> User Discovery Interaction -->
+  <line x1="520" y1="655" x2="520" y2="690" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+
+  <!-- User Discovery Interaction -> High-Intent Action Triggered? -->
+  <line x1="520" y1="745" x2="520" y2="780" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+
+  <!-- High-Intent Action Triggered? -> NO -> Spatial Re-Query Required? -->
+  <polyline points="400,820 250,820 250,890" fill="none" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <rect x="309" y="810" width="32" height="20" fill="#FFFFFF" stroke="#000000" stroke-width="1" rx="3" />
+  <text x="325" y="824.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#000000">NO</text>
+  <text x="325" y="842" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="9" fill="#555555">(Spatial Exploration)</text>
+
+  <!-- High-Intent Action Triggered? -> YES -> Authenticated User? -->
+  <polyline points="640,820 790,820 790,890" fill="none" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <rect x="697" y="810" width="36" height="20" fill="#FFFFFF" stroke="#000000" stroke-width="1" rx="3" />
+  <text x="715" y="824.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#000000">YES</text>
+  <text x="715" y="842" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="9" fill="#555555">(Gated Action)</text>
+
+  <!-- Spatial Re-Query Required? -> YES -> Loopback via Bus x=30 to Execute Spatial Query -->
+  <polyline points="145,927.5 30,927.5 30,537.5 330,537.5" fill="none" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <rect x="70" y="917.5" width="36" height="20" fill="#FFFFFF" stroke="#000000" stroke-width="1" rx="3" />
+  <text x="88" y="932" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#000000">YES</text>
+  <text x="88" y="948" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="8.5" fill="#555555">(Pan/Zoom/Landmark)</text>
+  <rect x="80" y="527" width="230" height="18" fill="#FFFFFF" />
+  <text x="195" y="539" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="9" font-weight="bold" fill="#333333">Re-Query Viewport Bbox (ST_MakeEnvelope)</text>
+
+  <!-- Spatial Re-Query Required? -> NO -> Bidirectional Pin Highlight -->
+  <line x1="250" y1="965" x2="250" y2="1020" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <rect x="234" y="977" width="32" height="20" fill="#FFFFFF" stroke="#000000" stroke-width="1" rx="3" />
+  <text x="250" y="991.5" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#000000">NO</text>
+  <text x="272" y="991.5" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="8.5" fill="#555555">(Card/Pin Hover / Pill Toggle)</text>
+
+  <!-- Bidirectional Pin Highlight -> Loopback via Bus x=70 to Render Floating UI -->
+  <polyline points="120,1047.5 70,1047.5 70,582.5 350,582.5 350,600" fill="none" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <rect x="150" y="573" width="160" height="16" fill="#FFFFFF" />
+  <text x="230" y="585" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="9" fill="#333333">Sync Marker &amp; Drawer State</text>
+
+  <!-- Authenticated User? -> NO -> Save Viewport -->
+  <polyline points="685,927.5 640,927.5 640,1020" fill="none" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <rect x="647" y="917.5" width="32" height="20" fill="#FFFFFF" stroke="#000000" stroke-width="1" rx="3" />
+  <text x="663" y="932" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#000000">NO</text>
+
+  <!-- Save Viewport -> Launch Auth Modal -->
+  <line x1="640" y1="1075" x2="640" y2="1115" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+
+  <!-- Launch Auth Modal -> Connector L -->
+  <line x1="640" y1="1165" x2="640" y2="1202" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+
+  <!-- Connector L -> END -->
+  <polyline points="640,1238 640,1315 520,1315 520,1360" fill="none" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+
+  <!-- Authenticated User? -> YES -> Unveil Landlord Contact -->
+  <polyline points="895,927.5 910,927.5 910,1020" fill="none" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <rect x="888" y="917.5" width="36" height="20" fill="#FFFFFF" stroke="#000000" stroke-width="1" rx="3" />
+  <text x="906" y="932" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#000000">YES</text>
+
+  <!-- Unveil Contact -> Commit Inquiry -->
+  <line x1="910" y1="1075" x2="910" y2="1115" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+
+  <!-- Commit Inquiry -> END -->
+  <polyline points="910,1165 910,1315 520,1315" fill="none" stroke="#000000" stroke-width="1.8" />
+
+
+  <!-- ==================== FLOWCHART NODES & SHAPES ==================== -->
+
+  <!-- 1. START -->
+  <rect x="440" y="70" width="160" height="45" rx="22.5" ry="22.5" fill="#FFFFFF" stroke="#000000" stroke-width="2.2" />
+  <text x="520" y="98" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="bold" fill="#000000">START</text>
+
+  <!-- 2. Visitor / User Accesses Landing Page (Parallelogram) -->
+  <polygon points="370,145 690,145 670,200 350,200" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="520" y="167" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="bold" fill="#000000">Visitor / User Accesses Landing Page</text>
+  <text x="520" y="186" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="10.5" fill="#333333">(GET / or /search)</text>
+
+  <!-- 3. Mount Full-Bleed Map Canvas -->
+  <rect x="330" y="230" width="380" height="55" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="520" y="253" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="bold" fill="#000000">Mount Full-Bleed Map Canvas</text>
+  <text x="520" y="271" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="10" fill="#333333">(MapLibre GL WebGL Canvas + OpenFreeMap Vector Tiles)</text>
+
+  <!-- 4. GPS Geolocation Granted? -->
+  <polygon points="520,315 625,352.5 520,390 415,352.5" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="520" y="347" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="bold" fill="#000000">GPS Geolocation</text>
+  <text x="520" y="363" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="bold" fill="#000000">Granted?</text>
+
+  <!-- GPS Fly to User Coordinates -->
+  <rect x="150" y="415" width="240" height="50" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="270" y="437" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#000000">Fly to Live User GPS Coordinates</text>
+  <text x="270" y="453" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="9.5" fill="#333333">(Browser navigator.geolocation [lat, lng])</text>
+
+  <!-- GPS Fallback to Metro Cebu Centroid -->
+  <rect x="650" y="415" width="240" height="50" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="770" y="437" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#000000">Fallback: Metro Cebu Centroid</text>
+  <text x="770" y="453" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="9.5" fill="#333333">(Fuente Osmeña [10.3157, 123.8854])</text>
+
+  <!-- 5. Execute Spatial Query -->
+  <rect x="330" y="510" width="380" height="55" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="520" y="533" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="bold" fill="#000000">Execute Spatial Query</text>
+  <text x="520" y="551" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="9.5" fill="#333333">(ST_MakeEnvelope Bbox / ST_DWithin Proximity)</text>
+
+  <!-- PostGIS Database Cylinder -->
+  <g>
+    <path d="M 790,512 A 87.5,12 0 0,0 965,512 L 965,562 A 87.5,12 0 0,1 790,562 Z" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+    <ellipse cx="877.5" cy="512" rx="87.5" ry="12" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+    <text x="877.5" y="537" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="10.5" font-weight="bold" fill="#000000">PostGIS Database</text>
+    <text x="877.5" y="552" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="9" fill="#333333">(ST_MakeEnvelope Bbox)</text>
+  </g>
+
+  <!-- 6. Render Floating UI Surfaces -->
+  <rect x="270" y="600" width="500" height="55" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="520" y="623" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="bold" fill="#000000">Render Floating UI Surfaces &amp; Price Pins</text>
+  <text x="520" y="641" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="9.5" fill="#333333">(Search Card, Filter Pills, Results Drawer / 3-Snap Sheet, Live Price Pins)</text>
+
+  <!-- Ask AbangCebu AI Floating Trigger (Parallelogram) -->
+  <polygon points="125,602.5 245,602.5 230,652.5 110,652.5" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="177.5" y="623" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="10.5" font-weight="bold" fill="#000000">&quot;Ask AbangCebu AI&quot;</text>
+  <text x="177.5" y="639" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="9" fill="#333333">Floating FAB Trigger</text>
+
+  <!-- Connector A: Ask AbangCebu AI -->
+  <circle cx="177.5" cy="695" r="18" fill="#FFFFFF" stroke="#000000" stroke-width="2" />
+  <text x="177.5" y="701" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="bold" fill="#000000">A</text>
+  <text x="177.5" y="725" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="9.5" font-weight="bold" fill="#000000">Ask AbangCebu AI</text>
+  <text x="177.5" y="738" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="8.5" fill="#333333">(Module 4 NLP Assistant)</text>
+
+  <!-- 7. User Discovery Interaction (Parallelogram) -->
+  <polygon points="320,690 740,690 720,745 300,745" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="520" y="713" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="bold" fill="#000000">User Discovery Interaction</text>
+  <text x="520" y="731" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="9.5" fill="#333333">(Pan/Zoom Viewport, Landmark Search, Filter Pill Toggle, Card/Pin Hover)</text>
+
+  <!-- 8. High-Intent Action Triggered? (Strict Binary Diamond 1) -->
+  <polygon points="520,780 640,820 520,860 400,820" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="520" y="813" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="bold" fill="#000000">High-Intent Action Triggered?</text>
+  <text x="520" y="830" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="9" fill="#333333">(Favorite / Phone Unveil / Schedule Viewing)</text>
+
+  <!-- 9. Spatial Re-Query Required? (Strict Binary Diamond 2 - NO Branch) -->
+  <polygon points="250,890 355,927.5 250,965 145,927.5" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="250" y="922" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="bold" fill="#000000">Spatial Re-Query</text>
+  <text x="250" y="938" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="bold" fill="#000000">Required?</text>
+
+  <!-- 10. Bidirectional Pin Highlight & Drawer Sync -->
+  <rect x="120" y="1020" width="260" height="55" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="250" y="1042" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#000000">Bidirectional Pin Highlight &amp; Drawer Sync</text>
+  <text x="250" y="1058" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="8.5" fill="#333333">(Highlight Pin Marker, Auto-Scroll Drawer Card, Sync Category Filter)</text>
+
+  <!-- 11. Authenticated User? (Strict Binary Diamond 3 - YES Branch) -->
+  <polygon points="790,890 895,927.5 790,965 685,927.5" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="790" y="922" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="bold" fill="#000000">Authenticated User?</text>
+  <text x="790" y="938" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="9" fill="#333333">(Check active Supabase session)</text>
+
+  <!-- NO Branch: Save Viewport & Action -->
+  <rect x="530" y="1020" width="220" height="55" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="640" y="1042" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#000000">Save Viewport &amp; Action</text>
+  <text x="640" y="1058" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="8.5" fill="#333333">(Store bbox, active pin &amp; intent in sessionStorage)</text>
+
+  <!-- Launch Auth Modal -->
+  <rect x="530" y="1115" width="220" height="50" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="640" y="1136" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11.5" font-weight="bold" fill="#000000">Launch Auth Modal</text>
+  <text x="640" y="1152" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="9.5" fill="#333333">(Prompt Login / Registration sheet)</text>
+
+  <!-- Connector L: Login Flow -->
+  <circle cx="640" cy="1220" r="18" fill="#FFFFFF" stroke="#000000" stroke-width="2" />
+  <text x="640" y="1226" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="bold" fill="#000000">L</text>
+  <text x="670" y="1216" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="10.5" font-weight="bold" fill="#000000">Login Flow (SCRUM-105)</text>
+  <text x="670" y="1230" text-anchor="start" font-family="Helvetica, Arial, sans-serif" font-size="9" fill="#333333">(Resume saved viewport &amp; intent upon auth)</text>
+
+  <!-- YES Branch: Unveil Contact / Scheduler Modal -->
+  <rect x="805" y="1020" width="210" height="55" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="910" y="1042" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="11" font-weight="bold" fill="#000000">Unveil Landlord Contact /</text>
+  <text x="910" y="1058" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="9" fill="#333333">Launch Viewing Scheduler Modal</text>
+
+  <!-- Commit Inquiry / Viewing Request -->
+  <rect x="805" y="1115" width="210" height="50" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="910" y="1036" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="10.5" font-weight="bold" fill="#000000"></text>
+  <text x="910" y="1136" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="10.5" font-weight="bold" fill="#000000">Dispatch Inquiry Record to Db</text>
+  <text x="910" y="1152" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="9" fill="#333333">(Commit to inquiries / viewings table)</text>
+
+  <!-- 12. END -->
+  <rect x="440" y="1360" width="160" height="45" rx="22.5" ry="22.5" fill="#FFFFFF" stroke="#000000" stroke-width="2.2" />
+  <text x="520" y="1388" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="bold" fill="#000000">END</text>
+
+</svg>

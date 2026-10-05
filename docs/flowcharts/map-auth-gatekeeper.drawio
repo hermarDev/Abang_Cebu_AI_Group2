@@ -1,0 +1,288 @@
+<mxfile host="Electron" modified="2026-10-05T10:10:00.000Z" agent="Antigravity" version="21.0.0" type="device">
+  <diagram id="scrum-121-map-auth-gatekeeper" name="Sub-Process 2.5: High-Intent Auth Gatekeeper">
+    <mxGraphModel dx="1200" dy="1600" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1250" pageHeight="1450" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- Title -->
+        <mxCell id="title" value="SCRUM-121: SUB-PROCESS 2.5 — HIGH-INTENT ACTION INTERCEPTION &amp; AUTH GATEKEEPER" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontFamily=Helvetica;fontSize=16;fontStyle=1;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="65" y="25" width="1120" height="35" as="geometry" />
+        </mxCell>
+
+        <!-- 1. START -->
+        <mxCell id="node_start" value="START" style="rounded=1;arcSize=50;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Helvetica;fontSize=14;fontStyle=1;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="545" y="75" width="160" height="45" as="geometry" />
+        </mxCell>
+
+        <!-- 2. User Action (Parallelogram) -->
+        <mxCell id="node_trigger_action" value="User Triggers High-Intent Action on Card or Pin&#xa;(Click Favorite Heart, Reveal Phone, or Schedule Viewing)" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;size=20;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=12;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="425" y="150" width="400" height="55" as="geometry" />
+        </mxCell>
+
+        <!-- 3. Diamond 1: User Authenticated? -->
+        <mxCell id="node_auth_decision" value="User&#xa;Authenticated?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=12;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="525" y="235" width="200" height="75" as="geometry" />
+        </mxCell>
+
+        <!-- LEFT COLUMN: AUTHENTICATED ACTIONS -->
+        <!-- Diamond 2: Action: Schedule Viewing? -->
+        <mxCell id="node_schedule_decision" value="Action: Schedule&#xa;Viewing?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11.5;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="160" y="335" width="180" height="75" as="geometry" />
+        </mxCell>
+
+        <!-- Column 1: Schedule Viewing (YES of Diamond 2) -->
+        <mxCell id="node_open_scheduler" value="Open In-App Viewing Scheduler Modal&#xa;(Landlord timeslots &amp; preferred date picker)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=10.5;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="150" y="440" width="200" height="50" as="geometry" />
+        </mxCell>
+
+        <mxCell id="node_dispatch_appointment" value="Dispatch Appointment to Database&#xa;(Insert pending viewing_appointments)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=10.5;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="150" y="520" width="200" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- Diamond 3: Action: Favorite Rental Unit? (NO of Diamond 2) -->
+        <mxCell id="node_favorite_decision" value="Action: Favorite&#xa;Rental Unit?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11.5;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="440" y="335" width="180" height="75" as="geometry" />
+        </mxCell>
+
+        <!-- Column 2: Favorite Unit (YES of Diamond 3) -->
+        <mxCell id="node_toggle_favorite" value="Toggle Saved Listing in DB&#xa;(Upsert / Delete saved_properties)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=10.5;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="430" y="440" width="200" height="50" as="geometry" />
+        </mxCell>
+
+        <mxCell id="node_update_heart" value="Update Heart Icon State&#xa;(Increment saved counter badge)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=10.5;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="430" y="520" width="200" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- Column 3: Reveal Phone (NO of Diamond 3) -->
+        <mxCell id="node_reveal_phone" value="Log Contact Impression &amp; Reveal&#xa;(Unmask verified phone 09XX-XXX-XXXX)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=10.5;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="690" y="440" width="210" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- User & Rental Database Cylinder -->
+        <mxCell id="node_database" value="User &amp; Rental DB&#xa;(appointments, saved_properties, logs)" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=10.5;fontStyle=1;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="60" y="615" width="240" height="65" as="geometry" />
+        </mxCell>
+
+        <!-- Post-Action Feedback (Success Notice) -->
+        <mxCell id="node_action_success" value="Display Contextual Confirmation Notice&#xa;(Heart active / Appointment requested toast banner)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="380" y="622" width="280" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- RIGHT COLUMN: UNAUTHENTICATED GATEKEEPER PATH (NO) -->
+        <mxCell id="node_serialize_intent" value="Capture Pending Action &amp; Viewport Context&#xa;(action_type, listing_id, [lng, lat], zoom, filters)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=10.5;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="960" y="340" width="260" height="50" as="geometry" />
+        </mxCell>
+
+        <mxCell id="node_store_session" value="Persist Intent to SessionStorage&#xa;(Key: abangcebu_pending_intent)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=10.5;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="960" y="420" width="260" height="50" as="geometry" />
+        </mxCell>
+
+        <mxCell id="node_launch_auth_modal" value="Launch Frictionless Auth Gatekeeper Modal&#xa;(Contextual prompt: 'Sign in to contact landlord')" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=10.5;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="960" y="500" width="260" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- Connector L to Module 1 Login Flow -->
+        <mxCell id="node_connector_l" value="L" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Helvetica;fontSize=14;fontStyle=1;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="1070" y="575" width="40" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="label_connector_l" value="To Auth Login Module 1 (SCRUM-105)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontFamily=Helvetica;fontSize=10;fontStyle=2;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="960" y="620" width="260" height="25" as="geometry" />
+        </mxCell>
+
+        <!-- Diamond 4: User Successfully Authenticates? -->
+        <mxCell id="node_auth_result_decision" value="User Successfully&#xa;Authenticates?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11.5;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="1000" y="660" width="180" height="75" as="geometry" />
+        </mxCell>
+
+        <!-- NO Branch: Dismiss Auth Modal -->
+        <mxCell id="node_dismiss_auth" value="Dismiss Modal &amp; Retain Guest Map View&#xa;(Clear sessionStorage pending intent)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=10.5;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="980" y="765" width="230" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- YES Branch: Hydrate & Resume Intent -->
+        <mxCell id="node_resume_intent" value="Hydrate Session &amp; Resume Deferred Intent&#xa;(Read pending intent &amp; execute action)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=10.5;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="720" y="765" width="230" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- END (Stadium) -->
+        <mxCell id="node_end" value="END" style="rounded=1;arcSize=50;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Helvetica;fontSize=14;fontStyle=1;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="545" y="880" width="160" height="45" as="geometry" />
+        </mxCell>
+
+        <!-- EDGES -->
+        <!-- START -> Trigger Action -->
+        <mxCell id="edge1" edge="1" parent="1" source="node_start" target="node_trigger_action" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Trigger Action -> Auth Decision -->
+        <mxCell id="edge2" edge="1" parent="1" source="node_trigger_action" target="node_auth_decision" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Auth Decision -> YES -> Schedule Decision -->
+        <mxCell id="edge_auth_yes" value="YES" edge="1" parent="1" source="node_auth_decision" target="node_schedule_decision" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11;fontStyle=1;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="250" y="272.5" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Schedule Decision -> YES -> Open Scheduler -->
+        <mxCell id="edge_sched_yes" value="YES" edge="1" parent="1" source="node_schedule_decision" target="node_open_scheduler" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11;fontStyle=1;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Open Scheduler -> Dispatch Appointment -->
+        <mxCell id="edge_sched_dispatch" edge="1" parent="1" source="node_open_scheduler" target="node_dispatch_appointment" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Schedule Decision -> NO -> Favorite Decision -->
+        <mxCell id="edge_sched_no" value="NO" edge="1" parent="1" source="node_schedule_decision" target="node_favorite_decision" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11;fontStyle=1;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Favorite Decision -> YES -> Toggle Favorite -->
+        <mxCell id="edge_fav_yes" value="YES" edge="1" parent="1" source="node_favorite_decision" target="node_toggle_favorite" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11;fontStyle=1;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Toggle Favorite -> Update Heart -->
+        <mxCell id="edge_fav_heart" edge="1" parent="1" source="node_toggle_favorite" target="node_update_heart" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Favorite Decision -> NO -> Reveal Phone -->
+        <mxCell id="edge_fav_no" value="NO" edge="1" parent="1" source="node_favorite_decision" target="node_reveal_phone" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11;fontStyle=1;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="795" y="372.5" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Dashed lines to Database -->
+        <mxCell id="edge_db_sched" edge="1" parent="1" source="node_dispatch_appointment" target="node_database" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;strokeColor=#000000;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="180" y="590" />
+              <mxPoint x="180" y="615" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge_db_fav" edge="1" parent="1" source="node_update_heart" target="node_database" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;strokeColor=#000000;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="530" y="590" />
+              <mxPoint x="240" y="590" />
+              <mxPoint x="240" y="615" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Collector Bus for 3 Actions to Action Success -->
+        <mxCell id="edge_succ_sched" edge="1" parent="1" source="node_dispatch_appointment" target="node_action_success" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="250" y="585" />
+              <mxPoint x="520" y="585" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge_succ_fav" edge="1" parent="1" source="node_update_heart" target="node_action_success" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="530" y="585" />
+              <mxPoint x="520" y="585" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge_succ_phone" edge="1" parent="1" source="node_reveal_phone" target="node_action_success" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="795" y="585" />
+              <mxPoint x="520" y="585" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Action Success -> END -->
+        <mxCell id="edge_success_end" edge="1" parent="1" source="node_action_success" target="node_end" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="520" y="710" />
+              <mxPoint x="625" y="710" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Auth Decision -> NO -> Serialize Intent -->
+        <mxCell id="edge_auth_no" value="NO" edge="1" parent="1" source="node_auth_decision" target="node_serialize_intent" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11;fontStyle=1;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1090" y="272.5" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Serialize Intent -> Store Session -->
+        <mxCell id="edge_ser_store" edge="1" parent="1" source="node_serialize_intent" target="node_store_session" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Store Session -> Launch Auth Modal -->
+        <mxCell id="edge_store_modal" edge="1" parent="1" source="node_store_session" target="node_launch_auth_modal" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Launch Modal -> Connector L -->
+        <mxCell id="edge_modal_l" edge="1" parent="1" source="node_launch_auth_modal" target="node_connector_l" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Connector L -> Auth Result Decision -->
+        <mxCell id="edge_l_decision" edge="1" parent="1" source="node_connector_l" target="node_auth_result_decision" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Auth Result Decision -> NO -> Dismiss Auth -->
+        <mxCell id="edge_res_no" value="NO" edge="1" parent="1" source="node_auth_result_decision" target="node_dismiss_auth" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11;fontStyle=1;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Dismiss Auth -> END -->
+        <mxCell id="edge_dismiss_end" edge="1" parent="1" source="node_dismiss_auth" target="node_end" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1090" y="902.5" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Auth Result Decision -> YES -> Resume Intent -->
+        <mxCell id="edge_res_yes" value="YES" edge="1" parent="1" source="node_auth_result_decision" target="node_resume_intent" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11;fontStyle=1;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="835" y="697.5" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Resume Intent -> Loop into Schedule Decision via Far-Left Bus -->
+        <mxCell id="edge_resume_loop" edge="1" parent="1" source="node_resume_intent" target="node_schedule_decision" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="835" y="835" />
+              <mxPoint x="30" y="835" />
+              <mxPoint x="30" y="272.5" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

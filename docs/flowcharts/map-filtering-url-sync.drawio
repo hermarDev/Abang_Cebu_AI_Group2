@@ -1,0 +1,215 @@
+<mxfile host="Electron" modified="2026-10-05T09:30:00.000Z" agent="Antigravity" version="21.0.0" type="device">
+  <diagram id="scrum-119-map-filtering-sync" name="Sub-Process 2.3: Filter Pills &amp; URL Sync">
+    <mxGraphModel dx="1200" dy="1600" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1050" pageHeight="1300" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- Title -->
+        <mxCell id="title" value="SCRUM-119: SUB-PROCESS 2.3 — MULTI-CRITERIA FILTER PILLS &amp; URL STATE SYNC" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontFamily=Helvetica;fontSize=16;fontStyle=1;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="65" y="25" width="870" height="35" as="geometry" />
+        </mxCell>
+
+        <!-- 1. START -->
+        <mxCell id="node_start" value="START" style="rounded=1;arcSize=50;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Helvetica;fontSize=14;fontStyle=1;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="420" y="70" width="160" height="45" as="geometry" />
+        </mxCell>
+
+        <!-- 2. User Filter Interaction (Parallelogram) -->
+        <mxCell id="node_filter_entry" value="User Toggles Filter Pill or Submits Filter Sheet&#xa;(Property Type, Price Range, Gender Policy, Amenities, Curfew)" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;size=20;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=12;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="315" y="145" width="370" height="55" as="geometry" />
+        </mxCell>
+
+        <!-- 3. Valid Filter Criteria? (Strict Binary Diamond 1) -->
+        <mxCell id="node_criteria_decision" value="Valid Filter&#xa;Criteria?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=12;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="400" y="230" width="200" height="75" as="geometry" />
+        </mxCell>
+
+        <!-- NO Branch: Filter Error / Reset -->
+        <mxCell id="node_filter_error" value="Display Validation Notice &amp; Reset Field&#xa;(&quot;Min rent cannot exceed Max rent&quot;)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11.5;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="670" y="335" width="270" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- 4. Filter State Changed? (Strict Binary Diamond 2) -->
+        <mxCell id="node_changed_decision" value="Filter State&#xa;Changed?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=12;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="400" y="335" width="200" height="75" as="geometry" />
+        </mxCell>
+
+        <!-- NO Branch: Retain Current Viewport -->
+        <mxCell id="node_no_op" value="Retain Active Viewport State&#xa;(Skip redundant network re-fetch)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11.5;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="90" y="440" width="260" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- 5. Construct Predicate & URL Params -->
+        <mxCell id="node_build_predicate" value="Construct Filter Predicate &amp; Sync URL&#xa;(Update ?type=..&amp;maxRent=..&amp;aircon=.. via replaceState)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=12;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="315" y="440" width="370" height="55" as="geometry" />
+        </mxCell>
+
+        <!-- 6. Execute Filtered PostGIS Query -->
+        <mxCell id="node_query_filtered" value="Execute Filtered PostGIS Spatial Query&#xa;(ST_Intersects Bbox + WHERE property_type, rent, amenities)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=12;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="315" y="525" width="370" height="55" as="geometry" />
+        </mxCell>
+
+        <!-- PostGIS Database Cylinder -->
+        <mxCell id="node_postgis_db" value="PostGIS Database&#xa;(properties, rental_units,&#xa;property_amenities)" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11;fontStyle=1;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="740" y="515" width="170" height="75" as="geometry" />
+        </mxCell>
+
+        <!-- 7. Matching Units Found? (Strict Binary Diamond 3) -->
+        <mxCell id="node_match_decision" value="Matching Units&#xa;Found?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=12;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="400" y="610" width="200" height="75" as="geometry" />
+        </mxCell>
+
+        <!-- NO Branch: Empty State Sheet -->
+        <mxCell id="node_empty_filter" value="Render Empty State with &quot;Reset Filters&quot; CTA&#xa;(&quot;No units match criteria. Try clearing filters.&quot;)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11.5;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="670" y="715" width="270" height="55" as="geometry" />
+        </mxCell>
+
+        <!-- 8. Update Map Marker Layer -->
+        <mxCell id="node_update_pins" value="Update Map Marker Layer &amp; Price Pills&#xa;(Filter GeoJSON client source: remove/add markers)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=12;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="315" y="715" width="370" height="55" as="geometry" />
+        </mxCell>
+
+        <!-- 9. Refresh Results Drawer Counter -->
+        <mxCell id="node_update_drawer" value="Refresh Results Drawer &amp; Counter&#xa;(Display &quot;Showing X verified rentals in this area&quot;)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=12;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="315" y="800" width="370" height="55" as="geometry" />
+        </mxCell>
+
+        <!-- 10. Persist Active Filters in SessionStorage -->
+        <mxCell id="node_cache_state" value="Persist Active Filters to SessionStorage&#xa;(Key: abangcebu_active_filters for multi-tab sync)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11.5;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="315" y="885" width="370" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- 11. Connector D: Pin Marker & Drawer Sub-Process -->
+        <mxCell id="node_connector_d" value="D" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Helvetica;fontSize=14;fontStyle=1;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="480" y="965" width="40" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="label_connector_d" value="To Pin Marker &amp; 3-Snap Drawer Sub-Process 2.4 (SCRUM-120)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontFamily=Helvetica;fontSize=11;fontStyle=2;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="530" y="970" width="340" height="30" as="geometry" />
+        </mxCell>
+
+        <!-- 12. END -->
+        <mxCell id="node_end" value="END" style="rounded=1;arcSize=50;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Helvetica;fontSize=14;fontStyle=1;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="420" y="1045" width="160" height="45" as="geometry" />
+        </mxCell>
+
+        <!-- EDGES -->
+        <!-- START -> Filter Entry -->
+        <mxCell id="edge1" edge="1" parent="1" source="node_start" target="node_filter_entry" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Filter Entry -> Criteria Decision -->
+        <mxCell id="edge2" edge="1" parent="1" source="node_filter_entry" target="node_criteria_decision" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Criteria Decision -> NO -> Filter Error -->
+        <mxCell id="edge_crit_no" value="NO" edge="1" parent="1" source="node_criteria_decision" target="node_filter_error" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11;fontStyle=1;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="805" y="267.5" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Filter Error -> Loopback to Filter Entry -->
+        <mxCell id="edge_error_loop" edge="1" parent="1" source="node_filter_error" target="node_filter_entry" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="960" y="360" />
+              <mxPoint x="960" y="172.5" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Criteria Decision -> YES -> Changed Decision -->
+        <mxCell id="edge_crit_yes" value="YES" edge="1" parent="1" source="node_criteria_decision" target="node_changed_decision" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11;fontStyle=1;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Changed Decision -> NO -> No-Op Retain -->
+        <mxCell id="edge_change_no" value="NO" edge="1" parent="1" source="node_changed_decision" target="node_no_op" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11;fontStyle=1;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="220" y="372.5" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- No-Op Retain -> END (Left bypass) -->
+        <mxCell id="edge_noop_to_end" edge="1" parent="1" source="node_no_op" target="node_end" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="220" y="1067.5" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Changed Decision -> YES -> Build Predicate -->
+        <mxCell id="edge_change_yes" value="YES" edge="1" parent="1" source="node_changed_decision" target="node_build_predicate" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11;fontStyle=1;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Build Predicate -> Query Filtered -->
+        <mxCell id="edge_pred_query" edge="1" parent="1" source="node_build_predicate" target="node_query_filtered" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Query Filtered <---> Database (Dashed) -->
+        <mxCell id="edge_query_db" value="SQL Predicate" edge="1" parent="1" source="node_query_filtered" target="node_postgis_db" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;dashed=1;fontFamily=Helvetica;fontSize=9.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Query Filtered -> Match Decision -->
+        <mxCell id="edge_query_match" edge="1" parent="1" source="node_query_filtered" target="node_match_decision" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Match Decision -> NO -> Empty Filter -->
+        <mxCell id="edge_match_no" value="NO" edge="1" parent="1" source="node_match_decision" target="node_empty_filter" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11;fontStyle=1;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="805" y="647.5" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Empty Filter -> END (Right bypass) -->
+        <mxCell id="edge_empty_to_end" edge="1" parent="1" source="node_empty_filter" target="node_end" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="805" y="1067.5" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Match Decision -> YES -> Update Pins -->
+        <mxCell id="edge_match_yes" value="YES" edge="1" parent="1" source="node_match_decision" target="node_update_pins" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11;fontStyle=1;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Update Pins -> Update Drawer -->
+        <mxCell id="edge_pins_drawer" edge="1" parent="1" source="node_update_pins" target="node_update_drawer" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Update Drawer -> Cache State -->
+        <mxCell id="edge_drawer_cache" edge="1" parent="1" source="node_update_drawer" target="node_cache_state" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Cache State -> Connector D -->
+        <mxCell id="edge_cache_conn" edge="1" parent="1" source="node_cache_state" target="node_connector_d" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Connector D -> END -->
+        <mxCell id="edge_conn_end" edge="1" parent="1" source="node_connector_d" target="node_end" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

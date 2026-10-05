@@ -201,6 +201,30 @@ Located in [`docs/templates/`](./templates/):
 | [AbangCebu_Middleware_Test_Scenarios.pdf](./pdf/AbangCebu_Middleware_Test_Scenarios.pdf) | QA Middleware Security (PDF) | Karla Hiyas | Hermar Centillas | [SCRUM-113](https://abangcebuai.atlassian.net/browse/SCRUM-113) | Approved / Done |
 | [auth-performance-baseline.md](./testing/auth-performance-baseline.md) | QA Latency Benchmarks & Load Strategy | Ryza Albiso | Hermar Centillas | [SCRUM-114](https://abangcebuai.atlassian.net/browse/SCRUM-114) | Approved / Done |
 | [AbangCebu_Auth_Performance_Baseline.pdf](./pdf/AbangCebu_Auth_Performance_Baseline.pdf) | QA Performance Baseline (PDF) | Ryza Albiso | Hermar Centillas | [SCRUM-114](https://abangcebuai.atlassian.net/browse/SCRUM-114) | Approved / Done |
+| [map-master-orchestration-spec.md](./specifications/map/map-master-orchestration-spec.md) | Map Architecture FSD | Hermar Centillas | Group 2 Review | [SCRUM-116](https://abangcebuai.atlassian.net/browse/SCRUM-116) | Approved / Done |
+| [map-master-orchestration.drawio](./flowcharts/map-master-orchestration.drawio) | Flowchart (Draw.io) | Hermar Centillas | Group 2 Review | [SCRUM-116](https://abangcebuai.atlassian.net/browse/SCRUM-116) | Approved / Done |
+| [map-master-orchestration.pdf](./pdf/map-master-orchestration.pdf) | Flowchart (PDF) | Hermar Centillas | Group 2 Review | [SCRUM-116](https://abangcebuai.atlassian.net/browse/SCRUM-116) | Approved / Done |
+| [map-master-orchestration.png](./assets/flowcharts/map-master-orchestration.png) | Flowchart (PNG) | Hermar Centillas | Group 2 Review | [SCRUM-116](https://abangcebuai.atlassian.net/browse/SCRUM-116) | Approved / Done |
+| [map-initialization-geolocation-spec.md](./specifications/map/map-initialization-geolocation-spec.md) | Map Init & Geo FSD | John Lloyd Ando | Hermar Centillas | [SCRUM-117](https://abangcebuai.atlassian.net/browse/SCRUM-117) | Approved / Done |
+| [map-initialization-geolocation.drawio](./flowcharts/map-initialization-geolocation.drawio) | Flowchart (Draw.io) | John Lloyd Ando | Hermar Centillas | [SCRUM-117](https://abangcebuai.atlassian.net/browse/SCRUM-117) | Approved / Done |
+| [map-initialization-geolocation.pdf](./pdf/map-initialization-geolocation.pdf) | Flowchart (PDF) | John Lloyd Ando | Hermar Centillas | [SCRUM-117](https://abangcebuai.atlassian.net/browse/SCRUM-117) | Approved / Done |
+| [map-initialization-geolocation.png](./assets/flowcharts/map-initialization-geolocation.png) | Flowchart (PNG) | John Lloyd Ando | Hermar Centillas | [SCRUM-117](https://abangcebuai.atlassian.net/browse/SCRUM-117) | Approved / Done |
+| [map-search-spatial-query-spec.md](./specifications/map/map-search-spatial-query-spec.md) | Spatial Search & PostGIS FSD | John Lloyd Ando | Hermar Centillas | [SCRUM-118](https://abangcebuai.atlassian.net/browse/SCRUM-118) | Approved / Done |
+| [map-search-spatial-query.drawio](./flowcharts/map-search-spatial-query.drawio) | Flowchart (Draw.io) | John Lloyd Ando | Hermar Centillas | [SCRUM-118](https://abangcebuai.atlassian.net/browse/SCRUM-118) | Approved / Done |
+| [map-search-spatial-query.pdf](./pdf/map-search-spatial-query.pdf) | Flowchart (PDF) | John Lloyd Ando | Hermar Centillas | [SCRUM-118](https://abangcebuai.atlassian.net/browse/SCRUM-118) | Approved / Done |
+| [map-search-spatial-query.png](./assets/flowcharts/map-search-spatial-query.png) | Flowchart (PNG) | John Lloyd Ando | Hermar Centillas | [SCRUM-118](https://abangcebuai.atlassian.net/browse/SCRUM-118) | Approved / Done |
+| [map-filtering-url-sync-spec.md](./specifications/map/map-filtering-url-sync-spec.md) | Filter Pills & URL Sync FSD | Joan Marie Inting | Hermar Centillas | [SCRUM-119](https://abangcebuai.atlassian.net/browse/SCRUM-119) | Approved / Done |
+| [map-filtering-url-sync.drawio](./flowcharts/map-filtering-url-sync.drawio) | Flowchart (Draw.io) | Joan Marie Inting | Hermar Centillas | [SCRUM-119](https://abangcebuai.atlassian.net/browse/SCRUM-119) | Approved / Done |
+| [map-filtering-url-sync.pdf](./pdf/map-filtering-url-sync.pdf) | Flowchart (PDF) | Joan Marie Inting | Hermar Centillas | [SCRUM-119](https://abangcebuai.atlassian.net/browse/SCRUM-119) | Approved / Done |
+| [map-filtering-url-sync.png](./assets/flowcharts/map-filtering-url-sync.png) | Flowchart (PNG) | Joan Marie Inting | Hermar Centillas | [SCRUM-119](https://abangcebuai.atlassian.net/browse/SCRUM-119) | Approved / Done |
+| [map-pin-drawer-sync-spec.md](./specifications/map/map-pin-drawer-sync-spec.md) | Pin Marker & Drawer FSD | Karla Hiyas | Hermar Centillas | [SCRUM-120](https://abangcebuai.atlassian.net/browse/SCRUM-120) | Approved / Done |
+| [map-pin-drawer-sync.drawio](./flowcharts/map-pin-drawer-sync.drawio) | Flowchart (Draw.io) | Karla Hiyas | Hermar Centillas | [SCRUM-120](https://abangcebuai.atlassian.net/browse/SCRUM-120) | Approved / Done |
+| [map-pin-drawer-sync.pdf](./pdf/map-pin-drawer-sync.pdf) | Flowchart (PDF) | Karla Hiyas | Hermar Centillas | [SCRUM-120](https://abangcebuai.atlassian.net/browse/SCRUM-120) | Approved / Done |
+| [map-pin-drawer-sync.png](./assets/flowcharts/map-pin-drawer-sync.png) | Flowchart (PNG) | Karla Hiyas | Hermar Centillas | [SCRUM-120](https://abangcebuai.atlassian.net/browse/SCRUM-120) | Approved / Done |
+| [map-auth-gatekeeper-spec.md](./specifications/map/map-auth-gatekeeper-spec.md) | Auth Gatekeeper FSD | Hermar Centillas | Hermar Centillas | [SCRUM-121](https://abangcebuai.atlassian.net/browse/SCRUM-121) | Approved / Done |
+| [map-auth-gatekeeper.drawio](./flowcharts/map-auth-gatekeeper.drawio) | Flowchart (Draw.io) | Hermar Centillas | Hermar Centillas | [SCRUM-121](https://abangcebuai.atlassian.net/browse/SCRUM-121) | Approved / Done |
+| [map-auth-gatekeeper.pdf](./pdf/map-auth-gatekeeper.pdf) | Flowchart (PDF) | Hermar Centillas | Hermar Centillas | [SCRUM-121](https://abangcebuai.atlassian.net/browse/SCRUM-121) | Approved / Done |
+| [map-auth-gatekeeper.png](./assets/flowcharts/map-auth-gatekeeper.png) | Flowchart (PNG) | Hermar Centillas | Hermar Centillas | [SCRUM-121](https://abangcebuai.atlassian.net/browse/SCRUM-121) | Approved / Done |
 
 ---
 

@@ -1,0 +1,269 @@
+<mxfile host="Electron" modified="2026-10-05T09:15:00.000Z" agent="Antigravity" version="21.0.0" type="device">
+  <diagram id="scrum-118-map-search-query" name="Sub-Process 2.2: Spatial Search &amp; PostGIS Query">
+    <mxGraphModel dx="1200" dy="1600" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1050" pageHeight="1450" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- Title -->
+        <mxCell id="title" value="SCRUM-118: SUB-PROCESS 2.2 — SPATIAL SEARCH, LANDMARK AUTO-SUGGEST &amp; POSTGIS QUERY" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontFamily=Helvetica;fontSize=16;fontStyle=1;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="65" y="25" width="870" height="35" as="geometry" />
+        </mxCell>
+
+        <!-- 1. START -->
+        <mxCell id="node_start" value="START" style="rounded=1;arcSize=50;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Helvetica;fontSize=14;fontStyle=1;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="420" y="70" width="160" height="45" as="geometry" />
+        </mxCell>
+
+        <!-- 2. User Search Interaction (Parallelogram) -->
+        <mxCell id="node_search_entry" value="User Interacts with Spatial Search Bar&#xa;(Type text, select landmark suggestion, or pan viewport)" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;size=20;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=12;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="315" y="145" width="370" height="55" as="geometry" />
+        </mxCell>
+
+        <!-- 3. Landmark Selected? (Strict Binary Diamond 1) -->
+        <mxCell id="node_landmark_decision" value="Landmark&#xa;Selected?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=12;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="400" y="230" width="200" height="75" as="geometry" />
+        </mxCell>
+
+        <!-- YES Branch (Left): Resolve Landmark Coordinates -->
+        <mxCell id="node_resolve_landmark" value="Resolve Landmark Geocoding &amp; Centroid&#xa;(Cebu IT Park, USC-TC, CIT-U, Ayala Center, UC Main)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11.5;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="70" y="335" width="290" height="55" as="geometry" />
+        </mxCell>
+
+        <!-- Fly Camera to Landmark -->
+        <mxCell id="node_fly_landmark" value="Fly Camera to Landmark Centroid&#xa;(map.flyTo({ center: [lng, lat], zoom: 15.0 }))" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11.5;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="70" y="420" width="290" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- Proximity Query -->
+        <mxCell id="node_query_proximity" value="Execute ST_DWithin Proximity Query&#xa;(ST_DWithin(coordinates, ST_Point(lng,lat), 1500m))" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11.5;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="70" y="500" width="290" height="55" as="geometry" />
+        </mxCell>
+
+        <!-- NO Branch (Right): Extract Viewport Bbox -->
+        <mxCell id="node_extract_bbox" value="Extract Active Viewport Bounding Box&#xa;(map.getBounds() -&gt; [minLng, minLat, maxLng, maxLat])" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11.5;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="640" y="335" width="290" height="55" as="geometry" />
+        </mxCell>
+
+        <!-- Viewport Bbox Query -->
+        <mxCell id="node_query_bbox" value="Execute ST_MakeEnvelope Bbox Query&#xa;(ST_Intersects(coordinates, ST_MakeEnvelope(...)))" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11.5;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="640" y="500" width="290" height="55" as="geometry" />
+        </mxCell>
+
+        <!-- PostGIS Database Cylinder -->
+        <mxCell id="node_postgis_db" value="PostGIS Database&#xa;(properties, rental_units,&#xa;GiST spatial indexes)" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11;fontStyle=1;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="415" y="490" width="170" height="75" as="geometry" />
+        </mxCell>
+
+        <!-- 4. Active Listings Found? (Strict Binary Diamond 2) -->
+        <mxCell id="node_results_decision" value="Active Listings&#xa;Found?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=12;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="400" y="605" width="200" height="75" as="geometry" />
+        </mxCell>
+
+        <!-- NO Branch: Empty State Drawer -->
+        <mxCell id="node_empty_state" value="Render Empty State Sheet &amp; Guidance&#xa;(&quot;No rentals found. Expand radius or pan map.&quot;)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11.5;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="670" y="700" width="270" height="55" as="geometry" />
+        </mxCell>
+
+        <!-- 5. Density > 15 Units? (Strict Binary Diamond 3) -->
+        <mxCell id="node_density_decision" value="Cluster Density&#xa;&gt; 15 Units in Cell?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11.5;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="390" y="710" width="220" height="75" as="geometry" />
+        </mxCell>
+
+        <!-- YES: Render Cluster Bubbles -->
+        <mxCell id="node_render_clusters" value="Render Clustered Bubble Markers&#xa;(Numeric count [15+], spiderfy on tap)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11.5;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="110" y="815" width="260" height="55" as="geometry" />
+        </mxCell>
+
+        <!-- NO: Render Price Pins -->
+        <mxCell id="node_render_price_pins" value="Render Custom SVG Price Pins&#xa;(Individual listing pills e.g. &quot;₱4,500/mo&quot;)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11.5;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="490" y="815" width="260" height="55" as="geometry" />
+        </mxCell>
+
+        <!-- 6. Populate Floating Results Drawer -->
+        <mxCell id="node_populate_drawer" value="Populate Floating Results Drawer / 3-Snap Sheet&#xa;(Rental cards, verified badges, monthly rent, distance tags)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=12;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="315" y="905" width="370" height="55" as="geometry" />
+        </mxCell>
+
+        <!-- 7. Sync Spatial Query State to URL -->
+        <mxCell id="node_url_sync" value="Sync Spatial Query State to URL SearchParams&#xa;(Update ?landmark=.. or ?bbox=.. via window.history.replaceState)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11.5;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="315" y="990" width="370" height="55" as="geometry" />
+        </mxCell>
+
+        <!-- 8. Register Viewport Settle Listener -->
+        <mxCell id="node_attach_listeners" value="Register Viewport Settle &amp; Idle Listener&#xa;(Trigger debounced spatial re-query on user pan/drag settle)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11.5;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="315" y="1075" width="370" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- 9. Connector F: Filter Pills Sub-Process -->
+        <mxCell id="node_connector_f" value="F" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Helvetica;fontSize=14;fontStyle=1;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="480" y="1155" width="40" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="label_connector_f" value="To Multi-Criteria Filter Pills Sub-Process 2.3 (SCRUM-119)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontFamily=Helvetica;fontSize=11;fontStyle=2;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="530" y="1160" width="320" height="30" as="geometry" />
+        </mxCell>
+
+        <!-- 10. END -->
+        <mxCell id="node_end" value="END" style="rounded=1;arcSize=50;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Helvetica;fontSize=14;fontStyle=1;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="420" y="1235" width="160" height="45" as="geometry" />
+        </mxCell>
+
+        <!-- EDGES -->
+        <!-- START -> Search Entry -->
+        <mxCell id="edge1" edge="1" parent="1" source="node_start" target="node_search_entry" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Search Entry -> Landmark Decision -->
+        <mxCell id="edge2" edge="1" parent="1" source="node_search_entry" target="node_landmark_decision" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Landmark Decision -> YES -> Resolve Landmark -->
+        <mxCell id="edge_landmark_yes" value="YES" edge="1" parent="1" source="node_landmark_decision" target="node_resolve_landmark" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11;fontStyle=1;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="215" y="267.5" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Resolve Landmark -> Fly Landmark -->
+        <mxCell id="edge_res_fly" edge="1" parent="1" source="node_resolve_landmark" target="node_fly_landmark" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Fly Landmark -> Proximity Query -->
+        <mxCell id="edge_fly_prox" edge="1" parent="1" source="node_fly_landmark" target="node_query_proximity" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Landmark Decision -> NO -> Extract Viewport Bbox -->
+        <mxCell id="edge_landmark_no" value="NO" edge="1" parent="1" source="node_landmark_decision" target="node_extract_bbox" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11;fontStyle=1;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="785" y="267.5" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Extract Bbox -> Bbox Query -->
+        <mxCell id="edge_extract_bbox_query" edge="1" parent="1" source="node_extract_bbox" target="node_query_bbox" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Proximity Query <---> Database (Dashed) -->
+        <mxCell id="edge_prox_db" value="ST_DWithin" edge="1" parent="1" source="node_query_proximity" target="node_postgis_db" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;dashed=1;fontFamily=Helvetica;fontSize=9.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Database <---> Bbox Query (Dashed) -->
+        <mxCell id="edge_db_bbox" value="ST_Intersects" edge="1" parent="1" source="node_postgis_db" target="node_query_bbox" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;dashed=1;fontFamily=Helvetica;fontSize=9.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Proximity Query -> Results Decision -->
+        <mxCell id="edge_prox_results" edge="1" parent="1" source="node_query_proximity" target="node_results_decision" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="215" y="575" />
+              <mxPoint x="500" y="575" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Bbox Query -> Results Decision -->
+        <mxCell id="edge_bbox_results" edge="1" parent="1" source="node_query_bbox" target="node_results_decision" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="785" y="575" />
+              <mxPoint x="500" y="575" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Results Decision -> NO -> Empty State -->
+        <mxCell id="edge_results_no" value="NO" edge="1" parent="1" source="node_results_decision" target="node_empty_state" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11;fontStyle=1;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="805" y="642.5" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Empty State -> END (Bypass down right) -->
+        <mxCell id="edge_empty_to_end" edge="1" parent="1" source="node_empty_state" target="node_end" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="805" y="1257.5" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Results Decision -> YES -> Density Decision -->
+        <mxCell id="edge_results_yes" value="YES" edge="1" parent="1" source="node_results_decision" target="node_density_decision" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11;fontStyle=1;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Density Decision -> YES -> Render Clusters -->
+        <mxCell id="edge_density_yes" value="YES" edge="1" parent="1" source="node_density_decision" target="node_render_clusters" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11;fontStyle=1;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="240" y="747.5" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Density Decision -> NO -> Render Price Pins -->
+        <mxCell id="edge_density_no" value="NO" edge="1" parent="1" source="node_density_decision" target="node_render_price_pins" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11;fontStyle=1;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="620" y="747.5" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Clusters -> Populate Drawer -->
+        <mxCell id="edge_cluster_drawer" edge="1" parent="1" source="node_render_clusters" target="node_populate_drawer" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="240" y="885" />
+              <mxPoint x="500" y="885" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Price Pins -> Populate Drawer -->
+        <mxCell id="edge_pins_drawer" edge="1" parent="1" source="node_render_price_pins" target="node_populate_drawer" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="620" y="885" />
+              <mxPoint x="500" y="885" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Populate Drawer -> URL Sync -->
+        <mxCell id="edge8" edge="1" parent="1" source="node_populate_drawer" target="node_url_sync" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- URL Sync -> Attach Listeners -->
+        <mxCell id="edge9" edge="1" parent="1" source="node_url_sync" target="node_attach_listeners" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Attach Listeners -> Connector F -->
+        <mxCell id="edge10" edge="1" parent="1" source="node_attach_listeners" target="node_connector_f" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Connector F -> END -->
+        <mxCell id="edge11" edge="1" parent="1" source="node_connector_f" target="node_end" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
