@@ -22,7 +22,9 @@ docs/
 │   └── Test_Specification_Template.xlsx     # QA Test Plan & Test Execution Template
 │
 ├── specifications/                          # Functional Specification Documents (FSD Modules)
-│   └── auth/                                # Module 1: Authentication & Identity Lifecycle
+│   ├── listings/                             # Module 3: landlord onboarding & listing management
+│   │   └── landlord-listing-management-spec.md # SCRUM-125
+│   └── auth/                                 # Module 1: Authentication & Identity Lifecycle
 │       ├── auth-registration-spec.md        # SCRUM-56: Registration contracts & PKCE verification
 │       ├── auth-session-lifecycle.md        # SCRUM-57: Login, JWT, RTR, and middleware token flow
 │       ├── auth-logout-spec.md              # SCRUM-58: Sign-out, cookie chunk zeroing & multi-tab sync
@@ -134,6 +136,7 @@ Located in [`docs/templates/`](./templates/):
 
 | Document | Domain | Author | Reviewer | Jira Reference | Status |
 |---|---|---|---|---|---|
+| [landlord-listing-management-spec.md](./specifications/listings/landlord-listing-management-spec.md) | Module 3: Landlord Listing FSD | Hermar Centillas | Pending review | [SCRUM-125](https://abangcebuai.atlassian.net/browse/SCRUM-125) | Draft / In Progress |
 | [auth-registration-spec.md](./specifications/auth/auth-registration-spec.md) | Auth FSD | John Lloyd Ando | Hermar Centillas | [SCRUM-56](https://abangcebuai.atlassian.net/browse/SCRUM-56) | Approved / Done |
 | [auth-session-lifecycle.md](./specifications/auth/auth-session-lifecycle.md) | Auth FSD | John Lloyd Ando | Hermar Centillas | [SCRUM-57](https://abangcebuai.atlassian.net/browse/SCRUM-57) | Approved / Done |
 | [auth-logout-spec.md](./specifications/auth/auth-logout-spec.md) | Auth FSD | junrilldisoy90 | Hermar Centillas | [SCRUM-58](https://abangcebuai.atlassian.net/browse/SCRUM-58) | Approved / Done |
