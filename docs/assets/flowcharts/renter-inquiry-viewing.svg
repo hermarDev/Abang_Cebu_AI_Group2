@@ -1,121 +1,140 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1310" height="2065" viewBox="0 0 1310 2065">
-<defs><marker id="arrow" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L10,4 L0,8 Z" fill="#111"/></marker></defs>
-<rect width="100%" height="100%" fill="white"/>
-<text x="655.0" y="48" text-anchor="middle" font-family="Arial,sans-serif" font-weight="bold" font-size="20">SCRUM-127 — MODULE 5: RENTER INQUIRY / VIEWING REQUEST</text>
-<polyline points="650.5,200 650.5,220 650,232 650,252" fill="none" stroke="#111" stroke-width="2" marker-end="url(#arrow)"/>
-<polyline points="525,319.5 505,319.5 403,320 383,320" fill="none" stroke="#111" stroke-width="2" marker-end="url(#arrow)"/>
-<rect x="369" y="303" width="58" height="22" fill="white" opacity="0.92"/>
-<text x="403" y="320" font-family="Arial,sans-serif" font-size="13" text-anchor="middle">No</text>
-<polyline points="383,320 403,320 400,570 480,568 500,568" fill="none" stroke="#111" stroke-width="2" marker-end="url(#arrow)"/>
-<rect x="366" y="553" width="150" height="22" fill="white" opacity="0.92"/>
-<text x="400" y="570" font-family="Arial,sans-serif" font-size="13" text-anchor="middle">Resume after sign-in</text>
-<polyline points="650,387 650,471" fill="none" stroke="#111" stroke-width="2" marker-end="url(#arrow)"/>
-<rect x="616" y="454" width="58" height="22" fill="white" opacity="0.92"/>
-<text x="650" y="471" font-family="Arial,sans-serif" font-size="13" text-anchor="middle">Yes</text>
-<polyline points="800,568 820,568 820,550 896,551 916,551" fill="none" stroke="#111" stroke-width="2" marker-end="url(#arrow)"/>
-<rect x="786" y="533" width="58" height="22" fill="white" opacity="0.92"/>
-<text x="820" y="550" font-family="Arial,sans-serif" font-size="13" text-anchor="middle">No</text>
-<polyline points="650,665 650,700" fill="none" stroke="#111" stroke-width="2" marker-end="url(#arrow)"/>
-<rect x="616" y="683" width="58" height="22" fill="white" opacity="0.92"/>
-<text x="650" y="700" font-family="Arial,sans-serif" font-size="13" text-anchor="middle">Yes</text>
-<polyline points="650,801 650,861" fill="none" stroke="#111" stroke-width="2" marker-end="url(#arrow)"/>
-<polyline points="525,928.5 505,928.5 403,929 383,929" fill="none" stroke="#111" stroke-width="2" marker-end="url(#arrow)"/>
-<rect x="369" y="912" width="58" height="22" fill="white" opacity="0.92"/>
-<text x="403" y="929" font-family="Arial,sans-serif" font-size="13" text-anchor="middle">No</text>
-<polyline points="650,996 650,1120" fill="none" stroke="#111" stroke-width="2" marker-end="url(#arrow)"/>
-<rect x="616" y="1103" width="58" height="22" fill="white" opacity="0.92"/>
-<text x="650" y="1120" font-family="Arial,sans-serif" font-size="13" text-anchor="middle">Yes</text>
-<polyline points="650,1221 650,1281" fill="none" stroke="#111" stroke-width="2" marker-end="url(#arrow)"/>
-<polyline points="525,1348.5 505,1348.5 403,1349 383,1349" fill="none" stroke="#111" stroke-width="2" marker-end="url(#arrow)"/>
-<rect x="369" y="1332" width="58" height="22" fill="white" opacity="0.92"/>
-<text x="403" y="1349" font-family="Arial,sans-serif" font-size="13" text-anchor="middle">No</text>
-<polyline points="775,1348.5 795,1348.5 896,1349 916,1349" fill="none" stroke="#111" stroke-width="2" marker-end="url(#arrow)"/>
-<rect x="862" y="1332" width="58" height="22" fill="white" opacity="0.92"/>
-<text x="896" y="1349" font-family="Arial,sans-serif" font-size="13" text-anchor="middle">Yes</text>
-<polyline points="916,1349 896,1349 900,1560 783,1558.5 763,1558.5" fill="none" stroke="#111" stroke-width="2" marker-end="url(#arrow)"/>
-<polyline points="650.5,1626 650.5,1646 650,1674 650,1694" fill="none" stroke="#111" stroke-width="2" marker-end="url(#arrow)"/>
-<polyline points="650,1795 650,1904" fill="none" stroke="#111" stroke-width="2" marker-end="url(#arrow)"/>
-<polyline points="383,1349 403,1349 400,1940 480,1944.5 500,1944.5" fill="none" stroke="#111" stroke-width="2" marker-end="url(#arrow)"/>
-<polyline points="916,551 896,551 860,550 860,1940 820,1944.5 800,1944.5" fill="none" stroke="#111" stroke-width="2" marker-end="url(#arrow)"/>
-<polyline points="220.5,976 220.5,1057" fill="none" stroke="#111" stroke-width="2" marker-end="url(#arrow)"/>
-<rect x="186.5" y="1040" width="59" height="22" fill="white" opacity="0.92"/>
-<text x="220.5" y="1057" font-family="Arial,sans-serif" font-size="13" text-anchor="middle">Correct</text>
-<polyline points="383,929 403,929 403,1230.5 383,1230.5" fill="none" stroke="#111" stroke-width="2" marker-end="url(#arrow)"/>
-<rect x="369" y="1213.5" width="115" height="22" fill="white" opacity="0.92"/>
-<text x="403" y="1230.5" font-family="Arial,sans-serif" font-size="13" text-anchor="middle">Explicit cancel</text>
-<polyline points="383,1101 403,1101 430,1100 430,750.5 450,750.5" fill="none" stroke="#111" stroke-width="2" marker-end="url(#arrow)"/>
-<rect x="396" y="1083" width="66" height="22" fill="white" opacity="0.92"/>
-<text x="430" y="1100" font-family="Arial,sans-serif" font-size="13" text-anchor="middle">Resubmit</text>
-<rect x="50.0" y="20.0" width="1200.0" height="45.0" rx="0" fill="white" stroke="#111" stroke-width="1.5"/>
-<text x="650" y="46.55" text-anchor="middle" font-family="Arial,sans-serif" font-size="18" font-weight="bold" fill="#111">SCRUM-127 — MODULE 5: RENTER INQUIRY / VIEWING REQUEST</text>
-<ellipse cx="650.5" cy="159.5" rx="162.5" ry="40.5" fill="white" stroke="#111" stroke-width="2.0"/>
-<text x="650.5" y="145.15" text-anchor="middle" font-family="Arial,sans-serif" font-size="14" font-weight="bold" fill="#111">START</text>
-<text x="650.5" y="162.65" text-anchor="middle" font-family="Arial,sans-serif" font-size="14" font-weight="bold" fill="#111">Renter requests property</text>
-<text x="650.5" y="180.15" text-anchor="middle" font-family="Arial,sans-serif" font-size="14" font-weight="bold" fill="#111">inquiry or viewing</text>
-<polygon points="650.0,252.0 775.0,319.5 650.0,387.0 525.0,319.5" fill="white" stroke="#111" stroke-width="1.5"/>
-<text x="650" y="322.425" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">Authenticated renter?</text>
-<rect x="58.0" y="273.0" width="325.0" height="94.0" rx="0" fill="white" stroke="#111" stroke-width="1.5"/>
-<text x="220.5" y="306.675" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">Guest: invoke SCRUM-121</text>
-<text x="220.5" y="322.925" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">Preserve listing + action; do not</text>
-<text x="220.5" y="339.175" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">store sensitive form text</text>
-<polygon points="650.0,471.0 800.0,568.0 650.0,665.0 500.0,568.0" fill="white" stroke="#111" stroke-width="1.5"/>
-<text x="650" y="530.3" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">Target eligible and schema</text>
-<text x="650" y="546.55" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">mapping confirmed?</text>
-<text x="650" y="562.8" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">(`inquiries` /</text>
-<text x="650" y="579.05" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">`viewing_appointments`;</text>
-<text x="650" y="595.3" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">owner gate, no assumed</text>
-<text x="650" y="611.55" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">statuses)</text>
-<polygon points="940.0,504.0 1241.0,504.0 1217.0,598.0 916.0,598.0" fill="white" stroke="#111" stroke-width="1.5"/>
-<text x="1078.5" y="537.675" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">No: target unavailable or schema</text>
-<text x="1078.5" y="553.925" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">gate unresolved; safe stop</text>
-<text x="1078.5" y="570.175" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">without persistence</text>
-<polygon points="474.0,700.0 850.0,700.0 826.0,801.0 450.0,801.0" fill="white" stroke="#111" stroke-width="1.5"/>
-<text x="650" y="737.175" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">Capture inquiry message and preferred</text>
-<text x="650" y="753.425" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">move-in date; viewing date/time only if</text>
-<text x="650" y="769.675" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">policy supports it</text>
-<polygon points="650.0,861.0 775.0,928.5 650.0,996.0 525.0,928.5" fill="white" stroke="#111" stroke-width="1.5"/>
-<text x="650" y="915.175" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">Inputs valid and</text>
-<text x="650" y="931.425" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">request within</text>
-<text x="650" y="947.675" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">policy/rate limits?</text>
-<polygon points="82.0,882.0 383.0,882.0 359.0,976.0 58.0,976.0" fill="white" stroke="#111" stroke-width="1.5"/>
-<text x="220.5" y="915.675" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">No: show field errors; renter</text>
-<text x="220.5" y="931.925" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">may correct and resubmit or</text>
-<text x="220.5" y="948.175" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">explicitly cancel</text>
-<rect x="450.0" y="1120.0" width="400.0" height="101.0" rx="0" fill="white" stroke="#111" stroke-width="1.5"/>
-<text x="650" y="1149.05" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">Derive landlord from property; insert inquiry</text>
-<text x="650" y="1165.3" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">as Pending</text>
-<text x="650" y="1181.55" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">Persist once; request is not a confirmed</text>
-<text x="650" y="1197.8" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">booking</text>
-<polygon points="650.0,1281.0 775.0,1348.5 650.0,1416.0 525.0,1348.5" fill="white" stroke="#111" stroke-width="1.5"/>
-<text x="650" y="1351.42" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">Persistence succeeded?</text>
-<polygon points="82.0,1302.0 383.0,1302.0 359.0,1396.0 58.0,1396.0" fill="white" stroke="#111" stroke-width="1.5"/>
-<text x="220.5" y="1343.8" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">No: show safe failure; retry</text>
-<text x="220.5" y="1360.05" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">without duplicate submission</text>
-<polygon points="940.0,1302.0 1241.0,1302.0 1217.0,1396.0 916.0,1396.0" fill="white" stroke="#111" stroke-width="1.5"/>
-<text x="1078.5" y="1335.67" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">Yes: notify owning landlord;</text>
-<text x="1078.5" y="1351.92" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">deliver only permitted inquiry</text>
-<text x="1078.5" y="1368.17" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">data</text>
-<polygon points="560.5,1491.0 763.0,1491.0 740.5,1626.0 538.0,1626.0" fill="white" stroke="#111" stroke-width="1.5"/>
-<text x="650.5" y="1520.8" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">Landlord selects</text>
-<text x="650.5" y="1537.05" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">allowed outcome on own</text>
-<text x="650.5" y="1553.3" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">inquiry: accept,</text>
-<text x="650.5" y="1569.55" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">decline, or explicitly</text>
-<text x="650.5" y="1585.8" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">schedule only if</text>
-<text x="650.5" y="1602.05" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">approved</text>
-<polygon points="474.0,1694.0 850.0,1694.0 826.0,1795.0 450.0,1795.0" fill="white" stroke="#111" stroke-width="1.5"/>
-<text x="650" y="1723.05" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">Persist only schema-supported response</text>
-<text x="650" y="1739.3" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">state and notify renter</text>
-<text x="650" y="1755.55" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">Viewing confirmed only under approved</text>
-<text x="650" y="1771.8" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">scheduling semantics</text>
-<ellipse cx="650.0" cy="1944.5" rx="150.0" ry="40.5" fill="white" stroke="#111" stroke-width="1.5"/>
-<text x="650" y="1931.17" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">END</text>
-<text x="650" y="1947.42" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">Show persisted request /</text>
-<text x="650" y="1963.67" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">response state</text>
-<polygon points="82.0,1057.0 383.0,1057.0 359.0,1145.0 58.0,1145.0" fill="white" stroke="#111" stroke-width="1.5"/>
-<text x="220.5" y="1095.8" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">Correct entered fields; keep</text>
-<text x="220.5" y="1112.05" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">renter on the form</text>
-<ellipse cx="220.5" cy="1230.5" rx="162.5" ry="40.5" fill="white" stroke="#111" stroke-width="1.5"/>
-<text x="220.5" y="1217.17" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">END</text>
-<text x="220.5" y="1233.42" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">Explicitly cancel; no inquiry</text>
-<text x="220.5" y="1249.67" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">persisted</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1050 1420" width="1050" height="1420" style="background:#ffffff; font-family:Helvetica, Arial, sans-serif;">
+  <defs>
+    <!-- Arrow marker for end of lines -->
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#000000" />
+    </marker>
+    <!-- Arrow marker for start of lines (bidirectional) -->
+    <marker id="arrow-start" viewBox="0 0 10 10" refX="2" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 8 1.5 L 0 5 L 8 8.5 z" fill="#000000" />
+    </marker>
+    <!-- Pattern for grid background -->
+    <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#E2E8F0" stroke-width="0.8"/>
+    </pattern>
+  </defs>
+
+  <!-- Grid Background -->
+  <rect width="100%" height="100%" fill="url(#grid)" />
+
+  <!-- Flowchart Title -->
+  <text x="525.0" y="45" text-anchor="middle" font-size="18" font-weight="bold" fill="#000000" letter-spacing="1">SCRUM-127: RENTER INQUIRY &amp; VIEWING REQUEST FLOW</text>
+
+  <!-- ==================== CONNECTING EDGES ==================== -->
+  <!-- node_start -> node_auth -->
+  <line x1="500.0" y1="130" x2="500.0" y2="165" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <!-- node_auth -> node_gate -->
+  <path d="M 420 210 L 350 210" fill="none" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <text x="375" y="202" font-size="11" font-weight="bold" fill="#000000">NO</text>
+  <!-- node_gate -> node_auth -->
+  <path d="M 255 182.5 L 255 140 L 500 140 L 500 165" fill="none" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <!-- node_auth -> node_target_check -->
+  <line x1="500.0" y1="255" x2="500.0" y2="295" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <text x="508" y="275" font-size="11" font-weight="bold" fill="#000000">YES</text>
+  <!-- node_target_check -> node_closed -->
+  <path d="M 420 340 L 350 340" fill="none" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <text x="375" y="332" font-size="11" font-weight="bold" fill="#000000">NO</text>
+  <!-- node_closed -> node_end -->
+  <path d="M 160 340 L 100 340 L 100 1260 L 420 1260" fill="none" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <!-- node_target_check -> node_input_form -->
+  <line x1="500.0" y1="385" x2="500.0" y2="425" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <text x="508" y="405" font-size="11" font-weight="bold" fill="#000000">YES</text>
+  <!-- node_input_form -> node_validate_input -->
+  <line x1="500.0" y1="490" x2="500.0" y2="530" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <!-- node_validate_input -> node_field_errors -->
+  <path d="M 420 575 L 350 575" fill="none" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <text x="375" y="567" font-size="11" font-weight="bold" fill="#000000">NO</text>
+  <!-- node_field_errors -> node_input_form -->
+  <path d="M 255 547.5 L 255 457.5 L 360 457.5" fill="none" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <!-- node_validate_input -> node_insert_pending -->
+  <line x1="500.0" y1="620" x2="500.0" y2="660" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <text x="508" y="640" font-size="11" font-weight="bold" fill="#000000">YES</text>
+  <!-- node_insert_pending -> node_db -->
+  <path d="M 630 690 L 780 690" fill="none" stroke="#000000" stroke-width="1.8" stroke-dasharray="6,4" marker-end="url(#arrow)" />
+  <text x="705" y="680" font-size="11" font-weight="normal" fill="#000000">Insert</text>
+  <!-- node_insert_pending -> node_persist_check -->
+  <line x1="500.0" y1="720" x2="500.0" y2="760" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <!-- node_persist_check -> node_fail_notice -->
+  <path d="M 420 805 L 350 805" fill="none" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <text x="375" y="797" font-size="11" font-weight="bold" fill="#000000">NO</text>
+  <!-- node_fail_notice -> node_end -->
+  <path d="M 160 805 L 100 805 L 100 1260 L 420 1260" fill="none" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <!-- node_persist_check -> node_notify_landlord -->
+  <line x1="500.0" y1="850" x2="500.0" y2="890" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <text x="508" y="870" font-size="11" font-weight="bold" fill="#000000">YES</text>
+  <!-- node_notify_landlord -> node_landlord_decision -->
+  <line x1="500.0" y1="945" x2="500.0" y2="985" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <!-- node_landlord_decision -> node_persist_response -->
+  <line x1="500.0" y1="1075" x2="500.0" y2="1115" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <text x="508" y="1095" font-size="11" font-weight="normal" fill="#000000">Accept / Schedule</text>
+  <!-- node_persist_response -> node_end -->
+  <line x1="500.0" y1="1175" x2="500.0" y2="1235" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+
+  <!-- ==================== FLOWCHART NODES ==================== -->
+  <!-- Node: node_start -->
+  <rect x="420" y="80" width="160" height="50" rx="25" ry="25" fill="#FFFFFF" stroke="#000000" stroke-width="2.2" />
+  <text x="500.0" y="110.0" text-anchor="middle" font-size="14" font-weight="bold" fill="#000000">START</text>
+  <!-- Node: node_auth -->
+  <polygon points="500.0,165 580,210.0 500.0,255 420,210.0" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="500.0" y="206.7" text-anchor="middle" font-size="12" font-weight="normal" fill="#000000">Authenticated</text>
+  <text x="500.0" y="221.7" text-anchor="middle" font-size="12" font-weight="normal" fill="#000000">Renter?</text>
+  <!-- Node: node_gate -->
+  <rect x="160" y="182.5" width="190" height="55" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="255.0" y="206.39999999999998" text-anchor="middle" font-size="12" font-weight="normal" fill="#333333">Guest: SCRUM-121 Gate</text>
+  <text x="255.0" y="221.99999999999997" text-anchor="middle" font-size="12" font-weight="normal" fill="#333333">Preserve Listing &amp; Action</text>
+  <!-- Node: node_target_check -->
+  <polygon points="500.0,295 580,340.0 500.0,385 420,340.0" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="500.0" y="336.7" text-anchor="middle" font-size="12" font-weight="normal" fill="#000000">Listing Eligible</text>
+  <text x="500.0" y="351.7" text-anchor="middle" font-size="12" font-weight="normal" fill="#000000">&amp; Available?</text>
+  <!-- Node: node_closed -->
+  <rect x="160" y="312.5" width="190" height="55" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="255.0" y="336.4" text-anchor="middle" font-size="12" font-weight="bold" fill="#000000">Target Unavailable</text>
+  <text x="255.0" y="352.0" text-anchor="middle" font-size="12" font-weight="normal" fill="#333333">Safe Termination</text>
+  <!-- Node: node_input_form -->
+  <polygon points="385,425 640,425 615,490 360,490" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="500.0" y="453.5" text-anchor="middle" font-size="12" font-weight="bold" fill="#000000">Capture Inquiry Message, Move-in Date</text>
+  <text x="500.0" y="469.5" text-anchor="middle" font-size="12" font-weight="normal" fill="#333333">&amp; Viewing Appointment Slot</text>
+  <!-- Node: node_validate_input -->
+  <polygon points="500.0,530 580,575.0 500.0,620 420,575.0" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="500.0" y="571.7" text-anchor="middle" font-size="12" font-weight="bold" fill="#000000">Inputs Valid &amp;</text>
+  <text x="500.0" y="586.7" text-anchor="middle" font-size="12" font-weight="normal" fill="#000000">Within Rate Limits?</text>
+  <!-- Node: node_field_errors -->
+  <rect x="160" y="547.5" width="190" height="55" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="255.0" y="571.4000000000001" text-anchor="middle" font-size="12" font-weight="normal" fill="#333333">Field Errors Detected</text>
+  <text x="255.0" y="587.0000000000001" text-anchor="middle" font-size="12" font-weight="normal" fill="#333333">Correct or Cancel</text>
+  <!-- Node: node_insert_pending -->
+  <rect x="370" y="660" width="260" height="60" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="500.0" y="686.4000000000001" text-anchor="middle" font-size="12" font-weight="bold" fill="#000000">Derive Landlord from Property &amp;</text>
+  <text x="500.0" y="702.0000000000001" text-anchor="middle" font-size="12" font-weight="normal" fill="#333333">Insert Inquiry with &#x27;Pending&#x27; Status</text>
+  <!-- Node: node_persist_check -->
+  <polygon points="500.0,760 580,805.0 500.0,850 420,805.0" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="500.0" y="801.7" text-anchor="middle" font-size="12" font-weight="normal" fill="#000000">Persistence</text>
+  <text x="500.0" y="816.7" text-anchor="middle" font-size="12" font-weight="normal" fill="#000000">Succeeded?</text>
+  <!-- Node: node_fail_notice -->
+  <rect x="160" y="777.5" width="190" height="55" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="255.0" y="801.4000000000001" text-anchor="middle" font-size="12" font-weight="normal" fill="#333333">Persistence Failure</text>
+  <text x="255.0" y="817.0000000000001" text-anchor="middle" font-size="12" font-weight="normal" fill="#333333">Retry Without Duplicate</text>
+  <!-- Node: node_notify_landlord -->
+  <rect x="370" y="890" width="260" height="55" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="500.0" y="913.9000000000001" text-anchor="middle" font-size="12" font-weight="normal" fill="#333333">Notify Owning Landlord of</text>
+  <text x="500.0" y="929.5000000000001" text-anchor="middle" font-size="12" font-weight="normal" fill="#333333">New Inquiry / Viewing Request</text>
+  <!-- Node: node_landlord_decision -->
+  <polygon points="500.0,985 580,1030.0 500.0,1075 420,1030.0" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="500.0" y="1026.7" text-anchor="middle" font-size="12" font-weight="normal" fill="#000000">Landlord Response</text>
+  <text x="500.0" y="1041.7" text-anchor="middle" font-size="12" font-weight="normal" fill="#000000">Outcome?</text>
+  <!-- Node: node_persist_response -->
+  <rect x="360" y="1115" width="280" height="60" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="500.0" y="1141.4" text-anchor="middle" font-size="12" font-weight="bold" fill="#000000">Persist Landlord Response &amp;</text>
+  <text x="500.0" y="1157.0" text-anchor="middle" font-size="12" font-weight="normal" fill="#333333">Notify Renter of Status / Schedule</text>
+  <!-- Node: node_db -->
+  <g>
+    <path d="M 780 660 A 65.0 15 0 0 0 910 660 A 65.0 15 0 0 0 780 660 Z" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+    <path d="M 780 660 L 780 720 A 65.0 15 0 0 0 910 720 L 910 660" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+    <path d="M 780 720 A 65.0 15 0 0 0 910 720" fill="none" stroke="#000000" stroke-width="1.8" />
+    <text x="845.0" y="694.0" text-anchor="middle" font-size="13" font-weight="bold" fill="#000000">Inquiries &amp;</text>
+  </g>
+  <!-- Node: node_end -->
+  <rect x="420" y="1235" width="160" height="50" rx="25" ry="25" fill="#FFFFFF" stroke="#000000" stroke-width="2.2" />
+  <text x="500.0" y="1265.0" text-anchor="middle" font-size="14" font-weight="bold" fill="#000000">END</text>
+
 </svg>
