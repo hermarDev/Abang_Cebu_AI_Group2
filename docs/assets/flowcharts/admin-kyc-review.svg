@@ -1,0 +1,197 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1540" height="2320" viewBox="0 0 1540 2320">
+<defs><marker id="arrow" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L10,4 L0,8 Z" fill="#111"/></marker></defs>
+<rect width="100%" height="100%" fill="white"/>
+<text x="770.0" y="48" text-anchor="middle" font-family="Arial,sans-serif" font-weight="bold" font-size="20">SCRUM-126 — MODULE 4: ADMIN KYC VERIFICATION REVIEW</text>
+<polyline points="850,150 850,180" fill="none" stroke="#111" stroke-width="2" marker-end="url(#arrow)"/>
+<polyline points="750,235 380,235" fill="none" stroke="#111" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="346" y="218" width="58" height="22" fill="white" opacity="0.92"/>
+<text x="380" y="235" font-family="Arial,sans-serif" font-size="13" text-anchor="middle">No</text>
+<polyline points="850,290 850,330" fill="none" stroke="#111" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="816" y="313" width="58" height="22" fill="white" opacity="0.92"/>
+<text x="850" y="330" font-family="Arial,sans-serif" font-size="13" text-anchor="middle">Yes</text>
+<polyline points="230,275 230,280 260,275 260,295" fill="none" stroke="#111" stroke-width="2" marker-end="url(#arrow)"/>
+<polyline points="850,410 850,440" fill="none" stroke="#111" stroke-width="2" marker-end="url(#arrow)"/>
+<polyline points="750,495 730,495 730,490 380,490" fill="none" stroke="#111" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="696" y="473" width="58" height="22" fill="white" opacity="0.92"/>
+<text x="730" y="490" font-family="Arial,sans-serif" font-size="13" text-anchor="middle">No</text>
+<polyline points="850,550 850,590" fill="none" stroke="#111" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="816" y="573" width="58" height="22" fill="white" opacity="0.92"/>
+<text x="850" y="590" font-family="Arial,sans-serif" font-size="13" text-anchor="middle">Yes</text>
+<polyline points="380,490 400,490 400,370 670,370" fill="none" stroke="#111" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="366" y="353" width="108" height="22" fill="white" opacity="0.92"/>
+<text x="400" y="370" font-family="Arial,sans-serif" font-size="13" text-anchor="middle">Reload / retry</text>
+<polyline points="850,680 850,710" fill="none" stroke="#111" stroke-width="2" marker-end="url(#arrow)"/>
+<polyline points="750,768 730,768 400,770 380,770" fill="none" stroke="#111" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="366" y="753" width="58" height="22" fill="white" opacity="0.92"/>
+<text x="400" y="770" font-family="Arial,sans-serif" font-size="13" text-anchor="middle">No</text>
+<polyline points="850,826 850,850" fill="none" stroke="#111" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="816" y="833" width="58" height="22" fill="white" opacity="0.92"/>
+<text x="850" y="850" font-family="Arial,sans-serif" font-size="13" text-anchor="middle">Yes</text>
+<polyline points="230,820 230,850" fill="none" stroke="#111" stroke-width="2" marker-end="url(#arrow)"/>
+<polyline points="850,960 850,1000" fill="none" stroke="#111" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="816" y="983" width="66" height="22" fill="white" opacity="0.92"/>
+<text x="850" y="1000" font-family="Arial,sans-serif" font-size="13" text-anchor="middle">Verified</text>
+<polyline points="750,905 730,905 380,900 380,1055 360,1055" fill="none" stroke="#111" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="346" y="883" width="66" height="22" fill="white" opacity="0.92"/>
+<text x="380" y="900" font-family="Arial,sans-serif" font-size="13" text-anchor="middle">Rejected</text>
+<polyline points="230,1110 230,1120 210,1120 210,1140" fill="none" stroke="#111" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="176" y="1103" width="58" height="22" fill="white" opacity="0.92"/>
+<text x="210" y="1120" font-family="Arial,sans-serif" font-size="13" text-anchor="middle">No</text>
+<polyline points="210,1140 210,1130 230,1130 230,1110" fill="none" stroke="#111" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="196" y="1113" width="150" height="22" fill="white" opacity="0.92"/>
+<text x="230" y="1130" font-family="Arial,sans-serif" font-size="13" text-anchor="middle">Enter reason / retry</text>
+<polyline points="360,1055 380,1055 380,1305 360,1305" fill="none" stroke="#111" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="346" y="1288" width="58" height="22" fill="white" opacity="0.92"/>
+<text x="380" y="1305" font-family="Arial,sans-serif" font-size="13" text-anchor="middle">Yes</text>
+<polyline points="850,1090 850,1170" fill="none" stroke="#111" stroke-width="2" marker-end="url(#arrow)"/>
+<polyline points="360,1305 380,1305 380,1220 650,1215 670,1215" fill="none" stroke="#111" stroke-width="2" marker-end="url(#arrow)"/>
+<polyline points="850,1260 850,1290" fill="none" stroke="#111" stroke-width="2" marker-end="url(#arrow)"/>
+<polyline points="850,1400 850,1430" fill="none" stroke="#111" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="816" y="1413" width="58" height="22" fill="white" opacity="0.92"/>
+<text x="850" y="1430" font-family="Arial,sans-serif" font-size="13" text-anchor="middle">Yes</text>
+<polyline points="750,1345 730,1345 730,1420 360,1420" fill="none" stroke="#111" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="696" y="1403" width="58" height="22" fill="white" opacity="0.92"/>
+<text x="730" y="1420" font-family="Arial,sans-serif" font-size="13" text-anchor="middle">No</text>
+<polyline points="360,1420 650,1420 650,1215 670,1215" fill="none" stroke="#111" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="616" y="1198" width="58" height="22" fill="white" opacity="0.92"/>
+<text x="650" y="1215" font-family="Arial,sans-serif" font-size="13" text-anchor="middle">Retry</text>
+<polyline points="360,1675 380,1675 380,1700 430,1705 450,1705" fill="none" stroke="#111" stroke-width="2" marker-end="url(#arrow)"/>
+<polyline points="680,1705 700,1705 700,1680 770,1685 790,1685" fill="none" stroke="#111" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="666" y="1663" width="58" height="22" fill="white" opacity="0.92"/>
+<text x="700" y="1680" font-family="Arial,sans-serif" font-size="13" text-anchor="middle">No</text>
+<polyline points="680,1705 700,1705 700,1740 1110,1740 1110,1685 1130,1685" fill="none" stroke="#111" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="1076" y="1723" width="58" height="22" fill="white" opacity="0.92"/>
+<text x="1110" y="1740" font-family="Arial,sans-serif" font-size="13" text-anchor="middle">Yes</text>
+<polyline points="360,1895 380,1895 380,1920 430,1925 450,1925" fill="none" stroke="#111" stroke-width="2" marker-end="url(#arrow)"/>
+<polyline points="680,1925 700,1925 700,1900 770,1905 790,1905" fill="none" stroke="#111" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="666" y="1883" width="58" height="22" fill="white" opacity="0.92"/>
+<text x="700" y="1900" font-family="Arial,sans-serif" font-size="13" text-anchor="middle">No</text>
+<polyline points="680,1925 700,1925 700,1960 1110,1960 1110,1905 1130,1905" fill="none" stroke="#111" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="1076" y="1943" width="58" height="22" fill="white" opacity="0.92"/>
+<text x="1110" y="1960" font-family="Arial,sans-serif" font-size="13" text-anchor="middle">Yes</text>
+<polyline points="360,2115 380,2115 380,2140 430,2145 450,2145" fill="none" stroke="#111" stroke-width="2" marker-end="url(#arrow)"/>
+<polyline points="680,2145 700,2145 700,2120 770,2125 790,2125" fill="none" stroke="#111" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="666" y="2103" width="58" height="22" fill="white" opacity="0.92"/>
+<text x="700" y="2120" font-family="Arial,sans-serif" font-size="13" text-anchor="middle">No</text>
+<polyline points="680,2145 700,2145 700,2180 1110,2180 1110,2125 1130,2125" fill="none" stroke="#111" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="1076" y="2163" width="58" height="22" fill="white" opacity="0.92"/>
+<text x="1110" y="2180" font-family="Arial,sans-serif" font-size="13" text-anchor="middle">Yes</text>
+<rect x="70.0" y="20.0" width="1400.0" height="40.0" rx="0" fill="white" stroke="#111" stroke-width="1.5"/>
+<text x="770" y="44.05" text-anchor="middle" font-family="Arial,sans-serif" font-size="18" font-weight="bold" fill="#111">SCRUM-126 — MODULE 4: ADMIN KYC VERIFICATION REVIEW</text>
+<ellipse cx="850.0" cy="120.0" rx="180.0" ry="30.0" fill="white" stroke="#111" stroke-width="2.0"/>
+<text x="850" y="114.8" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="bold" fill="#111">START</text>
+<text x="850" y="131.05" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="bold" fill="#111">Admin opens KYC review queue</text>
+<polygon points="850.0,180.0 950.0,235.0 850.0,290.0 750.0,235.0" fill="white" stroke="#111" stroke-width="1.5"/>
+<text x="850" y="229.8" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">Authenticated</text>
+<text x="850" y="246.05" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">active admin?</text>
+<polygon points="104.0,195.0 380.0,195.0 356.0,275.0 80.0,275.0" fill="white" stroke="#111" stroke-width="1.5"/>
+<text x="230" y="221.675" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">DENY</text>
+<text x="230" y="237.925" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">No queue or submission details</text>
+<text x="230" y="254.175" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">disclosed</text>
+<ellipse cx="260.0" cy="330.0" rx="130.0" ry="35.0" fill="white" stroke="#111" stroke-width="2.0"/>
+<text x="260" y="316.675" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="bold" fill="#111">END</text>
+<text x="260" y="332.925" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="bold" fill="#111">Unauthorized; no data</text>
+<text x="260" y="349.175" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="bold" fill="#111">disclosed</text>
+<polygon points="694.0,330.0 1030.0,330.0 1006.0,410.0 670.0,410.0" fill="white" stroke="#111" stroke-width="1.5"/>
+<text x="850" y="356.675" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">Retrieve eligible pending submission</text>
+<text x="850" y="372.925" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">Least-privilege query; private</text>
+<text x="850" y="389.175" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">evidence access</text>
+<polygon points="850.0,440.0 950.0,495.0 850.0,550.0 750.0,495.0" fill="white" stroke="#111" stroke-width="1.5"/>
+<text x="850" y="489.8" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">Current pending</text>
+<text x="850" y="506.05" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">record exists?</text>
+<polygon points="104.0,450.0 380.0,450.0 356.0,530.0 80.0,530.0" fill="white" stroke="#111" stroke-width="1.5"/>
+<text x="230" y="476.675" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">Stale, missing, or already</text>
+<text x="230" y="492.925" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">reviewed</text>
+<text x="230" y="509.175" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">Do not overwrite; reload queue</text>
+<rect x="670.0" y="590.0" width="360.0" height="90.0" rx="0" fill="white" stroke="#111" stroke-width="1.5"/>
+<text x="850" y="629.8" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">Inspect identity/metadata and evidence</text>
+<text x="850" y="646.05" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">Do not expose or log document contents</text>
+<polygon points="850.0,710.0 950.0,768.0 850.0,826.0 750.0,768.0" fill="white" stroke="#111" stroke-width="1.5"/>
+<text x="850" y="746.55" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">Evidence</text>
+<text x="850" y="762.8" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">sufficient and</text>
+<text x="850" y="779.05" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">approved policy</text>
+<text x="850" y="795.3" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">checks pass?</text>
+<polygon points="104.0,720.0 380.0,720.0 356.0,820.0 80.0,820.0" fill="white" stroke="#111" stroke-width="1.5"/>
+<text x="230" y="756.675" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">Insufficient evidence</text>
+<text x="230" y="772.925" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">Keep current state; correction</text>
+<text x="230" y="789.175" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">only via approved owner flow</text>
+<ellipse cx="230.0" cy="890.0" rx="130.0" ry="40.0" fill="white" stroke="#111" stroke-width="2.0"/>
+<text x="230" y="876.675" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="bold" fill="#111">END</text>
+<text x="230" y="892.925" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="bold" fill="#111">No approval or state</text>
+<text x="230" y="909.175" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="bold" fill="#111">mutation</text>
+<polygon points="850.0,850.0 950.0,905.0 850.0,960.0 750.0,905.0" fill="white" stroke="#111" stroke-width="1.5"/>
+<text x="850" y="899.8" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">Select verified</text>
+<text x="850" y="916.05" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">or rejected?</text>
+<rect x="670.0" y="1000.0" width="360.0" height="90.0" rx="0" fill="white" stroke="#111" stroke-width="1.5"/>
+<text x="850" y="1039.8" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">Persist verified + reviewer/time</text>
+<text x="850" y="1056.05" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">Audit atomically</text>
+<polygon points="230.0,1000.0 360.0,1055.0 230.0,1110.0 100.0,1055.0" fill="white" stroke="#111" stroke-width="1.5"/>
+<text x="230" y="1049.8" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">Rejection reason</text>
+<text x="230" y="1066.05" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">present and actionable?</text>
+<polygon points="84.0,1140.0 360.0,1140.0 336.0,1220.0 60.0,1220.0" fill="white" stroke="#111" stroke-width="1.5"/>
+<text x="210" y="1166.67" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">BLOCK</text>
+<text x="210" y="1182.92" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">Prompt for required reason; no</text>
+<text x="210" y="1199.17" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">mutation</text>
+<rect x="60.0" y="1260.0" width="300.0" height="90.0" rx="0" fill="white" stroke="#111" stroke-width="1.5"/>
+<text x="210" y="1291.67" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">Persist rejected + reason +</text>
+<text x="210" y="1307.92" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">reviewer/time</text>
+<text x="210" y="1324.17" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">Audit atomically</text>
+<polygon points="694.0,1170.0 1030.0,1170.0 1006.0,1260.0 670.0,1260.0" fill="white" stroke="#111" stroke-width="1.5"/>
+<text x="850" y="1209.8" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">Notify landlord of persisted outcome</text>
+<text x="850" y="1226.05" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">Configured channel only</text>
+<polygon points="850.0,1290.0 950.0,1345.0 850.0,1400.0 750.0,1345.0" fill="white" stroke="#111" stroke-width="1.5"/>
+<text x="850" y="1339.8" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">Notification</text>
+<text x="850" y="1356.05" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">delivered?</text>
+<rect x="60.0" y="1380.0" width="300.0" height="80.0" rx="0" fill="white" stroke="#111" stroke-width="1.5"/>
+<text x="210" y="1406.67" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">Delivery failed</text>
+<text x="210" y="1422.92" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">Retry notification only; do not</text>
+<text x="210" y="1439.17" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">repeat decision</text>
+<ellipse cx="850.0" cy="1470.0" rx="180.0" ry="40.0" fill="white" stroke="#111" stroke-width="2.0"/>
+<text x="850" y="1464.8" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="bold" fill="#111">END</text>
+<text x="850" y="1481.05" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="bold" fill="#111">Outcome persisted; delivery succeeded</text>
+<ellipse cx="210.0" cy="1675.0" rx="150.0" ry="35.0" fill="white" stroke="#111" stroke-width="2.0"/>
+<text x="210" y="1661.67" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="bold" fill="#111">TRIGGER</text>
+<text x="210" y="1677.92" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="bold" fill="#111">Owner attempts KYC</text>
+<text x="210" y="1694.17" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="bold" fill="#111">correction/resubmission</text>
+<polygon points="565.0,1650.0 680.0,1705.0 565.0,1760.0 450.0,1705.0" fill="white" stroke="#111" stroke-width="1.5"/>
+<text x="565" y="1699.8" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">Approved owner flow,</text>
+<text x="565" y="1716.05" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">schema and policy?</text>
+<ellipse cx="940.0" cy="1685.0" rx="150.0" ry="45.0" fill="white" stroke="#111" stroke-width="2.0"/>
+<text x="940" y="1671.67" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="bold" fill="#111">BLOCK / END</text>
+<text x="940" y="1687.92" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="bold" fill="#111">No supported flow; no state</text>
+<text x="940" y="1704.17" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="bold" fill="#111">mutation</text>
+<ellipse cx="1300.0" cy="1685.0" rx="170.0" ry="45.0" fill="white" stroke="#111" stroke-width="2.0"/>
+<text x="1300" y="1671.67" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="bold" fill="#111">HANDOFF / END</text>
+<text x="1300" y="1687.92" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="bold" fill="#111">Only to approved owner flow; no</text>
+<text x="1300" y="1704.17" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="bold" fill="#111">transition inferred</text>
+<ellipse cx="210.0" cy="1895.0" rx="150.0" ry="35.0" fill="white" stroke="#111" stroke-width="2.0"/>
+<text x="210" y="1881.67" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="bold" fill="#111">TRIGGER</text>
+<text x="210" y="1897.92" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="bold" fill="#111">Owner requests</text>
+<text x="210" y="1914.17" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="bold" fill="#111">appeal/reconsideration</text>
+<polygon points="565.0,1870.0 680.0,1925.0 565.0,1980.0 450.0,1925.0" fill="white" stroke="#111" stroke-width="1.5"/>
+<text x="565" y="1911.67" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">Approved appeal</text>
+<text x="565" y="1927.92" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">policy and</text>
+<text x="565" y="1944.17" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">authority?</text>
+<ellipse cx="940.0" cy="1905.0" rx="150.0" ry="45.0" fill="white" stroke="#111" stroke-width="2.0"/>
+<text x="940" y="1891.67" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="bold" fill="#111">BLOCK / END</text>
+<text x="940" y="1907.92" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="bold" fill="#111">No appeal policy;</text>
+<text x="940" y="1924.17" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="bold" fill="#111">decision/state unchanged</text>
+<ellipse cx="1300.0" cy="1905.0" rx="170.0" ry="45.0" fill="white" stroke="#111" stroke-width="2.0"/>
+<text x="1300" y="1899.8" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="bold" fill="#111">HANDOFF / END</text>
+<text x="1300" y="1916.05" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="bold" fill="#111">Only to approved appeal process</text>
+<ellipse cx="210.0" cy="2115.0" rx="150.0" ry="35.0" fill="white" stroke="#111" stroke-width="2.0"/>
+<text x="210" y="2101.68" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="bold" fill="#111">TRIGGER</text>
+<text x="210" y="2117.93" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="bold" fill="#111">Admin identifies case for</text>
+<text x="210" y="2134.18" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="bold" fill="#111">escalation</text>
+<polygon points="565.0,2090.0 680.0,2145.0 565.0,2200.0 450.0,2145.0" fill="white" stroke="#111" stroke-width="1.5"/>
+<text x="565" y="2131.68" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">Approved escalation</text>
+<text x="565" y="2147.93" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">policy, destination</text>
+<text x="565" y="2164.18" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">and authority?</text>
+<ellipse cx="940.0" cy="2125.0" rx="150.0" ry="45.0" fill="white" stroke="#111" stroke-width="2.0"/>
+<text x="940" y="2111.68" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="bold" fill="#111">BLOCK / END</text>
+<text x="940" y="2127.93" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="bold" fill="#111">No escalation/action; current</text>
+<text x="940" y="2144.18" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="bold" fill="#111">state unchanged</text>
+<ellipse cx="1300.0" cy="2125.0" rx="170.0" ry="45.0" fill="white" stroke="#111" stroke-width="2.0"/>
+<text x="1300" y="2119.8" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="bold" fill="#111">HANDOFF / END</text>
+<text x="1300" y="2136.05" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="bold" fill="#111">Only to approved escalation process</text>
+</svg>
