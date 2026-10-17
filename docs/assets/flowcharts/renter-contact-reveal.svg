@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1310" height="1547" viewBox="0 0 1310 1547">
+<defs><marker id="arrow" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L10,4 L0,8 Z" fill="#111"/></marker></defs>
+<rect width="100%" height="100%" fill="white"/>
+<text x="655.0" y="48" text-anchor="middle" font-family="Arial,sans-serif" font-weight="bold" font-size="20">SCRUM-127 — MODULE 5: LANDLORD CONTACT REVEAL</text>
+<polyline points="650.5,200 650.5,220 650,232 650,252" fill="none" stroke="#111" stroke-width="2" marker-end="url(#arrow)"/>
+<polyline points="525,319.5 505,319.5 403,320 383,320" fill="none" stroke="#111" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="369" y="303" width="58" height="22" fill="white" opacity="0.92"/>
+<text x="403" y="320" font-family="Arial,sans-serif" font-size="13" text-anchor="middle">No</text>
+<polyline points="383,320 403,320 400,550 505,550.5 525,550.5" fill="none" stroke="#111" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="366" y="533" width="150" height="22" fill="white" opacity="0.92"/>
+<text x="400" y="550" font-family="Arial,sans-serif" font-size="13" text-anchor="middle">Resume after sign-in</text>
+<polyline points="650,387 650,483" fill="none" stroke="#111" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="616" y="466" width="58" height="22" fill="white" opacity="0.92"/>
+<text x="650" y="483" font-family="Arial,sans-serif" font-size="13" text-anchor="middle">Yes</text>
+<polyline points="775,550.5 795,550.5 896,551 916,551" fill="none" stroke="#111" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="862" y="534" width="58" height="22" fill="white" opacity="0.92"/>
+<text x="896" y="551" font-family="Arial,sans-serif" font-size="13" text-anchor="middle">No</text>
+<polyline points="650,618 650,702" fill="none" stroke="#111" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="616" y="685" width="58" height="22" fill="white" opacity="0.92"/>
+<text x="650" y="702" font-family="Arial,sans-serif" font-size="13" text-anchor="middle">Yes</text>
+<polyline points="500,799 480,799 480,790 403,789 383,789" fill="none" stroke="#111" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="446" y="773" width="58" height="22" fill="white" opacity="0.92"/>
+<text x="480" y="790" font-family="Arial,sans-serif" font-size="13" text-anchor="middle">No</text>
+<polyline points="650,896 650,959" fill="none" stroke="#111" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="616" y="942" width="58" height="22" fill="white" opacity="0.92"/>
+<text x="650" y="959" font-family="Arial,sans-serif" font-size="13" text-anchor="middle">Yes</text>
+<polyline points="775,1026.5 795,1026.5 896,1027 916,1027" fill="none" stroke="#111" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="862" y="1010" width="58" height="22" fill="white" opacity="0.92"/>
+<text x="896" y="1027" font-family="Arial,sans-serif" font-size="13" text-anchor="middle">No</text>
+<polyline points="650,1094 650,1114 649.5,1163 649.5,1183" fill="none" stroke="#111" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="615.5" y="1146" width="58" height="22" fill="white" opacity="0.92"/>
+<text x="649.5" y="1163" font-family="Arial,sans-serif" font-size="13" text-anchor="middle">Yes</text>
+<polyline points="649.5,1291 649.5,1311 650,1366 650,1386" fill="none" stroke="#111" stroke-width="2" marker-end="url(#arrow)"/>
+<polyline points="916,1027 896,1027 900,1430 820,1426.5 800,1426.5" fill="none" stroke="#111" stroke-width="2" marker-end="url(#arrow)"/>
+<polyline points="383,789 403,789 400,1430 480,1426.5 500,1426.5" fill="none" stroke="#111" stroke-width="2" marker-end="url(#arrow)"/>
+<polyline points="916,551 896,551 850,550 850,1430 820,1426.5 800,1426.5" fill="none" stroke="#111" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="50.0" y="20.0" width="1200.0" height="45.0" rx="0" fill="white" stroke="#111" stroke-width="1.5"/>
+<text x="650" y="46.55" text-anchor="middle" font-family="Arial,sans-serif" font-size="18" font-weight="bold" fill="#111">SCRUM-127 — MODULE 5: LANDLORD CONTACT REVEAL</text>
+<ellipse cx="650.5" cy="159.5" rx="162.5" ry="40.5" fill="white" stroke="#111" stroke-width="2.0"/>
+<text x="650.5" y="153.9" text-anchor="middle" font-family="Arial,sans-serif" font-size="14" font-weight="bold" fill="#111">START</text>
+<text x="650.5" y="171.4" text-anchor="middle" font-family="Arial,sans-serif" font-size="14" font-weight="bold" fill="#111">User requests landlord contact</text>
+<polygon points="650.0,252.0 775.0,319.5 650.0,387.0 525.0,319.5" fill="white" stroke="#111" stroke-width="1.5"/>
+<text x="650" y="322.425" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">Authenticated renter?</text>
+<rect x="58.0" y="273.0" width="325.0" height="94.0" rx="0" fill="white" stroke="#111" stroke-width="1.5"/>
+<text x="220.5" y="306.675" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">Guest: SCRUM-121</text>
+<text x="220.5" y="322.925" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">Store safe same-origin intent for</text>
+<text x="220.5" y="339.175" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">listing and reveal action</text>
+<polygon points="650.0,483.0 775.0,550.5 650.0,618.0 525.0,550.5" fill="white" stroke="#111" stroke-width="1.5"/>
+<text x="650" y="537.175" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">Revalidate target is</text>
+<text x="650" y="553.425" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">approved and landlord</text>
+<text x="650" y="569.675" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">is linked?</text>
+<polygon points="940.0,504.0 1241.0,504.0 1217.0,598.0 916.0,598.0" fill="white" stroke="#111" stroke-width="1.5"/>
+<text x="1078.5" y="537.675" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">No: fail closed; safe</text>
+<text x="1078.5" y="553.925" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">unavailable response</text>
+<text x="1078.5" y="570.175" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">No contact data returned</text>
+<polygon points="650.0,702.0 800.0,799.0 650.0,896.0 500.0,799.0" fill="white" stroke="#111" stroke-width="1.5"/>
+<text x="650" y="761.3" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">Approved</text>
+<text x="650" y="777.55" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">contact-eligibility AND</text>
+<text x="650" y="793.8" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">abuse controls defined and</text>
+<text x="650" y="810.05" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">pass? (verification,</text>
+<text x="650" y="826.3" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">consent, quotas</text>
+<text x="650" y="842.55" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">unresolved; fail closed)</text>
+<polygon points="82.0,742.0 383.0,742.0 359.0,836.0 58.0,836.0" fill="white" stroke="#111" stroke-width="1.5"/>
+<text x="220.5" y="775.675" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">No / policy unresolved or fails:</text>
+<text x="220.5" y="791.925" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">withhold contact; no bypass;</text>
+<text x="220.5" y="808.175" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">offer inquiry if available</text>
+<polygon points="650.0,959.0 775.0,1026.5 650.0,1094.0 525.0,1026.5" fill="white" stroke="#111" stroke-width="1.5"/>
+<text x="650" y="1013.17" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">Minimum verified</text>
+<text x="650" y="1029.42" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">contact data</text>
+<text x="650" y="1045.67" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">available?</text>
+<polygon points="940.0,980.0 1241.0,980.0 1217.0,1074.0 916.0,1074.0" fill="white" stroke="#111" stroke-width="1.5"/>
+<text x="1078.5" y="1021.8" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">No: report contact unavailable;</text>
+<text x="1078.5" y="1038.05" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">offer inquiry path</text>
+<polygon points="486.0,1183.0 837.0,1183.0 813.0,1291.0 462.0,1291.0" fill="white" stroke="#111" stroke-width="1.5"/>
+<text x="649.5" y="1215.55" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">Yes: return minimum contact data to</text>
+<text x="649.5" y="1231.8" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">authorized renter only; record</text>
+<text x="649.5" y="1248.05" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">minimal access event if policy</text>
+<text x="649.5" y="1264.3" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">enables</text>
+<ellipse cx="650.0" cy="1426.5" rx="150.0" ry="40.5" fill="white" stroke="#111" stroke-width="1.5"/>
+<text x="650" y="1413.17" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">END</text>
+<text x="650" y="1429.42" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">No PII in errors, public DOM,</text>
+<text x="650" y="1445.67" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">or logs</text>
+</svg>

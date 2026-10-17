@@ -1,0 +1,102 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1310" height="1575" viewBox="0 0 1310 1575">
+<defs><marker id="arrow" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L10,4 L0,8 Z" fill="#111"/></marker></defs>
+<rect width="100%" height="100%" fill="white"/>
+<text x="655.0" y="48" text-anchor="middle" font-family="Arial,sans-serif" font-weight="bold" font-size="20">SCRUM-127 — MODULE 5: SAVE / REMOVE FAVORITE LISTING</text>
+<polyline points="650.5,200 650.5,220 650,232 650,252" fill="none" stroke="#111" stroke-width="2" marker-end="url(#arrow)"/>
+<polyline points="525,319.5 505,319.5 403,320 383,320" fill="none" stroke="#111" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="369" y="303" width="58" height="22" fill="white" opacity="0.92"/>
+<text x="403" y="320" font-family="Arial,sans-serif" font-size="13" text-anchor="middle">No</text>
+<polyline points="220.5,367 220.5,448" fill="none" stroke="#111" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="186.5" y="431" width="101" height="22" fill="white" opacity="0.92"/>
+<text x="220.5" y="448" font-family="Arial,sans-serif" font-size="13" text-anchor="middle">After sign-in</text>
+<polyline points="383,495 403,495 400,570 480,568 500,568" fill="none" stroke="#111" stroke-width="2" marker-end="url(#arrow)"/>
+<polyline points="650,387 650,471" fill="none" stroke="#111" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="616" y="454" width="58" height="22" fill="white" opacity="0.92"/>
+<text x="650" y="471" font-family="Arial,sans-serif" font-size="13" text-anchor="middle">Yes</text>
+<polyline points="650,665 650,700" fill="none" stroke="#111" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="616" y="683" width="58" height="22" fill="white" opacity="0.92"/>
+<text x="650" y="700" font-family="Arial,sans-serif" font-size="13" text-anchor="middle">Yes</text>
+<polyline points="800,568 820,568 820,730 896,733 916,733" fill="none" stroke="#111" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="786" y="713" width="115" height="22" fill="white" opacity="0.92"/>
+<text x="820" y="730" font-family="Arial,sans-serif" font-size="13" text-anchor="middle">No / unresolved</text>
+<polyline points="650,835 650,910" fill="none" stroke="#111" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="616" y="893" width="80" height="22" fill="white" opacity="0.92"/>
+<text x="650" y="910" font-family="Arial,sans-serif" font-size="13" text-anchor="middle">Yes / Save</text>
+<polyline points="525,767.5 505,767.5 500,980 403,985 383,985" fill="none" stroke="#111" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="466" y="963" width="87" height="22" fill="white" opacity="0.92"/>
+<text x="500" y="980" font-family="Arial,sans-serif" font-size="13" text-anchor="middle">No / Remove</text>
+<polyline points="775,977.5 795,977.5 890,980 890,730 896,733 916,733" fill="none" stroke="#111" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="856" y="713" width="58" height="22" fill="white" opacity="0.92"/>
+<text x="890" y="730" font-family="Arial,sans-serif" font-size="13" text-anchor="middle">No</text>
+<polyline points="650,1045 650,1065 900,1060 896,985 916,985" fill="none" stroke="#111" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="866" y="1043" width="58" height="22" fill="white" opacity="0.92"/>
+<text x="900" y="1060" font-family="Arial,sans-serif" font-size="13" text-anchor="middle">Yes</text>
+<polyline points="1078.5,1039 1078.5,1059 910,1060 910,1230 795,1229.5 775,1229.5" fill="none" stroke="#111" stroke-width="2" marker-end="url(#arrow)"/>
+<polyline points="383,985 403,985 490,980 490,1230 505,1229.5 525,1229.5" fill="none" stroke="#111" stroke-width="2" marker-end="url(#arrow)"/>
+<polyline points="525,1229.5 505,1229.5 500,1240 403,1237 383,1237" fill="none" stroke="#111" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="466" y="1223" width="58" height="22" fill="white" opacity="0.92"/>
+<text x="500" y="1240" font-family="Arial,sans-serif" font-size="13" text-anchor="middle">No</text>
+<polyline points="775,1229.5 795,1229.5 800,1240 896,1237 916,1237" fill="none" stroke="#111" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="766" y="1223" width="58" height="22" fill="white" opacity="0.92"/>
+<text x="800" y="1240" font-family="Arial,sans-serif" font-size="13" text-anchor="middle">Yes</text>
+<polyline points="383,1237 403,1237 400,1450 468,1454.5 488,1454.5" fill="none" stroke="#111" stroke-width="2" marker-end="url(#arrow)"/>
+<polyline points="916,1237 896,1237 900,1450 833,1454.5 813,1454.5" fill="none" stroke="#111" stroke-width="2" marker-end="url(#arrow)"/>
+<polyline points="916,733 896,733 900,720 830,720 833,1454.5 813,1454.5" fill="none" stroke="#111" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="50.0" y="20.0" width="1200.0" height="45.0" rx="0" fill="white" stroke="#111" stroke-width="1.5"/>
+<text x="650" y="46.55" text-anchor="middle" font-family="Arial,sans-serif" font-size="18" font-weight="bold" fill="#111">SCRUM-127 — MODULE 5: SAVE / REMOVE FAVORITE LISTING</text>
+<ellipse cx="650.5" cy="159.5" rx="162.5" ry="40.5" fill="white" stroke="#111" stroke-width="2.0"/>
+<text x="650.5" y="153.9" text-anchor="middle" font-family="Arial,sans-serif" font-size="14" font-weight="bold" fill="#111">START</text>
+<text x="650.5" y="171.4" text-anchor="middle" font-family="Arial,sans-serif" font-size="14" font-weight="bold" fill="#111">User saves or removes listing</text>
+<polygon points="650.0,252.0 775.0,319.5 650.0,387.0 525.0,319.5" fill="white" stroke="#111" stroke-width="1.5"/>
+<text x="650" y="322.425" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">Authenticated renter?</text>
+<rect x="58.0" y="273.0" width="325.0" height="94.0" rx="0" fill="white" stroke="#111" stroke-width="1.5"/>
+<text x="220.5" y="306.675" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">Guest: SCRUM-121 gate</text>
+<text x="220.5" y="322.925" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">Preserve listing + exact action; no</text>
+<text x="220.5" y="339.175" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">private form data</text>
+<rect x="58.0" y="448.0" width="325.0" height="94.0" rx="0" fill="white" stroke="#111" stroke-width="1.5"/>
+<text x="220.5" y="481.675" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">After sign-in, revalidate renter role</text>
+<text x="220.5" y="497.925" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">and resume exact same action +</text>
+<text x="220.5" y="514.175" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">listing</text>
+<polygon points="650.0,910.0 775.0,977.5 650.0,1045.0 525.0,977.5" fill="white" stroke="#111" stroke-width="1.5"/>
+<text x="650" y="964.175" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">Save target currently</text>
+<text x="650" y="980.425" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">approved and</text>
+<text x="650" y="996.675" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">available?</text>
+<polygon points="940.0,672.0 1241.0,672.0 1217.0,794.0 916.0,794.0" fill="white" stroke="#111" stroke-width="1.5"/>
+<text x="1078.5" y="719.675" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">No: do not save; safe</text>
+<text x="1078.5" y="735.925" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">unavailable or schema-gate</text>
+<text x="1078.5" y="752.175" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">response</text>
+<polygon points="650.0,700.0 775.0,767.5 650.0,835.0 525.0,767.5" fill="white" stroke="#111" stroke-width="1.5"/>
+<text x="650" y="762.3" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">Requested action is</text>
+<text x="650" y="778.55" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">Save?</text>
+<rect x="916.0" y="931.0" width="325.0" height="108.0" rx="0" fill="white" stroke="#111" stroke-width="1.5"/>
+<text x="1078.5" y="963.55" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">Add favorite for current renter +</text>
+<text x="1078.5" y="979.8" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">listing</text>
+<text x="1078.5" y="996.05" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">Upsert against enforced unique</text>
+<text x="1078.5" y="1012.3" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">renter/listing pair</text>
+<rect x="58.0" y="931.0" width="325.0" height="108.0" rx="0" fill="white" stroke="#111" stroke-width="1.5"/>
+<text x="220.5" y="963.55" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">Remove current renter + listing</text>
+<text x="220.5" y="979.8" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">association</text>
+<text x="220.5" y="996.05" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">Allowed if listing unavailable;</text>
+<text x="220.5" y="1012.3" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">missing association is idempotent</text>
+<polygon points="650.0,1162.0 775.0,1229.5 650.0,1297.0 525.0,1229.5" fill="white" stroke="#111" stroke-width="1.5"/>
+<text x="650" y="1216.17" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">Persistence succeeded?</text>
+<text x="650" y="1232.42" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">RLS enforces owner</text>
+<text x="650" y="1248.67" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">access</text>
+<polygon points="82.0,1183.0 383.0,1183.0 359.0,1291.0 58.0,1291.0" fill="white" stroke="#111" stroke-width="1.5"/>
+<text x="220.5" y="1231.8" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">No: safe error; allow bounded</text>
+<text x="220.5" y="1248.05" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">retry; no false success</text>
+<polygon points="940.0,1183.0 1241.0,1183.0 1217.0,1291.0 916.0,1291.0" fill="white" stroke="#111" stroke-width="1.5"/>
+<text x="1078.5" y="1231.8" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">Yes: update renter-only saved</text>
+<text x="1078.5" y="1248.05" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">state in UI</text>
+<ellipse cx="650.5" cy="1454.5" rx="162.5" ry="40.5" fill="white" stroke="#111" stroke-width="1.5"/>
+<text x="650.5" y="1441.17" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">END</text>
+<text x="650.5" y="1457.42" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">Favorite action completed or</text>
+<text x="650.5" y="1473.67" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">safely refused</text>
+<polygon points="650.0,471.0 800.0,568.0 650.0,665.0 500.0,568.0" fill="white" stroke="#111" stroke-width="1.5"/>
+<text x="650" y="530.3" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">Schema owner confirms</text>
+<text x="650" y="546.55" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">canonical relation</text>
+<text x="650" y="562.8" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">(`saved_listings` /</text>
+<text x="650" y="579.05" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">`saved_properties`) and</text>
+<text x="650" y="595.3" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">unique renter/listing</text>
+<text x="650" y="611.55" text-anchor="middle" font-family="Arial,sans-serif" font-size="13" font-weight="normal" fill="#111">constraint?</text>
+</svg>
