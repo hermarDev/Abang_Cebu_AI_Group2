@@ -3,7 +3,7 @@
 --   supabase test db --local supabase/tests/schema_migrations_test.sql
 -- This file is deliberately not run against a cloud or linked database.
 BEGIN;
-SELECT plan(29);
+SELECT plan(31);
 
 SELECT has_table('public', 'properties', 'properties table exists');
 SELECT has_table('public', 'rental_units', 'rental_units table exists');
@@ -14,6 +14,14 @@ SELECT has_table('public', 'inquiries', 'inquiries table exists');
 SELECT has_table('public', 'saved_listings', 'saved_listings table exists');
 SELECT has_table('public', 'reviews', 'reviews table exists');
 SELECT has_table('public', 'audit_logs', 'audit_logs table exists');
+SELECT ok(
+    NOT has_table_privilege('anon', 'public.audit_logs', 'TRUNCATE'),
+    'anon cannot truncate audit logs'
+);
+SELECT ok(
+    NOT has_table_privilege('authenticated', 'public.audit_logs', 'TRUNCATE'),
+    'authenticated cannot truncate audit logs'
+);
 
 SELECT has_index('public', 'properties', 'idx_properties_coordinates', 'properties have a spatial GiST index');
 SELECT has_index('public', 'inquiries', 'idx_inquiries_landlord_inbox', 'inquiries have a landlord inbox index');
@@ -120,22 +128,22 @@ SELECT lives_ok(
 SELECT throws_ok(
     $$INSERT INTO public.saved_listings (renter_id, property_id)
       VALUES ('14000000-0000-4000-8000-000000000002', '14000000-0000-4000-8000-000000000011')$$,
-    '23505', 'duplicate favorite is rejected'
+    '23505', NULL, 'duplicate favorite is rejected'
 );
 SELECT throws_ok(
     $$INSERT INTO public.reviews (property_id, renter_id, rating)
       VALUES ('14000000-0000-4000-8000-000000000011', '14000000-0000-4000-8000-000000000002', 6)$$,
-    '23514', 'out-of-range review rating is rejected'
+    '23514', NULL, 'out-of-range review rating is rejected'
 );
 SELECT throws_ok(
     $$INSERT INTO public.rental_units (property_id, rental_type, monthly_rent)
       VALUES ('14000000-0000-4000-8000-000000000011', 'bedspace', 0)$$,
-    '23514', 'non-positive rent is rejected'
+    '23514', NULL, 'non-positive rent is rejected'
 );
 SELECT throws_ok(
     $$INSERT INTO public.inquiries (property_id, renter_id, landlord_id, message)
       VALUES ('14000000-0000-4000-8000-000000000011', '14000000-0000-4000-8000-000000000002', '14000000-0000-4000-8000-000000000003', 'Synthetic mismatch test')$$,
-    '23503', 'inquiry landlord must own the referenced property'
+    '23503', NULL, 'inquiry landlord must own the referenced property'
 );
 
 INSERT INTO public.property_photos (property_id, unit_id, storage_path, public_url)
@@ -173,11 +181,11 @@ VALUES (
 );
 SELECT throws_ok(
     $$UPDATE public.audit_logs SET action = 'test.changed' WHERE action = 'test.synthetic'$$,
-    '55000', 'audit log updates are rejected'
+    '55000', NULL, 'audit log updates are rejected'
 );
 SELECT throws_ok(
     $$DELETE FROM public.audit_logs WHERE action = 'test.synthetic'$$,
-    '55000', 'audit log deletes are rejected'
+    '55000', NULL, 'audit log deletes are rejected'
 );
 
 -- Profile deletion must null the actor reference without deleting the audit row.
