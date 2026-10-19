@@ -32,6 +32,14 @@ function findHandler(name) {
   return handler;
 }
 
+function findCallback(name) {
+  const initializer = findHandler(name);
+  assert.ok(ts.isCallExpression(initializer), `${name} must use a callback hook`);
+  const callback = initializer.arguments[0];
+  assert.ok(ts.isArrowFunction(callback), `${name} must be an arrow callback`);
+  return callback;
+}
+
 const onLoadHandler = findHandler("onLoad");
 const onMapErrorHandler = findHandler("onMapError");
 
@@ -81,42 +89,38 @@ function createLocationFailureState(initialState) {
     },
   };
   const markerRef = { current: marker };
-  const currentMap = {
-    flyTo(options) {
-      state.lastFlyTo = options;
+  const mapRef = {
+    current: {
+      flyTo(options) {
+        state.lastFlyTo = options;
+      },
     },
   };
-  const context = {
-    mapRef: { current: currentMap },
+  const locationRequestRef = { current: 1 };
+  const vmContext = vm.createContext({
+    requestId: 1,
+    locationRequestRef,
+    mapRef,
     markerRef,
-    locationRequestRef: { current: 1 },
-    locationStatus: "locating",
+    METRO_CEBU_CENTER: [123.8854, 10.3157],
+    DEFAULT_ZOOM: 13,
+    LOCATION_ERROR_MESSAGES: {
+      1: "Location permission was denied. The map remains centered on Metro Cebu.",
+    },
     setLocationStatus(status) {
       state.locationStatus = status;
     },
     setStatusMessage(message) {
       state.statusMessage = message;
     },
-  };
-  const callback = vm.runInNewContext(
+  });
+  const callback = vm.runInContext(
     `(${extractLocationErrorHandler().getText(sourceFile)})`,
-    {
-      requestId: 1,
-      locationRequestRef: context.locationRequestRef,
-      mapRef: context.mapRef,
-      markerRef,
-      METRO_CEBU_CENTER: [123.8854, 10.3157],
-      DEFAULT_ZOOM: 13,
-      LOCATION_ERROR_MESSAGES: {
-        1: "Location permission was denied. The map remains centered on Metro Cebu.",
-      },
-      setLocationStatus: context.setLocationStatus,
-      setStatusMessage: context.setStatusMessage,
-    },
+    vmContext,
   );
   callback({ code: 1 });
 
-  return { context, markerRef, removeCount: () => removeCount, state };
+  return { markerRef, removeCount: () => removeCount, state };
 }
 
 test("an initial map error marks the map unavailable", () => {
@@ -158,4 +162,85 @@ test("a failed later location request removes the stale location marker", () => 
   assert.equal(state.lastFlyTo.duration, 500);
   assert.deepEqual(Array.from(state.lastFlyTo.center), [123.8854, 10.3157]);
   assert.equal(state.locationStatus, "fallback");
+});
+test("unsupported geolocation removes a previous location marker", () => {
+  let markerRemovals = 0;
+  const state = {};
+  const markerRef = {
+    current: {
+      remove() {
+        markerRemovals += 1;
+      },
+    },
+  };
+  const context = {
+    navigator: {},
+    mapRef: {
+      current: {
+        flyTo(options) {
+          state.flyTo = options;
+        },
+      },
+    },
+    markerRef,
+    locationRequestRef: { current: 3 },
+    locationStatus: "located",
+    METRO_CEBU_CENTER: [123.8854, 10.3157],
+    DEFAULT_ZOOM: 13,
+    setLocationStatus(status) {
+      state.locationStatus = status;
+    },
+    setStatusMessage(message) {
+      state.statusMessage = message;
+    },
+  };
+  const callbackSource = ts.transpile(
+    `(${findCallback("locateMe").getText(sourceFile)})`,
+    { target: ts.ScriptTarget.ES2020 },
+  );
+  vm.runInNewContext(callbackSource, context)();
+
+  assert.equal(markerRemovals, 1);
+  assert.equal(markerRef.current, null);
+  assert.equal(state.locationStatus, "fallback");
+  assert.deepEqual(Array.from(state.flyTo.center), [123.8854, 10.3157]);
+});
+
+test("reset removes location marker and restores Metro Cebu", () => {
+  let markerRemovals = 0;
+  const state = {};
+  const markerRef = {
+    current: {
+      remove() {
+        markerRemovals += 1;
+      },
+    },
+  };
+  const context = {
+    mapRef: {
+      current: {
+        flyTo(options) {
+          state.flyTo = options;
+        },
+      },
+    },
+    markerRef,
+    locationRequestRef: { current: 8 },
+    METRO_CEBU_CENTER: [123.8854, 10.3157],
+    DEFAULT_ZOOM: 13,
+    setLocationStatus(status) {
+      state.locationStatus = status;
+    },
+    setStatusMessage(message) {
+      state.statusMessage = message;
+    },
+  };
+  vm.runInNewContext(`(${findCallback("resetToMetroCebu").getText(sourceFile)})`, context)();
+
+  assert.equal(markerRemovals, 1);
+  assert.equal(markerRef.current, null);
+  assert.equal(context.locationRequestRef.current, 9);
+  assert.equal(state.locationStatus, "idle");
+  assert.equal(state.statusMessage, "Map centered on Metro Cebu.");
+  assert.deepEqual(Array.from(state.flyTo.center), [123.8854, 10.3157]);
 });
