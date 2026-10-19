@@ -1,9 +1,9 @@
 # SCRUM-143 Verification Evidence
 
-Date: 2026-10-19  
-Repository: `Abang_Cebu_AI_Group2`  
-Branch / Worktree: `feat/SCRUM-143-search-db` (`.worktrees/scrum-143-search-db`)  
-Scope: Local-only verification of viewport and landmark search RPCs. No production database or remote deployment was used.  
+Date: 2026-10-19
+Repository: `Abang_Cebu_AI_Group2`
+Branch / Worktree: `feat/SCRUM-143-search-db` (`.worktrees/scrum-143-search-db`)
+Scope: Local-only verification of viewport and landmark search RPCs. No production database or remote deployment was used.
 
 ---
 
