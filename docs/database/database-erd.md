@@ -89,7 +89,7 @@ erDiagram
         string barangay
         string city "Cebu City, Mandaue, Lapu-Lapu, Talisay"
         string postal_code
-        geometry coordinates "PostGIS POINT(lng, lat) SRID 4326"
+        geography coordinates "PostGIS POINT(lng, lat) SRID 4326"
         numeric latitude "generated from ST_Y"
         numeric longitude "generated from ST_X"
         string status "pending | approved | rejected | archived"
@@ -253,7 +253,7 @@ Represents physical locations and parent properties across Metro Cebu.
 | `barangay` | `text` | NO | - | Barangay (e.g. *"Apas"*, *"Lahug"*, *"Banilad"*, *"Mabolo"*). |
 | `city` | `text` | NO | `'Cebu City'` | City / Municipality (e.g. *"Cebu City"*, *"Mandaue City"*, *"Lapu-Lapu City"*). |
 | `postal_code` | `text` | YES | `NULL` | Zip code (e.g. `6000`). |
-| `coordinates` | `geometry(Point, 4326)` | NO | - | PostGIS 2D Point `POINT(lng, lat)` using WGS84 SRID 4326. |
+| `coordinates` | `geography(Point, 4326)` | NO | - | PostGIS 2D Point `POINT(lng, lat)` using WGS84 SRID 4326; stored as geography for meter-based distance calculations. |
 | `latitude` | `numeric(10, 7)` | NO | Generated | Generated column: `extensions.ST_Y(coordinates)`. |
 | `longitude` | `numeric(10, 7)` | NO | Generated | Generated column: `extensions.ST_X(coordinates)`. |
 | `status` | `text` | NO | `'pending'` | Status: `'pending'`, `'approved'`, `'rejected'`, `'archived'`. |
@@ -393,7 +393,7 @@ Immutable event log recording sensitive administrative actions (approvals, suspe
 
 ### 4.1 Coordinate Standard
 * **Spatial Reference Identifier (SRID):** `4326` (WGS 84 GPS Standard).
-* **Storage Type:** `geometry(Point, 4326)`.
+* **Storage Type:** `geography(Point, 4326)` to provide meter-based distance calculations while retaining WGS84 longitude/latitude coordinates.
 * **Format:** `ST_SetSRID(ST_MakePoint(longitude, latitude), 4326)`. Note that in PostGIS and GeoJSON, longitude ($X$) precedes latitude ($Y$).
 
 ### 4.2 Spatial Indexing
@@ -412,7 +412,7 @@ SELECT p.id, p.title, p.latitude, p.longitude, MIN(u.monthly_rent) as starting_p
 FROM properties p
 JOIN rental_units u ON u.property_id = p.id
 WHERE p.status = 'approved'
-  AND p.coordinates && extensions.ST_MakeEnvelope(
+  AND (p.coordinates::extensions.geometry) && extensions.ST_MakeEnvelope(
     123.8800, 10.3100, -- minLng, minLat (South-West)
     123.9200, 10.3500, -- maxLng, maxLat (North-East)
     4326
@@ -456,7 +456,7 @@ ORDER BY distance_meters ASC;
 ## 6. Verification & Sign-Off Checklist
 
 - [x] All 11 core domain tables modeled in 3NF normalization.
-- [x] PostGIS WGS84 `geometry(Point, 4326)` geospatial definition with GIST spatial indexing.
+- [x] PostGIS WGS84 `geography(Point, 4326)` geospatial definition with GiST spatial indexing.
 - [x] Multi-unit real estate hierarchy supporting Apartments, Condos, Studios, and Bedspaces.
 - [x] Anti-scam KYC verification workflow (`kyc_verifications`) integrated with Landlord Persona.
 - [x] Explicit referential integrity rules (`ON DELETE CASCADE` / `SET NULL`) defined.
