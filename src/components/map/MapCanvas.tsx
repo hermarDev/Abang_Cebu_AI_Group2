@@ -41,6 +41,7 @@ export default function MapCanvas() {
     if (!container) return;
 
     let active = true;
+    let mapLoaded = false;
     let map: MapLibreMap;
 
     try {
@@ -65,10 +66,11 @@ export default function MapCanvas() {
     mapRef.current = map;
 
     const onLoad = () => {
+      mapLoaded = true;
       if (active) setMapStatus("ready");
     };
     const onMapError = () => {
-      if (active) {
+      if (active && !mapLoaded) {
         setMapStatus("unavailable");
         setStatusMessage(
           "The map could not be loaded. Check your connection and try again.",
@@ -96,6 +98,8 @@ export default function MapCanvas() {
     const requestId = ++locationRequestRef.current;
 
     if (!navigator.geolocation) {
+      markerRef.current?.remove();
+      markerRef.current = null;
       setLocationStatus("fallback");
       setStatusMessage(
         "Location is not supported by this browser. The map remains centered on Metro Cebu.",
@@ -127,6 +131,8 @@ export default function MapCanvas() {
       },
       (error) => {
         if (locationRequestRef.current !== requestId) return;
+        markerRef.current?.remove();
+        markerRef.current = null;
         const currentMap = mapRef.current;
         if (currentMap) {
           currentMap.flyTo({
