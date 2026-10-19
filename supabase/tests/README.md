@@ -1,0 +1,17 @@
+-- =============================================================================
+-- SCRUM-140/141 schema migration test requirements and local verification notes.
+--
+-- The migrations intentionally add normalized properties/rental_units tables;
+-- the historical src/lib/supabase/types.ts `listings` table is stale and does
+-- not exist in the checked-in database migration history. This task does not
+-- rewrite that application type file; generated DB types remain a follow-up.
+--
+-- RLS: existing profiles/KYC policies were reviewed. These schema migrations
+-- enable RLS on all new tables but add no policies; SCRUM-142 owns the policy
+-- migration. Until it is applied, client roles have no policy-granted access.
+--
+-- Apply locally then test with:
+--   supabase db reset --local --workdir <worktree>
+--   supabase test db --local supabase/tests/schema_migrations_test.sql --workdir <worktree>
+-- No linked/cloud DB use is authorized for this work.
+-- =============================================================================
