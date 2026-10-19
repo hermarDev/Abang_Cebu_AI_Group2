@@ -1,9 +1,5 @@
-import MapCanvasLoader from "@/components/map/MapCanvasLoader";
+import MapDiscoveryExperience from "@/components/map/MapDiscoveryExperience";
 
 export default function Home() {
-  return (
-    <main className="min-h-[100dvh] overflow-hidden">
-      <MapCanvasLoader />
-    </main>
-  );
+  return <MapDiscoveryExperience />;
 }
