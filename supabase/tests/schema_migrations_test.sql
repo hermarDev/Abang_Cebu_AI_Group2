@@ -3,12 +3,63 @@
 --   supabase test db --local supabase/tests/schema_migrations_test.sql
 -- This file is deliberately not run against a cloud or linked database.
 BEGIN;
-SELECT plan(31);
+SELECT plan(34);
 
 SELECT has_table('public', 'properties', 'properties table exists');
 SELECT has_table('public', 'rental_units', 'rental_units table exists');
 SELECT has_table('public', 'property_photos', 'property_photos table exists');
 SELECT has_table('public', 'amenities', 'amenities table exists');
+SELECT is(
+    (SELECT count(*) FROM public.amenities),
+    19::bigint,
+    'seed contains exactly the standard amenity catalog'
+);
+SELECT results_eq(
+    $$
+        SELECT name, category
+        FROM public.amenities
+        ORDER BY name
+    $$,
+    $$
+        VALUES
+            ('24/7 Security Guard', 'security'),
+            ('Air Conditioning', 'comfort'),
+            ('Balcony', 'comfort'),
+            ('Car Parking', 'security'),
+            ('CCTV', 'security'),
+            ('Cooking Allowed', 'policy'),
+            ('Deep Well Backup', 'utility'),
+            ('Fitness Gym', 'security'),
+            ('Gated Community', 'security'),
+            ('Generator Backup', 'utility'),
+            ('High-speed Fiber WiFi', 'comfort'),
+            ('Hot Shower', 'comfort'),
+            ('Kitchenette', 'comfort'),
+            ('Motorcycle Parking', 'security'),
+            ('Pet Friendly', 'policy'),
+            ('Sub-metered Electricity', 'utility'),
+            ('Sub-metered Water', 'utility'),
+            ('Swimming Pool', 'security'),
+            ('Visitors Allowed', 'policy')
+    $$,
+    'amenity names and categories match the ERD exactly'
+);
+SELECT results_eq(
+    $$
+        SELECT category, count(*)::integer
+        FROM public.amenities
+        GROUP BY category
+        ORDER BY category
+    $$,
+    $$
+        VALUES
+            ('comfort', 5),
+            ('policy', 3),
+            ('security', 7),
+            ('utility', 4)
+    $$,
+    'amenity category counts match the ERD'
+);
 SELECT has_table('public', 'property_amenities', 'property_amenities table exists');
 SELECT has_table('public', 'inquiries', 'inquiries table exists');
 SELECT has_table('public', 'saved_listings', 'saved_listings table exists');
