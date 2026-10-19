@@ -1,0 +1,104 @@
+.mapRoot {
+  position: relative;
+  width: 100%;
+  height: 100dvh;
+  min-height: 24rem;
+  overflow: hidden;
+  background: #e7efe9;
+  isolation: isolate;
+}
+
+.mapCanvas {
+  position: absolute;
+  inset: 0;
+}
+
+.mapStatus {
+  position: absolute;
+  z-index: 2;
+  top: max(1rem, env(safe-area-inset-top));
+  left: max(1rem, env(safe-area-inset-left));
+  max-width: min(26rem, calc(100% - 2rem));
+  border: 1px solid rgb(15 39 66 / 12%);
+  border-radius: 0.75rem;
+  padding: 0.65rem 0.85rem;
+  background: rgb(255 255 255 / 96%);
+  color: #0f2742;
+  box-shadow: 0 4px 16px rgb(15 39 66 / 14%);
+  font-size: 0.875rem;
+  line-height: 1.35;
+}
+
+.mapControls {
+  position: absolute;
+  z-index: 2;
+  right: max(1rem, env(safe-area-inset-right));
+  bottom: max(2.75rem, calc(env(safe-area-inset-bottom) + 2.25rem));
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.625rem;
+}
+
+.controlButton,
+.secondaryButton {
+  min-width: 3rem;
+  min-height: 3rem;
+  border: 1px solid rgb(15 39 66 / 14%);
+  border-radius: 9999px;
+  padding: 0.75rem 1rem;
+  background: #047857;
+  color: #fff;
+  box-shadow: 0 4px 14px rgb(15 39 66 / 20%);
+  font: inherit;
+  font-size: 0.9375rem;
+  font-weight: 650;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.secondaryButton {
+  background: #fff;
+  color: #0f2742;
+}
+
+.controlButton:focus-visible,
+.secondaryButton:focus-visible {
+  outline: 3px solid #f59e0b;
+  outline-offset: 3px;
+}
+
+.controlButton:disabled,
+.secondaryButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.mapFallback {
+  position: absolute;
+  z-index: 1;
+  inset: 50% auto auto 50%;
+  display: flex;
+  width: min(24rem, calc(100% - 2rem));
+  flex-direction: column;
+  gap: 0.375rem;
+  transform: translate(-50%, -50%);
+  border: 1px solid #e6decb;
+  border-radius: 1rem;
+  padding: 1.25rem;
+  background: #fff;
+  color: #0f2742;
+  box-shadow: 0 8px 30px rgb(15 39 66 / 18%);
+  text-align: center;
+}
+
+.mapFallback span {
+  color: #675a3e;
+  font-size: 0.875rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mapCanvas :global(.maplibregl-canvas) {
+    scroll-behavior: auto;
+  }
+}
