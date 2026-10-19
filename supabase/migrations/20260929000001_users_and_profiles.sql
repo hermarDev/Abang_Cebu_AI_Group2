@@ -55,31 +55,6 @@ BEGIN
 END;
 $$;
 
--- Secure helper: Retrieve role of current authenticated user
-CREATE OR REPLACE FUNCTION public.get_current_user_role()
-RETURNS public.user_role
-LANGUAGE sql
-STABLE
-SECURITY DEFINER
-SET search_path = public
-AS $$
-  SELECT role FROM public.profiles WHERE id = auth.uid();
-$$;
-
--- Secure helper: Check if caller is platform admin
-CREATE OR REPLACE FUNCTION public.is_admin()
-RETURNS boolean
-LANGUAGE sql
-STABLE
-SECURITY DEFINER
-SET search_path = public
-AS $$
-  SELECT EXISTS (
-    SELECT 1 FROM public.profiles
-    WHERE id = auth.uid() AND role = 'admin'::public.user_role
-  );
-$$;
-
 -- 3. Profiles Table (Extends Supabase auth.users)
 -- ------------------------------------------------------------------------------
 
@@ -108,6 +83,32 @@ CREATE TRIGGER set_profiles_updated_at
     BEFORE UPDATE ON public.profiles
     FOR EACH ROW
     EXECUTE FUNCTION public.handle_updated_at();
+
+-- Secure helper: Retrieve role of current authenticated user
+CREATE OR REPLACE FUNCTION public.get_current_user_role()
+RETURNS public.user_role
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT role FROM public.profiles WHERE id = auth.uid();
+$$;
+
+-- Secure helper: Check if caller is platform admin
+CREATE OR REPLACE FUNCTION public.is_admin()
+RETURNS boolean
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM public.profiles
+    WHERE id = auth.uid() AND role = 'admin'::public.user_role
+  );
+$$;
+
 
 -- 4. KYC Verifications Table (Anti-Scam Trust Layer)
 -- ------------------------------------------------------------------------------
