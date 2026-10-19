@@ -1,0 +1,352 @@
+.searchPanel {
+  position: absolute;
+  z-index: 6;
+  top: max(1.125rem, env(safe-area-inset-top));
+  left: max(1.125rem, env(safe-area-inset-left));
+  width: min(26rem, calc(100% - 2.25rem));
+  border: 1px solid rgb(15 39 66 / 10%);
+  border-radius: 1.125rem;
+  background: #fff;
+  color: #0f2742;
+  box-shadow: 0 12px 36px rgb(15 39 66 / 16%), 0 2px 6px rgb(15 39 66 / 6%);
+}
+
+.brandRow {
+  display: flex;
+  min-height: 3.25rem;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.5rem 0.85rem 0.35rem;
+}
+
+.brandMark {
+  display: grid;
+  width: 1.9rem;
+  height: 1.9rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 0.625rem;
+  background: #047857;
+  color: #fff;
+  font-family: var(--font-geist-sans), sans-serif;
+  font-size: 1rem;
+  font-weight: 750;
+  letter-spacing: -0.08em;
+}
+
+.brandText {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 0.05rem;
+}
+
+.brandName {
+  font-size: 0.875rem;
+  font-weight: 730;
+  letter-spacing: -0.015em;
+  line-height: 1.05;
+}
+
+.brandContext {
+  color: #526377;
+  font-size: 0.7rem;
+  font-weight: 480;
+  letter-spacing: 0.008em;
+}
+
+.signInLink {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  gap: 0.2rem;
+  margin-left: auto;
+  border-radius: 0.625rem;
+  padding: 0 0.4rem 0 0.6rem;
+  color: #0f2742;
+  font-size: 0.8rem;
+  font-weight: 620;
+  text-decoration: none;
+}
+
+.signInLink:hover {
+  background: #f3efe8;
+}
+
+.form {
+  position: relative;
+  display: flex;
+  min-height: 3.625rem;
+  align-items: center;
+  gap: 0.625rem;
+  margin: 0 0.625rem;
+  border: 1px solid #e2e8ed;
+  border-radius: 0.75rem;
+  padding: 0.2rem 0.25rem 0.2rem 0.8rem;
+  background: #fff;
+  transition: border-color 140ms ease, box-shadow 140ms ease;
+}
+
+.form:focus-within {
+  border-color: #047857;
+  box-shadow: 0 0 0 3px rgb(4 120 87 / 13%);
+}
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  clip-path: inset(50%);
+}
+
+.searchIcon {
+  flex: 0 0 auto;
+  color: #40566a;
+}
+
+.input {
+  width: 100%;
+  min-width: 0;
+  min-height: 3rem;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: #0f2742;
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 510;
+  letter-spacing: -0.01em;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.input::placeholder {
+  color: #607184;
+  opacity: 1;
+  font-weight: 430;
+}
+
+.input::-webkit-search-cancel-button {
+  display: none;
+}
+
+.submitButton {
+  display: inline-flex;
+  min-width: 2.9rem;
+  min-height: 2.75rem;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  border: 0;
+  border-radius: 0.625rem;
+  padding: 0 0.8rem;
+  background: #047857;
+  color: #fff;
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 650;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: background 140ms ease;
+}
+
+.submitButton:hover {
+  background: #065f46;
+}
+
+.clearButton {
+  display: grid;
+  width: 2.75rem;
+  height: 2.75rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 0;
+  border-radius: 0.625rem;
+  background: transparent;
+  color: #43566a;
+  cursor: pointer;
+}
+
+.clearButton:hover {
+  background: #f3efe8;
+}
+
+.submitButton:focus-visible,
+.clearButton:focus-visible,
+.signInLink:focus-visible,
+.suggestionOption:focus-visible {
+  outline: 3px solid #b45309;
+  outline-offset: 2px;
+}
+
+.searchFooter {
+  display: flex;
+  min-height: 2.45rem;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.15rem 0.9rem 0.55rem;
+  color: #526377;
+  font-size: 0.75rem;
+  font-weight: 520;
+  letter-spacing: 0.006em;
+}
+
+.liveDot {
+  width: 0.45rem;
+  height: 0.45rem;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: #0d9488;
+  box-shadow: 0 0 0 3px rgb(13 148 136 / 12%);
+}
+
+.suggestions {
+  position: absolute;
+  z-index: 10;
+  top: calc(100% + 0.6rem);
+  right: 0;
+  left: 0;
+  overflow: hidden;
+  border: 1px solid rgb(15 39 66 / 11%);
+  border-radius: 0.875rem;
+  background: #fff;
+  box-shadow: 0 14px 32px rgb(15 39 66 / 18%), 0 2px 8px rgb(15 39 66 / 8%);
+}
+
+.suggestionHeading {
+  padding: 0.8rem 0.95rem 0.55rem;
+  color: #526377;
+  font-size: 0.67rem;
+  font-weight: 740;
+  letter-spacing: 0.085em;
+}
+
+.suggestionList {
+  max-height: min(22rem, 55dvh);
+  overflow-y: auto;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.suggestionOption {
+  display: flex;
+  min-height: 3.7rem;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.55rem 0.95rem;
+  color: #0f2742;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.suggestionOption:hover,
+.suggestionActive {
+  background: #f3f7f5;
+}
+
+.suggestionIcon {
+  display: grid;
+  width: 2.35rem;
+  height: 2.35rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 50%;
+  background: #eff7f3;
+  color: #047857;
+}
+
+.suggestionCopy {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.suggestionName {
+  overflow: hidden;
+  font-size: 0.875rem;
+  font-weight: 620;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.suggestionMeta {
+  color: #526377;
+  font-size: 0.73rem;
+  font-weight: 460;
+  text-transform: capitalize;
+}
+
+.suggestionPin {
+  flex: 0 0 auto;
+  color: #68798a;
+}
+
+.noSuggestions {
+  margin: 0;
+  padding: 0.6rem 0.95rem 0.8rem;
+  color: #526377;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+}
+
+.suggestionHint {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  border-top: 1px solid #eef1f3;
+  padding: 0.65rem 0.95rem;
+  color: #526377;
+  font-size: 0.6875rem;
+}
+
+.suggestionHint span {
+  border: 1px solid #dce3e8;
+  border-radius: 0.3rem;
+  padding: 0.08rem 0.28rem;
+  background: #f8fafb;
+  color: #0f2742;
+  font-size: 0.65rem;
+  font-weight: 620;
+}
+
+@media (max-width: 480px) {
+  .searchPanel {
+    top: max(0.625rem, env(safe-area-inset-top));
+    left: max(0.625rem, env(safe-area-inset-left));
+    width: calc(100% - 1.25rem);
+    border-radius: 1rem;
+  }
+
+  .form {
+    gap: 0.45rem;
+    margin-right: 0.5rem;
+    margin-left: 0.5rem;
+  }
+
+  .submitButton {
+    width: 2.9rem;
+    padding: 0;
+  }
+
+  .submitButton span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .form,
+  .submitButton {
+    transition: none;
+  }
+}

@@ -74,6 +74,36 @@
   opacity: 0.7;
 }
 
+.priceMarker,
+.priceMarkerActive {
+  min-height: 2.75rem;
+  border: 2px solid #fff;
+  border-radius: 9999px;
+  padding: 0.4rem 0.7rem;
+  background: #0f2742;
+  color: #fff;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgb(15 39 66 / 35%);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.priceMarkerActive {
+  transform: scale(1.12);
+  border-color: #f59e0b;
+  background: #047857;
+  box-shadow: 0 0 0 3px rgb(245 158 11 / 45%), 0 4px 12px rgb(15 39 66 / 40%);
+}
+
+.priceMarker:focus-visible,
+.priceMarkerActive:focus-visible {
+  outline: 3px solid #f59e0b;
+  outline-offset: 2px;
+}
+
 .mapFallback {
   position: absolute;
   z-index: 1;
