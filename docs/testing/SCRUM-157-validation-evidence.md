@@ -1,10 +1,10 @@
 # SCRUM-157 Validation Evidence: Filter Pills, URL State Sync & Results Drawer
 
-Date: 2026-10-19  
-Repository: `Abang_Cebu_AI_Group2`  
-Branch / Worktree: `feat/SCRUM-157-filters`  
-Jira Ticket: [SCRUM-157](https://abangcebuai.atlassian.net/browse/SCRUM-157)  
-Assignee: Hermar Centillas  
+Date: 2026-10-19
+Repository: `Abang_Cebu_AI_Group2`
+Branch / Worktree: `feat/SCRUM-157-filters`
+Jira Ticket: [SCRUM-157](https://abangcebuai.atlassian.net/browse/SCRUM-157)
+Assignee: Hermar Centillas
 
 ---
 
@@ -17,7 +17,7 @@ Assignee: Hermar Centillas
 
 ## 2. Automated Test Suite Results
 
-Command: `npx vitest run`  
+Command: `npx vitest run`
 Result: **PASS (14 passed across 4 test suites)**
 
 ```
