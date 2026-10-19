@@ -47,8 +47,11 @@ export default function ResultsDrawer({
   const drawerRef = useRef<HTMLElement>(null);
   const dragStartY = useRef<number | null>(null);
   const activeListingIdRef = useRef<string | null>(activeListingId);
-  activeListingIdRef.current = activeListingId;
   const visibleResults = filterResults(results, filters);
+
+  useEffect(() => {
+    activeListingIdRef.current = activeListingId;
+  }, [activeListingId]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => setLoading(false), 350);
