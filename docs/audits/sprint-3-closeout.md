@@ -15,7 +15,7 @@ This is an evidence-based closeout draft, not a completed sprint review or decla
 ## Sprint metadata and reconciliation
 
 - Sprint 3: **active**; scheduled 2026-10-19 00:54 UTC to 2026-11-02 13:00 UTC. Live `jira_get_sprints(boardId=1, state='active')` returns Sprint 3 active.
-- Inventory: 35; `jira_get_sprint_issues(sprintId=72)` returned all 35. Independent JQL returns the same 35 keys/statuses. Status arithmetic: 6 + 25 + 1 + 2 + 1 = 35.
+- Inventory: 35; `jira_get_sprint_issues(sprintId=72)` returned all 35. Independent JQL returns the same 35 keys/statuses. Status arithmetic: 6 Done + 24 IN DEVELOPMENT + 1 IN REVIEW + 3 READY + 1 BLOCKED = 35.
 - All 35 returned issues have an assignee.
 - Jira comment history confirms the sprint had been closed at the user's request and then reopened. Closing a sprint moved incomplete issues to backlog in the earlier lifecycle action; it did not resolve or finish them.
 
@@ -68,7 +68,7 @@ The following are live sprint endpoint statuses and current assignees, not proof
 Repository: [`hermarDev/Abang_Cebu_AI_Group2`](https://github.com/hermarDev/Abang_Cebu_AI_Group2), verified from the local `origin` remote.
 
 - [PR #7 — SCRUM-140/141](https://github.com/hermarDev/Abang_Cebu_AI_Group2/pull/7), head `25fe87492b164438b29bb9f3b82f42b9770a43af`: OPEN, merge state MERGEABLE; CI and secret scan passed; Supabase Preview skipped; CodeRabbit skipped manual review; no formal review decision. It is unmerged and incomplete: the migration-order fix at `4b0eeb1` is not yet in this PR, a separate session owns validation paths, and SCRUM-140 acceptance retains the availability boolean-versus-enum ambiguity. SCRUM-140 remains IN DEVELOPMENT.
-- [PR #6 — SCRUM-143](https://github.com/hermarDev/Abang_Cebu_AI_Group2/pull/6), head `3e30dfe555fdd7779b69612a047f31ac2d6d2c9b`: OPEN, merge state CLEAN; CI and secret scan passed; Supabase Preview skipped; no formal review decision. Jira history says anon/authenticated RPC usability depends on SCRUM-142 policies; validate against current head before declaring acceptance.
+- [PR #6 — SCRUM-143](https://github.com/hermarDev/Abang_Cebu_AI_Group2/pull/6), head `001b62e48fc5890b076f657a035d4312cbd46eb2`: OPEN, merge state CLEAN; CI and secret scan passed; Supabase Preview skipped; no formal review decision. Jira history says anon/authenticated RPC usability depends on SCRUM-142 policies; validate against current head before declaring acceptance.
 - [PR #9 — SCRUM-157](https://github.com/hermarDev/Abang_Cebu_AI_Group2/pull/9), head `8e5f1531d6f040b3ef9564c798c23bcd9aadbb99`: OPEN, merge state CLEAN; CI and secret scan passed; Supabase Preview skipped; no formal review decision. Jira history confirms live listing search/results/card-to-pin remains blocked on SCRUM-142/143. CI does not execute local Vitest suites.
 - PRs #1–3 were reported open and behind main in the reviewed snapshot; checks included skipped Supabase Preview and CodeRabbit status only. PR #8 was open and dirty in earlier evidence; PR #10 was described as a companion review PR. Refresh these states before relying on them.
 
@@ -79,7 +79,7 @@ Repository: [`hermarDev/Abang_Cebu_AI_Group2`](https://github.com/hermarDev/Aban
 - SCRUM-144 is READY, assigned to Dency. Its comment says seed data depends on unmerged schema PR #7; do not duplicate the seed or create accounts from real credentials.
 - SCRUM-145 is READY, assigned to Dency. It requires public listing photos, private KYC storage, limits and one tested restore. No storage change or restore test was performed; its ownership schema dependency is not yet merged.
 - SCRUM-162 is READY, assigned to Jenny. Jira comments report 0/100 scenarios executed and no available staging, and list unresolved case scope/doc contradictions. No staging run was performed. Never use sample credentials from docs.
-- SCRUM-168 is IN DEVELOPMENT, assigned to Hermar. The reconciled 35-issue closeout report is attached as Jira attachment 10508. This is a progress artifact only; all-member acceptance review is partial, staging demo is NOT VERIFIED, and the retrospective is NOT RUN.
+- SCRUM-168 is IN DEVELOPMENT, assigned to Hermar. The reconciled 35-issue closeout report is attached as Jira attachment 10510; GitHub PR #11 is open at commit `6c46c3240ebcefc3e3f21753b1221dc8278cf49d` (CI and secret scan passed; no formal review). This is a progress artifact only; all-member acceptance review is partial, staging demo is NOT VERIFIED, and the retrospective is NOT RUN.
 
 ### Search, QA and remaining issue scope
 
