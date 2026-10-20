@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import MapCanvasLoader from "@/components/map/MapCanvasLoader";
 import ResultsDrawer, { type RentalResult } from "@/components/map/ResultsDrawer";
 import SearchFilterPanel from "@/components/map/SearchFilterPanel";
@@ -17,6 +17,7 @@ export default function MapDiscoveryExperience() {
   const { filters, updateFilters, clearFilters, activeFilterCount } = useSearchFilters();
   const [results, setResults] = useState<RentalResult[]>([]);
   const [activeListingId, setActiveListingId] = useState<string | null>(null);
+  const filterTriggerRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     publishSearchFilters(filters);
@@ -47,11 +48,12 @@ export default function MapDiscoveryExperience() {
         filters={filters}
         onChange={updateFilters}
         onClear={clearFilters}
+        filterTriggerRef={filterTriggerRef}
       />
       <ResultsDrawer
         activeListingId={activeListingId}
         filters={filters}
-        onFilterClick={() => document.querySelector<HTMLButtonElement>("[aria-label='Rental filters'] button")?.click()}
+        onFilterClick={() => filterTriggerRef.current?.click()}
         onPinHighlight={publishListingHighlight}
         results={results}
       />

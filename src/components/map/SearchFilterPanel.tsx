@@ -42,6 +42,7 @@ interface SearchFilterPanelProps {
   activeFilterCount: number;
   onChange: (filters: SearchFilters) => void;
   onClear: () => void;
+  filterTriggerRef?: { current: HTMLButtonElement | null };
 }
 
 export default function SearchFilterPanel({
@@ -49,6 +50,7 @@ export default function SearchFilterPanel({
   activeFilterCount,
   onChange,
   onClear,
+  filterTriggerRef,
 }: SearchFilterPanelProps) {
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState<SearchFilters>(() => filters);
@@ -190,7 +192,7 @@ export default function SearchFilterPanel({
             </button>
           ))}
         </div>
-        <button className={styles.filterButton} type="button" onClick={() => { setDraft(filters); setOpen(true); }}>
+        <button ref={filterTriggerRef} className={styles.filterButton} type="button" onClick={() => { setDraft(filters); setOpen(true); }}>
           <SlidersHorizontal aria-hidden="true" size={17} />
           <span>Filters</span>
           {activeFilterCount > 0 && <span className={styles.count}>{activeFilterCount}</span>}

@@ -11,8 +11,8 @@ Assignee: Hermar Centillas
 
 ## 1. Acceptance Criteria & Implementation Summary
 
-- **Criteria 1 (Reloading the URL restores the same filters):** VERIFIED. URL search parameters (`?category=...&minPrice=...&maxPrice=...&amenities=...`) are parsed and serialized with deep comparison in `src/hooks/use-search-filters.ts` and `src/lib/search-filters.ts`. Tested via Vitest and Browser QA (desktop 1280x800 and mobile 430x932 iPhone 14 Pro emulation).
-- **Criteria 2 (Hover or tap on a card highlights its pin):** UNIT TESTS PASS, but integrated/live listing behavior is NOT RUN. Event bridge tests exercise highlight behavior in isolation; live listings remain gated on SCRUM-143 PostGIS RPC client access.
+- **Criteria 1 (Reloading the URL restores the same filters):** VERIFIED by the previously recorded browser test on desktop (1280x800) and mobile (430x932), plus automated filter-state tests. URL parameters use `type`, `min_rent`, `max_rent`, `gender`, and `amenities`.
+- **Criteria 2 (Hover or tap on a card highlights its pin):** COMPONENT TESTS PASS, but integrated/live listing behavior is NOT RUN. Event bridge tests exercise highlighting in isolation; live listings remain gated on SCRUM-142/143 service integration.
 
 ---
 
@@ -40,7 +40,8 @@ The complete suite passed for search filters, landmark search, listing highlight
 
 ## 4. Worktree State & Jira Status
 
-- **Status:** IN REVIEW (awaiting independent PR review and integration acceptance).
+- **Status:** IN DEVELOPMENT (shortcut regression fix is awaiting review and dependent integration acceptance).
 - **Assignee:** Hermar Centillas (preserved).
-- **Current PR:** #9 at commit `e3b89a0bfe7c93dd390ad4c9eb19ee94e655785e`; `ci` and `secret-scan` pass, Supabase Preview skipped; formal review is pending.
+- **Current PR:** #9 at commit `1b5c4a2f620721fea407d1173c41b3adba92fdd7`; at review time `ci` and `secret-scan` passed, Supabase Preview skipped; no formal reviews were submitted.
+- **Current independent review blocker:** `src/components/map/MapDiscoveryExperience.tsx` previously routed the drawer’s Filters shortcut to the first button inside Rental filters, the “Under ₱5,000” quick-filter pill, rather than the dialog trigger. A fix is prepared on a separate follow-up branch; it is not yet pushed to PR #9.
 - **Remaining acceptance gap:** live search/results and integrated card-to-pin behavior remain blocked on the SCRUM-142/143 RLS/RPC contract. Green checks do not verify this integration.
