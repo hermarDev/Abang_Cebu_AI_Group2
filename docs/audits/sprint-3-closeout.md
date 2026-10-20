@@ -79,7 +79,7 @@ Repository: [`hermarDev/Abang_Cebu_AI_Group2`](https://github.com/hermarDev/Aban
 - SCRUM-144 is READY, assigned to Dency. Its comment says seed data depends on unmerged schema PR #7; do not duplicate the seed or create accounts from real credentials.
 - SCRUM-145 is READY, assigned to Dency. It requires public listing photos, private KYC storage, limits and one tested restore. No storage change or restore test was performed; its ownership schema dependency is not yet merged.
 - SCRUM-162 is READY, assigned to Jenny. Jira comments report 0/100 scenarios executed and no available staging, and list unresolved case scope/doc contradictions. No staging run was performed. Never use sample credentials from docs.
-- SCRUM-168 is IN DEVELOPMENT, assigned to Hermar. The reconciled 35-issue closeout report is attached as Jira attachment 10511; GitHub PR #11 is open at commit `6c46c3240ebcefc3e3f21753b1221dc8278cf49d` (CI and secret scan passed; no formal review). This is a progress artifact only; all-member acceptance review is partial, staging demo is NOT VERIFIED, and the retrospective is NOT RUN.
+- SCRUM-168 is IN DEVELOPMENT, assigned to Hermar. The reconciled 35-issue report is attached to this issue; PR #11 tracks the report on branch `docs/SCRUM-168-sprint3-closeout`. This is a progress artifact only; all-member acceptance review is partial, staging demo is NOT VERIFIED, and the retrospective is NOT RUN.
 
 ### Search, QA and remaining issue scope
 
