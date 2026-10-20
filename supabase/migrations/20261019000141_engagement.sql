@@ -83,6 +83,9 @@ CREATE TABLE IF NOT EXISTS public.audit_logs (
     CONSTRAINT audit_logs_target_type_nonempty CHECK (btrim(target_type) <> '')
 );
 
+-- Row triggers do not block TRUNCATE; keep client roles from bypassing append-only.
+REVOKE TRUNCATE ON TABLE public.audit_logs FROM PUBLIC, anon, authenticated;
+
 CREATE INDEX IF NOT EXISTS idx_audit_logs_actor_created
     ON public.audit_logs (actor_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_audit_logs_target
