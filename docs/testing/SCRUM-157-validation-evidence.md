@@ -3,7 +3,7 @@
 Date: 2026-10-20
 Repository: `Abang_Cebu_AI_Group2`
 Branch / Worktree: `feat/SCRUM-157-filters-rebased` / `.worktrees/scrum-157-filters-rebased`
-PR head: `192e4ff1676d8459c1ad5d0ab330a3d3f1a9151e` (local working-tree changes are not yet committed or in this PR)
+Local commit: `e3b89a0bfe7c93dd390ad4c9eb19ee94e655785e` (pushed to branch; PR #9)
 Jira Ticket: [SCRUM-157](https://abangcebuai.atlassian.net/browse/SCRUM-157)
 Assignee: Hermar Centillas
 
@@ -40,8 +40,7 @@ The complete suite passed for search filters, landmark search, listing highlight
 
 ## 4. Worktree State & Jira Status
 
-- **Status:** IN DEVELOPMENT.
+- **Status:** IN REVIEW (awaiting independent PR review and integration acceptance).
 - **Assignee:** Hermar Centillas (preserved).
-- **Current local commit:** `04754a90d0b409191b437813811ebce21bd7305d` on `feat/SCRUM-157-filters-rebased`; not yet pushed or included in PR #9.
-- **Current PR:** #9 remote head `192e4ff1676d8459c1ad5d0ab330a3d3f1a9151e`.
-- **Remaining acceptance gap:** live search/results and integrated card-to-pin behavior remain blocked on the SCRUM-142/143 RLS/RPC contract. PR #9 has no formal review; its `ci` and `secret-scan` checks passed, while Supabase Preview is skipped. These PR checks do not cover the local commit.
+- **Current PR:** #9 at commit `e3b89a0bfe7c93dd390ad4c9eb19ee94e655785e`; `ci` and `secret-scan` pass, Supabase Preview skipped; formal review is pending.
+- **Remaining acceptance gap:** live search/results and integrated card-to-pin behavior remain blocked on the SCRUM-142/143 RLS/RPC contract. Green checks do not verify this integration.
