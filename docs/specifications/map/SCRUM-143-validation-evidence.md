@@ -1,9 +1,9 @@
 # SCRUM-143 Verification Evidence
 
-Date: 2026-10-20 (reproduced locally)
+Date: 2026-10-20 (local verification; results are command output, not committed CI artifacts)
 Repository: `Abang_Cebu_AI_Group2`
 Branch / Worktree: `feat/SCRUM-143-search-db` (`.worktrees/scrum-143-search-db`)
-Code head validated before the focused regression update: `0fd9f0b53537b4d9ae7f5edeade97d5257b97627`; PR branch now includes the test/evidence follow-up at `f43af235a84b46dadf8dd5a60ea648ab175dbb4f`.
+Code head validated before the focused regression update: `0fd9f0b53537b4d9ae7f5edeade97d5257b97627`; test/evidence follow-ups are at `f43af235a84b46dadf8dd5a60ea648ab175dbb4f` and current branch head `63230324203a293daf1b856774226c3587a918b0`.
 Scope: Local-only verification of viewport and landmark search RPCs. No production database or remote deployment was used.
 
 ---
@@ -25,10 +25,10 @@ Scope: Local-only verification of viewport and landmark search RPCs. No producti
 | Database pgTAP Suite | `supabase test db --local supabase/tests/search_functions_test.sql` after `supabase db reset --local` | **PASS — 23 pgTAP assertions**, including explicit matching pending-property exclusion for both viewport and landmark RPCs; SQL fixtures roll back. The migration reset and 23-test suite completed locally in the isolated SCRUM-143 Supabase project. |
 | Static Analysis Validator | `node --test scripts/validate_scrum143.mjs` | **PASS — 3 static checks** (invoker safety, PostGIS distance indexing, boundary/filter checks) |
 | Syntax Checks | `node --check scripts/benchmark_scrum143.mjs && node --check scripts/validate_scrum143.mjs` | **PASS** |
-| Performance Benchmark (10,000 synthetic properties and units) | `node scripts/benchmark_scrum143.mjs` | **PASS — 500 rows returned in 57.066 ms** (41,032 shared buffer hits, target <200 ms). The benchmark committed all fixtures and explicitly rolled the transaction back. |
+| Performance Benchmark (10,000 synthetic properties and units) | `node scripts/benchmark_scrum143.mjs` | **PASS — 500 rows returned in 57.066 ms** (41,032 shared buffer hits, target <200 ms). The script inserted the synthetic fixtures inside a transaction and explicitly rolled the transaction back; no fixture rows were retained. This run is recorded from local command output, not as a committed CI artifact. |
 | Diff Syntax Check | `git diff --check` | **PASS (clean diff)** |
 | Anonymous PostgREST RPC Access | Direct request as `anon` against the local Supabase REST API | **BLOCKED / FAIL — HTTP 401, SQLSTATE `42501`, `permission denied for table properties`. RPC EXECUTE is granted, but listing RLS policies are absent in the current schema (properties policies=0; rental_units policies=0). SCRUM-142 integration is required before client search works. |
-| Fresh combined SCRUM-140/141 schema reset | `supabase db reset --local` in the SCRUM-140/141 worktree | **BLOCKED — confirmed migration-order failure:** `20260929000001_users_and_profiles.sql` calls `get_current_user_role()` before `public.profiles` exists (`SQLSTATE 42P01`). No edit to the SCRUM-140/141 owner's worktree was made. |
+| Fresh combined SCRUM-140/141 schema reset | `supabase db reset --local` in the SCRUM-140/141 worktree | **BLOCKED — confirmed migration-order failure:** `20260929000001_users_and_profiles.sql` calls `get_current_user_role()` before `public.profiles` exists (`SQLSTATE 42P01`). The SCRUM-143 branch also contains a tracked reorder of the profile-dependent helpers; it requires independent review/reconciliation before merge. The SCRUM-140/141 owner's worktree was not edited. |
 | Production / Remote DB Check | N/A | NOT RUN — explicitly out of scope |
 
 ---
@@ -38,4 +38,4 @@ Scope: Local-only verification of viewport and landmark search RPCs. No producti
 1. **TC-RBAC-026 Compliance:** The SCRUM-143 pgTAP suite asserts that suspended landlords' approved properties are excluded from both searches. Added explicit negative assertions verify that the matching `pending` fixture is excluded from both viewport and landmark search. The test suite passed 23/23 after a fresh local migration reset.
 2. **Performance SLA (<200 ms):** The local benchmark seeded 10,000 synthetic properties and 10,000 units, returned the capped 500 rows in **57.066 ms** (41,032 shared buffer hits), and explicitly rolled back its fixture transaction.
 3. **Security Boundary:** RPCs remain `SECURITY INVOKER`; tests establish the function definitions and EXECUTE ACL. A direct anon REST request currently fails with SQLSTATE `42501` because the current schema has no RLS policies on `properties` or `rental_units`. Do not treat the functions as client-usable until SCRUM-142 policies and integrated role tests are complete.
-4. **Schema prerequisite:** A clean `supabase db reset --local` in the SCRUM-140/141 worktree failed at the historical users/profiles migration: `get_current_user_role()` references `public.profiles` before that table exists. This defect belongs to the owning migration work; it was recorded, not edited here.
+4. **Schema prerequisite:** A clean `supabase db reset --local` in the SCRUM-140/141 worktree failed at the historical users/profiles migration: `get_current_user_role()` references `public.profiles` before that table exists (`SQLSTATE 42P01`). The SCRUM-143 branch also contains a tracked reorder of both profile-dependent helpers after table creation; it is a code change and must be independently reviewed/reconciled before merge, not treated as a validation-only local patch. The SCRUM-140/141 owner's worktree remains unchanged.
