@@ -117,10 +117,10 @@ export default function MapSearch({ onSearch }: MapSearchProps) {
   const showNoMatch = showPanel && suggestions.length === 0;
 
   return (
-    <section ref={searchRef} className={styles.search} aria-label="Search Cebu rentals">
+    <section ref={searchRef} className={styles.searchPanel} aria-label="Search Cebu rentals">
       <form className={styles.form} role="search" onSubmit={submitSearch}>
         <Search aria-hidden="true" className={styles.searchIcon} size={20} />
-        <label className={styles.srOnly} htmlFor={inputId}>Search rentals or landmarks in Cebu</label>
+        <label className={styles.visuallyHidden} htmlFor={inputId}>Search rentals or landmarks in Cebu</label>
         <input
           ref={inputRef}
           id={inputId}
@@ -162,21 +162,21 @@ export default function MapSearch({ onSearch }: MapSearchProps) {
                 type="button"
                 role="option"
                 aria-selected={activeIndex === index}
-                className={`${styles.suggestion} ${activeIndex === index ? styles.active : ""}`}
+                className={`${styles.suggestionOption} ${activeIndex === index ? styles.suggestionActive : ""}`}
                 onPointerDown={(event) => event.preventDefault()}
                 onClick={() => selectLandmark(landmark)}
               >
                 <span className={styles.suggestionIcon}><Icon size={18} aria-hidden="true" /></span>
-                <span className={styles.suggestionText}>
+                <span className={styles.suggestionCopy}>
                   <span className={styles.suggestionName}>{landmark.name}</span>
-                  <span className={styles.suggestionCategory}>{landmark.category.replaceAll("_", " ")}</span>
+                  <span className={styles.suggestionMeta}>{landmark.category.replaceAll("_", " ")}</span>
                 </span>
                 <MapPin size={16} className={styles.suggestionPin} aria-hidden="true" />
               </button>
             );
           })}
           {showNoMatch && (
-            <p className={styles.noMatch} role="status">No matching landmark. Press Enter to search this area.</p>
+            <p className={styles.noSuggestions} role="status">No matching landmark. Press Enter to search this area.</p>
           )}
         </div>
       )}
