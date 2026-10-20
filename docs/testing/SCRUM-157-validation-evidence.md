@@ -3,7 +3,7 @@
 Date: 2026-10-20
 Repository: `Abang_Cebu_AI_Group2`
 Branch / Worktree: `feat/SCRUM-157-filters-rebased` / `.worktrees/scrum-157-filters-rebased`
-Local commit: `e3b89a0bfe7c93dd390ad4c9eb19ee94e655785e` (pushed to branch; PR #9)
+Source-fix commit: `c1c7a67c69c8afcf6280afdb2a20933915c7d16c` (pushed to `feat/SCRUM-157-filters-rebased`, PR #9). Validation evidence was refreshed in a separate follow-up commit.
 Jira Ticket: [SCRUM-157](https://abangcebuai.atlassian.net/browse/SCRUM-157)
 Assignee: Hermar Centillas
 
