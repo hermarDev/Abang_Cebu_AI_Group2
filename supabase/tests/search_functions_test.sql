@@ -1,7 +1,7 @@
 -- Local pgTAP verification for SCRUM-143 PostGIS search RPCs.
 -- Run only against the local Supabase database: supabase test db --local.
 BEGIN;
-SELECT plan(21);
+SELECT plan(23);
 
 SELECT has_function('public','search_listings_in_viewport',ARRAY['double precision','double precision','double precision','double precision','numeric','numeric','text[]','text[]','integer'],'viewport RPC is installed');
 SELECT has_function('public','search_listings_near_landmark',ARRAY['double precision','double precision','double precision','numeric','numeric','text[]','text[]','integer'],'landmark radius RPC is installed');
@@ -67,6 +67,16 @@ SELECT results_eq(
  $$SELECT property_id::text,cluster_count::text FROM public.search_listings_in_viewport(123.88,10.30,123.93,10.36,10000,15000)$$,
  $$VALUES ('14300000-0000-4000-8000-000000000011','1')$$,
  'cluster_count reflects rent-filtered properties only'
+);
+SELECT is(
+ (SELECT count(*)::integer FROM public.search_listings_in_viewport(123.88,10.30,123.93,10.36) WHERE property_id = '14300000-0000-4000-8000-000000000012'),
+ 0,
+ 'viewport search excludes a matching pending property'
+);
+SELECT is(
+ (SELECT count(*)::integer FROM public.search_listings_near_landmark(123.9065,10.3298,1000) WHERE property_id = '14300000-0000-4000-8000-000000000012'),
+ 0,
+ 'landmark search excludes a matching pending property'
 );
 SELECT results_eq(
  $$SELECT property_id::text FROM public.search_listings_in_viewport(123.88,10.30,123.93,10.36,NULL,NULL,NULL,ARRAY['wifi'])$$,
