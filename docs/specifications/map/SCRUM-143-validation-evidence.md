@@ -3,7 +3,7 @@
 Date: 2026-10-20 (local verification; command output was observed in this session, not saved as a committed execution artifact)
 Repository: `Abang_Cebu_AI_Group2`
 Branch / Worktree: `feat/SCRUM-143-search-db` (`.worktrees/scrum-143-search-db`)
-Code head validated before the focused regression update: `0fd9f0b53537b4d9ae7f5edeade97d5257b97627`; test/evidence follow-ups are at `f43af235a84b46dadf8dd5a60ea648ab175dbb4f` and current branch head `63230324203a293daf1b856774226c3587a918b0`.
+The original search implementation was validated at code head `0fd9f0b53537b4d9ae7f5edeade97d5257b97627`; focused pending-listing regression tests were added in `f43af235a84b46dadf8dd5a60ea648ab175dbb4f`, with evidence and branch-scope wording refined in subsequent commits.
 Scope: Local-only verification of viewport and landmark search RPCs. No production database or remote deployment was used.
 
 ---
