@@ -88,7 +88,7 @@ describe("SearchFilterPanel", () => {
   it("wraps keyboard focus from the first dialog control to the last", () => {
     const { dialog } = renderPanel();
     const controls = within(dialog).getAllByRole("button");
-    controls.forEach((control) => vi.spyOn(control, "getClientRects").mockReturnValue(Object.assign([{ } as DOMRect], { item: (index: number) => index === 0 ? {} as DOMRect : null }) as DOMRectList));
+    controls.forEach((control) => vi.spyOn(control, "getClientRects").mockReturnValue(Object.assign([{} as DOMRect], { item: (index: number) => index === 0 ? {} as DOMRect : null }) as DOMRectList));
     controls[0].focus();
 
     fireEvent.keyDown(document, { key: "Tab", shiftKey: true });
@@ -99,7 +99,7 @@ describe("SearchFilterPanel", () => {
   it("wraps keyboard focus from the last dialog control to the first", () => {
     const { dialog } = renderPanel();
     const controls = within(dialog).getAllByRole("button");
-    controls.forEach((control) => vi.spyOn(control, "getClientRects").mockReturnValue(Object.assign([{ } as DOMRect], { item: (index: number) => index === 0 ? {} as DOMRect : null }) as DOMRectList));
+    controls.forEach((control) => vi.spyOn(control, "getClientRects").mockReturnValue(Object.assign([{} as DOMRect], { item: (index: number) => index === 0 ? {} as DOMRect : null }) as DOMRectList));
     controls.at(-1)?.focus();
 
     fireEvent.keyDown(document, { key: "Tab" });
