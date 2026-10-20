@@ -42,6 +42,7 @@ The complete suite passed for search filters, landmark search, listing highlight
 
 - **Status:** IN DEVELOPMENT (shortcut regression fix is awaiting review and dependent integration acceptance).
 - **Assignee:** Hermar Centillas (preserved).
-- **Current PR:** #9 at commit `1b5c4a2f620721fea407d1173c41b3adba92fdd7`; at review time `ci` and `secret-scan` passed, Supabase Preview skipped; no formal reviews were submitted.
-- **Current independent review blocker:** `src/components/map/MapDiscoveryExperience.tsx` previously routed the drawer’s Filters shortcut to the first button inside Rental filters, the “Under ₱5,000” quick-filter pill, rather than the dialog trigger. A fix is prepared on a separate follow-up branch; it is not yet pushed to PR #9.
-- **Remaining acceptance gap:** live search/results and integrated card-to-pin behavior remain blocked on the SCRUM-142/143 RLS/RPC contract. Green checks do not verify this integration.
+- **Current PR:** #9 at commit `c1c7a67c69c8afcf6280afdb2a20933915c7d16c`; CI and secret scan pass, Supabase Preview skipped; no formal reviews have been submitted.
+- **Shortcut finding:** independently reviewed and fixed in `MapDiscoveryExperience.tsx`: the drawer shortcut now activates the dialog trigger by ref, not the first quick-filter pill. Regression test verifies dialog opens and the ₱5,000 pill remains inactive. Commit `c1c7a67` is pushed to the PR branch.
+- **PR state:** open and reported mergeable; no formal review yet. Do not merge based on green checks alone.
+- **Remaining acceptance gap:** live search/results and integrated card-to-pin behavior remain blocked on SCRUM-142/143 listing-service/RLS integration.
