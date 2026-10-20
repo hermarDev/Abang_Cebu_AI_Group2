@@ -42,5 +42,6 @@ The complete suite passed for search filters, landmark search, listing highlight
 
 - **Status:** IN DEVELOPMENT.
 - **Assignee:** Hermar Centillas (preserved).
-- **Current PR:** #9 head `192e4ff1676d8459c1ad5d0ab330a3d3f1a9151e`; local changes in this worktree are not committed or part of the PR yet.
-- **Remaining acceptance gap:** live search/results and integrated card-to-pin behavior remain blocked on the SCRUM-142/143 RLS/RPC contract. PR #9 has no formal review; its `ci` and `secret-scan` checks passed, while Supabase Preview is skipped. These PR checks do not cover the local working-tree changes.
+- **Current local commit:** `04754a90d0b409191b437813811ebce21bd7305d` on `feat/SCRUM-157-filters-rebased`; not yet pushed or included in PR #9.
+- **Current PR:** #9 remote head `192e4ff1676d8459c1ad5d0ab330a3d3f1a9151e`.
+- **Remaining acceptance gap:** live search/results and integrated card-to-pin behavior remain blocked on the SCRUM-142/143 RLS/RPC contract. PR #9 has no formal review; its `ci` and `secret-scan` checks passed, while Supabase Preview is skipped. These PR checks do not cover the local commit.
