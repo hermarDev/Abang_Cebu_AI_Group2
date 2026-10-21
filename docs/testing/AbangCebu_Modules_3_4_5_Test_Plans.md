@@ -10,7 +10,28 @@ Status: planning only. No test execution, QA decision, staging validation, or pr
 | 4 — Admin KYC and listing moderation | SCRUM-126; SCRUM-55/63; `docs/specifications/moderation/admin-verification-moderation-spec.md`; `docs/flowcharts/admin-kyc-review.drawio`; `docs/flowcharts/admin-listing-moderation.drawio` | Admin-only queue, KYC privacy, reasoned decisions, reviewer/time evidence, pending snapshot, atomic audit, duplicate/concurrent decisions and fail-closed policy cases | Confirm exact admin role, KYC schema/storage, audit contract, decision atomicity, notification behavior and explicitly approved report/appeal/escalation/suspension rules. |
 | 5 — Renter engagement | SCRUM-127; SCRUM-121; SCRUM-61/62/74; `docs/specifications/renter/renter-engagement-spec.md`; favorite/contact/inquiry flows; database ERD/RLS | Guest-to-auth intent, owner-only favorites, approved listing eligibility, minimum-data contact, inquiry ownership, request versus confirmed appointment and retry/privacy | Reconcile `saved_listings` vs `saved_properties`; `inquiries` vs `viewing_appointments`; contact eligibility, appointment lifecycle, rate/idempotency and notification policies. |
 
-Each `Case ID` in the workbook is a planned check. Match each live Jira acceptance bullet to one or more cases before execution. Update this mapping if Jira criteria or source specs change. Do not treat a flowchart/specification as authorization to mutate data or as a substitute for an approved schema/security contract.
+| SCRUM-125 acceptance criterion | Planned case(s) | Coverage state |
+|---|---|---|
+| AC1 — trace Module 3 scope to persona, schema/RLS, and map docs without conflict | M3-A1 | NOT EXECUTED; source review required |
+| AC2 — happy/invalid/save-resubmit/ownership/admin handoff paths | M3-A2, M3-02, M3-03, M3-06 | NOT EXECUTED; map/spec review required |
+| AC3 — Draw.io validation and matching legible PDF/PNG | M3-A3 | NOT EXECUTED; structural + visual QA required |
+| AC4 — no duplicate auth/map flows; assumptions listed | M3-A4 | NOT EXECUTED; document review required |
+
+| SCRUM-126 acceptance criterion | Planned case(s) | Coverage state |
+|---|---|---|
+| AC1 — decisions trace to statuses, permitted roles, and persisted audit | M4-A1, M4-02–M4-04 | NOT EXECUTED; schema/security review required |
+| AC2 — reject reasons, failed/suspicious submissions, appeal/resubmission, unauthorized outcomes | M4-A2, M4-02, M4-03, M4-06 | NOT EXECUTED; policy decisions may block |
+| AC3 — Draw.io validation and matching legible PDF/PNG | M4-A3 | NOT EXECUTED; structural + visual QA required |
+| AC4 — no implementation claims; unresolved policy questions documented | M4-A4, M4-06 | NOT EXECUTED; document review required |
+
+| SCRUM-127 acceptance criterion | Planned case(s) | Coverage state |
+|---|---|---|
+| AC1 — authorized transitions, ownership/privacy, persistence, confirmation/errors | M5-A1, M5-02–M5-07 | NOT EXECUTED; schema/policy gates open |
+| AC2 — authenticated return restores selected listing and intent; no open redirect/contact leak | M5-A2, M5-01, M5-04 | NOT EXECUTED; browser/auth QA required |
+| AC3 — Draw.io validation and matching legible PDF/PNG | M5-A3 | NOT EXECUTED; structural + visual QA required |
+| AC4 — trace to renter/auth-gatekeeper/ERD/RLS and state assumptions | M5-A4, X-05 | NOT EXECUTED; document review required |
+
+`X-01` and `X-02` add end-to-end and recovery scenarios; `X-03`–`X-05` protect traceability and evidence integrity. This draft maps each source-ticket AC to at least one proposed case, but does not claim the source review, test execution, or acceptance is complete.
 
 ## Execution preconditions
 
