@@ -5,7 +5,7 @@ Description: >-
 Parameters:
   AmiId:
     Type: AWS::EC2::Image::Id
-    Description: Approved patched AL2023 x86_64 AMI ID for selected region; verify that its release matches AmiReleaseVersion.
+    Description: Approved patched AL2023 x86_64 AMI ID for selected region; verify its release and patch level before deployment.
   InstanceType:
     Type: String
     AllowedPattern: '^[a-z0-9.]+$'
@@ -89,11 +89,12 @@ Resources:
         Fn::Base64: !Sub |
           #!/bin/bash
           set -euo pipefail
+          trap 'rc=$?; /opt/aws/bin/cfn-signal -e $rc --stack ${AWS::StackName} --resource StagingInstance --region ${AWS::Region}' EXIT
           dnf -y update
           dnf install -y nginx
           printf '%s\n' 'PermitRootLogin no' 'PasswordAuthentication no' 'KbdInteractiveAuthentication no' > /etc/ssh/sshd_config.d/99-staging-hardening.conf
           chmod 0600 /etc/ssh/sshd_config.d/99-staging-hardening.conf
-          systemctl disable --now sshd || true
+          systemctl disable --now sshd
           cat > /etc/nginx/conf.d/staging-placeholder.conf.disabled <<'EOF'
           # Configure approved domain, TLS certificate and app upstream after DNS/certificate setup.
           # Do not expose app traffic until HTTPS smoke checks have passed.
@@ -101,7 +102,6 @@ Resources:
           chmod 0640 /etc/nginx/conf.d/staging-placeholder.conf.disabled
           nginx -t
           systemctl enable --now nginx
-          /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource StagingInstance --region ${AWS::Region}
       Tags:
         - Key: Name
           Value: !Sub '${ProjectName}-${EnvironmentName}-web'

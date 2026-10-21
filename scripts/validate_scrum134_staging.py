@@ -77,6 +77,16 @@ class StagingTemplateTests(unittest.TestCase):
         self.assertNotIn("AWS::IAM::Role", {item["Type"] for item in self.resources.values()})
         self.assertNotIn("AWS::EC2::EIP", {item["Type"] for item in self.resources.values()})
 
+    def test_bootstrap_reports_failure_to_cloudformation(self):
+        user_data = self.resources["StagingInstance"]["Properties"]["UserData"]["Fn::Base64"]["Sub"]
+        self.assertIn("trap 'rc=$?; /opt/aws/bin/cfn-signal -e $rc", user_data)
+        self.assertNotIn("systemctl disable --now sshd || true", user_data)
+
+    def test_ami_description_does_not_reference_removed_parameter(self):
+        ami = self.template["Parameters"]["AmiId"]
+        self.assertNotIn("AmiReleaseVersion", ami["Description"])
+        self.assertNotIn("AmiReleaseVersion", self.template["Parameters"])
+
     def test_template_does_not_claim_https_app_readiness(self):
         template_text = TEMPLATE_PATH.read_text(encoding="utf-8")
         self.assertIn("nginx -t", template_text)
