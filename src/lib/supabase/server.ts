@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { REMEMBER_COOKIE, REMEMBER_SECONDS } from "@/lib/auth/login";
 
 /**
  * Creates a Supabase client for use in Server Components, Server Actions, and Route Handlers.
@@ -17,8 +18,17 @@ export async function createClient() {
       },
       setAll(cookiesToSet) {
         try {
+          const remembered = cookieStore.get(REMEMBER_COOKIE)?.value === "1";
           cookiesToSet.forEach(({ name, value, options }) =>
-            cookieStore.set(name, value, options)
+            cookieStore.set(name, value, {
+              ...options,
+              httpOnly: true,
+              secure: process.env.NODE_ENV === "production",
+              sameSite: "lax",
+              ...(value ? remembered
+                ? { maxAge: REMEMBER_SECONDS }
+                : { maxAge: undefined, expires: undefined } : {}),
+            })
           );
         } catch {
           // The `setAll` method was called from a Server Component.
