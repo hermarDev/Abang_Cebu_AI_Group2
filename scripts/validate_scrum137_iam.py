@@ -48,7 +48,7 @@ class TemplateTests(unittest.TestCase):
         cls.parameters = cls.template["Parameters"]
 
     def test_required_scope_parameters_have_no_defaults(self):
-        self.assertEqual(len(self.parameters), 10)
+        self.assertEqual(len(self.parameters), 8)
         for name, parameter in self.parameters.items():
             with self.subTest(parameter=name):
                 self.assertNotIn("Default", parameter)
@@ -82,13 +82,16 @@ class TemplateTests(unittest.TestCase):
                     else:
                         self.assertFalse(has_wildcard(statement["Resource"]))
 
-    def test_deployer_allows_named_instance_command_only(self):
-        statements = list(policy_statements(self.resources["StagingDeployerRole"]))
-        self.assertEqual(len(statements), 1)
-        self.assertEqual(statements[0]["Effect"], "Allow")
-        self.assertEqual(statements[0]["Action"], "ssm:SendCommand")
-        self.assertEqual(statements[0]["Resource"][0], {"Ref": "StagingInstanceArn"})
-        self.assertIn("AWS-RunShellScript", statements[0]["Resource"][1]["Fn::Sub"])
+    def test_deployer_role_has_no_permissions_until_fixed_command_contract_exists(self):
+        role = self.resources["StagingDeployerRole"]["Properties"]
+        self.assertNotIn("Policies", role)
+        self.assertNotIn("ManagedPolicyArns", role)
+        self.assertNotIn("ssm:SendCommand", json.dumps(self.resources))
+        self.assertNotIn("AWS-RunShellScript", json.dumps(self.resources))
+        self.assertEqual(
+            role["AssumeRolePolicyDocument"]["Statement"][0]["Principal"]["AWS"],
+            {"Ref": "DeployTrustedPrincipalArn"},
+        )
 
     def test_monitor_reads_named_logs_without_mutation_permissions(self):
         statements = list(policy_statements(self.resources["StagingMonitoringRole"]))
@@ -100,9 +103,8 @@ class TemplateTests(unittest.TestCase):
                 self.assertIn({"Ref": name}, resources)
         self.assertNotIn("logs:DeleteLogGroup", actions)
 
-    def test_each_role_has_expected_allow_and_denied_action_omission(self):
+    def test_each_policy_role_has_expected_allow_and_denied_action_omission(self):
         cases = {
-            "StagingDeployerRole": ("ssm:SendCommand", {"Ref": "StagingInstanceArn"}, "ec2:StartInstances"),
             "StagingMonitoringRole": ("logs:GetLogEvents", {"Ref": "AppLogStreamArn"}, "logs:DeleteLogGroup"),
             "StagingSecurityAuditorRole": ("iam:GetRole", {"Fn::Sub": "arn:${AWS::Partition}:iam::${StagingAccountId}:role/AbangCebuStagingDeployer"}, "iam:DeleteRole"),
         }
