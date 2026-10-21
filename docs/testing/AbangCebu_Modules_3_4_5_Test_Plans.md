@@ -31,7 +31,7 @@ Status: planning only. No test execution, QA decision, staging validation, or pr
 | AC3 — Draw.io validation and matching legible PDF/PNG | M5-A3 | NOT EXECUTED; structural + visual QA required |
 | AC4 — trace to renter/auth-gatekeeper/ERD/RLS and state assumptions | M5-A4, X-05 | NOT EXECUTED; document review required |
 
-`X-01` and `X-02` add end-to-end and recovery scenarios; `X-03`–`X-05` protect traceability and evidence integrity. This draft maps each source-ticket AC to at least one proposed case, but does not claim the source review, test execution, or acceptance is complete.
+`X-01` and `X-02` add end-to-end and recovery scenarios; `X-03`–`X-05` protect traceability and evidence integrity. Each of the four acceptance criteria in the live Jira descriptions for SCRUM-125, SCRUM-126, and SCRUM-127 is mapped above to one or more proposed case IDs. This is a Jira-criterion index, not proof of complete source-spec coverage: original binary source attachments and referenced Module 3–5 specification files were not available for content review. Source-document reconciliation, test execution, and QA acceptance remain NOT RUN.
 
 ## Execution preconditions
 
@@ -48,4 +48,4 @@ For every case, retain its ID and record: disposition (`PASS`, `FAIL`, `BLOCKED`
 
 ## Release/evidence gate
 
-Before SCRUM-165 can be submitted for QA acceptance, verify live Jira acceptance for SCRUM-165 and source tickets SCRUM-125/126/127; complete the source-to-case crosswalk; have all necessary policy/schema gates resolved or explicitly accepted as out-of-scope; validate workbook integrity and traceability; and attach or link both this plan and the workbook. The artifacts alone are not test execution evidence and do not imply staging validation. QA owns execution acceptance and the DONE transition.
+The Jira acceptance criteria for SCRUM-125/126/127 are indexed to proposed case IDs above. Before treating source coverage as fully verified, QA must review the referenced source specs/flowcharts and reconcile them against this index; their content was not available in this pass. Resolve or explicitly accept policy/schema gates, validate workbook integrity and traceability, and retain the plan and workbook on the ticket. These planning artifacts are not test execution evidence and do not imply staging validation. QA owns execution acceptance and the DONE transition.
