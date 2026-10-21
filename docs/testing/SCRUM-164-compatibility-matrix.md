@@ -1,6 +1,6 @@
 # SCRUM-164 browser compatibility matrix
 
-Scope: commit `2b29eca0a9b30bfa9376c61195d168c962cf3f23` from the DEV-4 worktree, served from an isolated archive. Local browser evidence only; no staging or physical-device validation.
+Scope: DEV-4 worktree after commit `9700c4a24a7f4a6d8c83c9f620d9c641b6b56088`; the map/auth app source is unchanged from `2b29eca0a9b30bfa9376c61195d168c962cf3f23`, which added only UI-library changes. Local browser evidence only; no staging or physical-device validation.
 
 | Browser/device | Viewport | Map | Auth/search | Result |
 |---|---:|---|---|---|
