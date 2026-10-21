@@ -90,6 +90,25 @@ class StagingTemplateTests(unittest.TestCase):
         self.assertNotIn("AWS::IAM::Role", {item["Type"] for item in self.resources.values()})
         self.assertNotIn("AWS::EC2::EIP", {item["Type"] for item in self.resources.values()})
 
+    def test_runbook_documents_parameter_file_format_supported_by_aws_cli(self):
+        runbook = (ROOT / "docs/infrastructure/ec2-staging.md").read_text(encoding="utf-8")
+        self.assertIn("--parameter-overrides file://<private-parameter-file.json>", runbook)
+        self.assertIn("ParameterKey", runbook)
+        self.assertIn("ParameterValue", runbook)
+        self.assertIn("template-oriented wrapper", runbook)
+        self.assertIn("--no-execute-changeset", runbook)
+
+    def test_parameter_overrides_json_file_has_supported_cli_shape(self):
+        example = json.loads((ROOT / "infra/aws/staging/parameters.example.json").read_text(encoding="utf-8"))
+        template_parameters = set(self.template["Parameters"])
+        self.assertEqual(set(example["Parameters"]), template_parameters)
+        cli_overrides = [
+            {"ParameterKey": key, "ParameterValue": str(value)}
+            for key, value in example["Parameters"].items()
+        ]
+        self.assertEqual(set(cli_overrides[0]), {"ParameterKey", "ParameterValue"})
+        self.assertEqual({item["ParameterKey"] for item in cli_overrides}, template_parameters)
+
     def test_bootstrap_reports_failure_to_cloudformation(self):
         user_data = self.resources["StagingInstance"]["Properties"]["UserData"]["Fn::Base64"]["Sub"]
         self.assertIn("trap 'rc=$?; /opt/aws/bin/cfn-signal -e $rc", user_data)

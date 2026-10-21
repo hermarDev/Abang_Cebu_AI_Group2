@@ -20,7 +20,7 @@ Before any deployment, a staging owner/platform administrator must supply and ve
 
 ## Approved operator deployment (not executed)
 
-Use a non-secret parameter file completed by the authorized staging owner. `infra/aws/staging/parameters.example.json` is deliberately placeholder-only and must not be passed directly to a deployment command. Review a CloudFormation change set before applying it, then record its stack/event IDs in the project ticket. Do not pass secrets as CloudFormation parameters. Any HTTPS certificate, DNS, secret-manager, or application-release setup is a separate approved operation.
+Use a non-secret parameter file completed by the authorized staging owner. `infra/aws/staging/parameters.example.json` is deliberately placeholder-only and must not be passed directly to a deployment command; it uses a template-oriented wrapper, not AWS CLI parameter-overrides JSON. Convert its `Parameters` entries to a JSON array containing only `ParameterKey` and `ParameterValue`, then pass that file as `--parameter-overrides file://<private-parameter-file.json>`. The AWS CLI does not accept the template's `{ "Parameters": { ... } }` wrapper as that argument. Use an owner-approved stack name/template/region and `cloudformation deploy --no-execute-changeset` to create a reviewable change set. Inspect it in CloudFormation and obtain operator approval before execution. Do not pass secrets as CloudFormation parameters. HTTPS certificate, DNS, secret-manager, or app-release setup is separate. DEV-1 has not executed this workflow; CloudFormation access is unverified.
 
 ## Validation once a real endpoint exists (not executed)
 
