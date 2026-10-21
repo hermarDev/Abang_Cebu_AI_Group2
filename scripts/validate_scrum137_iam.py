@@ -1,12 +1,24 @@
 #!/usr/bin/env python3
-"""Offline structural checks for the unapplied SCRUM-137 IAM proposal."""
+"""Offline structural/security checks for the unapplied SCRUM-137 IAM proposal."""
 
 import json
+import re
 import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 TEMPLATE_PATH = ROOT / "infra/aws/iam/roles.template.json"
+
+GROUP_ARN_PATTERN = (
+    r"^arn:aws(?:-[a-z0-9-]+)?:logs:[a-z0-9-]+:[0-9]{12}:"
+    r"log-group:[A-Za-z0-9_.#/-]{1,512}$"
+)
+STREAM_ARN_PATTERN = (
+    r"^arn:aws(?:-[a-z0-9-]+)?:logs:[a-z0-9-]+:[0-9]{12}:"
+    r"log-group:[A-Za-z0-9_.#/-]{1,512}:(?:log-stream:[A-Za-z0-9_.#/-]{1,512}|\*)$"
+)
+GROUP_ARN_RE = re.compile(GROUP_ARN_PATTERN)
+STREAM_ARN_RE = re.compile(STREAM_ARN_PATTERN)
 
 
 def load_template():
@@ -33,10 +45,11 @@ class TemplateTests(unittest.TestCase):
     def setUpClass(cls):
         cls.template = load_template()
         cls.resources = cls.template["Resources"]
+        cls.parameters = cls.template["Parameters"]
 
     def test_required_scope_parameters_have_no_defaults(self):
-        self.assertEqual(len(self.template["Parameters"]), 10)
-        for name, parameter in self.template["Parameters"].items():
+        self.assertEqual(len(self.parameters), 10)
+        for name, parameter in self.parameters.items():
             with self.subTest(parameter=name):
                 self.assertNotIn("Default", parameter)
 
@@ -87,7 +100,7 @@ class TemplateTests(unittest.TestCase):
                 self.assertIn({"Ref": name}, resources)
         self.assertNotIn("logs:DeleteLogGroup", actions)
 
-    def test_each_role_has_an_expected_allow_and_sensitive_action_is_denied_by_omission(self):
+    def test_each_role_has_expected_allow_and_denied_action_omission(self):
         cases = {
             "StagingDeployerRole": ("ssm:SendCommand", {"Ref": "StagingInstanceArn"}, "ec2:StartInstances"),
             "StagingMonitoringRole": ("logs:GetLogEvents", {"Ref": "AppLogStreamArn"}, "logs:DeleteLogGroup"),
@@ -99,7 +112,7 @@ class TemplateTests(unittest.TestCase):
                 self.assertTrue(any(
                     statement["Effect"] == "Allow"
                     and allowed_action in ([statement["Action"]] if isinstance(statement["Action"], str) else statement["Action"])
-                    and (allowed_resource in statement["Resource"] or allowed_resource in statement.get("Condition", {}).get("ArnEquals", {}).get("iam:ResourceArn", []))
+                    and allowed_resource in statement["Resource"]
                     for statement in statements
                 ))
                 actions = {action for statement in statements for action in ([statement["Action"]] if isinstance(statement["Action"], str) else statement["Action"])}
@@ -111,6 +124,51 @@ class TemplateTests(unittest.TestCase):
         self.assertEqual(actions, {"iam:GetRole", "iam:GetRolePolicy", "iam:ListRolePolicies"})
         self.assertNotIn("*", statements[0]["Resource"])
         self.assertTrue(all("Staging" in arn["Fn::Sub"] for arn in statements[0]["Resource"]))
+
+    def test_log_arn_parameters_constrain_exact_resource_shapes(self):
+        expected_patterns = {
+            "AppLogGroupArn": GROUP_ARN_PATTERN,
+            "NginxLogGroupArn": GROUP_ARN_PATTERN,
+            "AppLogStreamArn": STREAM_ARN_PATTERN,
+            "NginxLogStreamArn": STREAM_ARN_PATTERN,
+        }
+        for name, pattern in expected_patterns.items():
+            with self.subTest(parameter=name):
+                parameter = self.parameters[name]
+                self.assertEqual(parameter["AllowedPattern"], pattern)
+                expected_constraint = (
+                    "Supply a specific CloudWatch log stream ARN or one exact log-group wildcard suffix; partial patterns are not permitted."
+                    if name.endswith("LogStreamArn")
+                    else "Supply one exact CloudWatch Logs resource ARN; wildcard characters are not permitted."
+                )
+                self.assertEqual(parameter["ConstraintDescription"], expected_constraint)
+                self.assertNotIn("Default", parameter)
+
+    def test_log_arn_patterns_reject_wildcards_wrong_resource_type_and_malformed_arns(self):
+        valid_group = "arn:aws:logs:ap-southeast-1:123456789012:log-group:/abang/staging/app"
+        exact_stream = f"{valid_group}:log-stream:production-host"
+        group_wildcard_stream_resource = f"{valid_group}:*"
+        valid_partition_group = "arn:aws-us-gov:logs:us-gov-west-1:123456789012:log-group:app"
+        for candidate in (valid_group, valid_partition_group):
+            self.assertRegex(candidate, GROUP_ARN_RE)
+        self.assertRegex(exact_stream, STREAM_ARN_RE)
+        self.assertRegex(group_wildcard_stream_resource, STREAM_ARN_RE)
+        self.assertNotRegex(exact_stream, GROUP_ARN_RE)
+        self.assertNotRegex(group_wildcard_stream_resource, GROUP_ARN_RE)
+        for candidate in (
+            "arn:aws:logs:ap-southeast-1:123456789012:log-group:/abang/staging/*",
+            "arn:aws:logs:ap-southeast-1:123456789012:log-group:*",
+            "arn:aws:logs:ap-southeast-1:123456789012:log-group:/abang/staging/app:log-stream:*",
+            "arn:aws:logs:ap-southeast-1:123456789012:log-group:/abang/staging/app:log-stream:stream*",
+            "arn:aws:logs:ap-southeast-1:123456789012:log-group:/abang/staging/*:*",
+            "arn:aws:logs:ap-southeast-1:123456789012:log-group:/abang/staging/app:log-stream:stream*:*",
+            "arn:aws:logs:ap-southeast-1:12345678901:log-group:app",
+            "https://example.invalid/log-group/app",
+            "arn:aws:logs:ap-southeast-1:123456789012:log-stream:stream",
+        ):
+            with self.subTest(candidate=candidate):
+                self.assertNotRegex(candidate, GROUP_ARN_RE)
+                self.assertNotRegex(candidate, STREAM_ARN_RE)
 
 
 if __name__ == "__main__":
