@@ -13,7 +13,7 @@ Before any deployment, a staging owner/platform administrator must supply and ve
 ## Review before deployment
 
 1. Review the template and example inputs; replace no placeholder with a guessed resource value.
-2. Confirm the selected subnet, VPC, route table, egress, and CIDR with the staging/network owner; confirm the chosen AMI/release and instance type are valid for the region and budget.
+2. Confirm the selected subnet, VPC, route table, egress, and CIDR with the staging/network owner; confirm the chosen AMI/release and instance type are valid for the region and budget. The template's `AllowedHttpsCidr` pattern rejects malformed IPv4 octets and prefixes outside `/0`–`/32`, but the operator must still supply an approved, appropriately narrow CIDR.
 3. Review instance-profile trust/policy, SSM access path, patch management, log shipping/retention, CloudFormation signal behavior and ingress/egress against the actual application architecture. The selected AMI is supplied through `AmiId`; verify its release and region before using it. `AppPort` is an input for the future app contract but is not yet consumed by the host bootstrap.
 4. Approve the HTTPS termination architecture. This template has no certificate, hostname, DNS, load balancer or TLS listener configuration, so it is not a complete HTTPS staging deployment.
 5. Obtain explicit cost/deployment authorization and have an authorized infrastructure operator execute the change set. DEV-1 did not deploy or create AWS resources.

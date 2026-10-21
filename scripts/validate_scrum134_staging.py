@@ -55,6 +55,19 @@ class StagingTemplateTests(unittest.TestCase):
         self.assertEqual(ingress[0]["ToPort"], 443)
         self.assertEqual(ingress[0]["CidrIp"], {"Ref": "AllowedHttpsCidr"})
 
+    def test_https_ingress_cidr_pattern_is_strict_ipv4_with_valid_prefix(self):
+        from ipaddress import IPv4Network
+        import re
+
+        pattern = re.compile(self.template["Parameters"]["AllowedHttpsCidr"]["AllowedPattern"])
+        for value in ("192.168.1.1/24", "0.0.0.0/0", "255.255.255.255/32"):
+            with self.subTest(value=value):
+                self.assertRegex(value, pattern)
+                IPv4Network(value, strict=False)
+        for value in ("999.1.1.1/24", "192.168.1/24", "192.168.1.1/33", "192.168.1.1/-1", "192.168.001.1/24"):
+            with self.subTest(value=value):
+                self.assertNotRegex(value, pattern)
+
     def test_instance_uses_imdsv2_and_encrypted_ephemeral_ebs(self):
         props = self.resources["StagingInstance"]["Properties"]
         self.assertEqual(props["MetadataOptions"]["HttpTokens"], "required")
