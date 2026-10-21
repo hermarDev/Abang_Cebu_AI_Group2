@@ -1,5 +1,5 @@
 import "@testing-library/jest-dom/vitest";
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it } from "vitest";
 import { ComponentShowcase } from "./examples";
@@ -24,8 +24,9 @@ describe("UI library showcase", () => {
     render(<ComponentShowcase />);
 
     await user.click(screen.getByRole("button", { name: "Show confirmation" }));
-    expect(screen.getByText("Search settings saved")).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "Dismiss notification" }));
-    expect(screen.queryByText("Search settings saved")).not.toBeInTheDocument();
+    const notifications = within(screen.getByRole("region", { name: "Notifications" }));
+    expect(notifications.getByText("Search settings saved")).toBeInTheDocument();
+    await user.click(notifications.getByRole("button", { name: "Dismiss notification" }));
+    expect(notifications.queryByText("Search settings saved")).not.toBeInTheDocument();
   });
 });

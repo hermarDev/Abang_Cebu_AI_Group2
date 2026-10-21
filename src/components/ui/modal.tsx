@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, type ReactNode, type RefObject } from "react";
+import { useId, useLayoutEffect, useRef, type ReactNode, type RefObject } from "react";
 import { cn } from "@/lib/utils";
 
 export interface ModalProps {
@@ -21,18 +21,29 @@ export function Modal({
   initialFocusRef,
 }: ModalProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
   const titleId = useId();
   const descriptionId = useId();
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const dialog = dialogRef.current;
     if (!dialog) return;
-    if (open && !dialog.open) dialog.showModal();
+    if (open && !dialog.open) {
+      previousFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+      dialog.showModal();
+    }
     if (open) {
       const initialTarget = initialFocusRef?.current ?? dialog.querySelector<HTMLElement>("[autofocus]");
       initialTarget?.focus();
     }
     if (!open && dialog.open) dialog.close();
+
+    return () => {
+      if (open && dialog.open) dialog.close();
+      const previousFocus = previousFocusRef.current;
+      previousFocusRef.current = null;
+      if (previousFocus?.isConnected) queueMicrotask(() => previousFocus.focus());
+    };
   }, [initialFocusRef, open]);
 
   function close() {
@@ -42,7 +53,6 @@ export function Modal({
   return (
     <dialog
       ref={dialogRef}
-      open={open || undefined}
       aria-modal={open ? "true" : undefined}
       aria-labelledby={titleId}
       aria-describedby={description ? descriptionId : undefined}
@@ -54,7 +64,10 @@ export function Modal({
         if (open) close();
       }}
       onClick={(event) => {
-        if (event.target === event.currentTarget) close();
+        if (event.target === event.currentTarget) {
+          const { left, top, right, bottom } = event.currentTarget.getBoundingClientRect();
+          if (event.clientX < left || event.clientX > right || event.clientY < top || event.clientY > bottom) close();
+        }
       }}
       className={cn(
         "m-auto max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-lg overflow-y-auto rounded-2xl border border-border bg-popover p-6 text-popover-foreground shadow-xl backdrop:bg-black/50",

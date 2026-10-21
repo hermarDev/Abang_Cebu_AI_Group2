@@ -1,5 +1,5 @@
 import "@testing-library/jest-dom/vitest";
-import { cleanup, render, screen, within } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
@@ -61,6 +61,34 @@ describe("shared UI components", () => {
     expect(password).toHaveAccessibleDescription("Enter a valid password.");
   });
 
+  it("preserves caller descriptions alongside input helper text", () => {
+    render(
+      <>
+        <p id="email-hint">Use a work email.</p>
+        <Input label="Email address" helperText="We will not share it." aria-describedby="email-hint" />
+      </>,
+    );
+
+    const email = screen.getByRole("textbox", { name: "Email address" });
+    expect(email.getAttribute("aria-describedby")).toContain("email-hint");
+    expect(email.getAttribute("aria-describedby")).toContain("description");
+  });
+
+  it("preserves caller descriptions alongside select validation errors", () => {
+    render(
+      <>
+        <p id="district-hint">Choose your preferred area.</p>
+        <Select label="District" error="Select a valid district." aria-describedby="district-hint">
+          <option value="">Choose a district</option>
+        </Select>
+      </>,
+    );
+
+    const district = screen.getByRole("combobox", { name: "District" });
+    expect(district.getAttribute("aria-describedby")).toContain("district-hint");
+    expect(district.getAttribute("aria-describedby")).toContain("description");
+  });
+
   it("renders a labelled native select with the selected option", async () => {
     const user = userEvent.setup();
     render(
@@ -113,11 +141,13 @@ describe("shared UI components", () => {
     expect(screen.getByText("Furnished")).toHaveClass("border-border", "text-foreground");
   });
 
-  it("calls the dismiss callback when Escape requests the native dialog cancel action", () => {
+  it("opens through the native modal API before handling the Escape cancel action", () => {
+    const showModal = vi.spyOn(HTMLDialogElement.prototype, "showModal");
     const onOpenChange = vi.fn();
     render(<Modal open onOpenChange={onOpenChange} title="Search settings">Filters</Modal>);
 
     const dialog = screen.getByRole("dialog", { name: "Search settings" });
+    expect(showModal).toHaveBeenCalledOnce();
     const cancelEvent = new Event("cancel", { cancelable: true });
     dialog.dispatchEvent(cancelEvent);
 
@@ -125,17 +155,47 @@ describe("shared UI components", () => {
     expect(onOpenChange).toHaveBeenCalledWith(false);
   });
 
-  it("calls the dismiss callback only when the modal backdrop itself is clicked", async () => {
-    const user = userEvent.setup();
+  it("closes an open native dialog before unmount removes it", () => {
+    const close = vi.spyOn(HTMLDialogElement.prototype, "close").mockImplementation(function (this: HTMLDialogElement) {
+      expect(this.isConnected).toBe(true);
+      this.removeAttribute("open");
+    });
+    const view = render(<Modal open onOpenChange={vi.fn()} title="Search settings">Filters</Modal>);
+
+    view.unmount();
+
+    expect(close).toHaveBeenCalledOnce();
+  });
+
+  it("restores focus to the opener when an open dialog unmounts", () => {
+    const trigger = document.createElement("button");
+    document.body.append(trigger);
+    trigger.focus();
+    const view = render(<Modal open onOpenChange={vi.fn()} title="Search settings">Filters</Modal>);
+
+    view.unmount();
+
+    expect(document.activeElement).toBe(trigger);
+    trigger.remove();
+  });
+
+  it("closes only for click events originating from the dialog backdrop", () => {
     const onOpenChange = vi.fn();
-    render(<Modal open onOpenChange={onOpenChange} title="Search settings">Filters</Modal>);
+    render(
+      <Modal open onOpenChange={onOpenChange} title="Search settings">
+        <div>Interior padding</div>
+      </Modal>,
+    );
 
     const dialog = screen.getByRole("dialog", { name: "Search settings" });
-    await user.click(screen.getByRole("button", { name: "Close dialog" }));
-    expect(onOpenChange).toHaveBeenCalledWith(false);
-    onOpenChange.mockClear();
+    vi.spyOn(dialog, "getBoundingClientRect").mockReturnValue({
+      x: 100, y: 100, width: 500, height: 400, top: 100, right: 600, bottom: 500, left: 100,
+      toJSON: () => ({}),
+    });
+    fireEvent.click(dialog, { clientX: 101, clientY: 101 });
+    expect(onOpenChange).not.toHaveBeenCalled();
 
-    await user.click(dialog);
+    fireEvent.click(dialog, { clientX: 50, clientY: 50 });
     expect(onOpenChange).toHaveBeenCalledWith(false);
   });
 

@@ -15,6 +15,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
   const id = providedId ?? generatedId;
   const descriptionId = `${id}-description`;
   const description = error ?? helperText;
+  const describedBy = [props["aria-describedby"], description ? descriptionId : undefined].filter(Boolean).join(" ") || undefined;
 
   return (
     <div className="grid gap-1.5">
@@ -29,7 +30,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
         id={id}
         disabled={disabled}
         aria-invalid={error ? true : undefined}
-        aria-describedby={description ? descriptionId : props["aria-describedby"]}
+        aria-describedby={describedBy}
         className={cn(
           "focus-ring touch-target w-full rounded-md border border-input bg-card px-3 py-2 text-base text-card-foreground placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50",
           error && "border-destructive",

@@ -8,6 +8,7 @@ export const badgeVariants = cva(
     variants: {
       variant: {
         default: "bg-accent text-accent-foreground",
+        secondary: "bg-muted text-foreground",
         success: "bg-action text-action-foreground",
         warning: "bg-warning text-warning-foreground",
         destructive: "bg-destructive text-destructive-foreground",
