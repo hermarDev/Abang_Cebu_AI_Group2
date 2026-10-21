@@ -1,0 +1,86 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Unapplied, least-privilege IAM role proposal for reviewed AbangCebu staging resources.",
+  "Parameters": {
+    "StagingAccountId": {"Type": "String", "AllowedPattern": "^[0-9]{12}$", "Description": "AWS account containing the staging roles."},
+    "StagingRegion": {"Type": "String", "AllowedPattern": "^[a-z]{2}(-gov)?-[a-z]+-[0-9]+$", "Description": "AWS region containing the staging instance."},
+    "StagingInstanceArn": {"Type": "String", "AllowedPattern": "^arn:aws[^:]*:ec2:[a-z0-9-]+:[0-9]{12}:instance/i-[a-f0-9]+$", "Description": "Exact staging EC2 instance ARN used by the deploy role."},
+    "AppLogGroupArn": {"Type": "String", "Description": "Exact app log group ARN, without a trailing wildcard."},
+    "NginxLogGroupArn": {"Type": "String", "Description": "Exact Nginx log group ARN, without a trailing wildcard."},
+    "AppLogStreamArn": {"Type": "String", "Description": "Exact app log stream ARN used for reading events."},
+    "NginxLogStreamArn": {"Type": "String", "Description": "Exact Nginx log stream ARN used for reading events."},
+    "DeployTrustedPrincipalArn": {"Type": "String", "AllowedPattern": "^arn:aws[^:]*:iam::[0-9]{12}:role/[A-Za-z0-9+=,.@_/-]+$", "Description": "Exact CI deploy role; use a dedicated, non-human role."},
+    "MonitoringTrustedPrincipalArn": {"Type": "String", "AllowedPattern": "^arn:aws[^:]*:iam::[0-9]{12}:(user|role)/[A-Za-z0-9+=,.@_/-]+$", "Description": "Exact approved monitoring operator principal ARN."},
+    "AuditorTrustedPrincipalArn": {"Type": "String", "AllowedPattern": "^arn:aws[^:]*:iam::[0-9]{12}:(user|role)/[A-Za-z0-9+=,.@_/-]+$", "Description": "Exact approved security-auditor principal ARN."}
+  },
+  "Resources": {
+    "StagingDeployerRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "RoleName": "AbangCebuStagingDeployer",
+        "Description": "Send commands only to the explicitly named staging instance.",
+        "MaxSessionDuration": 3600,
+        "AssumeRolePolicyDocument": {"Version": "2012-10-17", "Statement": [{"Effect": "Allow", "Principal": {"AWS": {"Ref": "DeployTrustedPrincipalArn"}}, "Action": "sts:AssumeRole"}]},
+        "Policies": [{
+          "PolicyName": "SendCommandsToStagingInstance",
+          "PolicyDocument": {
+            "Version": "2012-10-17",
+            "Statement": [{
+              "Sid": "SendShellCommandsToNamedStagingInstance",
+              "Effect": "Allow",
+              "Action": "ssm:SendCommand",
+              "Resource": [
+                {"Ref": "StagingInstanceArn"},
+                {"Fn::Sub": "arn:${AWS::Partition}:ssm:${StagingRegion}::document/AWS-RunShellScript"}
+              ]
+            }]
+          }
+        }]
+      }
+    },
+    "StagingMonitoringRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "RoleName": "AbangCebuStagingMonitoring",
+        "Description": "Read monitoring logs for explicitly named staging groups and streams.",
+        "MaxSessionDuration": 3600,
+        "AssumeRolePolicyDocument": {"Version": "2012-10-17", "Statement": [{"Effect": "Allow", "Principal": {"AWS": {"Ref": "MonitoringTrustedPrincipalArn"}}, "Action": "sts:AssumeRole", "Condition": {"Bool": {"aws:MultiFactorAuthPresent": "true"}}}]},
+        "Policies": [{
+          "PolicyName": "ReadNamedStagingLogs",
+          "PolicyDocument": {"Version": "2012-10-17", "Statement": [
+            {"Sid": "DescribeNamedStagingLogGroups", "Effect": "Allow", "Action": "logs:DescribeLogStreams", "Resource": [{"Ref": "AppLogGroupArn"}, {"Ref": "NginxLogGroupArn"}]},
+            {"Sid": "ReadNamedStagingLogGroups", "Effect": "Allow", "Action": "logs:FilterLogEvents", "Resource": [{"Ref": "AppLogGroupArn"}, {"Ref": "NginxLogGroupArn"}]},
+            {"Sid": "ReadNamedStagingLogStreams", "Effect": "Allow", "Action": "logs:GetLogEvents", "Resource": [{"Ref": "AppLogStreamArn"}, {"Ref": "NginxLogStreamArn"}]}
+          ]}
+        }]
+      }
+    },
+    "StagingSecurityAuditorRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "RoleName": "AbangCebuStagingSecurityAuditor",
+        "Description": "Read-only inspection of the three staging role policies.",
+        "MaxSessionDuration": 3600,
+        "AssumeRolePolicyDocument": {"Version": "2012-10-17", "Statement": [{"Effect": "Allow", "Principal": {"AWS": {"Ref": "AuditorTrustedPrincipalArn"}}, "Action": "sts:AssumeRole", "Condition": {"Bool": {"aws:MultiFactorAuthPresent": "true"}}}]},
+        "Policies": [{
+          "PolicyName": "ReadStagingRolePolicies",
+          "PolicyDocument": {"Version": "2012-10-17", "Statement": [{
+            "Sid": "InspectOnlyNamedStagingRoles",
+            "Effect": "Allow",
+            "Action": ["iam:GetRole", "iam:GetRolePolicy", "iam:ListRolePolicies"],
+            "Resource": [
+              {"Fn::Sub": "arn:${AWS::Partition}:iam::${StagingAccountId}:role/AbangCebuStagingDeployer"},
+              {"Fn::Sub": "arn:${AWS::Partition}:iam::${StagingAccountId}:role/AbangCebuStagingMonitoring"},
+              {"Fn::Sub": "arn:${AWS::Partition}:iam::${StagingAccountId}:role/AbangCebuStagingSecurityAuditor"}
+            ]
+          }]}
+        }]
+      }
+    }
+  },
+  "Outputs": {
+    "DeployerRoleArn": {"Value": {"Fn::GetAtt": ["StagingDeployerRole", "Arn"]}},
+    "MonitoringRoleArn": {"Value": {"Fn::GetAtt": ["StagingMonitoringRole", "Arn"]}},
+    "SecurityAuditorRoleArn": {"Value": {"Fn::GetAtt": ["StagingSecurityAuditorRole", "Arn"]}}
+  }
+}
