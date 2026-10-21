@@ -1,6 +1,6 @@
 # Sprint 3 Closeout and Carry-over Report
 
-**Prepared:** 2026-10-21 (PST)
+**Prepared:** 2026-10-21 (PST) — revised after independent review of PRs #6, #7, #9, #11, and #12
 **Project:** Abang Cebu AI (`SCRUM`)
 **Board:** SCRUM board (ID 1)
 **Sprint:** Sprint 3 (ID 72)
@@ -15,7 +15,7 @@ This is an evidence-based closeout draft, not a completed sprint review or decla
 ## Sprint metadata and reconciliation
 
 - Sprint 3: **active**; scheduled 2026-10-19 00:54 UTC to 2026-11-02 13:00 UTC. Live `jira_get_sprints(boardId=1, state='active')` returns Sprint 3 active.
-- Inventory: 35; `jira_get_sprint_issues(sprintId=72)` returned all 35 in this response. Status arithmetic: 8 Done + 24 IN DEVELOPMENT + 0 IN REVIEW + 2 READY + 1 BLOCKED = 35. A separate prior JQL snapshot matched; refresh before relying on it.
+- Inventory: 35; the live sprint issue endpoint and project-scoped JQL both returned 35 keys. Reconciled status arithmetic: 8 Done + 24 IN DEVELOPMENT + 0 IN REVIEW + 2 READY + 1 BLOCKED = 35. Direct issue reads also confirm SCRUM-145 IN DEVELOPMENT, SCRUM-146 Done, SCRUM-160 Done, and SCRUM-168 IN DEVELOPMENT.
 - All 35 returned issues have an assignee.
 - Jira comment history confirms the sprint had been closed at the user's request and then reopened. Closing a sprint moved incomplete issues to backlog in the earlier lifecycle action; it did not resolve or finish them.
 
@@ -69,10 +69,10 @@ All PR details below are a dated evidence snapshot (2026-10-21); recheck current
 
 Repository: [`hermarDev/Abang_Cebu_AI_Group2`](https://github.com/hermarDev/Abang_Cebu_AI_Group2), verified from the local `origin` remote.
 
-- [PR #7 — SCRUM-140/141](https://github.com/hermarDev/Abang_Cebu_AI_Group2/pull/7), head `25fe87492b164438b29bb9f3b82f42b9770a43af`: OPEN, merge state CLEAN; CI and secret scan passed; Supabase Preview skipped; CodeRabbit skipped manual review; no formal review decision. It is unmerged and incomplete: the migration-order fix at `4b0eeb1` is not yet in this PR, a separate session owns validation paths, and SCRUM-140 acceptance retains the availability boolean-versus-enum ambiguity. SCRUM-140 remains IN DEVELOPMENT.
-- [PR #6 — SCRUM-143](https://github.com/hermarDev/Abang_Cebu_AI_Group2/pull/6), head `c64e8a08a247799131597d5f39f21a1aee79fa50`: OPEN, merge state CLEAN; CI and secret scan passed; Supabase Preview skipped; no formal review decision. Jira history says anon/authenticated RPC usability depends on SCRUM-142 policies; validate against current head before declaring acceptance.
-- [PR #9 — SCRUM-157](https://github.com/hermarDev/Abang_Cebu_AI_Group2/pull/9), head `8e5f1531d6f040b3ef9564c798c23bcd9aadbb99`: OPEN, merge state CLEAN; CI and secret scan passed; Supabase Preview skipped; no formal review decision. Jira history confirms live listing search/results/card-to-pin remains blocked on SCRUM-142/143. CI does not execute local Vitest suites.
-- PRs #1–3 were reported open and behind main in the reviewed snapshot; checks included skipped Supabase Preview and CodeRabbit status only. PR #8 was open and dirty in earlier evidence; PR #10 was described as a companion review PR. Refresh these states before relying on them.
+- [PR #7 — SCRUM-140/141](https://github.com/hermarDev/Abang_Cebu_AI_Group2/pull/7), reviewed head `25fe87492b164438b29bb9f3b82f42b9770a43af`: OPEN, merge state CLEAN; CI and secret scan pass; Supabase Preview skipped; no formal review decision. Independent read-only review found SCRUM-140’s “availability enum” criterion conflicts with the boolean field documented in the detailed ERD; reconcile before sign-off. Generated types include `latitude`/`longitude` as writable insert/update properties despite their generated columns in SQL. The 34-assertion suite is declared in-source, but `db reset`/pgTAP were not rerun in that review at this head. SCRUM-141 has favorite uniqueness, indexes, FK deletion behavior, and append-only guards; service-role TRUNCATE privilege not probed in that review. Jira notes separately report a clean reset ordering fix at `4b0eeb1` outside this PR head; coordinate exact migration order/reset validation. No formal review was submitted because the authorization tool denied it.
+- [PR #6 — SCRUM-143](https://github.com/hermarDev/Abang_Cebu_AI_Group2/pull/6), reviewed head `c64e8a08a247799131597d5f39f21a1aee79fa50`: OPEN, merge state CLEAN; CI and secret scan pass; Supabase Preview skipped; no formal review decision. Static source confirms SECURITY INVOKER functions with approved/available predicates and spatial filters. The attached validation file records 23/23 pgTAP and a 55.934 ms 10k benchmark from an earlier validation; these were not rerun in the independent review. Live anon/authenticated role probes failed with permission denied for properties/rental_units, so RPC client use remains BLOCKED on the SCRUM-142 access contract.
+- [PR #9 — SCRUM-157](https://github.com/hermarDev/Abang_Cebu_AI_Group2/pull/9), reviewed head `8e5f1531d6f040b3ef9564c798c23bcd9aadbb99`: OPEN, merge state CLEAN; CI and secret scan pass; Supabase Preview skipped; no formal review decision. URL filter helpers and isolated drawer highlight handlers exist, but MapCanvas hardcodes the ListingSearchAdapter to `null`, so the app cannot show real results or exercise live card-to-pin behavior. Filter value vocabulary also needs explicit mapping to backend/search catalog values. Local tests/browser checks were not rerun in the independent review.
+- Other PR state is out of this targeted acceptance review; refresh before relying on prior report snapshots. For PRs #6/#7/#9, automated CI and secret-scan success are not formal approval or SQL/browser acceptance evidence.
 
 ### Infrastructure, IAM, and staging
 
@@ -80,22 +80,22 @@ Repository: [`hermarDev/Abang_Cebu_AI_Group2`](https://github.com/hermarDev/Aban
 - SCRUM-137 is IN DEVELOPMENT, assigned to Edrich. Latest Jira comments describe an IAM proposal with resource placeholders; read-only `iam:ListGroups` and `ec2:DescribeInstances` returned AccessDenied. No AWS policy deployment or live allow/deny tests are evidenced.
 - SCRUM-144 is READY, assigned to Dency. Its comment says seed data depends on unmerged schema PR #7; do not duplicate the seed or create accounts from real credentials.
 - SCRUM-145 is IN DEVELOPMENT, assigned to Dency. This session observed an active isolated local Supabase verification process in `/home/hrmr/Abang_Cebu_AI_Group2-scrum145`; no Jira status or assignee change was made here. Recheck its verified storage-policy and restore results after that work completes; do not infer acceptance from process activity alone.
-- SCRUM-162 is READY, assigned to Jenny. Jira comments report 0/100 scenarios executed and no available staging, and list unresolved case scope/doc contradictions. No staging run was performed. Never use sample credentials from docs.
-- [SCRUM-168](https://abangcebuai.atlassian.net/browse/SCRUM-168) is IN DEVELOPMENT, assigned to Hermar. Jira still has a prior `sprint-3-closeout.md` attachment with an outdated SCRUM-146 status phrase; this report revision corrects it. No transition or sprint-lifecycle change was made.
+- SCRUM-162 is READY, assigned to Jenny. Latest previously inspected Jira comment reports 0/100 scenarios executed and no available staging, and lists unresolved case scope/doc contradictions. No staging run was performed. Never use sample credentials from docs.
+- [SCRUM-168](https://abangcebuai.atlassian.net/browse/SCRUM-168) is IN DEVELOPMENT, assigned to Hermar. Jira attachment 10520 is the latest uploaded report (16,545 bytes); it was uploaded before the latest independent review identified stale issue statuses and incomplete carry-over decisions. The corrected PR branch/report is being refreshed; no Jira transition or sprint-lifecycle change was made.
 
 ### Search, QA and remaining issue scope
 
 - SCRUM-156 is BLOCKED. Jira history documents its marker/search integration dependency on SCRUM-142/143 and an open product clarification over USC campuses/pin/radius. Confirm latest blocker before unblocking.
 - SCRUM-157 is IN DEVELOPMENT. Unit/build/CI evidence does not meet live search/card-to-pin acceptance; independent review and integration gates remain.
-- SCRUM-163 is IN DEVELOPMENT, assigned to Karla. Latest Jira comment reports 0/63 cases run; RBAC middleware and staging are not available and test-spec contradictions need resolution.
-- SCRUM-167 is IN DEVELOPMENT, assigned to Karla. Latest Jira comment reports 0/6 staging scenarios executed; staging and search dependencies block the run, and listing detail/gated-action coverage has open questions.
+- SCRUM-163 is IN DEVELOPMENT, assigned to Karla. Prior Jira comment reports 0/63 cases run; status and comments were not refreshed for this latest acceptance review. Revalidate staging access, RBAC implementation and test execution before any Done decision.
+- SCRUM-167 is IN DEVELOPMENT, assigned to Karla. Prior Jira comment reports 0/6 staging scenarios executed; status and comments were not refreshed for this latest acceptance review. Staging and search dependencies must be resolved and the actual end-to-end run evidenced before any Done decision.
 - SCRUM-160 is DONE, assigned to Edrich. The Modules 3–5 FSD is attached as Jira attachment 10507; review verified ten function specifications with all required headings, DOCX package integrity, Arial 12 pt/double spacing, and a 21-page LibreOffice render. No PR was required or found for this documentation deliverable.
-- [SCRUM-146](https://abangcebuai.atlassian.net/browse/SCRUM-146) is Done, assigned to Dency. Jira attachment 10474 is a four-sheet workbook documenting `profiles` and `kyc_verifications` (20 columns) from the two migrations on pinned `origin/main`; it excludes the ten tables in the still-open SCRUM-140/141 PR #7. The acceptance criterion is every migrated column, so the workbook matches the main-branch applied baseline described in its evidence; revalidate against the merged schema when PR #7 lands. No transition or review was made here.
-- Other IN DEVELOPMENT tickets listed above have not been individually audited against current artifacts in this report; their statuses are not acceptance proof, and any prior evidence must be refreshed before approval.
+- [SCRUM-146](https://abangcebuai.atlassian.net/browse/SCRUM-146) is Done, assigned to Dency. Jira attachment 10518 (39,065 bytes) and PR #12 contain the revised workbook, covering 11 tables/100 column names against its pinned candidate migrations. Independent review found formatting/readability issues in the rendered 27-page PDF, a builder-path bug (`docs/database/build_database_specification.py` resolves template/output under the wrong nested `docs/database/docs` path), substring-based column-note mapping errors, and that the test script is not run in CI. PR #12 remains open, without formal review; the Jira Done state applies to the attached workbook deliverable but is not evidence PR #12 is reviewed/merged or schema is on main/production. Attachment bytes were not available for comparison.
+- The testing tickets SCRUM-162/163/164/165/166/167, auth tickets SCRUM-147/148/149/150/151/152, UI tickets SCRUM-153/154, staging/IAM tickets SCRUM-134/136/137/139, and SCRUM-144 were not all individually audited against current implementation/artifacts. Their statuses are not acceptance proof. A parallel read-only audit of testing tickets is pending; the report is not a full acceptance audit.
 
 ### Sprint 4 future backlog
 
-At the last complete endpoint/JQL cross-check, Sprint 4 (ID 73) had 13 READY assigned issues. These are future work, not Sprint 3 completions and not authorized carry-over targets:
+A live project-scoped query returned 13 READY issues in Sprint 4 (ID 73). These are future backlog entries, not a decision to place any Sprint 3 unfinished issue there. SCRUM-168 requires an explicit carry-over list; issue-level disposition has not been agreed or changed. The 13-item Sprint 4 query covers the listing MVP and does not establish complete coverage of the ticket wording “listing management, admin, AI assistant build.”
 
 - [SCRUM-171](https://abangcebuai.atlassian.net/browse/SCRUM-171) — Landlord listing draft forms (Angel Crushein Yaun)
 - [SCRUM-172](https://abangcebuai.atlassian.net/browse/SCRUM-172) — Save and submit listing actions (John Lloyd Ando)
@@ -113,13 +113,19 @@ At the last complete endpoint/JQL cross-check, Sprint 4 (ID 73) had 13 READY ass
 
 ## SCRUM-168 review / retrospective status
 
-All-member acceptance review: PARTIAL; only targeted evidence was refreshed here. Staging demonstration: NOT VERIFIED; no staging URL/demo evidence. Team retrospective: NOT RUN; no team feedback collected. Sprint 4 draft backlog: the previous report listed 13 READY issues; Sprint 4 membership was not revalidated here. These remain blockers to SCRUM-168's acceptance criteria; Jira remains IN DEVELOPMENT. This session made no Jira status, assignee, or sprint-lifecycle changes.
+- All-member acceptance review: PARTIAL. This review covered selected PR-backed issues and SCRUM-146; the 35-ticket register is not a criterion-by-criterion review of all assignees’ tickets.
+- Staging demonstration: NOT VERIFIED; no staging URL/demo evidence.
+- Team retrospective: NOT RUN; no participant feedback was collected. Do not invent findings or attribute opinions.
+- Sprint 4: 13 READY issues exist, but the query is a listing-MVP backlog snapshot. No issue-level Sprint 3 carry-over placement was verified; no Sprint 4 membership changes were made. The report therefore does not yet provide the required explicit carry-over disposition or demonstrate complete coverage of admin and AI-assistant build scope.
+- PR #11 review: the independent audit at prior head `0859a69257a15593e95f13dbd44e2e10a44ad0c7` found stale 6/24/1/3/1 counts and outdated SCRUM-145/146/160 rows. This branch corrects those rows and the current count, but SCRUM-168 acceptance is still incomplete. PR #11 is not formally reviewed.
+- Jira status remains IN DEVELOPMENT; no issue transition, assignee change, or sprint lifecycle change was made.
 
 
 ## Safe next actions
 
-1. Refresh Jira, GitHub PR heads/checks/reviews, and local coordination claims before selecting/taking any ticket; preserve human assignees and avoid another session's branch/files.
-2. SCRUM-140/141: the current PR #7 head does not include the clean-reset migration-order fix at `4b0eeb1`; coordinate with the validation owner for handoff and complete fresh-reset/pgTAP evidence, independent formal PR review, and clarify availability type before acceptance.
+1. Obtain explicit handoffs for any assigned active branch/worktree before code takeover; preserve all existing assignees and work. This report work is on a dedicated docs PR branch.
+2. SCRUM-140/141: reconcile the availability enum/boolean acceptance conflict, run a clean isolated reset and pgTAP at the candidate head, verify generated columns/types, independently review, then update the PR. Do not mark Done based on static tables alone.
 3. Obtain a staging URL and authorized synthetic QA accounts from the staging owner before SCRUM-162/163/164/167 or any live demo.
 4. Resolve SCRUM-142 policy tests before attempting dependent seed/storage/search integration.
-5. Complete each remaining issue only against its acceptance evidence; do not mark tickets Done or close the sprint to force a green count. If closing with unfinished issues is explicitly requested, preserve their statuses and document carry-over.
+5. For SCRUM-146, repair the generator path/notes and print layout, run its workbook validation script in CI, and obtain peer review; keep Jira status as its own deliverable state. For SCRUM-168, produce verified member-by-member review outcomes and an explicit carry-over decision, then obtain actual staging/demo and retrospective input or state those unavailable.
+6. Complete each remaining issue only against its acceptance evidence; do not mark tickets Done or close the sprint to force a green count. If closing with unfinished issues is explicitly requested, preserve their statuses and document carry-over.
