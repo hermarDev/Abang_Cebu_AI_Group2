@@ -41,8 +41,8 @@
   --warning-foreground: #ffffff;
 
   /* Borders & Controls */
-  --border: #e6decb;
-  --input: #e6decb;
+  --border: #83734e;
+  --input: #83734e;
   --ring: #047857;
 
   /* Radius Base Token */
@@ -95,8 +95,8 @@
   --warning-foreground: #451a03;
 
   /* Borders & Controls */
-  --border: #1b4571;
-  --input: #1b4571;
+  --border: #518ec3;
+  --input: #518ec3;
   --ring: #34d399;
 }
 
@@ -123,8 +123,8 @@
     --destructive-foreground: #4c0519;
     --warning: #fbbf24;
     --warning-foreground: #451a03;
-    --border: #1b4571;
-    --input: #1b4571;
+    --border: #518ec3;
+    --input: #518ec3;
     --ring: #34d399;
   }
 }

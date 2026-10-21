@@ -25,6 +25,12 @@ function contrastRatio(background: string, foreground: string) {
   return (lighter + 0.05) / (darker + 0.05);
 }
 
+const boundaryPairs = [
+  ["input", "card"],
+  ["border", "background"],
+  ["input", "background"],
+] as const;
+
 const pairs = [
   ["action", "action-foreground"],
   ["primary", "primary-foreground"],
@@ -39,9 +45,20 @@ const pairs = [
 const themes = [
   { name: "light", selector: ":root" },
   { name: "dark", selector: ".dark" },
+  { name: "system dark", selector: ":root:not(.light)" },
 ] as const;
 
 describe("SCRUM-153 semantic theme token contrast", () => {
+  it.each(themes.flatMap((theme) => boundaryPairs.map(([boundary, surface]) => ({ theme, boundary, surface }))))(
+    "passes WCAG AA non-text contrast for $theme.name $boundary/$surface boundaries",
+    ({ theme, boundary, surface }) => {
+      const tokens = themeTokens(theme.selector);
+      expect(tokens[boundary]).toBeDefined();
+      expect(tokens[surface]).toBeDefined();
+      expect(contrastRatio(tokens[boundary], tokens[surface])).toBeGreaterThanOrEqual(3);
+    },
+  );
+
   it.each(themes.flatMap((theme) => pairs.map(([background, foreground]) => ({ theme, background, foreground }))))(
     "passes WCAG AA normal-text contrast for $theme.name $background/$foreground",
     ({ theme, background, foreground }) => {

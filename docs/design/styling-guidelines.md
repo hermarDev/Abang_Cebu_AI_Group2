@@ -108,7 +108,7 @@ The following table provides verified contrast ratios computed via relative lumi
 | `cebu-navy-50` | `#f0f4f9` | 0.887 | 1.04:1 | 1.10:1 | **16.17:1** | 1.10:1 | Dark mode high-contrast text (**AAA Pass**) |
 | `cebu-navy-100` | `#dbe6f3` | 0.771 | 1.19:1 | 1.26:1 | **14.14:1** | 1.26:1 | Dark mode card secondary text (**AAA Pass**) |
 | `cebu-navy-200` | `#b9d0e7` | 0.605 | 1.50:1 | 1.59:1 | **11.26:1** | 1.59:1 | Dark mode subtle borders & muted text |
-| `cebu-navy-400` | `#518ec3` | 0.247 | 3.30:1 | 3.50:1 | **5.11:1** | 3.50:1 | Dark mode primary brand accent (**AA Text**) |
+| `cebu-navy-400` | `#518ec3` | 0.247 | 3.30:1 | 3.50:1 | **5.11:1** | 3.50:1 | Dark mode primary brand accent (**AA Text**) and control/border token; at least 3:1 against declared adjacent card and canvas surfaces |
 | `cebu-navy-600` | `#20578d` | 0.084 | **7.05:1** | **7.48:1** | 2.39:1 | **7.48:1** | Light mode subheadings (**AAA Pass**) |
 | `cebu-navy-800` | `#173b5f` | 0.039 | **10.84:1** | **11.49:1** | 1.55:1 | **11.49:1** | Light mode headings & navigation (**AAA Pass**) |
 | `cebu-navy-900` | `#0f2742` | 0.018 | **14.26:1** | **15.12:1** | 1.18:1 | **15.12:1** | Light mode default body text (**AAA Pass**) |
@@ -124,7 +124,8 @@ The following table provides verified contrast ratios computed via relative lumi
 | `cebu-teal-700` | `#0f766e` | 0.139 | **5.16:1** | **5.47:1** | 3.26:1 | **5.47:1** | Light mode active text & badge icons (**AA Pass**) |
 | `cebu-sand-50` | `#faf8f5` | 0.945 | 1.00:1 | 1.06:1 | **16.85:1** | 1.06:1 | Light mode warm root canvas background |
 | `cebu-sand-100` | `#f3efe8` | 0.869 | 1.08:1 | 1.15:1 | **15.58:1** | 1.15:1 | Light mode elevated card / muted surface |
-| `cebu-sand-200` | `#e6decb` | 0.730 | 1.26:1 | 1.34:1 | **13.33:1** | 1.34:1 | Light mode input & container borders |
+| `cebu-sand-200` | `#e6decb` | 0.730 | 1.26:1 | 1.34:1 | **13.33:1** | 1.34:1 | Light mode warm subtle surfaces (not a control boundary) |
+| `cebu-sand-600` | `#83734e` | 0.170 | **4.38:1** | **4.64:1** | 4.12:1 | **4.64:1** | Light-mode control/border token; at least 3:1 against declared adjacent white and sand surfaces |
 | `cebu-sand-700` | `#675a3e` | 0.103 | **6.37:1** | **6.76:1** | 2.64:1 | **6.76:1** | Light mode muted / caption text (**AA Pass**) |
 | `cebu-sand-800` | `#534934` | 0.067 | **8.36:1** | **8.86:1** | 2.02:1 | **8.86:1** | Light mode secondary body text (**AAA Pass**) |
 | `cebu-amber-400` | `#fbbf24` | 0.573 | 1.57:1 | 1.67:1 | **10.70:1** | 1.67:1 | Dark mode warning & star icons (**AAA on Dark**) |
@@ -189,8 +190,8 @@ AbangCebuAI employs a clean two-layer token architecture:
 | `--accent-foreground` | `text-accent-foreground` | `#0f766e` (Teal 700) | `#99f6ee` (Teal 200) | Text within accented containers |
 | `--destructive` | `bg-destructive` | `#e11d48` (Crimson 600)| `#fb7185` (Crimson 400)| Destructive actions, alert notifications|
 | `--warning` | `text-warning`, `bg-warning` | `#b45309` (Amber 700) | `#fbbf24` (Amber 400) | Star ratings, warnings, deposit notices |
-| `--border` | `border-border` | `#e6decb` (Sand 200) | `#1b4571` (Navy 700) | Card boundaries, dividers, table rules |
-| `--input` | `border-input`, `bg-input` | `#e6decb` (Sand 200) | `#1b4571` (Navy 700) | Form inputs, select triggers |
+| `--border` | `border-border` | `#83734e` (Sand 600) | `#518ec3` (Navy 400) | Control boundaries and dividers; at least 3:1 against declared adjacent surfaces |
+| `--input` | `border-input`, `bg-input` | `#83734e` (Sand 600) | `#518ec3` (Navy 400) | Form inputs and select triggers; at least 3:1 against declared adjacent surfaces |
 | `--ring` | `ring-ring` | `#047857` (Emerald 700) | `#34d399` (Emerald 400)| Keyboard focus indicator outline |
 
 ---
