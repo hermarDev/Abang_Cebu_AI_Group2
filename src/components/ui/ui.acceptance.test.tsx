@@ -4,15 +4,21 @@ import { Button, Card, Input, Select } from "./index";
 
 const contrastPairs = [
   { mode: "light", name: "primary CTA", background: "#047857", foreground: "#ffffff" },
+  { mode: "light", name: "secondary hover", background: "#ccfbf7", foreground: "#0f766e" },
+  { mode: "dark", name: "secondary hover", background: "#134e4a", foreground: "#99f6ee" },
   { mode: "light", name: "brand button", background: "#0f2742", foreground: "#ffffff" },
   { mode: "light", name: "accent and chip text", background: "#f0fdfc", foreground: "#0f766e" },
   { mode: "light", name: "muted card metadata", background: "#f3efe8", foreground: "#675a3e" },
-  { mode: "light", name: "destructive button", background: "#e11d48", foreground: "#ffffff" },
+  { mode: "light", name: "destructive text", background: "#faf8f5", foreground: "#be123c" },
+  { mode: "light", name: "destructive button", background: "#be123c", foreground: "#ffffff" },
+  { mode: "light", name: "destructive hover", background: "#fda4af", foreground: "#881337" },
   { mode: "light", name: "warning action", background: "#b45309", foreground: "#ffffff" },
   { mode: "dark", name: "primary CTA", background: "#10b981", foreground: "#022c22" },
   { mode: "dark", name: "brand button", background: "#518ec3", foreground: "#09182a" },
   { mode: "dark", name: "accent and chip text", background: "#115e59", foreground: "#99f6ee" },
   { mode: "dark", name: "muted card metadata", background: "#173b5f", foreground: "#b9d0e7" },
+  { mode: "dark", name: "destructive text", background: "#09182a", foreground: "#fb7185" },
+  { mode: "dark", name: "destructive hover", background: "#9f1239", foreground: "#fff1f2" },
   { mode: "dark", name: "destructive button", background: "#fb7185", foreground: "#4c0519" },
   { mode: "dark", name: "warning action", background: "#fbbf24", foreground: "#451a03" },
 ];

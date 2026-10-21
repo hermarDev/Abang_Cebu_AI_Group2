@@ -7,7 +7,8 @@ function themeTokens(selector: string) {
   const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   const match = css.match(new RegExp(`${escaped}\\s*\\{([^}]+)\\}`));
   if (!match) throw new Error(`Missing theme selector: ${selector}`);
-  return Object.fromEntries([...match[1].matchAll(/--([\w-]+):\s*(#[0-9a-fA-F]{6})\s*;/g)].map(([, key, value]) => [key, value]));
+  const declarations = [...match[1].matchAll(/--([\w-]+):\s*([^;]+)\s*;/g)];
+  return Object.fromEntries(declarations.map(([, key, value]) => [key, value.trim()]));
 }
 
 function relativeLuminance(hex: string) {
@@ -36,6 +37,8 @@ const pairs = [
   ["primary", "primary-foreground"],
   ["accent", "accent-foreground"],
   ["destructive", "destructive-foreground"],
+  ["destructive-hover", "destructive-hover-foreground"],
+  ["background", "destructive"],
   ["warning", "warning-foreground"],
   ["card", "card-foreground"],
   ["background", "foreground"],
@@ -49,6 +52,13 @@ const themes = [
 ] as const;
 
 describe("SCRUM-153 semantic theme token contrast", () => {
+  it("uses a semantic modal backdrop token for every theme", () => {
+    expect(css).not.toContain("--modal-backdrop: initial");
+    for (const selector of [":root", ".dark", ":root:not(.light)"]) {
+      expect(themeTokens(selector)["modal-backdrop"]).toBeDefined();
+    }
+  });
+
   it.each(themes.flatMap((theme) => boundaryPairs.map(([boundary, surface]) => ({ theme, boundary, surface }))))(
     "passes WCAG AA non-text contrast for $theme.name $boundary/$surface boundaries",
     ({ theme, boundary, surface }) => {

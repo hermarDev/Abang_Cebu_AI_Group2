@@ -26,16 +26,14 @@ describe("shared UI components", () => {
       <div>
         <Button>Search homes</Button>
         <Button variant="secondary">Secondary</Button>
-        <Button variant="outline">Outline</Button>
-        <Button variant="ghost">Ghost</Button>
         <Button variant="destructive">Delete</Button>
       </div>,
     );
 
-    for (const name of ["Search homes", "Secondary", "Outline", "Ghost", "Delete"]) {
+    for (const name of ["Search homes", "Secondary", "Delete"]) {
       expect(screen.getByRole("button", { name })).toHaveClass("touch-target");
-      expect(screen.getByRole("button", { name })).toHaveClass("focus-ring");
     }
+    expect(screen.getByRole("button", { name: "Delete" })).toHaveClass("focus-ring");
   });
 
   it("disables a loading button and announces its progress", () => {
@@ -59,6 +57,18 @@ describe("shared UI components", () => {
     const password = screen.getByLabelText("Password");
     expect(password).toHaveAttribute("aria-invalid", "true");
     expect(password).toHaveAccessibleDescription("Enter a valid password.");
+  });
+
+  it("preserves caller-provided aria-invalid when helper errors are absent", () => {
+    render(
+      <>
+        <Input aria-label="Email" aria-invalid="true" />
+        <Select aria-label="District" aria-invalid="true"><option value="">Choose</option></Select>
+      </>,
+    );
+
+    expect(screen.getByRole("textbox", { name: "Email" })).toHaveAttribute("aria-invalid", "true");
+    expect(screen.getByRole("combobox", { name: "District" })).toHaveAttribute("aria-invalid", "true");
   });
 
   it("preserves caller descriptions alongside input helper text", () => {

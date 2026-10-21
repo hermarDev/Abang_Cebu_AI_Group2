@@ -6,6 +6,7 @@
   --foreground: #0f2742;
 
   /* Card Surfaces & Overlays */
+  --modal-backdrop: rgb(15 39 66 / 0.5);
   --card: #ffffff;
   --card-foreground: #0f2742;
   --popover: #ffffff;
@@ -31,10 +32,13 @@
   /* Accent Highlight Surfaces */
   --accent: #f0fdfc;
   --accent-foreground: #0f766e;
+  --accent-hover: #ccfbf7;
 
   /* Destructive / Sinulog Crimson */
-  --destructive: #e11d48;
+  --destructive: #be123c;
   --destructive-foreground: #ffffff;
+  --destructive-hover: #fda4af;
+  --destructive-hover-foreground: #881337;
 
   /* Warning / Golden Sun */
   --warning: #b45309;
@@ -60,6 +64,7 @@
   --foreground: #f0f4f9;
 
   /* Card Surfaces & Overlays */
+  --modal-backdrop: rgb(9 24 42 / 0.7);
   --card: #0f2742;
   --card-foreground: #f0f4f9;
   --popover: #0f2742;
@@ -85,10 +90,13 @@
   /* Accent Highlight Surfaces */
   --accent: #115e59;
   --accent-foreground: #99f6ee;
+  --accent-hover: #134e4a;
 
   /* Destructive / Sinulog Crimson */
   --destructive: #fb7185;
   --destructive-foreground: #4c0519;
+  --destructive-hover: #9f1239;
+  --destructive-hover-foreground: #fff1f2;
 
   /* Warning / Golden Sun */
   --warning: #fbbf24;
@@ -104,6 +112,7 @@
   :root:not(.light) {
     --background: #09182a;
     --foreground: #f0f4f9;
+    --modal-backdrop: rgb(9 24 42 / 0.7);
     --card: #0f2742;
     --card-foreground: #f0f4f9;
     --popover: #0f2742;
@@ -119,8 +128,11 @@
     --muted-foreground: #b9d0e7;
     --accent: #115e59;
     --accent-foreground: #99f6ee;
+    --accent-hover: #134e4a;
     --destructive: #fb7185;
     --destructive-foreground: #4c0519;
+    --destructive-hover: #be123c;
+    --destructive-hover-foreground: #fff1f2;
     --warning: #fbbf24;
     --warning-foreground: #451a03;
     --border: #518ec3;
@@ -227,8 +239,11 @@
   --color-muted-foreground: var(--muted-foreground);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
+  --color-accent-hover: var(--accent-hover);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
+  --color-destructive-hover: var(--destructive-hover);
+  --color-destructive-hover-foreground: var(--destructive-hover-foreground);
   --color-warning: var(--warning);
   --color-warning-foreground: var(--warning-foreground);
   --color-border: var(--border);

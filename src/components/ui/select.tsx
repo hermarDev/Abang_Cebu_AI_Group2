@@ -22,6 +22,7 @@ export function Select({
   const descriptionId = `${id}-description`;
   const description = error ?? helperText;
   const describedBy = [props["aria-describedby"], description ? descriptionId : undefined].filter(Boolean).join(" ") || undefined;
+  const ariaInvalid = error ? true : props["aria-invalid"];
 
   return (
     <div className="grid gap-1.5">
@@ -34,7 +35,7 @@ export function Select({
         {...props}
         id={id}
         disabled={disabled}
-        aria-invalid={error ? true : undefined}
+        aria-invalid={ariaInvalid}
         aria-describedby={describedBy}
         className={cn(
           "focus-ring touch-target w-full rounded-md border border-input bg-card px-3 py-2 text-base text-card-foreground disabled:cursor-not-allowed disabled:opacity-50",
