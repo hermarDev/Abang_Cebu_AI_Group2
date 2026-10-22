@@ -115,7 +115,7 @@ test('server action sends normalized metadata and PKCE callback, never session t
   assert.deepEqual(signUpOptions.options.data, { role: 'renter', full_name: 'Mika Santos', phone_number: '+639171234567', preferred_landmark: null });
   assert.equal(new URL(signUpOptions.options.emailRedirectTo).pathname, '/auth/callback');
   assert.equal(result.data.requiresEmailVerification, true);
-  assert.equal(result.data.user.phoneNumber, '+63917****4567');
+  assert.equal('user' in result.data, false);
   assert.equal('access_token' in result.data, false);
   assert.equal('refresh_token' in result.data, false);
   if (previous.secret === undefined) delete process.env.TURNSTILE_SECRET_KEY; else process.env.TURNSTILE_SECRET_KEY = previous.secret;
@@ -184,7 +184,7 @@ test('registration rate limit uses atomic shared Redis pipeline and fails closed
   global.fetch = originalFetch;
 });
 
-test('registration API requires challenge and returns generic anti-enumeration response for duplicate email', async () => {
+test('registration API requires challenge and returns identical success bodies for duplicate and new email', async () => {
   resetMocks();
   const savedSecret = process.env.TURNSTILE_SECRET_KEY;
   process.env.TURNSTILE_SECRET_KEY = 'test-secret';
@@ -196,12 +196,21 @@ test('registration API requires challenge and returns generic anti-enumeration r
   global.fetch = async (url) => url.includes('siteverify') ? ({ ok: true, json: async () => ({ success: true }) }) : ({ ok: true, json: async () => [{ result: 1 }, { result: 1 }] });
   signUpResponse = { data: { user: null }, error: { code: 'user_already_exists' } };
   const duplicate = await registerRoute(new Request('https://app.test/api/auth/register', { method: 'POST', headers: { 'cf-connecting-ip': '203.0.113.2' }, body: JSON.stringify(validPayload) }));
-  const body = await duplicate.json();
+  const duplicateBody = await duplicate.json();
   assert.equal(duplicate.status, 201);
-  assert.equal(body.success, true);
-  assert.equal(body.data.user, undefined);
-  assert.ok(!JSON.stringify(body).includes('renter@example.com'));
-  assert.equal(signUpCalls, 1);
+  assert.equal(duplicateBody.success, true);
+  assert.ok(!JSON.stringify(duplicateBody).includes('renter@example.com'));
+  signUpResponse = { data: { user: { id: 'synthetic-user', email: 'renter@example.com', email_confirmed_at: null, created_at: '2026-10-21T00:00:00.000Z' } }, error: null };
+  const newAddress = await registerRoute(new Request('https://app.test/api/auth/register', { method: 'POST', headers: { 'cf-connecting-ip': '203.0.113.3' }, body: JSON.stringify({ ...validPayload, email: 'another@example.com' }) }));
+  const newAddressBody = await newAddress.json();
+  assert.equal(newAddress.status, duplicate.status);
+  assert.equal(newAddressBody.success, duplicateBody.success);
+  assert.equal(newAddressBody.message, duplicateBody.message);
+  assert.equal(newAddressBody.data.requiresEmailVerification, duplicateBody.data.requiresEmailVerification);
+  assert.ok(newAddressBody.data.redirectUrl.startsWith('/auth/verify-request?email='));
+  assert.equal('user' in newAddressBody.data, false);
+  assert.ok(!JSON.stringify(newAddressBody).includes('another@example.com'));
+  assert.equal(signUpCalls, 2);
   if (savedSecret === undefined) delete process.env.TURNSTILE_SECRET_KEY; else process.env.TURNSTILE_SECRET_KEY = savedSecret;
   global.fetch = originalFetch;
 });

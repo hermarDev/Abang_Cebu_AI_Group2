@@ -1,6 +1,6 @@
 import { headers } from 'next/headers';
 import { AuthErrorCode } from '@/types/auth';
-import type { RegisterPayload, RegisteredUserSummary } from '@/types/auth';
+import type { RegisterPayload } from '@/types/auth';
 import { validateRegistrationPayload } from '@/lib/auth/registration';
 import { consumeRegistrationRateLimit, registrationAbuseError, verifyRegistrationChallenge } from '@/lib/auth/registration-abuse';
 import { createClient } from '@/lib/supabase/server';
@@ -31,25 +31,10 @@ async function submitRegistration(value: import('@/lib/auth/registration').Valid
     if (error || !data.user) {
       return { success: false as const, error: { code: AuthErrorCode.INTERNAL_AUTH_ERROR, message: 'An unexpected authentication error occurred. Please try again.', status: 500 } };
     }
-    return {
-      ...accepted(value.email),
-      data: {
-        ...accepted(value.email).data,
-        user: {
-          id: data.user.id, email: value.email, role: value.role, fullName: value.fullName,
-          phoneNumber: formatMaskedPhone(value.phoneNumber), isEmailConfirmed: Boolean(data.user.email_confirmed_at),
-          createdAt: data.user.created_at ?? new Date().toISOString(),
-        } satisfies RegisteredUserSummary,
-      },
-    };
+    return accepted(value.email);
   } catch {
     return { success: false as const, error: { code: AuthErrorCode.INTERNAL_AUTH_ERROR, message: 'An unexpected authentication error occurred. Please try again.', status: 500 } };
   }
-}
-
-function formatMaskedPhone(phone?: string | null) {
-  const digits = phone?.replace(/\D/g, '');
-  return digits ? `+639${digits.slice(-9, -7)}****${digits.slice(-4)}` : null;
 }
 
 async function registrationAccepted(value: import('@/lib/auth/registration').ValidatedRegistration, ip: string | null) {
