@@ -40,9 +40,17 @@ def has_wildcard(value):
     return False
 
 
+def contains_transform(value):
+    if isinstance(value, dict):
+        return "Fn::Transform" in value or any(contains_transform(item) for item in value.values())
+    if isinstance(value, list):
+        return any(contains_transform(item) for item in value)
+    return False
+
+
 def validate_policy_attachments(template):
     """Reject policy attachments outside the reviewed proposal's exact allowlist."""
-    if "Transform" in template:
+    if "Transform" in template or contains_transform(template):
         raise ValueError("Transform is not allowlisted")
 
     expected_policies = {
@@ -238,6 +246,15 @@ class TemplateTests(unittest.TestCase):
     def test_validator_rejects_unreviewed_template_transform(self):
         mutated = json.loads(json.dumps(self.template))
         mutated["Transform"] = "Unreviewed::Macro"
+        with self.assertRaisesRegex(ValueError, "Transform is not allowlisted"):
+            validate_policy_attachments(mutated)
+
+    def test_validator_rejects_nested_fn_transform(self):
+        mutated = json.loads(json.dumps(self.template))
+        mutated["Resources"]["StagingDeployerRole"]["Properties"]["Fn::Transform"] = {
+            "Name": "UnreviewedMacro",
+            "Parameters": {},
+        }
         with self.assertRaisesRegex(ValueError, "Transform is not allowlisted"):
             validate_policy_attachments(mutated)
 
