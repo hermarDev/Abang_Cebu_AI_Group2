@@ -40,6 +40,85 @@ def has_wildcard(value):
     return False
 
 
+def validate_policy_attachments(template):
+    """Reject policy attachments outside the reviewed proposal's exact allowlist."""
+    expected_policies = {
+        "StagingDeployerRole": [],
+        "StagingMonitoringRole": [
+            {
+                "PolicyName": "ReadNamedStagingLogs",
+                "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Sid": "DescribeNamedStagingLogGroups",
+                            "Effect": "Allow",
+                            "Action": "logs:DescribeLogStreams",
+                            "Resource": [{"Ref": "AppLogGroupArn"}, {"Ref": "NginxLogGroupArn"}],
+                        },
+                        {
+                            "Sid": "ReadNamedStagingLogGroups",
+                            "Effect": "Allow",
+                            "Action": "logs:FilterLogEvents",
+                            "Resource": [{"Ref": "AppLogGroupArn"}, {"Ref": "NginxLogGroupArn"}],
+                        },
+                        {
+                            "Sid": "ReadNamedStagingLogStreams",
+                            "Effect": "Allow",
+                            "Action": "logs:GetLogEvents",
+                            "Resource": [{"Ref": "AppLogStreamArn"}, {"Ref": "NginxLogStreamArn"}],
+                        },
+                    ],
+                },
+            }
+        ],
+        "StagingSecurityAuditorRole": [
+            {
+                "PolicyName": "ReadStagingRolePolicies",
+                "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Sid": "InspectOnlyNamedStagingRoles",
+                            "Effect": "Allow",
+                            "Action": ["iam:GetRole", "iam:GetRolePolicy", "iam:ListRolePolicies"],
+                            "Resource": [
+                                {"Fn::Sub": "arn:${AWS::Partition}:iam::${StagingAccountId}:role/AbangCebuStagingDeployer"},
+                                {"Fn::Sub": "arn:${AWS::Partition}:iam::${StagingAccountId}:role/AbangCebuStagingMonitoring"},
+                                {"Fn::Sub": "arn:${AWS::Partition}:iam::${StagingAccountId}:role/AbangCebuStagingSecurityAuditor"},
+                            ],
+                        }
+                    ],
+                },
+            }
+        ],
+    }
+    resource_types = {
+        name: resource["Type"]
+        for name, resource in template["Resources"].items()
+    }
+    expected_roles = {
+        "StagingDeployerRole": "AWS::IAM::Role",
+        "StagingMonitoringRole": "AWS::IAM::Role",
+        "StagingSecurityAuditorRole": "AWS::IAM::Role",
+    }
+    if resource_types != expected_roles:
+        raise ValueError("IAM resources do not match the allowlisted role contract")
+    role_resources = {
+        name: template["Resources"][name]
+        for name, resource_type in resource_types.items()
+        if resource_type == "AWS::IAM::Role"
+    }
+    if set(role_resources) != set(expected_policies):
+        raise ValueError("IAM role resources do not match the allowlisted contract")
+    for role_name, policies in expected_policies.items():
+        properties = role_resources[role_name]["Properties"]
+        if properties.get("ManagedPolicyArns", []) != []:
+            raise ValueError(f"{role_name} ManagedPolicyArns are not allowlisted")
+        if properties.get("Policies", []) != policies:
+            raise ValueError(f"{role_name} Policies or Resource values are not allowlisted")
+
+
 class TemplateTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -72,6 +151,7 @@ class TemplateTests(unittest.TestCase):
                     self.assertEqual(statement["Condition"]["Bool"]["aws:MultiFactorAuthPresent"], "true")
 
     def test_policy_actions_and_resources_have_no_wildcards(self):
+        validate_policy_attachments(self.template)
         for role_name, resource in self.resources.items():
             with self.subTest(role=role_name):
                 for statement in policy_statements(resource):
@@ -92,6 +172,70 @@ class TemplateTests(unittest.TestCase):
             role["AssumeRolePolicyDocument"]["Statement"][0]["Principal"]["AWS"],
             {"Ref": "DeployTrustedPrincipalArn"},
         )
+
+    def test_monitoring_policy_resources_are_exactly_named_staging_logs(self):
+        statements = self.resources["StagingMonitoringRole"]["Properties"]["Policies"][0]["PolicyDocument"]["Statement"]
+        expected = {
+            "DescribeNamedStagingLogGroups": (
+                "logs:DescribeLogStreams",
+                [{"Ref": "AppLogGroupArn"}, {"Ref": "NginxLogGroupArn"}],
+            ),
+            "ReadNamedStagingLogGroups": (
+                "logs:FilterLogEvents",
+                [{"Ref": "AppLogGroupArn"}, {"Ref": "NginxLogGroupArn"}],
+            ),
+            "ReadNamedStagingLogStreams": (
+                "logs:GetLogEvents",
+                [{"Ref": "AppLogStreamArn"}, {"Ref": "NginxLogStreamArn"}],
+            ),
+        }
+        self.assertEqual(len(statements), len(expected))
+        for statement in statements:
+            with self.subTest(sid=statement.get("Sid")):
+                action, resources = expected[statement["Sid"]]
+                self.assertEqual(
+                    statement,
+                    {
+                        "Sid": statement["Sid"],
+                        "Effect": "Allow",
+                        "Action": action,
+                        "Resource": resources,
+                    },
+                )
+
+    def test_monitoring_policy_validator_rejects_unapproved_production_log_group(self):
+        mutated = json.loads(json.dumps(self.template))
+        statements = mutated["Resources"]["StagingMonitoringRole"]["Properties"]["Policies"][0]["PolicyDocument"]["Statement"]
+        statements[1]["Resource"].append(
+            "arn:aws:logs:ap-southeast-1:123456789012:log-group:/abang/production/app"
+        )
+        with self.assertRaisesRegex(ValueError, "Policies or Resource values"):
+            validate_policy_attachments(mutated)
+
+    def test_monitoring_policy_validator_rejects_administrator_access(self):
+        mutated = json.loads(json.dumps(self.template))
+        mutated["Resources"]["StagingMonitoringRole"]["Properties"]["ManagedPolicyArns"] = [
+            "arn:aws:iam::aws:policy/AdministratorAccess"
+        ]
+        with self.assertRaisesRegex(ValueError, "ManagedPolicyArns"):
+            validate_policy_attachments(mutated)
+
+    def test_validator_rejects_additional_iam_policy_resources(self):
+        mutated = json.loads(json.dumps(self.template))
+        mutated["Resources"]["UnreviewedPolicy"] = {
+            "Type": "AWS::IAM::ManagedPolicy",
+            "Properties": {"PolicyDocument": {"Statement": [{"Effect": "Allow", "Action": "*", "Resource": "*"}]}},
+        }
+        with self.assertRaisesRegex(ValueError, "allowlisted role contract"):
+            validate_policy_attachments(mutated)
+
+    def test_template_policy_attachments_match_the_allowlisted_contract(self):
+        validate_policy_attachments(self.template)
+
+    def test_roles_do_not_attach_unreviewed_managed_policies(self):
+        for role_name in ("StagingDeployerRole", "StagingMonitoringRole", "StagingSecurityAuditorRole"):
+            with self.subTest(role=role_name):
+                self.assertNotIn("ManagedPolicyArns", self.resources[role_name]["Properties"])
 
     def test_monitor_reads_named_logs_without_mutation_permissions(self):
         statements = list(policy_statements(self.resources["StagingMonitoringRole"]))

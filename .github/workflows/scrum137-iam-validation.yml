@@ -8,6 +8,7 @@ on:
       - '.github/workflows/scrum137-iam-validation.yml'
       - 'infra/aws/iam/roles.template.json'
       - 'scripts/validate_scrum137_iam.py'
+      - 'docs/security/iam-policies.md'
   workflow_dispatch:
 
 permissions:

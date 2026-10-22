@@ -2,7 +2,7 @@
 
 Status: unapplied proposal. No AWS IAM policies or roles have been installed or live-tested.
 
-The proposed deployer role trusts only the named CI principal but has no attached permissions until a fixed, owner-reviewed deployment command contract exists; no arbitrary-shell permission is included. The monitoring role reads only the named logs; the security auditor reads only the three named staging role policies. The template does not create an admin role or alter the shared developer group. Permission actions/resources contain no wildcards.
+The proposed deployer role trusts only the named CI principal but has no attached permissions until a fixed, owner-reviewed deployment command contract exists; no arbitrary-shell permission is included. The monitoring role reads only the named logs; the security auditor reads only the three named staging role policies. Permission actions/resources contain no wildcards. The offline validator uses an exact allowlist for role policy attachments, inline action/resource statements, and managed-policy attachments; any unreviewed permission expansion requires an intentional validator update and regression evidence.
 
 ## Administrator MFA boundary
 
