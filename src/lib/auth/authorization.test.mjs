@@ -74,6 +74,7 @@ Module._load = function (request, parent, isMain) {
 
 const { middleware, config } = require('../../../middleware.ts');
 const { getRequiredRole, getRoleHome, isRoleAllowed } = require('./authorization.ts');
+const { isSafeRedirectUrl } = require('../../types/auth.ts');
 
 function reset({ user, profile } = {}) {
   state.auth = user
@@ -107,7 +108,7 @@ test('redirects guests from protected route families and preserves query in next
   for (const route of ['/renter/dashboard', '/landlord/listings/new', '/admin/users', '/account/settings']) {
     reset();
     const response = await visit(route);
-    assert.equal(response.status, 307, route);
+    assert.equal(response.status, 302, route);
     const location = new URL(response.headers.get('location'));
     assert.equal(location.pathname, '/login');
     assert.equal(location.searchParams.get('next'), route);
@@ -138,20 +139,42 @@ test('allows only the role stored in profiles, not caller-controlled user metada
   assert.equal(isRoleAllowed('admin', '/landlord/listings/new'), false);
 });
 
+test('isSafeRedirectUrl rejects encoded control and protocol-relative redirects', () => {
+  for (const value of ['/%09//evil.test', '/%2f%2fevil.test', '/%252f%252fevil.test']) {
+    assert.equal(isSafeRedirectUrl(value), false, value);
+  }
+  assert.equal(isSafeRedirectUrl('/renter/saved?sort=price'), true);
+});
+
 test('sends authenticated users away from guest-only pages to the profile role home', async () => {
   reset({ user, profile: roleProfile('landlord') });
   const response = await visit('/login');
-  assert.equal(response.status, 307);
+  assert.equal(response.status, 302);
   assert.equal(new URL(response.headers.get('location')).pathname, '/landlord/dashboard');
+});
+
+test('redirects authenticated users away from role-incompatible or unsafe guest-route destinations', async () => {
+  for (const next of ['/admin/users', '/landlord/listings/new', '/%09//evil.example', '/login']) {
+    reset({ user, profile: roleProfile('renter') });
+    const response = await visit(`/login?next=${encodeURIComponent(next)}`);
+    assert.equal(response.status, 302, next);
+    assert.equal(new URL(response.headers.get('location')).pathname, '/renter/dashboard', next);
+  }
+
+  reset({ user, profile: roleProfile('renter') });
+  const response = await visit('/login?next=%2Frenter%2Fsaved%3Fsort%3Dprice');
+  assert.equal(new URL(response.headers.get('location')).pathname, '/renter/saved');
+  assert.equal(new URL(response.headers.get('location')).search, '?sort=price');
 });
 
 test('rejects expired or tampered sessions before profile lookup', async () => {
   reset();
   const response = await visit('/admin/users');
-  assert.equal(response.status, 307);
+  assert.equal(response.status, 302);
   assert.deepEqual(state.profileTables, []);
   assert.equal(new URL(response.headers.get('location')).searchParams.get('next'), '/admin/users');
 });
+
 
 test('fails closed on missing profile or unknown role', async () => {
   reset({ user, profile: { data: null, error: { message: 'not found' } } });
@@ -163,7 +186,7 @@ test('fails closed on missing profile or unknown role', async () => {
 test('suspended account is locally signed out and its session-cookie chunks are cleared', async () => {
   reset({ user, profile: roleProfile('renter', true) });
   const response = await visit('/renter/dashboard');
-  assert.equal(response.status, 307);
+  assert.equal(response.status, 302);
   assert.equal(new URL(response.headers.get('location')).searchParams.get('reason'), 'suspended');
   assert.equal(state.signOutCalls, 1);
   assert.equal(response.cookies.get('sb-test-auth-token').maxAge, 0);

@@ -621,33 +621,22 @@ export function validatePasswordStrength(password: string): PasswordStrengthResu
  * (starting with '/') and explicitly forbidding protocol-relative ('//') or backslash paths.
  */
 export function isSafeRedirectUrl(url: string | null | undefined): boolean {
-  if (!url || typeof url !== 'string') {
-    return false;
-  }
+  if (!url || typeof url !== 'string' || !url.startsWith('/')) return false;
 
-  // Must begin with a single '/'
-  if (!url.startsWith('/')) {
-    return false;
-  }
-
-  // Disallow protocol-relative URLs (e.g. '//attacker.com')
-  if (url.startsWith('//')) {
-    return false;
-  }
-
-  // Disallow backslashes which some browsers normalize to forward slashes (e.g. '/\\attacker.com')
-  if (url.includes('\\')) {
-    return false;
-  }
-
-  // Disallow null bytes or ASCII control characters
-  for (let i = 0; i < url.length; i++) {
-    const code = url.charCodeAt(i);
-    if (code < 32 || code === 127) {
-      return false;
+  let candidate = url;
+  for (let depth = 0; depth <= url.length; depth++) {
+    if (!candidate.startsWith('/') || candidate.startsWith('//') || candidate.includes('\\')) return false;
+    for (let i = 0; i < candidate.length; i++) {
+      const code = candidate.charCodeAt(i);
+      if (code < 32 || code === 127) return false;
     }
+
+    const decoded = candidate.replace(/%([\da-f]{2})/gi, (_, hex: string) =>
+      String.fromCharCode(Number.parseInt(hex, 16)));
+    if (decoded === candidate) return true;
+    candidate = decoded;
   }
 
-  return true;
+  return false;
 }
 

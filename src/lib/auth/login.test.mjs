@@ -156,5 +156,6 @@ test('profile lookup failure and unknown role fail closed; redirect rejects fore
   const unknownRole = await login();
   assert.equal(unknownRole.body.error.code, 'INTERNAL_AUTH_ERROR');
   assert.equal(loginDestination('renter', '/admin/users'), '/search');
+  assert.equal(loginDestination('renter', '/%09//evil.test'), '/search');
   assert.equal(loginDestination('landlord', 'https://evil.test'), '/landlord/dashboard');
 });

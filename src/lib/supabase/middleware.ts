@@ -1,7 +1,7 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 import { getRequiredRole, getRoleHome, isRoleAllowed } from '@/lib/auth/authorization';
-import { REMEMBER_COOKIE, REMEMBER_SECONDS } from '@/lib/auth/login';
+import { loginDestination, REMEMBER_COOKIE, REMEMBER_SECONDS } from '@/lib/auth/login';
 import type { UserRole } from '@/types/database';
 
 function isRole(value: unknown): value is UserRole {
@@ -78,7 +78,7 @@ export async function updateSession(request: NextRequest) {
     if (protectedPath) {
       const login = new URL('/login', request.url);
       login.searchParams.set('next', `${pathname}${request.nextUrl.search}`);
-      const response = NextResponse.redirect(login);
+      const response = NextResponse.redirect(login, 302);
       copyCookies(supabaseResponse, response);
       return response;
     }
@@ -96,7 +96,7 @@ export async function updateSession(request: NextRequest) {
 
   if (profile.is_suspended) {
     await supabase.auth.signOut({ scope: 'local' });
-    const response = NextResponse.redirect(new URL('/login?reason=suspended', request.url));
+    const response = NextResponse.redirect(new URL('/login?reason=suspended', request.url), 302);
     copyCookies(supabaseResponse, response);
     for (const { name } of request.cookies.getAll()) {
       if (/^sb-.+-auth-token(?:\.\d+)?$/.test(name)) {
@@ -110,11 +110,10 @@ export async function updateSession(request: NextRequest) {
 
   if (guestOnlyPath) {
     const requested = request.nextUrl.searchParams.get('next');
-    const safeRequested = requested?.startsWith('/') && !requested.startsWith('//') && !requested.includes('\\')
+    const destination = typeof requested === 'string' && loginDestination(profile.role, requested) === requested
       ? requested
-      : null;
-    const destination = safeRequested ?? getRoleHome(profile.role);
-    const response = NextResponse.redirect(new URL(destination, request.url));
+      : getRoleHome(profile.role);
+    const response = NextResponse.redirect(new URL(destination, request.url), 302);
     copyCookies(supabaseResponse, response);
     return response;
   }
