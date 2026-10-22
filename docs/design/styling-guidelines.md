@@ -188,7 +188,7 @@ AbangCebuAI employs a clean two-layer token architecture:
 | `--muted-foreground` | `text-muted-foreground` | `#675a3e` (Sand 700) | `#b9d0e7` (Navy 200) | Secondary metadata, dates, unit counts |
 | `--accent` | `bg-accent` | `#f0fdfc` (Teal 50) | `#115e59` (Teal 800) | Soft interactive hover backgrounds |
 | `--accent-foreground` | `text-accent-foreground` | `#0f766e` (Teal 700) | `#99f6ee` (Teal 200) | Text within accented containers |
-| `--destructive` | `bg-destructive` | `#e11d48` (Crimson 600)| `#fb7185` (Crimson 400)| Destructive actions, alert notifications|
+| `--destructive` | `bg-destructive` | `#be123c` (Crimson 700)| `#fb7185` (Crimson 400)| Destructive actions, alert notifications|
 | `--warning` | `text-warning`, `bg-warning` | `#b45309` (Amber 700) | `#fbbf24` (Amber 400) | Star ratings, warnings, deposit notices |
 | `--border` | `border-border` | `#83734e` (Sand 600) | `#518ec3` (Navy 400) | Control boundaries and dividers; at least 3:1 against declared adjacent surfaces |
 | `--input` | `border-input`, `bg-input` | `#83734e` (Sand 600) | `#518ec3` (Navy 400) | Form inputs and select triggers; at least 3:1 against declared adjacent surfaces |
