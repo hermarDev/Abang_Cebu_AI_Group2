@@ -8,7 +8,7 @@ The CloudFormation template proposes one encrypted gp3-backed AL2023 EC2 host in
 
 Before any deployment, a staging owner/platform administrator must supply and verify: AWS account and region; cost owner and written approval; private subnet/VPC and route strategy (including approved outbound access); patched, region-valid AL2023 x86_64 AMI/release; instance type and cost limit; approvable ingress CIDR; pre-created instance profile with only necessary SSM/CloudWatch permissions; approved DNS name, certificate/TLS termination design and email; Next.js build/runtime configuration; Supabase staging project URL/anon public key and allowed callback URLs; approved server-only secrets via a secret manager; rollback operator; and an authorized account with CloudFormation permissions. Never put real credentials in this repository or example parameter file.
 
-`AmiId` is a region-valid, owner-approved AL2023 x86_64 image input; inspect its operating-system release and patch level before use. The template expects the application service port as an owner-supplied parameter, but the present bootstrap does not configure an Nginx upstream or install the app.
+`AmiId` is a region-valid, owner-approved AL2023 standard x86_64 image input; do not select the Minimal variant because it does not include `aws-cfn-bootstrap`, which provides `/opt/aws/bin/cfn-signal` used by the bootstrap exit trap and `CreationPolicy`. Inspect the AMI release and patch level before use. The template expects the application service port as an owner-supplied parameter, but the present bootstrap does not configure an Nginx upstream or install the app.
 
 ## Review before deployment
 

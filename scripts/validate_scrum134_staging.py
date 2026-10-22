@@ -82,6 +82,17 @@ class StagingTemplateTests(unittest.TestCase):
         self.assertEqual(props["ImageId"], {"Ref": "AmiId"})
         self.assertIn("AppPort", self.template["Parameters"])
 
+    def test_ami_requires_cloudformation_signal_helper(self):
+        ami = self.template["Parameters"]["AmiId"]["Description"]
+        runbook = (ROOT / "docs/infrastructure/ec2-staging.md").read_text(encoding="utf-8")
+        self.assertIn("aws-cfn-bootstrap", ami)
+        self.assertIn("/opt/aws/bin/cfn-signal", ami)
+        self.assertIn("/opt/aws/bin/cfn-signal", runbook)
+
+    def test_runbook_changes_trigger_staging_validation_workflow(self):
+        workflow = (ROOT / ".github/workflows/scrum134-staging-validation.yml").read_text(encoding="utf-8")
+        self.assertIn("docs/infrastructure/ec2-staging.md", workflow)
+
     def test_no_public_ip_ssh_key_or_inline_iam_role_is_created(self):
         props = self.resources["StagingInstance"]["Properties"]
         self.assertNotIn("KeyName", props)

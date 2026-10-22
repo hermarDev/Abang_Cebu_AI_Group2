@@ -7,6 +7,7 @@ on:
     paths:
       - '.github/workflows/scrum134-staging-validation.yml'
       - 'infra/aws/staging/**'
+      - 'docs/infrastructure/ec2-staging.md'
       - 'scripts/validate_scrum134_staging.py'
       - 'scripts/requirements-infra-validation.txt'
   workflow_dispatch:
