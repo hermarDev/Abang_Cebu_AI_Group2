@@ -42,6 +42,9 @@ def has_wildcard(value):
 
 def validate_policy_attachments(template):
     """Reject policy attachments outside the reviewed proposal's exact allowlist."""
+    if "Transform" in template:
+        raise ValueError("Transform is not allowlisted")
+
     expected_policies = {
         "StagingDeployerRole": [],
         "StagingMonitoringRole": [
@@ -231,6 +234,12 @@ class TemplateTests(unittest.TestCase):
 
     def test_template_policy_attachments_match_the_allowlisted_contract(self):
         validate_policy_attachments(self.template)
+
+    def test_validator_rejects_unreviewed_template_transform(self):
+        mutated = json.loads(json.dumps(self.template))
+        mutated["Transform"] = "Unreviewed::Macro"
+        with self.assertRaisesRegex(ValueError, "Transform is not allowlisted"):
+            validate_policy_attachments(mutated)
 
     def test_roles_do_not_attach_unreviewed_managed_policies(self):
         for role_name in ("StagingDeployerRole", "StagingMonitoringRole", "StagingSecurityAuditorRole"):
