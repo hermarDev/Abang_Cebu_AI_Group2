@@ -297,6 +297,25 @@ class TemplateTests(unittest.TestCase):
         self.assertNotIn("*", statements[0]["Resource"])
         self.assertTrue(all("Staging" in arn["Fn::Sub"] for arn in statements[0]["Resource"]))
 
+    def test_trusted_principal_arn_patterns_are_restricted(self):
+        expected_patterns = {
+            "DeployTrustedPrincipalArn": (
+                r"^arn:aws[^:]*:iam::[0-9]{12}:role/[A-Za-z0-9+=,.@_/-]+$"
+            ),
+            "MonitoringTrustedPrincipalArn": (
+                r"^arn:aws[^:]*:iam::[0-9]{12}:(user|role)/[A-Za-z0-9+=,.@_/-]+$"
+            ),
+            "AuditorTrustedPrincipalArn": (
+                r"^arn:aws[^:]*:iam::[0-9]{12}:(user|role)/[A-Za-z0-9+=,.@_/-]+$"
+            ),
+        }
+        for name, pattern in expected_patterns.items():
+            with self.subTest(parameter=name):
+                parameter = self.parameters[name]
+                self.assertEqual(parameter["Type"], "String")
+                self.assertEqual(parameter["AllowedPattern"], pattern)
+                self.assertNotIn("Default", parameter)
+
     def test_log_arn_parameters_constrain_exact_resource_shapes(self):
         expected_patterns = {
             "AppLogGroupArn": GROUP_ARN_PATTERN,
