@@ -112,7 +112,7 @@ test("POST revokes the requested valid scope, masks redirects and expires every 
   assert.equal(route.signOutArgs.scope, "global");
   assert.equal(JSON.stringify(response.body), JSON.stringify({
     success: true,
-    data: { scope: "global", redirectUrl: "/login?message=logged_out" },
+    data: { scope: "global", redirectUrl: "/" },
   }));
   assert.equal(response.status, 200);
   assert.equal(response.headers.get("cache-control"), "no-store");

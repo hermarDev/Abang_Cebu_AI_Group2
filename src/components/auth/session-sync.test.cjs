@@ -54,18 +54,18 @@ const { default: SessionSync, safeRedirect } = componentModule.exports;
 
 test("redirect validation rejects off-origin, slash and encoded control payloads", () => {
   assert.equal(safeRedirect("/account/profile"), "/account/profile");
-  assert.equal(safeRedirect("//evil.example"), "/login?message=logged_out");
-  assert.equal(safeRedirect("/%09//evil.example"), "/login?message=logged_out");
-  assert.equal(safeRedirect("/\\\\evil.example"), "/login?message=logged_out");
+  assert.equal(safeRedirect("//evil.example"), "/");
+  assert.equal(safeRedirect("/%09//evil.example"), "/");
+  assert.equal(safeRedirect("/\\\\evil.example"), "/");
 });
 
 test("listener refreshes and redirects sibling tabs on valid sign-out broadcast", () => {
   SessionSync();
   assert.equal(channels.length, 1);
   assert.equal(channels[0].name, "supabase.auth.token");
-  channels[0].deliver({ type: "SIGNED_OUT", timestamp: Date.now(), redirectUrl: "/login?message=logged_out" });
+  channels[0].deliver({ type: "SIGNED_OUT", timestamp: Date.now(), redirectUrl: "/" });
   assert.equal(refreshes.length, 1);
-  assert.deepEqual(redirects, ["/login?message=logged_out"]);
+  assert.deepEqual(redirects, ["/"]);
   cleanup();
   assert.equal(closed, true);
 });

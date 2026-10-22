@@ -4,18 +4,19 @@ import { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { SESSION_CONSTANTS } from "@/types/auth";
 
+const DEFAULT_LOGOUT_REDIRECT = "/";
 const SIGNED_OUT = "SIGNED_OUT" as const;
 type SignOutMessage = { type: typeof SIGNED_OUT; timestamp: number; redirectUrl?: string };
 
 function safeRedirect(value: unknown): string {
   if (typeof value !== "string" || !value.startsWith("/") || value.startsWith("//") || value.includes("\\")) {
-    return SESSION_CONSTANTS.DEFAULT_LOGOUT_REDIRECT;
+    return "/";
   }
   for (const char of value) {
     const code = char.charCodeAt(0);
-    if (code < 32 || code === 127) return SESSION_CONSTANTS.DEFAULT_LOGOUT_REDIRECT;
+    if (code < 32 || code === 127) return DEFAULT_LOGOUT_REDIRECT;
   }
-  if (/%(?:0[0-9a-f]|1[0-9a-f]|7f)/i.test(value)) return SESSION_CONSTANTS.DEFAULT_LOGOUT_REDIRECT;
+  if (/%(?:0[0-9a-f]|1[0-9a-f]|7f)/i.test(value)) return DEFAULT_LOGOUT_REDIRECT;
   return value;
 }
 

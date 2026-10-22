@@ -18,7 +18,7 @@ export default function LogoutForm() {
       const response = await fetch("/api/logout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ scope: "local", redirectUrl: SESSION_CONSTANTS.DEFAULT_LOGOUT_REDIRECT }),
+        body: JSON.stringify({ scope: "local", redirectUrl: "/" }),
         cache: "no-store",
       });
       const result = await response.json().catch(() => null) as {
@@ -34,13 +34,13 @@ export default function LogoutForm() {
         channel.postMessage({
           type: "SIGNED_OUT",
           timestamp: Date.now(),
-          redirectUrl: result?.data?.redirectUrl ?? SESSION_CONSTANTS.DEFAULT_LOGOUT_REDIRECT,
+          redirectUrl: result?.data?.redirectUrl ?? "/",
         });
       } catch {
         // Local logout still proceeds when BroadcastChannel is unavailable.
       }
       router.refresh();
-      router.replace(SESSION_CONSTANTS.DEFAULT_LOGOUT_REDIRECT);
+      router.replace("/");
       if (!response.ok || !result?.success) {
         setError("This device was signed out, but server revocation could not be confirmed.");
       }

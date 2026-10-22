@@ -2,7 +2,7 @@
 
 /* eslint-disable @typescript-eslint/no-require-imports, @next/next/no-assign-module-variable */
 const assert = require("node:assert/strict");
-const { readFileSync } = require("node:fs");
+const { existsSync, readFileSync } = require("node:fs");
 const path = require("node:path");
 const test = require("node:test");
 const vm = require("node:vm");
@@ -40,12 +40,17 @@ test("accepts only supported Supabase logout scopes", () => {
   assert.equal(logout.isLogoutScope(null), false);
 });
 
+test("logout redirect points to a route in the production app", () => {
+  const redirectPath = new URL(logout.getSafeLogoutRedirect(null), "https://app.test").pathname;
+  assert.equal(existsSync(path.join(__dirname, "../../app", redirectPath.slice(1), "page.tsx")), true);
+});
+
 test("allows safe root-relative logout redirects and rejects external or control paths", () => {
-  assert.equal(logout.getSafeLogoutRedirect("/login?message=logged_out"), "/login?message=logged_out");
-  assert.equal(logout.getSafeLogoutRedirect("//evil.example"), "/login?message=logged_out");
-  assert.equal(logout.getSafeLogoutRedirect("/%09//evil.example"), "/login?message=logged_out");
-  assert.equal(logout.getSafeLogoutRedirect("/\\\\evil.example"), "/login?message=logged_out");
-  assert.equal(logout.getSafeLogoutRedirect("https://evil.example"), "/login?message=logged_out");
+  assert.equal(logout.getSafeLogoutRedirect("/"), "/");
+  assert.equal(logout.getSafeLogoutRedirect("//evil.example"), "/");
+  assert.equal(logout.getSafeLogoutRedirect("/%09//evil.example"), "/");
+  assert.equal(logout.getSafeLogoutRedirect("/\\\\evil.example"), "/");
+  assert.equal(logout.getSafeLogoutRedirect("https://evil.example"), "/");
 });
 
 test("finds Supabase auth cookie bases and numeric chunks, not verifier or unrelated cookies", () => {

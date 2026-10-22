@@ -124,7 +124,7 @@ test("logout form posts, publishes sign-out, and refreshes/redirects after cooki
   requestResponse = {
     ok: true,
     headers: new Headers({ "x-session-cookies-cleared": "true" }),
-    async json() { return { success: true, data: { redirectUrl: "/login?message=logged_out" } }; },
+    async json() { return { success: true, data: { redirectUrl: "/" } }; },
   };
   renderLogoutForm();
   assert.equal(typeof clickHandler, "function");
@@ -132,9 +132,9 @@ test("logout form posts, publishes sign-out, and refreshes/redirects after cooki
   assert.equal(postMessages.length, 1);
   assert.equal(postMessages[0].name, "supabase.auth.token");
   assert.equal(postMessages[0].message.type, "SIGNED_OUT");
-  assert.equal(postMessages[0].message.redirectUrl, "/login?message=logged_out");
+  assert.equal(postMessages[0].message.redirectUrl, "/");
   assert.equal(refreshes, 1);
-  assert.deepEqual(replacements, ["/login?message=logged_out"]);
+  assert.deepEqual(replacements, ["/"]);
   assert.equal(closedChannels, 1);
 });
 
