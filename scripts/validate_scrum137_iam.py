@@ -258,6 +258,14 @@ class TemplateTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Transform is not allowlisted"):
             validate_policy_attachments(mutated)
 
+    def test_validator_rejects_fn_transform_in_policy_list(self):
+        mutated = json.loads(json.dumps(self.template))
+        mutated["Resources"]["StagingMonitoringRole"]["Properties"]["Policies"].append(
+            {"Fn::Transform": {"Name": "UnreviewedMacro", "Parameters": {}}}
+        )
+        with self.assertRaisesRegex(ValueError, "Transform is not allowlisted"):
+            validate_policy_attachments(mutated)
+
     def test_roles_do_not_attach_unreviewed_managed_policies(self):
         for role_name in ("StagingDeployerRole", "StagingMonitoringRole", "StagingSecurityAuditorRole"):
             with self.subTest(role=role_name):
