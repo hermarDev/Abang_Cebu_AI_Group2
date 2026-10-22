@@ -155,7 +155,7 @@ class TemplateTests(unittest.TestCase):
                 self.assertEqual(len(statements), 1)
                 statement = statements[0]
                 self.assertEqual(statement["Action"], "sts:AssumeRole")
-                self.assertEqual(statement["Principal"]["AWS"], {"Ref": parameter_name})
+                self.assertEqual(statement["Principal"], {"AWS": {"Ref": parameter_name}})
                 if role_name == "StagingDeployerRole":
                     self.assertNotIn("Condition", statement)
                 else:
