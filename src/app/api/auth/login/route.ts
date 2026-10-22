@@ -1,6 +1,7 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 import { AuthErrorCode, createAuthError } from '@/types/auth';
+import { loginAbuseError, verifyLoginChallenge, checkLoginFailureLimit, consumeLoginAttempt, resetLoginFailureLimit } from '@/lib/auth/registration-abuse';
 import { createSafeSupabaseAuthError } from '@/lib/auth/supabase-error';
 import { invalidCredentials, loginDestination, REMEMBER_COOKIE, REMEMBER_SECONDS, validateLoginInput } from '@/lib/auth/login';
 import type { UserRole } from '@/types/database';
@@ -14,6 +15,15 @@ export async function POST(request: NextRequest) {
   }
   const payload = validateLoginInput(input);
   if (!payload) return NextResponse.json(createAuthError(AuthErrorCode.VALIDATION_ERROR, 'Invalid login data.', { status: 422 }), { status: 422 });
+  const remoteIp = request.headers.get('cf-connecting-ip')?.trim() || null;
+  if (!await verifyLoginChallenge(payload.turnstileToken, remoteIp)) {
+    const error = loginAbuseError('captcha');
+    return NextResponse.json(error, { status: error.error.status });
+  }
+  if (!await checkLoginFailureLimit(payload.email, remoteIp)) {
+    const error = loginAbuseError('rate-limit');
+    return NextResponse.json(error, { status: error.error.status });
+  }
 
   const sessionCookies = new Map<string, { name: string; value: string; options: Record<string, unknown> }>();
   const authHeaders: Record<string, string> = {};
@@ -78,8 +88,13 @@ export async function POST(request: NextRequest) {
   try {
     const { data, error } = await supabase.auth.signInWithPassword({ email: payload.email, password: payload.password });
     if (error || !data.user) {
-      return fail(error ? createSafeSupabaseAuthError(error) : invalidCredentials());
+      const safeError = error ? createSafeSupabaseAuthError(error) : invalidCredentials();
+      if (safeError.error.code === AuthErrorCode.INVALID_CREDENTIALS && !await consumeLoginAttempt(payload.email, remoteIp)) {
+        return fail(loginAbuseError('rate-limit'), 429);
+      }
+      return fail(safeError);
     }
+    await resetLoginFailureLimit(payload.email, remoteIp);
     if (!data.user.email_confirmed_at) {
       return await fail(createAuthError(AuthErrorCode.EMAIL_NOT_CONFIRMED, 'Verify your email before signing in.', { status: 403 }), 403, true);
     }

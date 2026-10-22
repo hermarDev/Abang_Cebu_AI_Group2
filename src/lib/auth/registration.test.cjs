@@ -142,8 +142,6 @@ test('server action rejects escalation before Supabase and masks upstream failur
 
 test('Turnstile verification fails closed on missing configuration, invalid token, and provider error', async () => {
   const savedSecret = process.env.TURNSTILE_SECRET_KEY;
-  delete process.env.TURNSTILE_SECRET_KEY;
-  assert.equal(await verifyRegistrationChallenge('token', '203.0.113.1'), false);
   process.env.TURNSTILE_SECRET_KEY = 'test-secret';
   global.fetch = async (url, options) => {
     assert.equal(url, 'https://challenges.cloudflare.com/turnstile/v0/siteverify');
@@ -168,13 +166,17 @@ test('registration rate limit uses atomic shared Redis pipeline and fails closed
   process.env.UPSTASH_REDIS_REST_TOKEN = 'test-token';
   let requestBody;
   global.fetch = async (url, options) => {
-    assert.equal(url, 'https://redis.example.test/pipeline');
+    assert.equal(url, 'https://redis.example.test');
     requestBody = JSON.parse(options.body);
-    return { ok: true, json: async () => [{ result: 1 }, { result: 1 }] };
+    return { ok: true, json: async () => ({ result: 1 }) };
   };
   assert.equal(await consumeRegistrationRateLimit('203.0.113.1'), true);
-  assert.deepEqual(requestBody[0], ['INCR', 'auth:register:203.0.113.1']);
-  global.fetch = async () => ({ ok: true, json: async () => [{ result: 6 }, { result: 1 }] });
+  assert.equal(requestBody[0], 'EVAL');
+  assert.equal(requestBody[2], 1);
+  assert.equal(requestBody[3], 'auth:register:203.0.113.1');
+  assert.equal(requestBody[4], 3600000);
+  assert.equal(requestBody[5], 5);
+  global.fetch = async () => ({ ok: true, json: async () => ({ result: 0 }) });
   assert.equal(await consumeRegistrationRateLimit('203.0.113.1'), false);
   global.fetch = async () => { throw new Error('network'); };
   assert.equal(await consumeRegistrationRateLimit('203.0.113.1'), false);

@@ -9,7 +9,7 @@ const require = createRequire(import.meta.url);
 const { NextRequest } = require('next/server');
 const originalLoad = Module._load;
 const originalResolve = Module._resolveFilename;
-const state = {};
+const state = { abuseCalls: [] };
 require.extensions['.ts'] = (module, filename) => {
   const output = ts.transpileModule(fs.readFileSync(filename, 'utf8'), {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, esModuleInterop: true },
@@ -53,13 +53,22 @@ Module._load = function (name, parent, isMain) {
       },
     };
   } };
+  if (name.endsWith('/registration-abuse')) return {
+    loginAbuseError(kind) {
+      return { success: false, error: { code: kind === 'captcha' ? 'CAPTCHA_VERIFICATION_FAILED' : 'RATE_LIMIT_EXCEEDED', message: kind, status: kind === 'captcha' ? 403 : 429 } };
+    },
+    async verifyLoginChallenge() { state.abuseCalls.push('challenge'); return state.challengeAllowed !== false; },
+    async checkLoginFailureLimit() { state.abuseCalls.push('check'); return state.limitAllowed !== false && !state.blockOnCredentialFailure; },
+    async consumeLoginAttempt() { state.abuseCalls.push('attempt'); return state.incrementAllowed !== false; },
+    async resetLoginFailureLimit() { state.abuseCalls.push('reset'); },
+  };
   return originalLoad.call(this, name, parent, isMain);
 };
 const { POST } = require('../../app/api/auth/login/route.ts');
 const { loginDestination, validateLoginInput } = require('./login.ts');
 
-function reset({ signInError = false, verified = true, simulateCookieBeforeFailure = false, profile = { role: 'renter', is_suspended: false }, profileError = null } = {}) {
-  Object.assign(state, { signInError, verified, simulateCookieBeforeFailure, profile, profileError, signOutCalls: 0, table: null, payload: null });
+function reset({ signInError = false, verified = true, simulateCookieBeforeFailure = false, blockOnCredentialFailure = false, profile = { role: 'renter', is_suspended: false }, profileError = null, challengeAllowed = true, limitAllowed = true, incrementAllowed = true } = {}) {
+  Object.assign(state, { signInError, verified, simulateCookieBeforeFailure, blockOnCredentialFailure, profile, profileError, challengeAllowed, limitAllowed, incrementAllowed, signOutCalls: 0, table: null, payload: null, abuseCalls: [] });
 }
 function login(fields = {}, cookie) {
   const request = new NextRequest('https://app.test/api/auth/login', {
@@ -72,10 +81,15 @@ function login(fields = {}, cookie) {
   return POST(request).then(async (response) => ({ response, body: await response.json() }));
 }
 
+test.after(() => {
+  Module._load = originalLoad;
+  Module._resolveFilename = originalResolve;
+});
+
 test('validates login input and rejects malformed payload without auth call', async () => {
   reset();
   assert.deepEqual(validateLoginInput({ email: ' A@B.COM ', password: 'abcdefgh' }), {
-    email: 'a@b.com', password: 'abcdefgh', rememberMe: false,
+    email: 'a@b.com', password: 'abcdefgh', rememberMe: false, turnstileToken: undefined,
   });
   for (const fields of [{ rememberMe: 'yes' }, { password: 'short' }, { email: 'invalid' }]) {
     const { response } = await login(fields);
@@ -84,17 +98,46 @@ test('validates login input and rejects malformed payload without auth call', as
   }
 });
 
-test('wrong password and unknown email return identical generic errors without session cookies', async () => {
+test('invalid challenge and a locked-out account do not call Supabase', async () => {
+  reset({ challengeAllowed: false });
+  assert.equal((await login()).response.status, 403);
+  assert.equal(state.abuseCalls.join(','), 'challenge');
+  assert.equal(state.payload, null);
+  reset({ limitAllowed: false });
+  assert.equal((await login()).response.status, 429);
+  assert.equal(state.abuseCalls.join(','), 'challenge,check');
+  assert.equal(state.payload, null);
+});
+
+test('wrong password and unknown email increment failure counter once and return generic errors', async () => {
   reset({ signInError: { message: 'Invalid login credentials' } });
   const wrong = await login();
-  const unknown = await login({ email: 'unknown@test.com' });
   assert.equal(wrong.response.status, 401);
-  assert.equal(unknown.response.status, 401);
-  assert.equal(wrong.body.error.code, unknown.body.error.code);
-  assert.equal(wrong.body.error.message, unknown.body.error.message);
-  assert.equal(wrong.body.error.status, unknown.body.error.status);
   assert.equal(wrong.body.error.code, 'AUTH_INVALID_CREDENTIALS');
+  assert.equal(state.abuseCalls.join(','), 'challenge,check,attempt');
   assert.equal(wrong.response.cookies.getAll().length, 0);
+  reset({ signInError: { message: 'Invalid login credentials' } });
+  const unknown = await login({ email: 'unknown@test.com' });
+  assert.equal(unknown.body.error.code, wrong.body.error.code);
+  assert.equal(unknown.body.error.message, wrong.body.error.message);
+  assert.equal(state.abuseCalls.filter((call) => call === 'attempt').length, 1);
+  assert.equal(state.abuseCalls.filter((call) => call === 'check').length, 1);
+});
+
+test('fifth invalid credential is rejected by the shared Redis limit', async () => {
+  reset({ signInError: { message: 'Invalid login credentials' }, blockOnCredentialFailure: true });
+  const { response, body } = await login();
+  assert.equal(response.status, 429);
+  assert.equal(body.error.code, 'RATE_LIMIT_EXCEEDED');
+  assert.equal(state.abuseCalls.join(','), 'challenge,check');
+});
+
+test('provider outage does not count as a bad-password attempt', async () => {
+  reset({ signInError: { message: 'temporary provider outage' } });
+  const { response, body } = await login();
+  assert.equal(response.status, 500);
+  assert.equal(body.error.code, 'INTERNAL_AUTH_ERROR');
+  assert.equal(state.abuseCalls.join(','), 'challenge,check');
 });
 
 test('unknown Supabase login errors return generic contract without reflecting provider diagnostics', async () => {
@@ -105,6 +148,7 @@ test('unknown Supabase login errors return generic contract without reflecting p
   assert.equal(body.error.message, 'An unexpected authentication error occurred. Please try again.');
   for (const secret of ['private schema', 'stack-token', 'internal table']) assert.ok(!JSON.stringify(body).includes(secret));
 });
+
 test('generic credential failure does not revoke an existing session', async () => {
   reset({ signInError: true });
   const { response, body } = await login({}, true);
@@ -128,6 +172,7 @@ test('verified renter gets HTTP-only session cookies and a safe destination, nev
   assert.equal(response.cookies.get('sb-test-auth-token.0').maxAge, undefined);
   assert.equal(response.cookies.get('abangcebu-remember').value, '0');
   assert.equal(response.headers.get('cache-control').includes('no-store'), true);
+  assert.equal(state.abuseCalls.join(','), 'challenge,check,reset');
 });
 
 test('Remember Me persists all chunked cookies for 30 days', async () => {

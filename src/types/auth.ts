@@ -84,7 +84,7 @@ export interface LoginPayload {
   email: string;
   /** User plaintext password */
   password: string;
-  /** Cloudflare Turnstile CAPTCHA verification token */
+  /** Cloudflare Turnstile CAPTCHA verification token; mandatory when abuse protection is enabled. */
   turnstileToken?: string;
   /** Remember-me persistence flag for extended session lifespan */
   rememberMe?: boolean;

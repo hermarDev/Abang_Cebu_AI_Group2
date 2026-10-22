@@ -8,11 +8,12 @@ export function validateLoginInput(input: unknown) {
   if (!input || typeof input !== 'object' || Array.isArray(input)) return null;
   const payload = input as Record<string, unknown>;
   if (typeof payload.email !== 'string' || typeof payload.password !== 'string' ||
-    (payload.rememberMe !== undefined && typeof payload.rememberMe !== 'boolean')) return null;
+    (payload.rememberMe !== undefined && typeof payload.rememberMe !== 'boolean') ||
+    (payload.turnstileToken !== undefined && typeof payload.turnstileToken !== 'string')) return null;
   const email = payload.email.trim().toLowerCase();
   if (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ||
     payload.password.length < 8 || payload.password.length > 72) return null;
-  return { email, password: payload.password, rememberMe: payload.rememberMe === true };
+  return { email, password: payload.password, rememberMe: payload.rememberMe === true, turnstileToken: payload.turnstileToken };
 }
 
 export function loginDestination(role: UserRole, next: unknown) {
