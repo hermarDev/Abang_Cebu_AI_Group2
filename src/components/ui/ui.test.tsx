@@ -36,6 +36,18 @@ describe("shared UI components", () => {
     expect(screen.getByRole("button", { name: "Delete" })).toHaveClass("focus-ring");
   });
 
+  it("retains a contrasting outline border on accent hover", () => {
+    render(<Button variant="outline">Outline search</Button>);
+    const outlineButton = screen.getByRole("button", { name: "Outline search" });
+    expect(outlineButton).toHaveClass(
+      "border-input",
+      "hover:bg-accent",
+      "hover:border-accent-foreground",
+      "hover:text-accent-foreground",
+    );
+    expect(outlineButton).not.toHaveClass("hover:border-transparent");
+  });
+
   it("disables a loading button and announces its progress", () => {
     render(<Button loading>Save listing</Button>);
 

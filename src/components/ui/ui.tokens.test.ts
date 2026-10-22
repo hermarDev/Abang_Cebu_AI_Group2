@@ -3,12 +3,20 @@ import { describe, expect, it } from "vitest";
 
 const css = readFileSync("src/app/globals.css", "utf8");
 
-function themeTokens(selector: string) {
+function themeTokens(selector: string, systemDark = false) {
   const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   const match = css.match(new RegExp(`${escaped}\\s*\\{([^}]+)\\}`));
   if (!match) throw new Error(`Missing theme selector: ${selector}`);
   const declarations = [...match[1].matchAll(/--([\w-]+):\s*([^;]+)\s*;/g)];
-  return Object.fromEntries(declarations.map(([, key, value]) => [key, value.trim()]));
+  const tokens = Object.fromEntries(declarations.map(([, key, value]) => [key, value.trim()]));
+  if (systemDark) {
+    const mediaBlock = css.match(/@media\s*\(prefers-color-scheme:\s*dark\)\s*\{[\s\S]*?\n\s*:root:not\(\.light\)\s*\{([^}]+)\}/);
+    if (!mediaBlock) throw new Error("Missing system-dark theme tokens");
+    for (const [, key, value] of mediaBlock[1].matchAll(/--([\w-]+):\s*([^;]+)\s*;/g)) {
+      tokens[key] = value.trim();
+    }
+  }
+  return tokens;
 }
 
 function relativeLuminance(hex: string) {
@@ -30,12 +38,14 @@ const boundaryPairs = [
   ["input", "card"],
   ["border", "background"],
   ["input", "background"],
+  ["accent-foreground", "accent-hover"],
 ] as const;
 
 const pairs = [
   ["action", "action-foreground"],
   ["primary", "primary-foreground"],
   ["accent", "accent-foreground"],
+  ["accent-hover", "accent-foreground"],
   ["destructive", "destructive-foreground"],
   ["destructive-hover", "destructive-hover-foreground"],
   ["background", "destructive"],
@@ -68,6 +78,13 @@ describe("SCRUM-153 semantic theme token contrast", () => {
       expect(contrastRatio(tokens[boundary], tokens[surface])).toBeGreaterThanOrEqual(3);
     },
   );
+
+  it("uses the light root token block and merges system-dark overrides", () => {
+    expect(themeTokens(":root").input).toBe("#83734e");
+    expect(themeTokens(".dark").input).toBe("#518ec3");
+    expect(themeTokens(":root:not(.light)", true).input).toBe("#518ec3");
+    expect(themeTokens(":root:not(.light)", true)["accent-hover"]).toBe("#134e4a");
+  });
 
   it.each(themes.flatMap((theme) => pairs.map(([background, foreground]) => ({ theme, background, foreground }))))(
     "passes WCAG AA normal-text contrast for $theme.name $background/$foreground",

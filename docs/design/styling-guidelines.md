@@ -191,7 +191,7 @@ AbangCebuAI employs a clean two-layer token architecture:
 | `--destructive` | `bg-destructive` | `#be123c` (Crimson 700)| `#fb7185` (Crimson 400)| Destructive actions, alert notifications|
 | `--warning` | `text-warning`, `bg-warning` | `#b45309` (Amber 700) | `#fbbf24` (Amber 400) | Star ratings, warnings, deposit notices |
 | `--border` | `border-border` | `#83734e` (Sand 600) | `#518ec3` (Navy 400) | Control boundaries and dividers; at least 3:1 against declared adjacent surfaces |
-| `--input` | `border-input`, `bg-input` | `#83734e` (Sand 600) | `#518ec3` (Navy 400) | Form inputs and select triggers; at least 3:1 against declared adjacent surfaces |
+| `--input` | `border-input`, `bg-input` | `#83734e` (Sand 600) | `#518ec3` (Navy 400) | Form inputs and select triggers; at least 3:1 against adjacent surfaces, including interactive hover surfaces on outlined controls |
 | `--ring` | `ring-ring` | `#047857` (Emerald 700) | `#34d399` (Emerald 400)| Keyboard focus indicator outline |
 
 ---
