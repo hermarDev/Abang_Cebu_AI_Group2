@@ -93,6 +93,22 @@ class StagingTemplateTests(unittest.TestCase):
         workflow = (ROOT / ".github/workflows/scrum134-staging-validation.yml").read_text(encoding="utf-8")
         self.assertIn("docs/infrastructure/ec2-staging.md", workflow)
 
+    def test_instance_primary_interface_disables_public_ipv4_auto_assignment(self):
+        props = self.resources["StagingInstance"]["Properties"]
+        self.assertIn("NetworkInterfaces", props)
+        interfaces = props["NetworkInterfaces"]
+        self.assertEqual(len(interfaces), 1)
+        self.assertEqual(interfaces[0]["DeviceIndex"], "0")
+        self.assertEqual(interfaces[0]["SubnetId"], {"Ref": "SubnetId"})
+        self.assertEqual(
+            interfaces[0]["GroupSet"],
+            [{"GetAtt": "StagingSecurityGroup.GroupId"}],
+        )
+        self.assertIs(interfaces[0]["AssociatePublicIpAddress"], False)
+        self.assertTrue(interfaces[0]["DeleteOnTermination"])
+        self.assertNotIn("SubnetId", props)
+        self.assertNotIn("SecurityGroupIds", props)
+
     def test_no_public_ip_ssh_key_or_inline_iam_role_is_created(self):
         props = self.resources["StagingInstance"]["Properties"]
         self.assertNotIn("KeyName", props)

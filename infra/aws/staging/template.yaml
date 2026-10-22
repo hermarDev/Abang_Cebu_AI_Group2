@@ -70,9 +70,13 @@ Resources:
     Properties:
       ImageId: !Ref AmiId
       InstanceType: !Ref InstanceType
-      SubnetId: !Ref SubnetId
-      SecurityGroupIds:
-        - !GetAtt StagingSecurityGroup.GroupId
+      NetworkInterfaces:
+        - DeviceIndex: '0'
+          SubnetId: !Ref SubnetId
+          GroupSet:
+            - !GetAtt StagingSecurityGroup.GroupId
+          AssociatePublicIpAddress: false
+          DeleteOnTermination: true
       IamInstanceProfile: !Ref InstanceProfileName
       MetadataOptions:
         HttpTokens: required
