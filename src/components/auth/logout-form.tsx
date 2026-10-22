@@ -25,8 +25,14 @@ export default function LogoutForm() {
         success?: boolean;
         data?: { redirectUrl?: string };
       } | null;
-      if (response.headers.get("x-session-cookies-cleared") !== "true") {
-        setError("Could not clear this session. Please retry.");
+      if (
+        response.headers.get("x-session-cookies-cleared") !== "true" ||
+        response.headers.get("x-session-revocation-confirmed") !== "true" ||
+        !response.ok || !result?.success
+      ) {
+        setError(response.headers.get("x-session-cookies-cleared") === "true"
+          ? "This device was signed out, but server revocation could not be confirmed."
+          : "Could not clear this session. Please retry.");
         return;
       }
       try {

@@ -11,6 +11,7 @@ function withClearedCookies(
   body: Record<string, unknown> | import('@/types/auth').AuthErrorResponse,
   mutations: CookieMutation[],
   cookieNames: string[],
+  revocationConfirmed = false,
 ) {
   const response = NextResponse.json(body, { status, headers: { 'Cache-Control': 'no-store' } });
   for (const { name, value, options } of mutations) {
@@ -32,6 +33,7 @@ function withClearedCookies(
     });
   }
   response.headers.set('x-session-cookies-cleared', 'true');
+  if (revocationConfirmed) response.headers.set('x-session-revocation-confirmed', 'true');
   return response;
 }
 
@@ -80,5 +82,5 @@ export async function POST(request: NextRequest) {
   return withClearedCookies(request, 200, {
     success: true,
     data: { scope, redirectUrl },
-  }, mutations, cookieNames);
+  }, mutations, cookieNames, true);
 }

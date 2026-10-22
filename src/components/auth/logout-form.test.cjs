@@ -123,7 +123,10 @@ test("logout form posts, publishes sign-out, and refreshes/redirects after cooki
   requestError = null;
   requestResponse = {
     ok: true,
-    headers: new Headers({ "x-session-cookies-cleared": "true" }),
+    headers: new Headers({
+      "x-session-cookies-cleared": "true",
+      "x-session-revocation-confirmed": "true",
+    }),
     async json() { return { success: true, data: { redirectUrl: "/" } }; },
   };
   renderLogoutForm();
@@ -136,6 +139,24 @@ test("logout form posts, publishes sign-out, and refreshes/redirects after cooki
   assert.equal(refreshes, 1);
   assert.deepEqual(replacements, ["/"]);
   assert.equal(closedChannels, 1);
+});
+
+test("logout does not broadcast or navigate when server revocation is unconfirmed", async () => {
+  requestError = null;
+  const beforeMessages = postMessages.length;
+  const beforeRefreshes = refreshes;
+  const beforeReplacements = replacements.length;
+  requestResponse = {
+    ok: false,
+    headers: new Headers({ "x-session-cookies-cleared": "true" }),
+    async json() { return { success: false }; },
+  };
+  renderLogoutForm();
+  await clickHandler();
+  assert.equal(postMessages.length, beforeMessages);
+  assert.equal(refreshes, beforeRefreshes);
+  assert.equal(replacements.length, beforeReplacements);
+  assert.ok(setStateCalls.includes("This device was signed out, but server revocation could not be confirmed."));
 });
 
 test("logout does not broadcast until local cookies are confirmed cleared", async () => {

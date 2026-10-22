@@ -117,6 +117,7 @@ test("POST revokes the requested valid scope, masks redirects and expires every 
   assert.equal(response.status, 200);
   assert.equal(response.headers.get("cache-control"), "no-store");
   assert.equal(response.headers.get("x-session-cookies-cleared"), "true");
+  assert.equal(response.headers.get("x-session-revocation-confirmed"), "true");
   const cleared = response.cookies.getAll();
   assert.deepEqual(cleared.map(({ name }) => name).sort(), [
     "sb-project-auth-token.0",
@@ -130,11 +131,13 @@ test("POST defaults an unsupported scope to local and clears cookies after upstr
   route.request.json = async () => ({ scope: "admin" });
   const response = await route.handler(route.request);
   assert.equal(JSON.stringify(route.signOutArgs), JSON.stringify({ scope: "local" }));
+  assert.equal(response.headers.get("x-session-cookies-cleared"), "true");
+  assert.equal(response.headers.get("x-session-revocation-confirmed"), null);
   assert.equal(response.status, 502);
-  assert.equal(response.body.success, false);
   assert.equal(response.body.error.code, "AUTH_LOGOUT_FAILED");
   assert.equal(response.body.error.status, 502);
   assert.match(response.body.error.message, /credentials have been cleared/);
+  assert.equal(JSON.stringify(response.body).includes("private upstream"), false);
   assert.deepEqual(response.cookies.getAll().map(({ name }) => name).sort(), [
     "sb-project-auth-token.0",
     "sb-project-auth-token.1",
@@ -154,6 +157,7 @@ test("POST without Supabase config still clears local cookie chunks", async () =
   const response = await route.handler(route.request);
   assert.equal(response.status, 503);
   assert.equal(response.headers.get("x-session-cookies-cleared"), "true");
+  assert.equal(response.headers.get("x-session-revocation-confirmed"), null);
   assert.equal(response.cookies.getAll().length, 2);
   assert.equal(response.body.error.code, "AUTH_LOGOUT_FAILED");
 });
