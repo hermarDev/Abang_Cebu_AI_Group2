@@ -5,7 +5,7 @@ CREATE TEMP TABLE rls_policy_test_results (
     affected integer NOT NULL DEFAULT 0
 ) ON COMMIT DROP;
 
-SELECT plan(47);
+SELECT plan(58);
 
 SELECT is((SELECT count(*)::integer FROM pg_class
            WHERE relnamespace = 'public'::regnamespace AND relkind = 'r' AND relrowsecurity),
@@ -42,6 +42,8 @@ UPDATE public.profiles SET role = 'admin'::public.user_role
 WHERE id = '14200000-0000-4000-8000-000000000005';
 UPDATE public.profiles SET is_suspended = true
 WHERE id = '14200000-0000-4000-8000-000000000006';
+UPDATE public.profiles SET role = 'landlord'::public.user_role
+WHERE id = '14200000-0000-4000-8000-000000000002';
 
 INSERT INTO public.properties (id, landlord_id, title, description, property_type,
     street_address, barangay, city, coordinates, status, moderation_note)
@@ -50,6 +52,13 @@ VALUES
  ('14200000-0000-4000-8000-000000000012','14200000-0000-4000-8000-000000000001','Pending A','Synthetic fixture','apartment','2 Test St','Lahug','Cebu City',extensions.ST_SetSRID(extensions.ST_MakePoint(123.9,10.3),4326)::extensions.geography,'pending','internal'),
  ('14200000-0000-4000-8000-000000000013','14200000-0000-4000-8000-000000000002','Approved B','Synthetic fixture','house','3 Test St','Banilad','Cebu City',extensions.ST_SetSRID(extensions.ST_MakePoint(123.91,10.31),4326)::extensions.geography,'approved',NULL),
  ('14200000-0000-4000-8000-000000000014','14200000-0000-4000-8000-000000000006','Suspended approved','Synthetic fixture','apartment','4 Test St','Lahug','Cebu City',extensions.ST_SetSRID(extensions.ST_MakePoint(123.92,10.32),4326)::extensions.geography,'approved',NULL);
+
+-- Delete-specific fixtures are inserted under postgres before role switching.
+INSERT INTO public.properties (id, landlord_id, title, description, property_type,
+    street_address, barangay, city, coordinates, status)
+VALUES
+ ('14200000-0000-4000-8000-000000000015','14200000-0000-4000-8000-000000000003','Renter-owned fixture','Synthetic fixture','apartment','5 Test St','Lahug','Cebu City',extensions.ST_SetSRID(extensions.ST_MakePoint(123.93,10.33),4326)::extensions.geography,'pending'),
+ ('14200000-0000-4000-8000-000000000016','14200000-0000-4000-8000-000000000001','Landlord-owned delete fixture','Synthetic fixture','apartment','6 Test St','Banilad','Cebu City',extensions.ST_SetSRID(extensions.ST_MakePoint(123.94,10.34),4326)::extensions.geography,'pending');
 INSERT INTO public.rental_units (id, property_id, rental_type, monthly_rent, is_available, security_deposit)
 VALUES
  ('14200000-0000-4000-8000-000000000021','14200000-0000-4000-8000-000000000011','private_room',12000,true,5000),
@@ -75,6 +84,18 @@ INSERT INTO public.audit_logs (id, actor_id, action, target_type, target_id)
 VALUES ('14200000-0000-4000-8000-000000000091','14200000-0000-4000-8000-000000000005','policy-test','property','14200000-0000-4000-8000-000000000011');
 
 SET LOCAL ROLE anon;
+SELECT ok(has_function_privilege('anon', 'public.rls_public_property(uuid)', 'EXECUTE'),
+          'guests can execute the public listing predicate');
+SELECT ok(has_function_privilege('authenticated', 'public.rls_public_property(uuid)', 'EXECUTE'),
+          'authenticated users can execute the public listing predicate');
+SELECT is(public.rls_public_property('14200000-0000-4000-8000-000000000011'), true,
+          'public predicate accepts an approved listing from an active landlord');
+SELECT is(public.rls_public_property('14200000-0000-4000-8000-000000000012'), false,
+          'public predicate rejects a pending listing');
+SELECT is(public.rls_public_property('14200000-0000-4000-8000-000000000014'), false,
+          'public predicate rejects an approved listing from a suspended landlord');
+SELECT is(public.rls_public_property('14200000-0000-4000-8000-000000000099'), false,
+          'public predicate rejects a nonexistent listing');
 SELECT is((SELECT count(*)::integer FROM public.properties WHERE id::text LIKE '14200000-%'),
           2, 'guests see only approved listings from active landlords');
 SELECT is((SELECT count(*)::integer FROM public.rental_units WHERE id::text LIKE '14200000-%'),
@@ -95,7 +116,9 @@ SET LOCAL ROLE authenticated;
 SELECT set_config('request.jwt.claim.sub','14200000-0000-4000-8000-000000000001',true);
 SET LOCAL request.jwt.claims = '{"sub":"14200000-0000-4000-8000-000000000001","role":"authenticated"}';
 SELECT is((SELECT count(*)::integer FROM public.properties WHERE landlord_id='14200000-0000-4000-8000-000000000001'),
-          2, 'landlord sees own approved and pending listings');
+          3, 'landlord sees own approved and pending listings plus delete fixture');
+SELECT is((SELECT count(*)::integer FROM public.properties WHERE id='14200000-0000-4000-8000-000000000016'),
+          1, 'landlord sees delete fixture before deleting it');
 SELECT is((SELECT count(*)::integer FROM public.kyc_verifications WHERE id='14200000-0000-4000-8000-000000000051'),
           1, 'landlord sees own KYC submission');
 SELECT throws_ok($$INSERT INTO public.kyc_verifications(landlord_id,id_type,id_document_url) VALUES ('14200000-0000-4000-8000-000000000002','passport','private://foreign')$$,
@@ -191,6 +214,30 @@ SELECT is((SELECT title FROM public.properties WHERE id='14200000-0000-4000-8000
           'Approved A', 'renter cannot change landlord listing');
 SELECT is(pg_temp.update_property_result('14200000-0000-4000-8000-000000000011'),
           0, 'renter cannot update landlord listing');
+SELECT is((SELECT count(*)::integer FROM public.properties WHERE id='14200000-0000-4000-8000-000000000015'),
+          1, 'renter-owned listing fixture exists before delete attempt');
+CREATE OR REPLACE FUNCTION pg_temp.delete_property_result(p_property_id uuid)
+RETURNS integer
+LANGUAGE plpgsql
+SECURITY INVOKER
+SET search_path = pg_catalog, public
+AS $function$
+DECLARE changed_count integer;
+BEGIN
+    DELETE FROM public.properties WHERE id = p_property_id;
+    GET DIAGNOSTICS changed_count = ROW_COUNT;
+    RETURN changed_count;
+END;
+$function$;
+SELECT is(pg_temp.delete_property_result('14200000-0000-4000-8000-000000000015'),
+          0, 'renter cannot delete a renter-owned listing');
+SELECT is((SELECT count(*)::integer FROM public.properties WHERE id='14200000-0000-4000-8000-000000000015'),
+          1, 'renter-owned listing remains after denied delete');
+
+SELECT set_config('request.jwt.claim.sub','14200000-0000-4000-8000-000000000001',true);
+SET LOCAL request.jwt.claims = '{"sub":"14200000-0000-4000-8000-000000000001","role":"authenticated"}';
+SELECT is(pg_temp.delete_property_result('14200000-0000-4000-8000-000000000016'),
+          1, 'landlord can delete own listing');
 
 SELECT set_config('request.jwt.claim.sub','14200000-0000-4000-8000-000000000005',true);
 SET LOCAL request.jwt.claims = '{"sub":"14200000-0000-4000-8000-000000000005","role":"authenticated"}';

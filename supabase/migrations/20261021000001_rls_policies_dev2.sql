@@ -123,6 +123,7 @@ GRANT UPDATE (title, description, property_type, street_address, barangay, city,
               postal_code, coordinates)
     ON public.properties TO authenticated;
 GRANT DELETE ON public.properties TO authenticated;
+
 CREATE POLICY properties_public_approved_read ON public.properties
     FOR SELECT TO anon, authenticated USING (public.rls_public_property(id));
 CREATE POLICY properties_owner_read ON public.properties
@@ -145,7 +146,11 @@ CREATE POLICY properties_admin_update ON public.properties
     USING (public.is_admin()) WITH CHECK (public.is_admin());
 CREATE POLICY properties_owner_admin_delete ON public.properties
     FOR DELETE TO authenticated
-    USING (landlord_id = (SELECT auth.uid()) OR public.is_admin());
+    USING (
+        (public.get_current_user_role() = 'landlord'::public.user_role
+         AND landlord_id = (SELECT auth.uid()))
+        OR public.is_admin()
+    );
 
 REVOKE ALL ON TABLE public.rental_units FROM PUBLIC, anon, authenticated;
 GRANT SELECT (id, property_id, rental_type, monthly_rent, is_available)
