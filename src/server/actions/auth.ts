@@ -4,6 +4,7 @@ import type { RegisterPayload } from '@/types/auth';
 import { validateRegistrationPayload } from '@/lib/auth/registration';
 import { consumeRegistrationRateLimit, registrationAbuseError, verifyRegistrationChallenge } from '@/lib/auth/registration-abuse';
 import { createClient } from '@/lib/supabase/server';
+import { createSafeSupabaseAuthError } from '@/lib/auth/supabase-error';
 
 function accepted(email: string) {
   return {
@@ -28,9 +29,8 @@ async function submitRegistration(value: import('@/lib/auth/registration').Valid
       },
     });
     if (error?.code === 'user_already_exists' || (!error && !data.user)) return accepted(value.email);
-    if (error || !data.user) {
-      return { success: false as const, error: { code: AuthErrorCode.INTERNAL_AUTH_ERROR, message: 'An unexpected authentication error occurred. Please try again.', status: 500 } };
-    }
+    if (error) return createSafeSupabaseAuthError(error);
+    if (!data.user) return accepted(value.email);
     return accepted(value.email);
   } catch {
     return { success: false as const, error: { code: AuthErrorCode.INTERNAL_AUTH_ERROR, message: 'An unexpected authentication error occurred. Please try again.', status: 500 } };

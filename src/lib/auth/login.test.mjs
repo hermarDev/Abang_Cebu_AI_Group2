@@ -32,7 +32,7 @@ Module._load = function (name, parent, isMain) {
       auth: {
         async signInWithPassword(payload) {
           state.payload = payload;
-          if (state.signInError) return { data: { user: null }, error: { message: 'invalid' } };
+          if (state.signInError) return { data: { user: null }, error: state.signInError === true ? { message: 'Invalid login credentials' } : state.signInError };
           if (state.verified || state.simulateCookieBeforeFailure) options.cookies.setAll([
             { name: 'sb-test-auth-token.0', value: 'synthetic-cookie', options: { maxAge: 1234 } },
             { name: 'sb-test-auth-token.1', value: 'synthetic-cookie', options: { maxAge: 1234 } },
@@ -85,7 +85,7 @@ test('validates login input and rejects malformed payload without auth call', as
 });
 
 test('wrong password and unknown email return identical generic errors without session cookies', async () => {
-  reset({ signInError: true });
+  reset({ signInError: { message: 'Invalid login credentials' } });
   const wrong = await login();
   const unknown = await login({ email: 'unknown@test.com' });
   assert.equal(wrong.response.status, 401);
@@ -97,6 +97,14 @@ test('wrong password and unknown email return identical generic errors without s
   assert.equal(wrong.response.cookies.getAll().length, 0);
 });
 
+test('unknown Supabase login errors return generic contract without reflecting provider diagnostics', async () => {
+  reset({ signInError: { message: 'permission denied in private schema', details: 'stack-token', hint: 'internal table' } });
+  const { response, body } = await login();
+  assert.equal(response.status, 500);
+  assert.equal(body.error.code, 'INTERNAL_AUTH_ERROR');
+  assert.equal(body.error.message, 'An unexpected authentication error occurred. Please try again.');
+  for (const secret of ['private schema', 'stack-token', 'internal table']) assert.ok(!JSON.stringify(body).includes(secret));
+});
 test('generic credential failure does not revoke an existing session', async () => {
   reset({ signInError: true });
   const { response, body } = await login({}, true);

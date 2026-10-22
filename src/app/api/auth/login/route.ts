@@ -1,6 +1,7 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 import { AuthErrorCode, createAuthError } from '@/types/auth';
+import { createSafeSupabaseAuthError } from '@/lib/auth/supabase-error';
 import { invalidCredentials, loginDestination, REMEMBER_COOKIE, REMEMBER_SECONDS, validateLoginInput } from '@/lib/auth/login';
 import type { UserRole } from '@/types/database';
 
@@ -77,7 +78,7 @@ export async function POST(request: NextRequest) {
   try {
     const { data, error } = await supabase.auth.signInWithPassword({ email: payload.email, password: payload.password });
     if (error || !data.user) {
-      return fail(invalidCredentials(), 401);
+      return fail(error ? createSafeSupabaseAuthError(error) : invalidCredentials());
     }
     if (!data.user.email_confirmed_at) {
       return await fail(createAuthError(AuthErrorCode.EMAIL_NOT_CONFIRMED, 'Verify your email before signing in.', { status: 403 }), 403, true);

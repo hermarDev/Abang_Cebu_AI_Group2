@@ -253,8 +253,10 @@ test('callback sends safe failure redirect for missing, expired, or replayed cod
   resetMocks();
   let response = await handleAuthCallback(new Request('https://app.test/auth/callback'));
   assert.equal(new URL(response.headers.get('location')).pathname, '/auth/auth-error');
-  exchangeResponse = { data: { user: null }, error: { message: 'expired or replayed code' } };
+  exchangeResponse = { data: { user: null }, error: { message: 'expired or replayed code secret-token' } };
   response = await handleAuthCallback(new Request('https://app.test/auth/callback?code=replayed'));
   assert.equal(new URL(response.headers.get('location')).pathname, '/auth/auth-error');
+  assert.equal(new URL(response.headers.get('location')).searchParams.get('code'), 'CONFIRMATION_CODE_INVALID');
   assert.ok(!response.headers.get('location').includes('replayed'));
+  assert.ok(!response.headers.get('location').includes('secret-token'));
 });
