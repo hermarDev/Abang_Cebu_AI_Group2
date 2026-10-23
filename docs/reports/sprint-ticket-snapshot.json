@@ -1,0 +1,440 @@
+{
+  "retrieved_at": "2026-10-16",
+  "source": "Jira board 1, sprint issue lists reconciled 27/20/35; fixed snapshot",
+  "sprints": [
+    {
+      "name": "Sprint 1",
+      "id": 4,
+      "state": "closed",
+      "dates": "15 Sep–2 Oct planned · completed 1 Oct",
+      "issues": [
+        {
+          "key": "SCRUM-10",
+          "summary": "Create AbangCebu System Flowcharts",
+          "status": "Done"
+        },
+        {
+          "key": "SCRUM-49",
+          "summary": "Establish Git Branching & PR Collaboration Strategy",
+          "status": "Done"
+        },
+        {
+          "key": "SCRUM-6",
+          "summary": "create AWS account for the team",
+          "status": "Done"
+        },
+        {
+          "key": "SCRUM-55",
+          "summary": "Draft Row Level Security (RLS) Policy Specifications",
+          "status": "Done"
+        },
+        {
+          "key": "SCRUM-62",
+          "summary": "Define Landlord Persona, Permissions & Capabilities",
+          "status": "Done"
+        },
+        {
+          "key": "SCRUM-50",
+          "summary": "Configure UI Framework & Styling Guidelines",
+          "status": "Done"
+        },
+        {
+          "key": "SCRUM-51",
+          "summary": "Environment Variables & Secrets Governance Plan",
+          "status": "Done"
+        },
+        {
+          "key": "SCRUM-52",
+          "summary": "Plan Supabase Project Structure & Extensions",
+          "status": "Done"
+        },
+        {
+          "key": "SCRUM-53",
+          "summary": "Design Initial Database ERD Diagram",
+          "status": "Done"
+        },
+        {
+          "key": "SCRUM-54",
+          "summary": "Define Users & Profiles Table Schema Specification",
+          "status": "Done"
+        },
+        {
+          "key": "SCRUM-56",
+          "summary": "Specify User Registration Workflow & Data Contract",
+          "status": "Done"
+        },
+        {
+          "key": "SCRUM-57",
+          "summary": "Specify User Login & Session Token Lifecycle",
+          "status": "Done"
+        },
+        {
+          "key": "SCRUM-58",
+          "summary": "Specify User Logout & Session Invalidation",
+          "status": "Done"
+        },
+        {
+          "key": "SCRUM-60",
+          "summary": "Document Authentication Error Handling & Edge Cases",
+          "status": "Done"
+        },
+        {
+          "key": "SCRUM-48",
+          "summary": "Plan Next.js 15 & MapLibre Project Foundation",
+          "status": "Done"
+        },
+        {
+          "key": "SCRUM-64",
+          "summary": "Design Landing Page Wireframe / Mockup",
+          "status": "Done"
+        },
+        {
+          "key": "SCRUM-63",
+          "summary": "Create Role-Based Access Control (RBAC) Matrix",
+          "status": "Done"
+        },
+        {
+          "key": "SCRUM-61",
+          "summary": "Define Renter Persona, Permissions & Capabilities",
+          "status": "Done"
+        },
+        {
+          "key": "SCRUM-59",
+          "summary": "Specify Password Reset & Recovery Workflow",
+          "status": "Done"
+        },
+        {
+          "key": "SCRUM-65",
+          "summary": "Design Login Page Wireframe / Mockup",
+          "status": "Done"
+        },
+        {
+          "key": "SCRUM-66",
+          "summary": "Design Registration Page Wireframe / Mockup",
+          "status": "Done"
+        },
+        {
+          "key": "SCRUM-67",
+          "summary": "Design User Dashboard Wireframe / Mockup",
+          "status": "Done"
+        },
+        {
+          "key": "SCRUM-68",
+          "summary": "Design Profile Page Wireframe / Mockup",
+          "status": "Done"
+        },
+        {
+          "key": "SCRUM-69",
+          "summary": "Draft Authentication Test Plan & Test Scenarios",
+          "status": "Done"
+        },
+        {
+          "key": "SCRUM-70",
+          "summary": "Draft Role & Access Permission Verification Test Cases",
+          "status": "Done"
+        },
+        {
+          "key": "SCRUM-71",
+          "summary": "Draft Protected Route & Middleware Test Scenarios",
+          "status": "Done"
+        },
+        {
+          "key": "SCRUM-72",
+          "summary": "Plan Authentication Baseline Latency & Load Strategy",
+          "status": "Done"
+        }
+      ]
+    },
+    {
+      "name": "Sprint 2",
+      "id": 70,
+      "state": "active",
+      "dates": "1–15 Oct planned · still active on 16 Oct",
+      "issues": [
+        {
+          "key": "SCRUM-104",
+          "summary": "Sign Up Module & Flowchart: Registration & PKCE Verification",
+          "status": "Done"
+        },
+        {
+          "key": "SCRUM-105",
+          "summary": "Log In Module & Flowchart: Authentication & Session Token Lifecycle",
+          "status": "Done"
+        },
+        {
+          "key": "SCRUM-106",
+          "summary": "Password Reset Module & Flowchart: Self-Service Recovery Workflow",
+          "status": "Done"
+        },
+        {
+          "key": "SCRUM-107",
+          "summary": "Sign Out Module & Flowchart: Session Termination & Multi-Tab Sync",
+          "status": "Done"
+        },
+        {
+          "key": "SCRUM-108",
+          "summary": "Error Handling & Suspension Module & Flowchart: Failure Taxonomy & UX States",
+          "status": "Done"
+        },
+        {
+          "key": "SCRUM-109",
+          "summary": "Authentication Master Test Plan & Test Matrix",
+          "status": "Done"
+        },
+        {
+          "key": "SCRUM-110",
+          "summary": "Sign Up Module Test Plan & Registration Test Cases",
+          "status": "Done"
+        },
+        {
+          "key": "SCRUM-111",
+          "summary": "Log In Module Test Plan & Session Token Test Cases",
+          "status": "Done"
+        },
+        {
+          "key": "SCRUM-112",
+          "summary": "Password Reset & Sign Out Module Test Cases",
+          "status": "Done"
+        },
+        {
+          "key": "SCRUM-113",
+          "summary": "Route Guards & Middleware Security Test Cases",
+          "status": "Done"
+        },
+        {
+          "key": "SCRUM-114",
+          "summary": "Authentication Baseline Latency & Load Strategy",
+          "status": "Done"
+        },
+        {
+          "key": "SCRUM-116",
+          "summary": "Landing Page Master Orchestration & Spatial Discovery Flowchart",
+          "status": "Done"
+        },
+        {
+          "key": "SCRUM-117",
+          "summary": "Sub-Process 2.1: Map Initialization, Viewport & Geolocation Flowchart",
+          "status": "Done"
+        },
+        {
+          "key": "SCRUM-118",
+          "summary": "Sub-Process 2.2: Spatial Search, Landmark Auto-Suggest & PostGIS Query Flowchart",
+          "status": "Done"
+        },
+        {
+          "key": "SCRUM-119",
+          "summary": "Sub-Process 2.3: Multi-Criteria Filter Pills & URL State Sync Flowchart",
+          "status": "Done"
+        },
+        {
+          "key": "SCRUM-120",
+          "summary": "Sub-Process 2.4: Bidirectional Pin Marker & 3-Snap Gesture Drawer Flowchart",
+          "status": "Done"
+        },
+        {
+          "key": "SCRUM-122",
+          "summary": "FUNCTION SPECIFICATION DOCUMENT FOR ABANG CEBU",
+          "status": "Done"
+        },
+        {
+          "key": "SCRUM-125",
+          "summary": "Module 3: Landlord Onboarding & Listing Management Flowcharts",
+          "status": "IN DEVELOPMENT"
+        },
+        {
+          "key": "SCRUM-126",
+          "summary": "Module 4: Admin KYC Verification & Listing Moderation Flowcharts",
+          "status": "IN DEVELOPMENT"
+        },
+        {
+          "key": "SCRUM-127",
+          "summary": "Module 5: Renter Favorites, Contact & Viewing Inquiry Flowcharts",
+          "status": "IN DEVELOPMENT"
+        }
+      ]
+    },
+    {
+      "name": "Sprint 3",
+      "id": 72,
+      "state": "future",
+      "dates": "No Jira start/end dates",
+      "issues": [
+        {
+          "key": "SCRUM-134",
+          "summary": "Provision AWS EC2 staging environment for Next.js app",
+          "status": "READY"
+        },
+        {
+          "key": "SCRUM-135",
+          "summary": "Set up GitHub Actions CI pipeline (tsc, lint, build)",
+          "status": "READY"
+        },
+        {
+          "key": "SCRUM-136",
+          "summary": "Automate deployment from main to EC2 staging",
+          "status": "READY"
+        },
+        {
+          "key": "SCRUM-137",
+          "summary": "Define IAM least-privilege roles and policies for staging",
+          "status": "READY"
+        },
+        {
+          "key": "SCRUM-138",
+          "summary": "IAM access review and security audit of staging",
+          "status": "READY"
+        },
+        {
+          "key": "SCRUM-139",
+          "summary": "Set up monitoring, logging and uptime alerts for staging",
+          "status": "READY"
+        },
+        {
+          "key": "SCRUM-140",
+          "summary": "Implement core listing tables migration",
+          "status": "READY"
+        },
+        {
+          "key": "SCRUM-141",
+          "summary": "Implement engagement tables migration (inquiries, saved_listings, reviews, audit_logs)",
+          "status": "READY"
+        },
+        {
+          "key": "SCRUM-142",
+          "summary": "Apply Row Level Security policies as migrations",
+          "status": "READY"
+        },
+        {
+          "key": "SCRUM-143",
+          "summary": "Create PostGIS search functions (viewport bbox and landmark radius)",
+          "status": "READY"
+        },
+        {
+          "key": "SCRUM-144",
+          "summary": "Seed Metro Cebu landmarks and sample listings",
+          "status": "READY"
+        },
+        {
+          "key": "SCRUM-145",
+          "summary": "Configure Supabase Storage buckets and database backups",
+          "status": "READY"
+        },
+        {
+          "key": "SCRUM-146",
+          "summary": "Complete Database Specification workbook (.xlsx)",
+          "status": "READY"
+        },
+        {
+          "key": "SCRUM-147",
+          "summary": "Implement sign-up and email verification (PKCE)",
+          "status": "READY"
+        },
+        {
+          "key": "SCRUM-148",
+          "summary": "Implement login, session refresh and Remember Me",
+          "status": "READY"
+        },
+        {
+          "key": "SCRUM-149",
+          "summary": "Implement logout and multi-tab sign-out sync",
+          "status": "READY"
+        },
+        {
+          "key": "SCRUM-150",
+          "summary": "Implement password reset and recovery",
+          "status": "READY"
+        },
+        {
+          "key": "SCRUM-151",
+          "summary": "Implement RBAC middleware and route guards",
+          "status": "READY"
+        },
+        {
+          "key": "SCRUM-152",
+          "summary": "Implement standard API error contract and auth error handling",
+          "status": "READY"
+        },
+        {
+          "key": "SCRUM-153",
+          "summary": "Build shared UI component library (Tailwind v4 tokens)",
+          "status": "READY"
+        },
+        {
+          "key": "SCRUM-154",
+          "summary": "Implement login, registration and password reset pages",
+          "status": "READY"
+        },
+        {
+          "key": "SCRUM-155",
+          "summary": "Implement MapLibre map canvas with Metro Cebu viewport and Locate Me",
+          "status": "READY"
+        },
+        {
+          "key": "SCRUM-156",
+          "summary": "Implement landing page, search bar and landmark auto-suggest",
+          "status": "READY"
+        },
+        {
+          "key": "SCRUM-157",
+          "summary": "Implement filter pills, URL state sync and results drawer",
+          "status": "READY"
+        },
+        {
+          "key": "SCRUM-158",
+          "summary": "Module 6: AI Rental Assistant Flowcharts and Specification",
+          "status": "READY"
+        },
+        {
+          "key": "SCRUM-159",
+          "summary": "Define AI assistant API contract, prompt policy and evaluation set",
+          "status": "READY"
+        },
+        {
+          "key": "SCRUM-160",
+          "summary": "Extend Function Specification Document with Modules 3 to 5",
+          "status": "READY"
+        },
+        {
+          "key": "SCRUM-161",
+          "summary": "Review and close Sprint 2 carry-over (SCRUM-125, 126, 127)",
+          "status": "READY"
+        },
+        {
+          "key": "SCRUM-162",
+          "summary": "Execute authentication test plan against staging",
+          "status": "READY"
+        },
+        {
+          "key": "SCRUM-163",
+          "summary": "Execute RBAC and route guard tests",
+          "status": "READY"
+        },
+        {
+          "key": "SCRUM-164",
+          "summary": "Browser, mobile and usability testing of auth pages and map UI",
+          "status": "READY"
+        },
+        {
+          "key": "SCRUM-165",
+          "summary": "Write test plans for Modules 3, 4 and 5",
+          "status": "READY"
+        },
+        {
+          "key": "SCRUM-166",
+          "summary": "Execute k6 load tests on staging (steady-state and burst)",
+          "status": "READY"
+        },
+        {
+          "key": "SCRUM-167",
+          "summary": "System test plan and first end-to-end run (auth to map to listing)",
+          "status": "READY"
+        },
+        {
+          "key": "SCRUM-168",
+          "summary": "Sprint 3 review, retrospective and reporting",
+          "status": "READY"
+        }
+      ]
+    }
+  ]
+}

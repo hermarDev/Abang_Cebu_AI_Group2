@@ -1,0 +1,322 @@
+/* SOURCE-matched compact filter dock, scoped to the standalone toolbar. */
+.quickFiltersBar {
+  position: absolute;
+  z-index: 30;
+  top: 4.5rem;
+  left: 1rem;
+  pointer-events: none;
+}
+
+.filterDock {
+  display: grid;
+  width: min(31.25rem, calc(100vw - 2rem));
+  min-height: 3.375rem;
+  grid-template-columns: 1fr 1fr 0.92fr;
+  overflow: hidden;
+  border: 1px solid rgb(148 163 184 / 62%);
+  border-radius: 1rem;
+  background: rgb(255 255 255 / 96%);
+  box-shadow: 0 6px 22px rgb(15 23 42 / 13%), 0 1px 3px rgb(15 23 42 / 8%);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  pointer-events: auto;
+}
+
+.filterChip {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  min-height: 3.375rem;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 2px;
+  border: 0;
+  border-radius: 0;
+  padding: 7px 10px 6px;
+  background: transparent;
+  color: #475569;
+  cursor: pointer;
+  transition: background-color 150ms ease, color 150ms ease;
+}
+
+.filterChip + .filterChip {
+  border-left: 1px solid #e2e8f0;
+}
+
+.filterChip:hover {
+  background: #f8fafc;
+}
+
+.filterChip:focus-visible {
+  z-index: 1;
+  outline: 3px solid var(--ring);
+  outline-offset: -3px;
+}
+
+.filterLabel,
+.filterValue {
+  display: flex;
+  max-width: 100%;
+  align-items: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.filterLabel {
+  gap: 4px;
+  color: #64748b;
+  font-size: 0.594rem;
+  font-weight: 750;
+  letter-spacing: 0.035em;
+  line-height: 1.15;
+  text-transform: uppercase;
+}
+
+.filterValue {
+  color: #1e293b;
+  font-size: 0.75rem;
+  font-weight: 720;
+  line-height: 1.25;
+}
+
+.hasValue .filterLabel,
+.hasValue .filterValue {
+  color: var(--primary);
+}
+
+.hasValue {
+  background: #eff6ff;
+}
+
+.allFiltersButton {
+  padding-right: 12px;
+}
+
+.filterBadge {
+  position: absolute;
+  top: 5px;
+  right: 6px;
+  display: grid;
+  width: 16px;
+  height: 16px;
+  place-items: center;
+  border: 1.5px solid #fff;
+  border-radius: 999px;
+  background: var(--primary);
+  color: #fff;
+  font-size: 0.625rem;
+}
+
+.choiceDialog {
+  position: fixed;
+  inset: 50% auto auto 50%;
+  display: grid;
+  width: min(27.5rem, calc(100vw - 1.5rem));
+  max-width: 27.5rem;
+  max-height: min(82dvh, 43.75rem);
+  gap: 18px;
+  overflow-y: auto;
+  transform: translate(-50%, -50%);
+  border: 1px solid rgb(148 163 184 / 28%);
+  border-radius: 1.25rem;
+  padding: 1.375rem;
+  background: #fff;
+  color: #1e293b;
+  box-shadow: 0 24px 70px rgb(15 23 42 / 24%), 0 4px 14px rgb(15 23 42 / 10%);
+}
+
+.choiceDialog::backdrop {
+  background: rgb(15 23 42 / 48%);
+}
+
+.dialogHeader h2 {
+  margin: 0;
+  padding-right: 2.25rem;
+  color: #0f172a;
+  font-size: 1.25rem;
+  line-height: 1.2;
+}
+
+.dialogHeader p {
+  max-width: 46ch;
+  margin: 0.375rem 0 0;
+  color: #64748b;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.choiceForm,
+.choiceFieldset {
+  display: grid;
+  gap: 14px;
+}
+
+.choiceFieldset {
+  min-width: 0;
+  margin: 0;
+  border: 0;
+  padding: 0;
+}
+
+.choiceFieldset > legend,
+.choiceLegendRow legend {
+  color: #334155;
+  font-size: 0.75rem;
+  font-weight: 760;
+  letter-spacing: 0.02em;
+}
+
+.choiceList {
+  display: grid;
+  gap: 8px;
+}
+
+.choiceOption {
+  position: relative;
+  display: flex;
+  min-height: 50px;
+  align-items: center;
+  gap: 11px;
+  border: 1px solid #d7e0eb;
+  border-radius: 12px;
+  padding: 11px 13px;
+  background: #fff;
+  color: #334155;
+  cursor: pointer;
+  transition: border-color 150ms ease, background-color 150ms ease, box-shadow 150ms ease;
+}
+
+.choiceOption:hover {
+  border-color: #93c5fd;
+  background: #f8fbff;
+}
+
+.choiceOption:has(input:checked) {
+  border-color: #60a5fa;
+  background: #eff6ff;
+  box-shadow: inset 0 0 0 1px rgb(37 99 235 / 12%);
+  color: #0f4c9c;
+}
+
+.choiceOption:has(input:focus-visible) {
+  outline: 3px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.choiceOption input {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+  accent-color: var(--primary);
+}
+
+.choiceOption span {
+  font-size: 0.8125rem;
+  font-weight: 680;
+}
+
+.choiceGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.choiceLegendRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.clearButton {
+  min-width: 44px;
+  min-height: 44px;
+  border: 0;
+  padding-inline: 6px;
+  background: transparent;
+  color: var(--primary);
+  font-size: 0.75rem;
+  font-weight: 720;
+  cursor: pointer;
+}
+
+.clearButton:disabled {
+  color: #64748b;
+  cursor: default;
+}
+
+.choiceActions {
+  position: sticky;
+  bottom: -14px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 4px;
+  border-top: 1px solid #e2e8f0;
+  padding: 12px 0 14px;
+  background: #fff;
+}
+
+.choiceActions > button {
+  min-height: 44px;
+}
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+@media (max-width: 639px) {
+  .quickFiltersBar {
+    top: calc(max(10px, env(safe-area-inset-top)) + 58px);
+    right: 10px;
+    left: 10px;
+  }
+
+  .filterDock {
+    width: 100%;
+    min-height: 52px;
+    border-radius: 14px;
+  }
+
+  .filterChip {
+    min-height: 52px;
+    padding: 6px 8px;
+  }
+
+  .filterLabel {
+    font-size: 0.547rem;
+  }
+
+  .filterValue {
+    font-size: 0.6875rem;
+  }
+
+  .choiceDialog {
+    inset: auto 0 0;
+    width: 100%;
+    max-width: none;
+    max-height: min(82dvh, 43.75rem);
+    transform: none;
+    border-radius: 24px 24px 0 0;
+    padding: 22px 18px calc(14px + env(safe-area-inset-bottom));
+  }
+
+  .typeDialog .choiceGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .filterChip,
+  .choiceOption {
+    transition: none;
+  }
+}

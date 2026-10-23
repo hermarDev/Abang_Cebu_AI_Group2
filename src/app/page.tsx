@@ -1,9 +1,5 @@
-import MapCanvasLoader from "@/components/map/MapCanvasLoader";
+import { RestoredFinderShell } from "@/features/map/RestoredFinderShell";
 
 export default function Home() {
-  return (
-    <main className="min-h-[100dvh] overflow-hidden">
-      <MapCanvasLoader />
-    </main>
-  );
+  return <RestoredFinderShell />;
 }

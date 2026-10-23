@@ -1,0 +1,235 @@
+<mxfile host="Electron" modified="2026-10-18T00:00:00.000Z" agent="Antigravity" version="21.0.0" type="device">
+  <diagram id="scrum-127-renter-inquiry-viewing" name="SCRUM-127: RENTER INQUIRY &amp; VIEWING REQUEST FLOW">
+    <mxGraphModel dx="1200" dy="1600" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1050" pageHeight="1420" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- Title -->
+        <mxCell id="title" value="SCRUM-127: RENTER INQUIRY &amp; VIEWING REQUEST FLOW" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontFamily=Helvetica;fontSize=18;fontStyle=1;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="250" y="25" width="550" height="35" as="geometry" />
+        </mxCell>
+
+        <!-- Node: node_start -->
+        <mxCell id="node_start" value="START" style="rounded=1;arcSize=50;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Helvetica;fontSize=14;fontStyle=1;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="420" y="80" width="160" height="50" as="geometry" />
+        </mxCell>
+        <!-- Node: node_auth -->
+        <mxCell id="node_auth" value="Authenticated&#xa;Renter?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=12;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="420" y="165" width="160" height="90" as="geometry" />
+        </mxCell>
+        <!-- Node: node_gate -->
+        <mxCell id="node_gate" value="Guest: SCRUM-121 Gate&#xa;Preserve Listing &amp; Action" style="shape=offPageConnector;size=0.38;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11;fontStyle=1;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="160" y="182.5" width="190" height="55" as="geometry" />
+        </mxCell>
+        <!-- Node: node_target_check -->
+        <mxCell id="node_target_check" value="Listing Eligible&#xa;&amp; Available?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=12;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="420" y="295" width="160" height="90" as="geometry" />
+        </mxCell>
+        <!-- Node: node_closed -->
+        <mxCell id="node_closed" value="Target Unavailable&#xa;Safe Termination" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;size=20;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=12;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="160" y="312.5" width="190" height="55" as="geometry" />
+        </mxCell>
+        <!-- Node: node_conn_e1 -->
+        <mxCell id="node_conn_e1" value="E" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=14;fontStyle=1;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="60" y="315" width="50" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="sub_node_conn_e1" value="Exit" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontFamily=Helvetica;fontSize=11;fontStyle=1;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="40" y="367" width="90" height="20" as="geometry" />
+        </mxCell>
+        <!-- Node: node_input_form -->
+        <mxCell id="node_input_form" value="Capture Inquiry Message, Move-in Date&#xa;&amp; Viewing Appointment Slot" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;size=20;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=12;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="360" y="425" width="280" height="65" as="geometry" />
+        </mxCell>
+        <!-- Node: node_validate_input -->
+        <mxCell id="node_validate_input" value="Inputs Valid &amp;&#xa;Within Rate Limits?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=12;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="420" y="530" width="160" height="90" as="geometry" />
+        </mxCell>
+        <!-- Node: node_field_errors -->
+        <mxCell id="node_field_errors" value="Field Errors Detected&#xa;Correct or Cancel" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;size=20;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=12;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="160" y="547.5" width="190" height="55" as="geometry" />
+        </mxCell>
+        <!-- Node: node_insert_pending -->
+        <mxCell id="node_insert_pending" value="Derive Landlord from Property &amp;&#xa;Insert Inquiry with 'Pending' Status" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=12;fontStyle=1;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="370" y="660" width="260" height="60" as="geometry" />
+        </mxCell>
+        <!-- Node: node_persist_check -->
+        <mxCell id="node_persist_check" value="Persistence&#xa;Succeeded?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=12;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="420" y="760" width="160" height="90" as="geometry" />
+        </mxCell>
+        <!-- Node: node_fail_notice -->
+        <mxCell id="node_fail_notice" value="Persistence Failure&#xa;Retry Without Duplicate" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;size=20;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=12;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="160" y="777.5" width="190" height="55" as="geometry" />
+        </mxCell>
+        <!-- Node: node_conn_e2 -->
+        <mxCell id="node_conn_e2" value="E" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=14;fontStyle=1;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="60" y="780" width="50" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="sub_node_conn_e2" value="Exit" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontFamily=Helvetica;fontSize=11;fontStyle=1;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="40" y="832" width="90" height="20" as="geometry" />
+        </mxCell>
+        <!-- Node: node_notify_landlord -->
+        <mxCell id="node_notify_landlord" value="Notify Owning Landlord of&#xa;New Inquiry / Viewing Request" style="shape=offPageConnector;size=0.38;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11;fontStyle=1;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="370" y="890" width="260" height="55" as="geometry" />
+        </mxCell>
+        <!-- Node: node_landlord_decision -->
+        <mxCell id="node_landlord_decision" value="Landlord Response&#xa;Outcome?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=12;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="420" y="985" width="160" height="90" as="geometry" />
+        </mxCell>
+        <!-- Node: node_decline_response -->
+        <mxCell id="node_decline_response" value="Decline / 48h Timeout Notice&#xa;Status Updated &amp; Renter Notified" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;size=20;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=12;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="160" y="1002.5" width="190" height="55" as="geometry" />
+        </mxCell>
+        <!-- Node: node_conn_e3 -->
+        <mxCell id="node_conn_e3" value="E" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=14;fontStyle=1;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="60" y="1005" width="50" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="sub_node_conn_e3" value="Exit" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontFamily=Helvetica;fontSize=11;fontStyle=1;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="40" y="1057" width="90" height="20" as="geometry" />
+        </mxCell>
+        <!-- Node: node_persist_response -->
+        <mxCell id="node_persist_response" value="Persist Landlord Response &amp;&#xa;Notify Renter of Status / Schedule" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=12;fontStyle=1;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="360" y="1115" width="280" height="60" as="geometry" />
+        </mxCell>
+        <!-- Node: node_db -->
+        <mxCell id="node_db" value="Inquiries &amp;&#xa;Appointments DB" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=13;fontStyle=1;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="780" y="645" width="130" height="90" as="geometry" />
+        </mxCell>
+        <!-- Node: node_conn_e_recv -->
+        <mxCell id="node_conn_e_recv" value="E" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=14;fontStyle=1;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="260" y="1235" width="50" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="sub_node_conn_e_recv" value="From Exits" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontFamily=Helvetica;fontSize=11;fontStyle=1;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="240" y="1287" width="90" height="20" as="geometry" />
+        </mxCell>
+        <!-- Node: node_end -->
+        <mxCell id="node_end" value="END" style="rounded=1;arcSize=50;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Helvetica;fontSize=14;fontStyle=1;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="420" y="1235" width="160" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- EDGES / CONNECTORS -->
+        <!-- Edge: node_start -> node_auth -->
+        <mxCell id="e_start_auth" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=classic;exitX=0.5;exitY=1.0;exitDx=0;exitDy=0;entryX=0.5;entryY=0.0;entryDx=0;entryDy=0;" edge="1" source="node_start" target="node_auth" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <!-- Edge: node_auth -> node_gate -->
+        <mxCell id="e_auth_no" value="NO" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=classic;fontColor=#000000;fontSize=11;fontStyle=1;exitX=0.0;exitY=0.5;exitDx=0;exitDy=0;entryX=1.0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" source="node_auth" target="node_gate" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="350" y="210" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <!-- Edge: node_gate -> node_auth -->
+        <mxCell id="e_gate_auth" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=classic;exitX=0.5;exitY=0.0;exitDx=0;exitDy=0;entryX=0.5;entryY=0.0;entryDx=0;entryDy=0;" edge="1" source="node_gate" target="node_auth" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="255" y="140" />
+              <mxPoint x="500" y="140" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <!-- Edge: node_auth -> node_target_check -->
+        <mxCell id="e_auth_yes" value="YES" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=classic;fontColor=#000000;fontSize=11;fontStyle=1;exitX=0.5;exitY=1.0;exitDx=0;exitDy=0;entryX=0.5;entryY=0.0;entryDx=0;entryDy=0;" edge="1" source="node_auth" target="node_target_check" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <!-- Edge: node_target_check -> node_closed -->
+        <mxCell id="e_target_no" value="NO" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=classic;fontColor=#000000;fontSize=11;fontStyle=1;exitX=0.0;exitY=0.5;exitDx=0;exitDy=0;entryX=1.0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" source="node_target_check" target="node_closed" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="350" y="340" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <!-- Edge: node_closed -> node_conn_e1 -->
+        <mxCell id="e_closed_conn_e" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=classic;exitX=0.0;exitY=0.5;exitDx=0;exitDy=0;entryX=1.0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" source="node_closed" target="node_conn_e1" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <!-- Edge: node_target_check -> node_input_form -->
+        <mxCell id="e_target_yes" value="YES" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=classic;fontColor=#000000;fontSize=11;fontStyle=1;exitX=0.5;exitY=1.0;exitDx=0;exitDy=0;entryX=0.5;entryY=0.0;entryDx=0;entryDy=0;" edge="1" source="node_target_check" target="node_input_form" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <!-- Edge: node_input_form -> node_validate_input -->
+        <mxCell id="e_form_validate" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=classic;exitX=0.5;exitY=1.0;exitDx=0;exitDy=0;entryX=0.5;entryY=0.0;entryDx=0;entryDy=0;" edge="1" source="node_input_form" target="node_validate_input" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <!-- Edge: node_validate_input -> node_field_errors -->
+        <mxCell id="e_validate_no" value="NO" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=classic;fontColor=#000000;fontSize=11;fontStyle=1;exitX=0.0;exitY=0.5;exitDx=0;exitDy=0;entryX=1.0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" source="node_validate_input" target="node_field_errors" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="350" y="575" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <!-- Edge: node_field_errors -> node_input_form -->
+        <mxCell id="e_errors_form" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=classic;exitX=0.5;exitY=0.0;exitDx=0;exitDy=0;entryX=0.0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" source="node_field_errors" target="node_input_form" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="255" y="457.5" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <!-- Edge: node_validate_input -> node_insert_pending -->
+        <mxCell id="e_validate_yes" value="YES" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=classic;fontColor=#000000;fontSize=11;fontStyle=1;exitX=0.5;exitY=1.0;exitDx=0;exitDy=0;entryX=0.5;entryY=0.0;entryDx=0;entryDy=0;" edge="1" source="node_validate_input" target="node_insert_pending" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <!-- Edge: node_insert_pending -> node_db -->
+        <mxCell id="e_insert_db" value="Insert" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;dashed=1;endArrow=classic;fontColor=#000000;fontSize=11;exitX=1.0;exitY=0.5;exitDx=0;exitDy=0;entryX=0.0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" source="node_insert_pending" target="node_db" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="780" y="690" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <!-- Edge: node_insert_pending -> node_persist_check -->
+        <mxCell id="e_insert_check" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=classic;exitX=0.5;exitY=1.0;exitDx=0;exitDy=0;entryX=0.5;entryY=0.0;entryDx=0;entryDy=0;" edge="1" source="node_insert_pending" target="node_persist_check" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <!-- Edge: node_persist_check -> node_fail_notice -->
+        <mxCell id="e_persist_no" value="NO" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=classic;fontColor=#000000;fontSize=11;fontStyle=1;exitX=0.0;exitY=0.5;exitDx=0;exitDy=0;entryX=1.0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" source="node_persist_check" target="node_fail_notice" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="350" y="805" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <!-- Edge: node_fail_notice -> node_conn_e2 -->
+        <mxCell id="e_fail_conn_e" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=classic;exitX=0.0;exitY=0.5;exitDx=0;exitDy=0;entryX=1.0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" source="node_fail_notice" target="node_conn_e2" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <!-- Edge: node_persist_check -> node_notify_landlord -->
+        <mxCell id="e_persist_yes" value="YES" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=classic;fontColor=#000000;fontSize=11;fontStyle=1;exitX=0.5;exitY=1.0;exitDx=0;exitDy=0;entryX=0.5;entryY=0.0;entryDx=0;entryDy=0;" edge="1" source="node_persist_check" target="node_notify_landlord" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <!-- Edge: node_notify_landlord -> node_landlord_decision -->
+        <mxCell id="e_notify_landlord_decision" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=classic;exitX=0.5;exitY=1.0;exitDx=0;exitDy=0;entryX=0.5;entryY=0.0;entryDx=0;entryDy=0;" edge="1" source="node_notify_landlord" target="node_landlord_decision" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <!-- Edge: node_landlord_decision -> node_decline_response -->
+        <mxCell id="e_decision_decline" value="NO (Decline / Expired)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=classic;fontColor=#000000;fontSize=11;fontStyle=1;exitX=0.0;exitY=0.5;exitDx=0;exitDy=0;entryX=1.0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" source="node_landlord_decision" target="node_decline_response" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="350" y="1030" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <!-- Edge: node_decline_response -> node_conn_e3 -->
+        <mxCell id="e_decline_conn_e" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=classic;exitX=0.0;exitY=0.5;exitDx=0;exitDy=0;entryX=1.0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" source="node_decline_response" target="node_conn_e3" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <!-- Edge: node_landlord_decision -> node_persist_response -->
+        <mxCell id="e_decision_persist" value="YES (Accept / Schedule)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=classic;fontColor=#000000;fontSize=11;fontStyle=1;exitX=0.5;exitY=1.0;exitDx=0;exitDy=0;entryX=0.5;entryY=0.0;entryDx=0;entryDy=0;" edge="1" source="node_landlord_decision" target="node_persist_response" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <!-- Edge: node_persist_response -> node_end -->
+        <mxCell id="e_persist_response_end" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=classic;exitX=0.5;exitY=1.0;exitDx=0;exitDy=0;entryX=0.5;entryY=0.0;entryDx=0;entryDy=0;" edge="1" source="node_persist_response" target="node_end" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <!-- Edge: node_conn_e_recv -> node_end -->
+        <mxCell id="e_conn_e_end" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=classic;exitX=1.0;exitY=0.5;exitDx=0;exitDy=0;entryX=0.0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" source="node_conn_e_recv" target="node_end" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

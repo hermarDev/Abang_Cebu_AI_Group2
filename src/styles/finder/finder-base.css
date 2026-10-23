@@ -1,0 +1,87 @@
+/* AbangCebu: crisp paper, ocean blue, and generous map space. */
+:root {
+  --background: #f8fafc;
+  --foreground: #0f172a;
+  --primary: #0066d5;
+  --primary-foreground: #ffffff;
+  --primary-hover: #0052b0;
+  --muted: #f1f5f9;
+  --muted-foreground: #64748b;
+  --border: #e2e8f0;
+  --ring: #3b82f6;
+  --popover: #ffffff;
+  --popover-foreground: #0f172a;
+  --accent: #e0f2fe;
+  --amber: #0066d5;
+
+  /* Standardized radii tokens */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+  --radius-pill: 9999px;
+
+  /* Layered z-index tokens */
+  --z-map: 0;
+  --z-map-control: 10;
+  --z-results: 20;
+  --z-header: 30;
+  --z-drawer-backdrop: 40;
+  --z-drawer: 50;
+  --z-modal-backdrop: 60;
+  --z-modal: 70;
+  --z-toast: 80;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: "Manrope Variable", Arial, sans-serif;
+  color: var(--foreground);
+  background: var(--background);
+  overflow-x: hidden;
+  width: 100%;
+}
+
+button, a, select, input {
+  -webkit-tap-highlight-color: transparent;
+  font-family: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+:focus-visible {
+  outline: 3px solid var(--ring);
+  outline-offset: 3px;
+}
+
+.skip-link {
+  position: fixed;
+  left: 16px;
+  top: -80px;
+  z-index: 100;
+  padding: 12px 20px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  transition: top 0.2s;
+}
+.skip-link:focus {
+  top: 12px;
+}
+
+/* App container */
+.finder-app {
+  display: flex;
+  flex-direction: column;
+  height: 100svh;
+  max-width: 100vw;
+  overflow: hidden;
+  position: relative;
+}

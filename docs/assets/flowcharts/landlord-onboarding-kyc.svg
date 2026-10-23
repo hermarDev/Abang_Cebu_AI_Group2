@@ -1,0 +1,171 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1050 1450" width="1050" height="1450" style="background:#ffffff; font-family:Helvetica, Arial, sans-serif;">
+  <defs>
+    <!-- Arrow marker for end of lines -->
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#000000" />
+    </marker>
+    <!-- Arrow marker for start of lines (bidirectional) -->
+    <marker id="arrow-start" viewBox="0 0 10 10" refX="2" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 8 1.5 L 0 5 L 8 8.5 z" fill="#000000" />
+    </marker>
+    <!-- Pattern for grid background -->
+    <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#E2E8F0" stroke-width="0.8"/>
+    </pattern>
+  </defs>
+
+  <!-- Grid Background -->
+  <rect width="100%" height="100%" fill="url(#grid)" />
+
+  <!-- Flowchart Title -->
+  <text x="525.0" y="45" text-anchor="middle" font-size="18" font-weight="bold" fill="#000000" letter-spacing="1">SCRUM-125: LANDLORD ONBOARDING &amp; KYC VERIFICATION FLOW</text>
+
+  <!-- ==================== CONNECTING EDGES ==================== -->
+  <!-- node_start -> node_auth_check -->
+  <line x1="500.0" y1="130.0" x2="500.0" y2="170.0" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <!-- node_auth_check -> node_role_redirect -->
+  <path d="M 410 210 L 360 210" fill="none" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <text x="375" y="202" font-size="11" font-weight="bold" fill="#000000">NO</text>
+  <!-- node_role_redirect -> node_end -->
+  <path d="M 180 210 L 100 210 L 100 1365 L 420 1365" fill="none" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <!-- node_auth_check -> node_fetch_kyc -->
+  <line x1="500.0" y1="250.0" x2="500.0" y2="290.0" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <text x="508" y="265" font-size="11" font-weight="bold" fill="#000000">YES</text>
+  <!-- node_fetch_kyc -> node_db_kyc -->
+  <path d="M 630 317.5 L 780 317.5" fill="none" stroke="#000000" stroke-width="1.8" stroke-dasharray="6,4" marker-start="url(#arrow-start)" marker-end="url(#arrow)" />
+  <text x="675" y="307" font-size="11" font-weight="normal" fill="#000000">SELECT status</text>
+  <!-- node_fetch_kyc -> node_status_check -->
+  <line x1="500.0" y1="345.0" x2="500.0" y2="385.0" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <!-- node_status_check -> node_approved_notice -->
+  <path d="M 590 425 L 680 425" fill="none" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <text x="610" y="417" font-size="11" font-weight="bold" fill="#000000">YES</text>
+  <!-- node_approved_notice -> node_end -->
+  <path d="M 880 425 L 950 425 L 950 1365 L 580 1365" fill="none" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <!-- node_status_check -> node_kyc_form -->
+  <line x1="500.0" y1="465.0" x2="500.0" y2="505.0" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <text x="508" y="480" font-size="11" font-weight="bold" fill="#000000">NO</text>
+  <!-- node_kyc_form -> node_validate_client -->
+  <line x1="500.0" y1="570.0" x2="500.0" y2="610.0" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <!-- node_validate_client -> node_client_err -->
+  <path d="M 400 655 L 360 655" fill="none" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <text x="375" y="647" font-size="11" font-weight="bold" fill="#000000">NO</text>
+  <!-- node_client_err -> node_kyc_form -->
+  <path d="M 180 655 L 150 655 L 150 537.5 L 350 537.5" fill="none" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <!-- node_validate_client -> node_upload_storage -->
+  <line x1="500.0" y1="700.0" x2="500.0" y2="740.0" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <text x="508" y="715" font-size="11" font-weight="bold" fill="#000000">YES</text>
+  <!-- node_upload_storage -> node_storage_db -->
+  <path d="M 640 767.5 L 780 767.5" fill="none" stroke="#000000" stroke-width="1.8" stroke-dasharray="6,4" marker-end="url(#arrow)" />
+  <text x="670" y="757" font-size="11" font-weight="normal" fill="#000000">Upload Encrypted</text>
+  <!-- node_upload_storage -> node_insert_submission -->
+  <line x1="500.0" y1="795.0" x2="500.0" y2="835.0" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <!-- node_insert_submission -> node_db_insert -->
+  <path d="M 640 862.5 L 780 862.5" fill="none" stroke="#000000" stroke-width="1.8" stroke-dasharray="6,4" marker-end="url(#arrow)" />
+  <text x="675" y="852" font-size="11" font-weight="normal" fill="#000000">INSERT pending</text>
+  <!-- node_insert_submission -> node_persist_check -->
+  <line x1="500.0" y1="890.0" x2="500.0" y2="930.0" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <!-- node_persist_check -> node_persist_fail -->
+  <path d="M 420 970 L 360 970" fill="none" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <text x="375" y="962" font-size="11" font-weight="bold" fill="#000000">NO</text>
+  <!-- node_persist_fail -> node_end -->
+  <path d="M 180 970 L 100 970 L 100 1365 L 420 1365" fill="none" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <!-- node_persist_check -> node_trigger_admin_queue -->
+  <line x1="500.0" y1="1010.0" x2="500.0" y2="1050.0" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <text x="508" y="1025" font-size="11" font-weight="bold" fill="#000000">YES</text>
+  <!-- node_trigger_admin_queue -> node_notify_landlord -->
+  <line x1="500.0" y1="1110.0" x2="500.0" y2="1150.0" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <!-- node_notify_landlord -> node_allow_drafts -->
+  <line x1="500.0" y1="1205.0" x2="500.0" y2="1245.0" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <!-- node_allow_drafts -> node_end -->
+  <line x1="500.0" y1="1300.0" x2="500.0" y2="1340.0" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+
+  <!-- ==================== FLOWCHART NODES ==================== -->
+  <!-- Node: node_start -->
+  <rect x="420" y="80" width="160" height="50" rx="25" ry="25" fill="#FFFFFF" stroke="#000000" stroke-width="2.2" />
+  <text x="500.0" y="110.0" text-anchor="middle" font-size="14" font-weight="bold" fill="#000000">START: Authenticated</text>
+  <!-- Node: node_auth_check -->
+  <polygon points="500.0,170 590,210.0 500.0,250 410,210.0" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="500.0" y="206.7" text-anchor="middle" font-size="12" font-weight="normal" fill="#000000">User Session Role</text>
+  <text x="500.0" y="221.7" text-anchor="middle" font-size="12" font-weight="normal" fill="#000000">Is Landlord?</text>
+  <!-- Node: node_role_redirect -->
+  <polygon points="205,182.5 360,182.5 335,237.5 180,237.5" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="270.0" y="206.0" text-anchor="middle" font-size="12" font-weight="bold" fill="#000000">Redirect to Role Selection</text>
+  <text x="270.0" y="222.0" text-anchor="middle" font-size="12" font-weight="normal" fill="#333333">Upgrade / Switch to Landlord</text>
+  <!-- Node: node_fetch_kyc -->
+  <rect x="370" y="290" width="260" height="55" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="500.0" y="313.9" text-anchor="middle" font-size="12" font-weight="normal" fill="#333333">Retrieve Existing KYC Profile &amp;</text>
+  <text x="500.0" y="329.5" text-anchor="middle" font-size="12" font-weight="normal" fill="#333333">Verification Status from DB</text>
+  <!-- Node: node_db_kyc -->
+  <g>
+    <path d="M 780 297.5 A 90.0 15 0 0 0 960 297.5 A 90.0 15 0 0 0 780 297.5 Z" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+    <path d="M 780 297.5 L 780 337.5 A 90.0 15 0 0 0 960 337.5 L 960 297.5" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+    <path d="M 780 337.5 A 90.0 15 0 0 0 960 337.5" fill="none" stroke="#000000" stroke-width="1.8" />
+    <text x="870.0" y="321.5" text-anchor="middle" font-size="13" font-weight="bold" fill="#000000">Database (Supabase)</text>
+  </g>
+  <!-- Node: node_status_check -->
+  <polygon points="500.0,385 590,425.0 500.0,465 410,425.0" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="500.0" y="421.7" text-anchor="middle" font-size="12" font-weight="normal" fill="#000000">KYC Record Status</text>
+  <text x="500.0" y="436.7" text-anchor="middle" font-size="12" font-weight="normal" fill="#000000">Already Approved?</text>
+  <!-- Node: node_approved_notice -->
+  <polygon points="705,397.5 880,397.5 855,452.5 680,452.5" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="780.0" y="421.0" text-anchor="middle" font-size="12" font-weight="bold" fill="#000000">Display &#x27;Verified Landlord&#x27;</text>
+  <text x="780.0" y="437.0" text-anchor="middle" font-size="12" font-weight="normal" fill="#333333">Direct to Listing Creation</text>
+  <!-- Node: node_kyc_form -->
+  <polygon points="375,505 650,505 625,570 350,570" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="500.0" y="533.5" text-anchor="middle" font-size="12" font-weight="bold" fill="#000000">Landlord Inputs Business / Individual Info</text>
+  <text x="500.0" y="549.5" text-anchor="middle" font-size="12" font-weight="normal" fill="#333333">&amp; Uploads Government ID &amp; Property Proof</text>
+  <!-- Node: node_validate_client -->
+  <polygon points="500.0,610 600,655.0 500.0,700 400,655.0" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="500.0" y="651.7" text-anchor="middle" font-size="12" font-weight="normal" fill="#000000">Payload Complete &amp;</text>
+  <text x="500.0" y="666.7" text-anchor="middle" font-size="12" font-weight="normal" fill="#000000">Formats Valid (MIME/Size)?</text>
+  <!-- Node: node_client_err -->
+  <polygon points="205,627.5 360,627.5 335,682.5 180,682.5" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="270.0" y="651.0" text-anchor="middle" font-size="12" font-weight="bold" fill="#000000">Display Validation Errors</text>
+  <text x="270.0" y="667.0" text-anchor="middle" font-size="12" font-weight="normal" fill="#333333">Highlight Missing Fields</text>
+  <!-- Node: node_upload_storage -->
+  <rect x="360" y="740" width="280" height="55" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="500.0" y="763.9000000000001" text-anchor="middle" font-size="12" font-weight="normal" fill="#333333">Encrypt &amp; Upload Identity Docs to</text>
+  <text x="500.0" y="779.5000000000001" text-anchor="middle" font-size="12" font-weight="normal" fill="#333333">Private Secure Bucket (storage.objects)</text>
+  <!-- Node: node_storage_db -->
+  <g>
+    <path d="M 780 747.5 A 90.0 15 0 0 0 960 747.5 A 90.0 15 0 0 0 780 747.5 Z" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+    <path d="M 780 747.5 L 780 787.5 A 90.0 15 0 0 0 960 787.5 L 960 747.5" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+    <path d="M 780 787.5 A 90.0 15 0 0 0 960 787.5" fill="none" stroke="#000000" stroke-width="1.8" />
+    <text x="870.0" y="771.5" text-anchor="middle" font-size="13" font-weight="bold" fill="#000000">Private Storage Bucket</text>
+  </g>
+  <!-- Node: node_insert_submission -->
+  <rect x="360" y="835" width="280" height="55" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="500.0" y="858.9000000000001" text-anchor="middle" font-size="12" font-weight="normal" fill="#333333">Insert Pending KYC Record</text>
+  <text x="500.0" y="874.5000000000001" text-anchor="middle" font-size="12" font-weight="normal" fill="#333333">(status = &#x27;pending_review&#x27;)</text>
+  <!-- Node: node_db_insert -->
+  <g>
+    <path d="M 780 842.5 A 90.0 15 0 0 0 960 842.5 A 90.0 15 0 0 0 780 842.5 Z" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+    <path d="M 780 842.5 L 780 882.5 A 90.0 15 0 0 0 960 882.5 L 960 842.5" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+    <path d="M 780 882.5 A 90.0 15 0 0 0 960 882.5" fill="none" stroke="#000000" stroke-width="1.8" />
+    <text x="870.0" y="866.5" text-anchor="middle" font-size="13" font-weight="bold" fill="#000000">Database (Supabase)</text>
+  </g>
+  <!-- Node: node_persist_check -->
+  <polygon points="500.0,930 580,970.0 500.0,1010 420,970.0" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="500.0" y="966.7" text-anchor="middle" font-size="12" font-weight="normal" fill="#000000">Database Insertion</text>
+  <text x="500.0" y="981.7" text-anchor="middle" font-size="12" font-weight="normal" fill="#000000">Successful?</text>
+  <!-- Node: node_persist_fail -->
+  <polygon points="205,942.5 360,942.5 335,997.5 180,997.5" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="270.0" y="966.0" text-anchor="middle" font-size="12" font-weight="bold" fill="#000000">Show 500 Submission Error</text>
+  <text x="270.0" y="982.0" text-anchor="middle" font-size="12" font-weight="normal" fill="#333333">Prompt Landlord to Retry</text>
+  <!-- Node: node_trigger_admin_queue -->
+  <polygon points="360,1050 640,1050 640,1090.8 500.0,1110 360,1090.8" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="500.0" y="1063.85" text-anchor="middle" font-size="11" font-weight="bold" fill="#000000">Sub-Process 4.1 Handoff:</text>
+  <text x="500.0" y="1078.1499999999999" text-anchor="middle" font-size="11" font-weight="bold" fill="#000000">Enqueue Admin KYC Review (SCRUM-126)</text>
+  <!-- Node: node_notify_landlord -->
+  <polygon points="395,1150 630,1150 605,1205 370,1205" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="500.0" y="1173.5" text-anchor="middle" font-size="12" font-weight="bold" fill="#000000">Send Confirmation Notice:</text>
+  <text x="500.0" y="1189.5" text-anchor="middle" font-size="12" font-weight="normal" fill="#333333">&#x27;KYC Under Review (1-2 Business Days)&#x27;</text>
+  <!-- Node: node_allow_drafts -->
+  <rect x="360" y="1245" width="280" height="55" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="500.0" y="1268.9" text-anchor="middle" font-size="12" font-weight="bold" fill="#000000">Grant Draft Listing Permissions</text>
+  <text x="500.0" y="1284.5" text-anchor="middle" font-size="12" font-weight="normal" fill="#333333">(Lock Public Publishing Until Verified)</text>
+  <!-- Node: node_end -->
+  <rect x="420" y="1340" width="160" height="50" rx="25" ry="25" fill="#FFFFFF" stroke="#000000" stroke-width="2.2" />
+  <text x="500.0" y="1370.0" text-anchor="middle" font-size="14" font-weight="bold" fill="#000000">END: Landlord Ready</text>
+
+</svg>

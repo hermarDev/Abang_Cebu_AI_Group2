@@ -43,3 +43,16 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# local worktrees and tool output
+.worktrees/
+.hermes/
+.flowchart-refresh-backup-*/
+
+# generated caches and temporary profiles
+__pycache__/
+*.py[cod]
+.next/
+supabase/.temp/
+docs/reports/.lo-profile*/
+docs/reports/.~lock.*#

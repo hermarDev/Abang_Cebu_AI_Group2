@@ -1,4 +1,9 @@
 @import "tailwindcss";
+@import "../styles/finder/finder-base.css";
+@import "../styles/finder/header.css";
+@import "../styles/finder/results-rail.css";
+@import "../styles/finder/filter-dialog.css";
+@import "../styles/finder/drawer.css";
 
 :root {
   /* Coastal Sand / Warm Surface Canvas */
@@ -328,3 +333,30 @@ body {
     outline-offset: 2px;
   }
 }
+
+/* Portals live outside the finder shell, so carry its light/blue tokens explicitly. */
+dialog[data-surface="finder"] {
+  color-scheme: light;
+  --background: #ffffff;
+  --foreground: #18344d;
+  --card: #ffffff;
+  --card-foreground: #18344d;
+  --primary: #2563eb;
+  --primary-foreground: #ffffff;
+  --action: #2563eb;
+  --action-foreground: #ffffff;
+  --action-hover: #1d4ed8;
+  --muted: #f1f5f9;
+  --muted-foreground: #52677b;
+  --border: #d8e2ec;
+  --input: #d8e2ec;
+  --ring: #2563eb;
+  background: var(--card);
+  color: var(--card-foreground);
+}
+
+/* Original AbangCebu finder header overrides for Next-rendered markup. */
+.site-header { left: 16px; right: 16px; width: auto; justify-content: space-between; gap: 12px; }
+.site-header .brand-logo-mark { display: none; }
+.site-header .brand-logo-full { height: 34px; width: auto; }
+.site-header .profile-button { margin-left: auto; }

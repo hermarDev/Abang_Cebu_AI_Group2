@@ -1,0 +1,211 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1050 1680" width="1050" height="1680" style="background:#ffffff; font-family:Helvetica, Arial, sans-serif;">
+  <defs>
+    <!-- Arrow marker for end of lines -->
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#000000" />
+    </marker>
+    <!-- Arrow marker for start of lines (bidirectional) -->
+    <marker id="arrow-start" viewBox="0 0 10 10" refX="2" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 8 1.5 L 0 5 L 8 8.5 z" fill="#000000" />
+    </marker>
+    <!-- Pattern for grid background -->
+    <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#E2E8F0" stroke-width="0.8"/>
+    </pattern>
+  </defs>
+
+  <!-- Grid Background -->
+  <rect width="100%" height="100%" fill="url(#grid)" />
+
+  <!-- Flowchart Title -->
+  <text x="525.0" y="45" text-anchor="middle" font-size="18" font-weight="bold" fill="#000000" letter-spacing="1">SCRUM-125: LANDLORD LISTING DRAFT &amp; SUBMISSION FLOW</text>
+
+  <!-- ==================== CONNECTING EDGES ==================== -->
+  <!-- node_start -> node_auth -->
+  <line x1="500.0" y1="130.0" x2="500.0" y2="165.0" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <!-- node_auth -> node_auth_gate -->
+  <path d="M 420 210 L 350 210" fill="none" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <text x="375" y="202" font-size="11" font-weight="bold" fill="#000000">NO</text>
+  <!-- node_auth_gate -> node_auth -->
+  <path d="M 255 182.5 L 255 140 L 500 140 L 500 165" fill="none" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <!-- node_auth -> node_role -->
+  <line x1="500.0" y1="255.0" x2="500.0" y2="295.0" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <text x="508" y="275" font-size="11" font-weight="bold" fill="#000000">YES</text>
+  <!-- node_role -> node_deny -->
+  <path d="M 420 340 L 350 340" fill="none" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <text x="375" y="332" font-size="11" font-weight="bold" fill="#000000">NO</text>
+  <!-- node_deny -> node_conn_e1 -->
+  <line x1="160.0" y1="340.0" x2="110.0" y2="340.0" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <!-- node_role -> node_editor -->
+  <line x1="500.0" y1="385.0" x2="500.0" y2="425.0" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <text x="508" y="405" font-size="11" font-weight="bold" fill="#000000">YES</text>
+  <!-- node_editor -> node_save_choice -->
+  <line x1="500.0" y1="485.0" x2="500.0" y2="525.0" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <!-- node_save_choice -> node_draft_validate -->
+  <path d="M 420 570 L 255 570 L 255 650" fill="none" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <text x="310" y="560" font-size="11" font-weight="normal" fill="#000000">Save Draft</text>
+  <!-- node_draft_validate -> node_draft_result -->
+  <line x1="255.0" y1="710.0" x2="255.0" y2="750.0" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <!-- node_draft_result -> node_draft_saved -->
+  <line x1="255.0" y1="840.0" x2="255.0" y2="880.0" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <text x="262" y="855" font-size="11" font-weight="bold" fill="#000000">YES</text>
+  <!-- node_draft_saved -> node_conn_e2 -->
+  <line x1="150.0" y1="907.5" x2="110.0" y2="907.5" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <!-- node_draft_result -> node_draft_retry -->
+  <path d="M 175 795 L 130 795 L 130 1002.5 L 150 1002.5" fill="none" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <text x="140" y="785" font-size="11" font-weight="bold" fill="#000000">NO</text>
+  <!-- node_draft_retry -> node_editor -->
+  <path d="M 150 1002.5 L 25 1002.5 L 25 455 L 370 455" fill="none" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <!-- node_save_choice -> node_submit_validate -->
+  <line x1="500.0" y1="615.0" x2="500.0" y2="650.0" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <text x="508" y="630" font-size="11" font-weight="normal" fill="#000000">Submit</text>
+  <!-- node_submit_validate -> node_submit_valid -->
+  <line x1="500.0" y1="710.0" x2="500.0" y2="750.0" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <!-- node_submit_valid -> node_fix_input -->
+  <path d="M 580 795 L 740 795" fill="none" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <text x="640" y="787" font-size="11" font-weight="bold" fill="#000000">NO</text>
+  <!-- node_fix_input -> node_editor -->
+  <path d="M 840 767.5 L 840 455 L 630 455" fill="none" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <!-- node_submit_valid -> node_pending_snapshot -->
+  <line x1="500.0" y1="840.0" x2="500.0" y2="880.0" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <text x="508" y="855" font-size="11" font-weight="bold" fill="#000000">YES</text>
+  <!-- node_pending_snapshot -> node_db -->
+  <path d="M 630 910 L 700 910 L 700 925 L 780 925" fill="none" stroke="#000000" stroke-width="1.8" stroke-dasharray="6,4" marker-end="url(#arrow)" />
+  <text x="705" y="900" font-size="11" font-weight="normal" fill="#000000">Persist</text>
+  <!-- node_pending_snapshot -> node_persist_result -->
+  <line x1="500.0" y1="940.0" x2="500.0" y2="980.0" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <!-- node_persist_result -> node_persist_fail -->
+  <path d="M 580 1025 L 740 1025" fill="none" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <text x="640" y="1017" font-size="11" font-weight="bold" fill="#000000">NO</text>
+  <!-- node_persist_fail -> node_editor -->
+  <path d="M 840 997.5 L 860 997.5 L 860 455 L 630 455" fill="none" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <!-- node_persist_result -> node_handoff -->
+  <line x1="500.0" y1="1070.0" x2="500.0" y2="1110.0" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <text x="508" y="1085" font-size="11" font-weight="bold" fill="#000000">YES</text>
+  <!-- node_handoff -> node_handoff_check -->
+  <line x1="500.0" y1="1165.0" x2="500.0" y2="1205.0" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <!-- node_handoff_check -> node_handoff_reconcile -->
+  <path d="M 580 1250 L 740 1250" fill="none" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <text x="640" y="1242" font-size="11" font-weight="bold" fill="#000000">NO</text>
+  <!-- node_handoff_reconcile -> node_conn_e3 -->
+  <line x1="940.0" y1="1250.0" x2="960.0" y2="1250.0" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <!-- node_handoff_check -> node_submitted_end -->
+  <line x1="500.0" y1="1295.0" x2="500.0" y2="1335.0" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <text x="508" y="1310" font-size="11" font-weight="bold" fill="#000000">YES</text>
+  <!-- node_submitted_end -> node_end -->
+  <line x1="500.0" y1="1390.0" x2="500.0" y2="1450.0" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <!-- node_conn_e_recv -> node_end -->
+  <line x1="310.0" y1="1475.0" x2="420.0" y2="1475.0" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+
+  <!-- ==================== FLOWCHART NODES ==================== -->
+  <!-- Node: node_start -->
+  <rect x="420" y="80" width="160" height="50" rx="25" ry="25" fill="#FFFFFF" stroke="#000000" stroke-width="2.2" />
+  <text x="500.0" y="110.0" text-anchor="middle" font-size="14" font-weight="bold" fill="#000000">START</text>
+  <!-- Node: node_auth -->
+  <polygon points="500.0,165 580,210.0 500.0,255 420,210.0" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="500.0" y="206.7" text-anchor="middle" font-size="12" font-weight="normal" fill="#000000">Authenticated</text>
+  <text x="500.0" y="221.7" text-anchor="middle" font-size="12" font-weight="normal" fill="#000000">Session?</text>
+  <!-- Node: node_auth_gate -->
+  <polygon points="160,182.5 350,182.5 350,219.9 255.0,237.5 160,219.9" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="255.0" y="194.6" text-anchor="middle" font-size="11" font-weight="bold" fill="#000000">SCRUM-121 Auth Gate</text>
+  <text x="255.0" y="208.9" text-anchor="middle" font-size="11" font-weight="bold" fill="#000000">Preserve Intent &amp; Sign In</text>
+  <!-- Node: node_role -->
+  <polygon points="500.0,295 580,340.0 500.0,385 420,340.0" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="500.0" y="336.7" text-anchor="middle" font-size="12" font-weight="normal" fill="#000000">Landlord</text>
+  <text x="500.0" y="351.7" text-anchor="middle" font-size="12" font-weight="normal" fill="#000000">Role?</text>
+  <!-- Node: node_deny -->
+  <polygon points="185,312.5 350,312.5 325,367.5 160,367.5" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="255.0" y="336.0" text-anchor="middle" font-size="12" font-weight="bold" fill="#000000">Deny Access</text>
+  <text x="255.0" y="352.0" text-anchor="middle" font-size="12" font-weight="normal" fill="#333333">No Records Disclosed</text>
+  <!-- Node: node_conn_e1 -->
+  <circle cx="85.0" cy="340.0" r="25.0" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="85.0" y="345.0" text-anchor="middle" font-size="14" font-weight="bold" fill="#000000">E</text>
+  <text x="85.0" y="383" text-anchor="middle" font-size="11" font-weight="bold" fill="#000000">Exit</text>
+  <!-- Node: node_editor -->
+  <polygon points="395,425 630,425 605,485 370,485" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="500.0" y="451.0" text-anchor="middle" font-size="12" font-weight="bold" fill="#000000">Edit Property, Units, Photos &amp;</text>
+  <text x="500.0" y="467.0" text-anchor="middle" font-size="12" font-weight="normal" fill="#333333">Amenities (Draft-Safe Form)</text>
+  <!-- Node: node_save_choice -->
+  <polygon points="500.0,525 580,570.0 500.0,615 420,570.0" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="500.0" y="566.7" text-anchor="middle" font-size="12" font-weight="normal" fill="#000000">Save Draft</text>
+  <text x="500.0" y="581.7" text-anchor="middle" font-size="12" font-weight="normal" fill="#000000">or Submit?</text>
+  <!-- Node: node_draft_validate -->
+  <rect x="150" y="650" width="210" height="60" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="255.0" y="676.4000000000001" text-anchor="middle" font-size="12" font-weight="normal" fill="#333333">Validate Ownership &amp;</text>
+  <text x="255.0" y="692.0000000000001" text-anchor="middle" font-size="12" font-weight="normal" fill="#333333">Draft-Safe Partial Input</text>
+  <!-- Node: node_draft_result -->
+  <polygon points="255.0,750 335,795.0 255.0,840 175,795.0" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="255.0" y="791.7" text-anchor="middle" font-size="12" font-weight="normal" fill="#000000">Draft Save</text>
+  <text x="255.0" y="806.7" text-anchor="middle" font-size="12" font-weight="normal" fill="#000000">Succeeded?</text>
+  <!-- Node: node_draft_saved -->
+  <polygon points="175,880 360,880 335,935 150,935" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="255.0" y="903.5" text-anchor="middle" font-size="12" font-weight="bold" fill="#000000">Saved Draft State</text>
+  <text x="255.0" y="919.5" text-anchor="middle" font-size="12" font-weight="normal" fill="#333333">(Private &amp; Non-Public)</text>
+  <!-- Node: node_conn_e2 -->
+  <circle cx="85.0" cy="907.5" r="25.0" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="85.0" y="912.5" text-anchor="middle" font-size="14" font-weight="bold" fill="#000000">E</text>
+  <text x="85.0" y="950.5" text-anchor="middle" font-size="11" font-weight="bold" fill="#000000">Exit</text>
+  <!-- Node: node_draft_retry -->
+  <polygon points="175,975 360,975 335,1030 150,1030" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="255.0" y="998.5" text-anchor="middle" font-size="12" font-weight="bold" fill="#000000">Save Failed / Retain Input</text>
+  <text x="255.0" y="1014.5" text-anchor="middle" font-size="12" font-weight="normal" fill="#333333">Check State &amp; Retry in Editor</text>
+  <!-- Node: node_submit_validate -->
+  <rect x="370" y="650" width="260" height="60" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="500.0" y="676.4000000000001" text-anchor="middle" font-size="12" font-weight="normal" fill="#333333">Validate Complete Property, Units,</text>
+  <text x="500.0" y="692.0000000000001" text-anchor="middle" font-size="12" font-weight="normal" fill="#333333">Required Media &amp; KYC Policy</text>
+  <!-- Node: node_submit_valid -->
+  <polygon points="500.0,750 580,795.0 500.0,840 420,795.0" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="500.0" y="791.7" text-anchor="middle" font-size="12" font-weight="normal" fill="#000000">Complete &amp;</text>
+  <text x="500.0" y="806.7" text-anchor="middle" font-size="12" font-weight="normal" fill="#000000">Eligible?</text>
+  <!-- Node: node_fix_input -->
+  <polygon points="765,767.5 940,767.5 915,822.5 740,822.5" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="840.0" y="791.0" text-anchor="middle" font-size="12" font-weight="bold" fill="#000000">Field Errors / Conflict</text>
+  <text x="840.0" y="807.0" text-anchor="middle" font-size="12" font-weight="normal" fill="#333333">Reconcile in Editor</text>
+  <!-- Node: node_pending_snapshot -->
+  <rect x="370" y="880" width="260" height="60" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="500.0" y="906.4000000000001" text-anchor="middle" font-size="12" font-weight="bold" fill="#000000">Persist Pending Snapshot Under</text>
+  <text x="500.0" y="922.0000000000001" text-anchor="middle" font-size="12" font-weight="normal" fill="#333333">Approved Schema &amp; Prevent Race</text>
+  <!-- Node: node_persist_result -->
+  <polygon points="500.0,980 580,1025.0 500.0,1070 420,1025.0" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="500.0" y="1021.7" text-anchor="middle" font-size="12" font-weight="normal" fill="#000000">Persistence</text>
+  <text x="500.0" y="1036.7" text-anchor="middle" font-size="12" font-weight="normal" fill="#000000">Succeeded?</text>
+  <!-- Node: node_persist_fail -->
+  <polygon points="765,997.5 940,997.5 915,1052.5 740,1052.5" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="840.0" y="1021.0" text-anchor="middle" font-size="12" font-weight="bold" fill="#000000">Persistence Failed</text>
+  <text x="840.0" y="1037.0" text-anchor="middle" font-size="12" font-weight="normal" fill="#333333">Retain Safe Input &amp; Retry</text>
+  <!-- Node: node_handoff -->
+  <polygon points="380,1110 620,1110 620,1147.4 500.0,1165 380,1147.4" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="500.0" y="1122.1" text-anchor="middle" font-size="11" font-weight="bold" fill="#000000">Handoff to Module 4</text>
+  <text x="500.0" y="1136.3999999999999" text-anchor="middle" font-size="11" font-weight="bold" fill="#000000">Admin Moderation Review Queue</text>
+  <!-- Node: node_handoff_check -->
+  <polygon points="500.0,1205 580,1250.0 500.0,1295 420,1250.0" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="500.0" y="1246.7" text-anchor="middle" font-size="12" font-weight="normal" fill="#000000">Handoff</text>
+  <text x="500.0" y="1261.7" text-anchor="middle" font-size="12" font-weight="normal" fill="#000000">Accepted?</text>
+  <!-- Node: node_handoff_reconcile -->
+  <polygon points="765,1222.5 940,1222.5 915,1277.5 740,1277.5" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="840.0" y="1246.0" text-anchor="middle" font-size="12" font-weight="bold" fill="#000000">Show Authoritative State</text>
+  <text x="840.0" y="1262.0" text-anchor="middle" font-size="12" font-weight="normal" fill="#333333">Reconcile Acknowledgement</text>
+  <!-- Node: node_conn_e3 -->
+  <circle cx="985.0" cy="1250.0" r="25.0" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="985.0" y="1255.0" text-anchor="middle" font-size="14" font-weight="bold" fill="#000000">E</text>
+  <text x="985.0" y="1293" text-anchor="middle" font-size="11" font-weight="bold" fill="#000000">Exit</text>
+  <!-- Node: node_submitted_end -->
+  <rect x="370" y="1335" width="260" height="55" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="500.0" y="1358.9" text-anchor="middle" font-size="12" font-weight="bold" fill="#000000">Persisted Pending Snapshot &amp;</text>
+  <text x="500.0" y="1374.5" text-anchor="middle" font-size="12" font-weight="normal" fill="#333333">Enqueued for Admin Review</text>
+  <!-- Node: node_db -->
+  <g>
+    <path d="M 780 895 A 65.0 15 0 0 0 910 895 A 65.0 15 0 0 0 780 895 Z" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+    <path d="M 780 895 L 780 955 A 65.0 15 0 0 0 910 955 L 910 895" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+    <path d="M 780 955 A 65.0 15 0 0 0 910 955" fill="none" stroke="#000000" stroke-width="1.8" />
+    <text x="845.0" y="929.0" text-anchor="middle" font-size="13" font-weight="bold" fill="#000000">Listings &amp;</text>
+  </g>
+  <!-- Node: node_conn_e_recv -->
+  <circle cx="285.0" cy="1475.0" r="25.0" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="285.0" y="1480.0" text-anchor="middle" font-size="14" font-weight="bold" fill="#000000">E</text>
+  <text x="285.0" y="1518" text-anchor="middle" font-size="11" font-weight="bold" fill="#000000">From Exits</text>
+  <!-- Node: node_end -->
+  <rect x="420" y="1450" width="160" height="50" rx="25" ry="25" fill="#FFFFFF" stroke="#000000" stroke-width="2.2" />
+  <text x="500.0" y="1480.0" text-anchor="middle" font-size="14" font-weight="bold" fill="#000000">END</text>
+
+</svg>

@@ -72,7 +72,7 @@ The repository's `.github/pull_request_template.md` includes a mandatory sign-of
 | `NEXT_PUBLIC_SUPABASE_URL` | **Yes** | Client & Server | The public HTTPS endpoint for the Supabase project. | `https://xyzproject.supabase.co` |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | **Yes** | Client & Server | Public anonymous API key. Safe for browser exposure; restricted by Supabase RLS. | `eyJhbGciOi...` |
 | `SUPABASE_SERVICE_ROLE_KEY` | Optional (Admin) | **Server-Only** | Admin master key. Bypasses RLS. Used exclusively for administrative scripts or server webhooks. | `eyJhbGciOi...` |
-| `NEXT_PUBLIC_MAP_STYLE_URL` | **Yes** | Client | URL or path to the MapLibre style JSON specification. Defaults to local OpenStreetMap tiles. | `/styles/osm.json` |
+| `NEXT_PUBLIC_MAP_STYLE_URL` | **Yes** | Client | URL or path to the MapLibre style JSON specification. Defaults to OpenFreeMap Liberty via `/styles/osm.json`. | `/styles/osm.json` |
 
 ---
 

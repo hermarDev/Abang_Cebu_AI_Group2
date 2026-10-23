@@ -1,14 +1,25 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
-import { Map as MapLibreMap, Marker, setWorkerUrl } from "maplibre-gl";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Map as MapLibreMap, Marker, Popup, setWorkerUrl } from "maplibre-gl";
+import type { GeoJSONSource } from "maplibre-gl";
+import type { PlaceResult } from "@/lib/search/places";
+import { formatPrice, searchPreviewRentals } from "@/features/rentals/search";
+import type { RentalResult } from "@/contracts/preview";
+import { DEFAULT_RENTAL_FILTERS } from "@/contracts/rental-filters";
+import { RentalFilterDialog } from "@/features/rentals/RentalFilterDialog";
+import MapSearch from "./MapSearch";
 import styles from "./MapCanvas.module.css";
+import { groupRentalsByCoordinates, makeRadiusPolygon, METRO_CEBU_CENTER } from "./map-geometry";
+
+function escapeHtml(value: string) {
+  return value.replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char]!);
+}
 
 // Serve MapLibre's worker files together so its worker can resolve the shared module.
 setWorkerUrl("/maplibre-gl/maplibre-gl-worker.mjs");
 
-const METRO_CEBU_CENTER: [number, number] = [123.8854, 10.3157];
-const DEFAULT_ZOOM = 13;
+const DEFAULT_ZOOM = 13.4;
 const LOCATION_ZOOM = 15.5;
 const LOCATION_OPTIONS: PositionOptions = {
   enableHighAccuracy: true,
@@ -17,23 +28,69 @@ const LOCATION_OPTIONS: PositionOptions = {
 };
 
 const LOCATION_ERROR_MESSAGES: Record<number, string> = {
-  1: "Location permission was denied. The map remains centered on Metro Cebu.",
-  2: "Your location is unavailable. The map remains centered on Metro Cebu.",
-  3: "Location timed out. The map remains centered on Metro Cebu.",
+  1: "Location permission was denied. The map remains centered on the default search area.",
+  2: "Your location is unavailable. The map remains centered on the default search area.",
+  3: "Location timed out. The map remains centered on the default search area.",
 };
 
 type MapStatus = "loading" | "ready" | "unavailable";
 type LocationStatus = "idle" | "locating" | "located" | "fallback";
 
-export default function MapCanvas() {
+type MapCanvasProps = {
+  selectedPlace?: PlaceResult | null;
+  selectedRentalId?: string | null;
+  onSelectRental?: (id: string) => void;
+  rentals?: RentalResult[];
+  dataStatus?: "loading" | "ready" | "error";
+  filters?: typeof DEFAULT_RENTAL_FILTERS;
+  onFiltersChange?: (filters: typeof DEFAULT_RENTAL_FILTERS) => void;
+  locationQuery?: string;
+  onLocationQueryChange?: (query: string) => void;
+  searchRadiusKm?: number;
+  onSearchRadiusKmChange?: (radius: number) => void;
+  onSearchCenterChange?: (center: [number, number]) => void;
+};
+
+export function MapCanvas({ selectedPlace, selectedRentalId = null, onSelectRental, rentals = [], dataStatus = "error", filters: externalFilters, onFiltersChange, locationQuery: externalLocationQuery, onLocationQueryChange, searchRadiusKm: externalSearchRadiusKm, onSearchRadiusKmChange, onSearchCenterChange }: MapCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const [selectedRental, setSelectedRental] = useState<string | null>(selectedRentalId);
+  const [internalFilters, setInternalFilters] = useState(DEFAULT_RENTAL_FILTERS);
+  const [internalLocationQuery, setInternalLocationQuery] = useState("");
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [searchCenter, setSearchCenter] = useState<[number, number]>(METRO_CEBU_CENTER);
+  const searchCenterRef = useRef<[number, number]>(METRO_CEBU_CENTER);
+  const [internalSearchRadiusKm, setInternalSearchRadiusKm] = useState(2);
+  const mapLoadedRef = useRef(false);
+  const onSearchCenterChangeRef = useRef(onSearchCenterChange);
+  useEffect(() => { onSearchCenterChangeRef.current = onSearchCenterChange; }, [onSearchCenterChange]);
+  const publishSearchCenter = useCallback((center: [number, number]) => {
+    searchCenterRef.current = center;
+    setSearchCenter(center);
+    onSearchCenterChangeRef.current?.(center);
+  }, []);
+  const filters = externalFilters ?? internalFilters;
+  const setFilters = onFiltersChange ?? setInternalFilters;
+  const locationQuery = externalLocationQuery ?? internalLocationQuery;
+  const setLocationQuery = onLocationQueryChange ?? setInternalLocationQuery;
+  const searchRadiusKm = externalSearchRadiusKm ?? internalSearchRadiusKm;
+  const setSearchRadiusKm = onSearchRadiusKmChange ?? setInternalSearchRadiusKm;
+  const searchRadiusMeters = searchRadiusKm * 1000;
+  const externallyControlled = externalFilters !== undefined;
+  const visibleRentals = useMemo(() => searchPreviewRentals(rentals, { ...filters, radiusKm: searchRadiusKm }, externallyControlled ? "" : locationQuery, searchCenter) as RentalResult[], [rentals, filters, locationQuery, searchCenter, searchRadiusKm, externallyControlled]);
+  const markerGroups = useMemo(() => groupRentalsByCoordinates(visibleRentals), [visibleRentals]);
+  const onSelectRentalRef = useRef(onSelectRental ?? setSelectedRental);
+  useEffect(() => {
+    onSelectRentalRef.current = onSelectRental ?? setSelectedRental;
+  }, [onSelectRental]);
   const mapRef = useRef<MapLibreMap | null>(null);
   const markerRef = useRef<Marker | null>(null);
+  const rentalMarkersRef = useRef<Marker[]>([]);
+  const rentalPopupRef = useRef<Popup | null>(null);
   const locationRequestRef = useRef(0);
   const [mapStatus, setMapStatus] = useState<MapStatus>("loading");
   const [locationStatus, setLocationStatus] = useState<LocationStatus>("idle");
   const [statusMessage, setStatusMessage] = useState(
-    "Map centered on Metro Cebu. Use Locate Me to find your position.",
+    "Map centered on the default search area. Use Locate me to find your position.",
   );
 
   useEffect(() => {
@@ -42,12 +99,13 @@ export default function MapCanvas() {
 
     let active = true;
     let mapLoaded = false;
+    mapLoadedRef.current = false;
     let map: MapLibreMap;
 
     try {
       map = new MapLibreMap({
         container,
-        style: "/styles/osm.json",
+        style: process.env.NEXT_PUBLIC_MAP_STYLE_URL || "/styles/osm.json",
         center: METRO_CEBU_CENTER,
         zoom: DEFAULT_ZOOM,
         bearing: 0,
@@ -57,7 +115,7 @@ export default function MapCanvas() {
       const fallbackTimer = window.setTimeout(() => {
         setMapStatus("unavailable");
         setStatusMessage(
-          "The interactive map is unavailable in this browser. Metro Cebu remains the default area.",
+          "The interactive map is unavailable in this browser. The default search area remains selected.",
         );
       }, 0);
       return () => window.clearTimeout(fallbackTimer);
@@ -67,6 +125,11 @@ export default function MapCanvas() {
 
     const onLoad = () => {
       mapLoaded = true;
+      mapLoadedRef.current = true;
+      const center = map.getCenter();
+      searchCenterRef.current = [center.lng, center.lat];
+      setSearchCenter(searchCenterRef.current);
+      onSearchCenterChangeRef.current?.(searchCenterRef.current);
       if (active) setMapStatus("ready");
     };
     const onMapError = () => {
@@ -78,15 +141,27 @@ export default function MapCanvas() {
       }
     };
 
+    const onMoveEnd = () => {
+      const center = map.getCenter();
+      searchCenterRef.current = [center.lng, center.lat];
+      setSearchCenter(searchCenterRef.current);
+      onSearchCenterChangeRef.current?.(searchCenterRef.current);
+    };
     map.once("load", onLoad);
     map.on("error", onMapError);
+    map.on("moveend", onMoveEnd);
 
     return () => {
       active = false;
       locationRequestRef.current += 1;
+      mapLoadedRef.current = false;
       markerRef.current?.remove();
+      rentalPopupRef.current?.remove();
+      rentalMarkersRef.current.forEach((marker) => marker.remove());
+      rentalMarkersRef.current = [];
       markerRef.current = null;
       map.off("error", onMapError);
+      map.off("moveend", onMoveEnd);
       map.remove();
       mapRef.current = null;
     };
@@ -97,12 +172,15 @@ export default function MapCanvas() {
     if (!map || locationStatus === "locating") return;
     const requestId = ++locationRequestRef.current;
 
-    if (!navigator.geolocation) {
-      markerRef.current?.remove();
-      markerRef.current = null;
-      setLocationStatus("fallback");
+      if (!navigator.geolocation) {
+        markerRef.current?.remove();
+        markerRef.current = null;
+        searchCenterRef.current = METRO_CEBU_CENTER;
+        setSearchCenter(METRO_CEBU_CENTER);
+        onSearchCenterChangeRef.current?.(METRO_CEBU_CENTER);
+        setLocationStatus("fallback");
       setStatusMessage(
-        "Location is not supported by this browser. The map remains centered on Metro Cebu.",
+        "Location is not supported by this browser. The map remains centered on the default search area.",
       );
       map.flyTo({ center: METRO_CEBU_CENTER, zoom: DEFAULT_ZOOM, duration: 500 });
       return;
@@ -122,10 +200,13 @@ export default function MapCanvas() {
           position.coords.latitude,
         ];
         markerRef.current?.remove();
-        markerRef.current = new Marker({ color: "#047857" })
+        markerRef.current = new Marker({ color: "#2563eb" })
           .setLngLat(center)
           .addTo(currentMap);
-        currentMap.flyTo({ center, zoom: LOCATION_ZOOM, duration: 1200 });
+        searchCenterRef.current = center;
+        setSearchCenter(center);
+        onSearchCenterChangeRef.current?.(center);
+        setLocationQuery("Current location");
         setLocationStatus("located");
         setStatusMessage("Your location was found and the map was recentered.");
       },
@@ -134,6 +215,10 @@ export default function MapCanvas() {
         markerRef.current?.remove();
         markerRef.current = null;
         const currentMap = mapRef.current;
+        searchCenterRef.current = METRO_CEBU_CENTER;
+        setSearchCenter(METRO_CEBU_CENTER);
+        onSearchCenterChangeRef.current?.(METRO_CEBU_CENTER);
+        setLocationQuery("");
         if (currentMap) {
           currentMap.flyTo({
             center: METRO_CEBU_CENTER,
@@ -144,61 +229,151 @@ export default function MapCanvas() {
         setLocationStatus("fallback");
         setStatusMessage(
           LOCATION_ERROR_MESSAGES[error.code] ??
-            "Could not get your location. The map remains centered on Metro Cebu.",
+            "Could not get your location. The map remains centered on the default search area.",
         );
       },
       LOCATION_OPTIONS,
     );
-  }, [locationStatus]);
+  }, [locationStatus, setLocationQuery]);
 
-  const resetToMetroCebu = useCallback(() => {
-    // Ignore any geolocation callback that arrives after the user resets the map.
-    locationRequestRef.current += 1;
-    mapRef.current?.flyTo({
-      center: METRO_CEBU_CENTER,
-      zoom: DEFAULT_ZOOM,
-      bearing: 0,
-      pitch: 0,
-      duration: 500,
-    });
-    markerRef.current?.remove();
-    markerRef.current = null;
+
+
+  const selectPlace = useCallback((place: PlaceResult) => {
+    const map = mapRef.current;
+    if (!map || !mapLoadedRef.current) return;
+
+    const [longitude, latitude] = place.coordinates;
+    publishSearchCenter([longitude, latitude]);
+    setLocationQuery(place.name);
+    rentalPopupRef.current?.remove();
+    map.flyTo({ center: [longitude, latitude], zoom: LOCATION_ZOOM, duration: 1000 });
     setLocationStatus("idle");
-    setStatusMessage("Map centered on Metro Cebu.");
-  }, []);
+    setStatusMessage(`Map centered on ${place.name}.`);
+  }, [setLocationQuery, publishSearchCenter]);
+
+  useEffect(() => {
+    if (selectedPlace && mapStatus === "ready") selectPlace(selectedPlace);
+  }, [selectedPlace, mapStatus, selectPlace]);
 
   useEffect(() => {
     const map = mapRef.current;
-    if (!map) return;
-    const handleMapClick = () => undefined;
-    map.on("click", handleMapClick);
-    return () => {
-      map.off("click", handleMapClick);
+    if (!map || !mapLoadedRef.current) return;
+    rentalMarkersRef.current.forEach((marker) => marker.remove());
+    rentalMarkersRef.current = [];
+    rentalPopupRef.current?.remove();
+    rentalPopupRef.current = null;
+    for (const group of markerGroups) {
+      const element = document.createElement("button");
+      const titles = group.rentals.map((rental) => rental.title);
+      element.type = "button";
+      element.className = "rental-map-marker";
+      element.setAttribute("aria-label", group.rentals.length === 1
+        ? `${group.rentals[0].title}, ${formatPrice(group.rentals[0].price)} per month`
+        : `${group.rentals.length} rentals at this location: ${titles.join(", ")}`);
+      element.textContent = group.rentals.length === 1 ? formatPrice(group.rentals[0].price) : String(group.rentals.length);
+      element.addEventListener("click", () => {
+        if (group.rentals.length > 1) {
+          const choice = window.prompt(`Choose a rental:\n${group.rentals.map((rental, index) => `${index + 1}. ${rental.title} — ${formatPrice(rental.price)} / month`).join("\n")}`);
+          const index = Number(choice) - 1;
+          if (!Number.isInteger(index) || index < 0 || index >= group.rentals.length) return;
+          setSelectedRental(group.rentals[index].id);
+          onSelectRentalRef.current?.(group.rentals[index].id);
+          return;
+        }
+        const rental = group.rentals[0];
+        onSelectRentalRef.current?.(rental.id);
+        setSelectedRental(rental.id);
+        rentalPopupRef.current?.remove();
+        rentalPopupRef.current = new Popup({ offset: 18, closeButton: true })
+          .setLngLat(rental.coordinates)
+          .setHTML(`<strong>${escapeHtml(rental.title)}</strong><br>${escapeHtml(rental.locality)}<br>${escapeHtml(formatPrice(rental.price))} / month`)
+          .addTo(map);
+      });
+      rentalMarkersRef.current.push(new Marker({ element, anchor: "bottom" }).setLngLat(group.coordinates).addTo(map));
+    }
+    const updateArea = () => {
+      const radiusRing = makeRadiusPolygon(searchCenter, searchRadiusMeters).geometry.coordinates[0];
+      const data = {
+        type: "Feature" as const,
+        properties: { radiusMeters: searchRadiusMeters },
+        geometry: { type: "Polygon" as const, coordinates: [radiusRing] },
+      };
+      if (!map.getSource("rental-search-area")) {
+        map.addSource("rental-search-area", { type: "geojson", data });
+        map.addLayer({ id: "rental-search-area-fill", type: "fill", source: "rental-search-area", paint: { "fill-color": "#2563eb", "fill-opacity": 0.08 } });
+        map.addLayer({ id: "rental-search-area-outline", type: "line", source: "rental-search-area", paint: { "line-color": "#2563eb", "line-width": 2, "line-opacity": 0.7 } });
+      } else {
+        (map.getSource("rental-search-area") as GeoJSONSource).setData(data);
+      }
     };
-  }, [mapStatus]);
+    updateArea();
+    const onStyleLoad = () => updateArea();
+    map.on("style.load", onStyleLoad);
+    const selected = visibleRentals.find((rental) => rental.id === selectedRentalId || rental.id === selectedRental);
+    if (selected) map.flyTo({ center: selected.coordinates, zoom: Math.max(map.getZoom(), 14), duration: 350 });
+    return () => { map.off("style.load", onStyleLoad); };
+  }, [markerGroups, visibleRentals, searchCenter, searchRadiusMeters, selectedRental, selectedRentalId, mapStatus]);
 
   return (
-    <section className={styles.mapRoot} aria-label="Metro Cebu map">
+    <section className={styles.mapRoot} aria-label="Rental map">
       <div
         ref={containerRef}
         className={styles.mapCanvas}
         role="region"
-        aria-label="Interactive map centered on Metro Cebu"
+        aria-label="Interactive rental map"
         aria-busy={mapStatus === "loading"}
       />
 
       {mapStatus === "unavailable" && (
         <div className={styles.mapFallback} role="status">
           <strong>Map unavailable</strong>
-          <span>Metro Cebu remains the default search area.</span>
+          <span>The default search area remains selected.</span>
         </div>
       )}
 
-      <div className={styles.mapStatus} aria-live="polite" aria-atomic="true">
+      {!externallyControlled && <MapSearch onSelect={selectPlace} disabled={mapStatus !== "ready"} />}
+      {!externallyControlled && <div className={styles.rentalSearch} role="search" aria-label="Rental search">
+        <label htmlFor="rental-location">Find rentals</label>
+        <input id="rental-location" value={locationQuery} onChange={(event) => setLocationQuery(event.target.value)} placeholder="Area or landmark" />
+        <span>{visibleRentals.length} rentals within {searchRadiusKm} km</span>
+      </div>}
+      {!externallyControlled && <label className={styles.radiusControl}>
+        Search radius
+        <select aria-label="Search radius" value={searchRadiusKm} onChange={(event) => setSearchRadiusKm(Number(event.target.value))}>
+          <option value={1}>1 km</option><option value={2}>2 km</option><option value={5}>5 km</option>
+        </select>
+      </label>}
+      {!externallyControlled && <div className={styles.filterTrigger}>
+        <button type="button" aria-haspopup="dialog" aria-expanded={filterOpen} onClick={() => setFilterOpen(true)}>
+          Refine rental search
+        </button>
+      </div>}
+      {visibleRentals.length > 0 ? (
+        <aside className={styles.rentalResults} aria-label="Rental listings">
+          <strong>Available rentals</strong>
+          {visibleRentals.slice(0, 5).map((rental) => (
+            <button key={rental.id} type="button" className={selectedRental === rental.id ? styles.selectedRental : ""} onClick={() => { setSelectedRental(rental.id); onSelectRentalRef.current?.(rental.id); mapRef.current?.flyTo({ center: rental.coordinates, zoom: 15, duration: 500 }); }}>
+              <span>{rental.title}</span><span>{rental.locality}</span><strong>{formatPrice(rental.price)} / month</strong>
+            </button>
+          ))}
+        </aside>
+      ) : !externallyControlled ? (
+        <aside className={styles.rentalResults} aria-label="Rental listings">
+          <strong>{dataStatus === "loading" ? "Loading rentals…" : dataStatus === "error" ? "Rental data unavailable" : "No rentals available"}</strong>
+          <span>{dataStatus === "error" ? "Rental records could not be loaded. No sample listings are shown." : dataStatus === "loading" ? "Checking the configured rental data service…" : "No verified rental records were returned for this search area."}</span>
+          <button type="button" onClick={() => { setLocationQuery(""); setFilters(DEFAULT_RENTAL_FILTERS); }}>Clear search and filters</button>
+        </aside>
+      ) : null}
+      {!externallyControlled && filterOpen && <RentalFilterDialog filters={filters} open onOpenChange={setFilterOpen} onApply={setFilters} matchCount={visibleRentals.length} />}
+      <div className={externallyControlled ? styles.srOnly : styles.mapStatus} aria-live="polite" aria-atomic="true">
         {statusMessage}
       </div>
 
-      <div className={styles.mapControls}>
+      <div className={`${styles.mapControls} ${externallyControlled ? styles.controlledControls : ""}`} role="group" aria-label="Map controls">
+        <div className={styles.zoomControls}>
+          <button className={styles.secondaryButton} type="button" aria-label="Zoom in" disabled={mapStatus !== "ready"} onClick={() => mapRef.current?.zoomIn()}>+</button>
+          <button className={styles.secondaryButton} type="button" aria-label="Zoom out" disabled={mapStatus !== "ready"} onClick={() => mapRef.current?.zoomOut()}>−</button>
+        </div>
         <button
           className={styles.controlButton}
           type="button"
@@ -212,14 +387,7 @@ export default function MapCanvas() {
         >
           {locationStatus === "locating" ? "Locating…" : "Locate me"}
         </button>
-        <button
-          className={styles.secondaryButton}
-          type="button"
-          onClick={resetToMetroCebu}
-          disabled={mapStatus !== "ready"}
-        >
-          Metro Cebu
-        </button>
+
       </div>
     </section>
   );
