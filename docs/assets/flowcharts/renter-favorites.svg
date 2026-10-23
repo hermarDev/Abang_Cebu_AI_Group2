@@ -1,0 +1,135 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1050 1150" width="1050" height="1150" style="background:#ffffff; font-family:Helvetica, Arial, sans-serif;">
+  <defs>
+    <!-- Arrow marker for end of lines -->
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#000000" />
+    </marker>
+    <!-- Arrow marker for start of lines (bidirectional) -->
+    <marker id="arrow-start" viewBox="0 0 10 10" refX="2" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 8 1.5 L 0 5 L 8 8.5 z" fill="#000000" />
+    </marker>
+    <!-- Pattern for grid background -->
+    <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#E2E8F0" stroke-width="0.8"/>
+    </pattern>
+  </defs>
+
+  <!-- Grid Background -->
+  <rect width="100%" height="100%" fill="url(#grid)" />
+
+  <!-- Flowchart Title -->
+  <text x="525.0" y="45" text-anchor="middle" font-size="18" font-weight="bold" fill="#000000" letter-spacing="1">SCRUM-127: SAVE / REMOVE FAVORITE LISTING</text>
+
+  <!-- ==================== CONNECTING EDGES ==================== -->
+  <!-- node_start -> node_auth -->
+  <line x1="500.0" y1="130.0" x2="500.0" y2="165.0" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <!-- node_auth -> node_gate -->
+  <path d="M 420 210 L 350 210" fill="none" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <text x="375" y="202" font-size="11" font-weight="bold" fill="#000000">NO</text>
+  <!-- node_gate -> node_auth -->
+  <path d="M 255 182.5 L 255 140 L 500 140 L 500 165" fill="none" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <!-- node_auth -> node_action -->
+  <line x1="500.0" y1="255.0" x2="500.0" y2="295.0" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <text x="508" y="275" font-size="11" font-weight="bold" fill="#000000">YES</text>
+  <!-- node_action -> node_approved -->
+  <line x1="500.0" y1="385.0" x2="500.0" y2="425.0" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <text x="508" y="405" font-size="11" font-weight="normal" fill="#000000">YES (Save)</text>
+  <!-- node_action -> node_remove -->
+  <path d="M 420 340 L 255 340 L 255 555" fill="none" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <text x="310" y="330" font-size="11" font-weight="normal" fill="#000000">NO (Remove)</text>
+  <!-- node_approved -> node_unavailable -->
+  <path d="M 580 470 L 740 470" fill="none" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <text x="640" y="462" font-size="11" font-weight="bold" fill="#000000">NO</text>
+  <!-- node_unavailable -> node_conn_e1 -->
+  <line x1="940.0" y1="470.0" x2="960.0" y2="470.0" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <!-- node_approved -> node_save -->
+  <line x1="500.0" y1="515.0" x2="500.0" y2="555.0" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <text x="508" y="535" font-size="11" font-weight="bold" fill="#000000">YES</text>
+  <!-- node_save -> node_db -->
+  <path d="M 630 585 L 700 585 L 700 590 L 780 590" fill="none" stroke="#000000" stroke-width="1.8" stroke-dasharray="6,4" marker-end="url(#arrow)" />
+  <text x="705" y="575" font-size="11" font-weight="normal" fill="#000000">Upsert</text>
+  <!-- node_save -> node_persist -->
+  <line x1="500.0" y1="615.0" x2="500.0" y2="665.0" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <!-- node_remove -> node_persist -->
+  <path d="M 255 615 L 255 710 L 420 710" fill="none" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <!-- node_persist -> node_error -->
+  <path d="M 420 710 L 350 710" fill="none" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <text x="375" y="702" font-size="11" font-weight="bold" fill="#000000">NO</text>
+  <!-- node_error -> node_conn_e2 -->
+  <line x1="160.0" y1="710.0" x2="110.0" y2="710.0" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <!-- node_persist -> node_confirm -->
+  <line x1="500.0" y1="755.0" x2="500.0" y2="795.0" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <text x="508" y="775" font-size="11" font-weight="bold" fill="#000000">YES</text>
+  <!-- node_confirm -> node_end -->
+  <line x1="500.0" y1="850.0" x2="500.0" y2="910.0" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <!-- node_conn_e_recv -> node_end -->
+  <line x1="310.0" y1="935.0" x2="420.0" y2="935.0" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+
+  <!-- ==================== FLOWCHART NODES ==================== -->
+  <!-- Node: node_start -->
+  <rect x="420" y="80" width="160" height="50" rx="25" ry="25" fill="#FFFFFF" stroke="#000000" stroke-width="2.2" />
+  <text x="500.0" y="110.0" text-anchor="middle" font-size="14" font-weight="bold" fill="#000000">START</text>
+  <!-- Node: node_auth -->
+  <polygon points="500.0,165 580,210.0 500.0,255 420,210.0" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="500.0" y="206.7" text-anchor="middle" font-size="12" font-weight="normal" fill="#000000">Authenticated</text>
+  <text x="500.0" y="221.7" text-anchor="middle" font-size="12" font-weight="normal" fill="#000000">Renter?</text>
+  <!-- Node: node_gate -->
+  <polygon points="160,182.5 350,182.5 350,219.9 255.0,237.5 160,219.9" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="255.0" y="194.6" text-anchor="middle" font-size="11" font-weight="bold" fill="#000000">Guest: SCRUM-121 Gate</text>
+  <text x="255.0" y="208.9" text-anchor="middle" font-size="11" font-weight="bold" fill="#000000">Preserve Listing &amp; Action</text>
+  <!-- Node: node_action -->
+  <polygon points="500.0,295 580,340.0 500.0,385 420,340.0" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="500.0" y="336.7" text-anchor="middle" font-size="12" font-weight="normal" fill="#000000">Requested Action</text>
+  <text x="500.0" y="351.7" text-anchor="middle" font-size="12" font-weight="normal" fill="#000000">is Save?</text>
+  <!-- Node: node_approved -->
+  <polygon points="500.0,425 580,470.0 500.0,515 420,470.0" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="500.0" y="466.7" text-anchor="middle" font-size="12" font-weight="normal" fill="#000000">Listing Approved</text>
+  <text x="500.0" y="481.7" text-anchor="middle" font-size="12" font-weight="normal" fill="#000000">&amp; Available?</text>
+  <!-- Node: node_unavailable -->
+  <polygon points="765,442.5 940,442.5 915,497.5 740,497.5" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="840.0" y="466.0" text-anchor="middle" font-size="12" font-weight="bold" fill="#000000">Unavailable Listing</text>
+  <text x="840.0" y="482.0" text-anchor="middle" font-size="12" font-weight="normal" fill="#333333">Action Refused Safely</text>
+  <!-- Node: node_conn_e1 -->
+  <circle cx="985.0" cy="470.0" r="25.0" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="985.0" y="475.0" text-anchor="middle" font-size="14" font-weight="bold" fill="#000000">E</text>
+  <text x="985.0" y="513" text-anchor="middle" font-size="11" font-weight="bold" fill="#000000">Exit</text>
+  <!-- Node: node_save -->
+  <rect x="370" y="555" width="260" height="60" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="500.0" y="581.4000000000001" text-anchor="middle" font-size="12" font-weight="bold" fill="#000000">Upsert Favorite Association</text>
+  <text x="500.0" y="597.0000000000001" text-anchor="middle" font-size="12" font-weight="normal" fill="#333333">(Enforce Unique Renter/Listing)</text>
+  <!-- Node: node_remove -->
+  <rect x="150" y="555" width="210" height="60" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="255.0" y="581.4000000000001" text-anchor="middle" font-size="12" font-weight="normal" fill="#333333">Delete Favorite Association</text>
+  <text x="255.0" y="597.0000000000001" text-anchor="middle" font-size="12" font-weight="normal" fill="#333333">(Idempotent Removal)</text>
+  <!-- Node: node_persist -->
+  <polygon points="500.0,665 580,710.0 500.0,755 420,710.0" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="500.0" y="706.7" text-anchor="middle" font-size="12" font-weight="normal" fill="#000000">Persistence</text>
+  <text x="500.0" y="721.7" text-anchor="middle" font-size="12" font-weight="normal" fill="#000000">Succeeded?</text>
+  <!-- Node: node_error -->
+  <polygon points="185,682.5 350,682.5 325,737.5 160,737.5" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="255.0" y="706.0" text-anchor="middle" font-size="12" font-weight="bold" fill="#000000">Persistence Failed</text>
+  <text x="255.0" y="722.0" text-anchor="middle" font-size="12" font-weight="normal" fill="#333333">Safe Bounded Retry</text>
+  <!-- Node: node_conn_e2 -->
+  <circle cx="85.0" cy="710.0" r="25.0" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="85.0" y="715.0" text-anchor="middle" font-size="14" font-weight="bold" fill="#000000">E</text>
+  <text x="85.0" y="753" text-anchor="middle" font-size="11" font-weight="bold" fill="#000000">Exit</text>
+  <!-- Node: node_confirm -->
+  <polygon points="395,795 630,795 605,850 370,850" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="500.0" y="818.5" text-anchor="middle" font-size="12" font-weight="bold" fill="#000000">Update Renter Saved State</text>
+  <text x="500.0" y="834.5" text-anchor="middle" font-size="12" font-weight="normal" fill="#333333">(Reflect Instant UI Toggle)</text>
+  <!-- Node: node_db -->
+  <g>
+    <path d="M 780 560 A 65.0 15 0 0 0 910 560 A 65.0 15 0 0 0 780 560 Z" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+    <path d="M 780 560 L 780 620 A 65.0 15 0 0 0 910 620 L 910 560" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+    <path d="M 780 620 A 65.0 15 0 0 0 910 620" fill="none" stroke="#000000" stroke-width="1.8" />
+    <text x="845.0" y="594.0" text-anchor="middle" font-size="13" font-weight="bold" fill="#000000">Saved</text>
+  </g>
+  <!-- Node: node_conn_e_recv -->
+  <circle cx="285.0" cy="935.0" r="25.0" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="285.0" y="940.0" text-anchor="middle" font-size="14" font-weight="bold" fill="#000000">E</text>
+  <text x="285.0" y="978" text-anchor="middle" font-size="11" font-weight="bold" fill="#000000">From Exits</text>
+  <!-- Node: node_end -->
+  <rect x="420" y="910" width="160" height="50" rx="25" ry="25" fill="#FFFFFF" stroke="#000000" stroke-width="2.2" />
+  <text x="500.0" y="940.0" text-anchor="middle" font-size="14" font-weight="bold" fill="#000000">END</text>
+
+</svg>

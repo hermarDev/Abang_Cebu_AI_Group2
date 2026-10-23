@@ -1,0 +1,261 @@
+<mxfile host="Electron" modified="2026-10-18T00:00:00.000Z" agent="Antigravity" version="21.0.0" type="device">
+  <diagram id="diag_admin_master_orchestration" name="SCRUM-126: MODULE 4 — ADMIN MASTER ORCHESTRATION">
+    <mxGraphModel dx="1200" dy="1600" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1050" pageHeight="1450" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- Title -->
+        <mxCell id="title" value="SCRUM-126: MODULE 4 — ADMIN MASTER ORCHESTRATION" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontFamily=Helvetica;fontSize=18;fontStyle=1;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="250" y="25" width="550" height="35" as="geometry" />
+        </mxCell>
+
+        <!-- Node: node_start -->
+        <mxCell id="node_start" value="START: Admin Session Initialized" style="rounded=1;arcSize=50;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Helvetica;fontSize=14;fontStyle=1;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="420" y="80" width="160" height="50" as="geometry" />
+        </mxCell>
+        <!-- Node: node_role_gate -->
+        <mxCell id="node_role_gate" value="User Has Admin / SuperAdmin&#xa;Role &amp; Valid JWT Claims?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=12;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="400" y="170" width="200" height="80" as="geometry" />
+        </mxCell>
+        <!-- Node: node_access_denied -->
+        <mxCell id="node_access_denied" value="403 Forbidden / Access Denied&#xa;Log Security Event &amp; Terminate" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;size=20;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=12;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="180" y="182.5" width="180" height="55" as="geometry" />
+        </mxCell>
+        <!-- Node: node_conn_a_entry -->
+        <mxCell id="node_conn_a_entry" value="A" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=14;fontStyle=1;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="260" y="295" width="50" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="sub_node_conn_a_entry" value="Queue Loop" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontFamily=Helvetica;fontSize=11;fontStyle=1;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="240" y="347" width="90" height="20" as="geometry" />
+        </mxCell>
+        <!-- Node: node_dashboard_queue -->
+        <mxCell id="node_dashboard_queue" value="Admin Operations Portal:&#xa;Load Moderation Queues &amp; Metric Summaries" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;size=20;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=12;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="360" y="290" width="280" height="60" as="geometry" />
+        </mxCell>
+        <!-- Node: node_db_queues -->
+        <mxCell id="node_db_queues" value="Database (Supabase)&#xa;kyc_queue / listing_queue" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=13;fontStyle=1;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="780" y="285" width="180" height="70" as="geometry" />
+        </mxCell>
+        <!-- Node: node_queue_selector -->
+        <mxCell id="node_queue_selector" value="Queue Selection:&#xa;Moderate Listings or KYC?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=12;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="410" y="390" width="180" height="80" as="geometry" />
+        </mxCell>
+        <!-- Node: node_sub_kyc_review -->
+        <mxCell id="node_sub_kyc_review" value="Sub-Process 4.1:&#xa;Admin KYC Verification Review" style="shape=offPageConnector;size=0.38;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11;fontStyle=1;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="180" y="500" width="200" height="60" as="geometry" />
+        </mxCell>
+        <!-- Node: node_sub_listing_mod -->
+        <mxCell id="node_sub_listing_mod" value="Sub-Process 4.2:&#xa;Admin Listing Moderation Flow" style="shape=offPageConnector;size=0.38;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11;fontStyle=1;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="670" y="500" width="200" height="60" as="geometry" />
+        </mxCell>
+        <!-- Node: node_violation_eval -->
+        <mxCell id="node_violation_eval" value="Severe Violation Detected?&#xa;(Fraud / Illegal / Repeated)" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=12;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="410" y="605" width="180" height="80" as="geometry" />
+        </mxCell>
+        <!-- Node: node_suspension_protocol -->
+        <mxCell id="node_suspension_protocol" value="Initiate Suspension Protocol:&#xa;Freeze Entity &amp; Account" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=12;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="180" y="617.5" width="180" height="55" as="geometry" />
+        </mxCell>
+        <!-- Node: node_standard_decision -->
+        <mxCell id="node_standard_decision" value="Record Standard Approve / Reject&#xa;Outcome with Justification" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=12;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="400" y="725" width="200" height="55" as="geometry" />
+        </mxCell>
+        <!-- Node: node_commit_audit -->
+        <mxCell id="node_commit_audit" value="Commit Decision to Immutable Audit Log&#xa;(admin_decision_audit)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=12;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="360" y="820" width="280" height="55" as="geometry" />
+        </mxCell>
+        <!-- Node: node_audit_db -->
+        <mxCell id="node_audit_db" value="Audit Database (Append-Only)&#xa;admin_audit_logs (RLS)" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=13;fontStyle=1;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="780" y="812.5" width="180" height="70" as="geometry" />
+        </mxCell>
+        <!-- Node: node_dispatch_events -->
+        <mxCell id="node_dispatch_events" value="Dispatch Real-Time Events &amp; Notifications&#xa;(Webhooks, In-App Alerts, Email)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=12;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="360" y="915" width="280" height="55" as="geometry" />
+        </mxCell>
+        <!-- Node: node_sync_type -->
+        <mxCell id="node_sync_type" value="Target Entity Type:&#xa;Listing or User/KYC?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=12;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="410" y="1010" width="180" height="80" as="geometry" />
+        </mxCell>
+        <!-- Node: node_kyc_role_sync -->
+        <mxCell id="node_kyc_role_sync" value="Update Landlord Role State&#xa;Unlock Submission (SCRUM-125)" style="shape=offPageConnector;size=0.38;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11;fontStyle=1;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="180" y="1120" width="200" height="60" as="geometry" />
+        </mxCell>
+        <!-- Node: node_map_cache_sync -->
+        <mxCell id="node_map_cache_sync" value="Update Spatial Map Index&#xa;Invalidate Cache (SCRUM-118)" style="shape=offPageConnector;size=0.38;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11;fontStyle=1;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="670" y="1120" width="200" height="60" as="geometry" />
+        </mxCell>
+        <!-- Node: node_session_check -->
+        <mxCell id="node_session_check" value="Continue Reviewing Queue&#xa;or Exit Portal?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=12;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="410" y="1225" width="180" height="80" as="geometry" />
+        </mxCell>
+        <!-- Node: node_conn_a_return -->
+        <mxCell id="node_conn_a_return" value="A" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=14;fontStyle=1;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="680" y="1240" width="50" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="sub_node_conn_a_return" value="Return to Queue" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontFamily=Helvetica;fontSize=11;fontStyle=1;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="660" y="1292" width="90" height="20" as="geometry" />
+        </mxCell>
+        <!-- Node: node_end -->
+        <mxCell id="node_end" value="END: Admin Operations&#xa;Session Terminated" style="rounded=1;arcSize=50;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Helvetica;fontSize=14;fontStyle=1;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="420" y="1345" width="160" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- EDGES / CONNECTORS -->
+        <!-- Edge: node_start -> node_role_gate -->
+        <mxCell id="e_start_role" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=classic;exitX=0.5;exitY=1.0;exitDx=0;exitDy=0;entryX=0.5;entryY=0.0;entryDx=0;entryDy=0;" edge="1" source="node_start" target="node_role_gate" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <!-- Edge: node_role_gate -> node_access_denied -->
+        <mxCell id="e_role_no" value="NO" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=classic;fontColor=#000000;fontSize=11;fontStyle=1;exitX=0.0;exitY=0.5;exitDx=0;exitDy=0;entryX=1.0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" source="node_role_gate" target="node_access_denied" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="360" y="210" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <!-- Edge: node_access_denied -> node_end -->
+        <mxCell id="e_denied_end" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=classic;exitX=0.0;exitY=0.5;exitDx=0;exitDy=0;entryX=0.0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" source="node_access_denied" target="node_end" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="100" y="210" />
+              <mxPoint x="100" y="1370" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <!-- Edge: node_role_gate -> node_dashboard_queue -->
+        <mxCell id="e_role_yes" value="YES" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=classic;fontColor=#000000;fontSize=11;fontStyle=1;exitX=0.5;exitY=1.0;exitDx=0;exitDy=0;entryX=0.5;entryY=0.0;entryDx=0;entryDy=0;" edge="1" source="node_role_gate" target="node_dashboard_queue" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <!-- Edge: node_conn_a_entry -> node_dashboard_queue -->
+        <mxCell id="e_conn_a_queue" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=classic;exitX=1.0;exitY=0.5;exitDx=0;exitDy=0;entryX=0.0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" source="node_conn_a_entry" target="node_dashboard_queue" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <!-- Edge: node_dashboard_queue -> node_db_queues -->
+        <mxCell id="e_dash_db" value="SELECT pending" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;dashed=1;startArrow=classic;endArrow=classic;fontColor=#000000;fontSize=11;exitX=1.0;exitY=0.5;exitDx=0;exitDy=0;entryX=0.0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" source="node_dashboard_queue" target="node_db_queues" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="780" y="320" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <!-- Edge: node_dashboard_queue -> node_queue_selector -->
+        <mxCell id="e_dash_select" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=classic;exitX=0.5;exitY=1.0;exitDx=0;exitDy=0;entryX=0.5;entryY=0.0;entryDx=0;entryDy=0;" edge="1" source="node_dashboard_queue" target="node_queue_selector" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <!-- Edge: node_queue_selector -> node_sub_kyc_review -->
+        <mxCell id="e_queue_kyc" value="KYC Review" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=classic;fontColor=#000000;fontSize=11;fontStyle=1;exitX=0.0;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=0.0;entryDx=0;entryDy=0;" edge="1" source="node_queue_selector" target="node_sub_kyc_review" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="280" y="430" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <!-- Edge: node_queue_selector -> node_sub_listing_mod -->
+        <mxCell id="e_queue_list" value="Listing Review" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=classic;fontColor=#000000;fontSize=11;fontStyle=1;exitX=1.0;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=0.0;entryDx=0;entryDy=0;" edge="1" source="node_queue_selector" target="node_sub_listing_mod" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="770" y="430" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <!-- Edge: node_sub_kyc_review -> node_violation_eval -->
+        <mxCell id="e_kyc_violation" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=classic;exitX=0.5;exitY=1.0;exitDx=0;exitDy=0;entryX=0.0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" source="node_sub_kyc_review" target="node_violation_eval" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="280" y="645" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <!-- Edge: node_sub_listing_mod -> node_violation_eval -->
+        <mxCell id="e_list_violation" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=classic;exitX=0.5;exitY=1.0;exitDx=0;exitDy=0;entryX=1.0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" source="node_sub_listing_mod" target="node_violation_eval" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="770" y="645" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <!-- Edge: node_violation_eval -> node_suspension_protocol -->
+        <mxCell id="e_violation_yes" value="YES (Severe)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=classic;fontColor=#000000;fontSize=11;fontStyle=1;exitX=0.0;exitY=0.5;exitDx=0;exitDy=0;entryX=1.0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" source="node_violation_eval" target="node_suspension_protocol" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="360" y="645" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <!-- Edge: node_suspension_protocol -> node_commit_audit -->
+        <mxCell id="e_suspension_audit" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=classic;exitX=0.5;exitY=1.0;exitDx=0;exitDy=0;entryX=0.0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" source="node_suspension_protocol" target="node_commit_audit" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="270" y="847.5" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <!-- Edge: node_violation_eval -> node_standard_decision -->
+        <mxCell id="e_violation_no" value="NO (Standard)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=classic;fontColor=#000000;fontSize=11;fontStyle=1;exitX=0.5;exitY=1.0;exitDx=0;exitDy=0;entryX=0.5;entryY=0.0;entryDx=0;entryDy=0;" edge="1" source="node_violation_eval" target="node_standard_decision" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <!-- Edge: node_standard_decision -> node_commit_audit -->
+        <mxCell id="e_std_audit" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=classic;exitX=0.5;exitY=1.0;exitDx=0;exitDy=0;entryX=0.5;entryY=0.0;entryDx=0;entryDy=0;" edge="1" source="node_standard_decision" target="node_commit_audit" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <!-- Edge: node_commit_audit -> node_audit_db -->
+        <mxCell id="e_audit_db_write" value="INSERT log" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;dashed=1;endArrow=classic;fontColor=#000000;fontSize=11;exitX=1.0;exitY=0.5;exitDx=0;exitDy=0;entryX=0.0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" source="node_commit_audit" target="node_audit_db" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="780" y="847.5" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <!-- Edge: node_commit_audit -> node_dispatch_events -->
+        <mxCell id="e_audit_dispatch" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=classic;exitX=0.5;exitY=1.0;exitDx=0;exitDy=0;entryX=0.5;entryY=0.0;entryDx=0;entryDy=0;" edge="1" source="node_commit_audit" target="node_dispatch_events" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <!-- Edge: node_dispatch_events -> node_sync_type -->
+        <mxCell id="e_dispatch_sync" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=classic;exitX=0.5;exitY=1.0;exitDx=0;exitDy=0;entryX=0.5;entryY=0.0;entryDx=0;entryDy=0;" edge="1" source="node_dispatch_events" target="node_sync_type" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <!-- Edge: node_sync_type -> node_kyc_role_sync -->
+        <mxCell id="e_sync_kyc" value="User / KYC" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=classic;fontColor=#000000;fontSize=11;fontStyle=1;exitX=0.0;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=0.0;entryDx=0;entryDy=0;" edge="1" source="node_sync_type" target="node_kyc_role_sync" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="280" y="1050" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <!-- Edge: node_sync_type -> node_map_cache_sync -->
+        <mxCell id="e_sync_list" value="Listing" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=classic;fontColor=#000000;fontSize=11;fontStyle=1;exitX=1.0;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=0.0;entryDx=0;entryDy=0;" edge="1" source="node_sync_type" target="node_map_cache_sync" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="770" y="1050" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <!-- Edge: node_kyc_role_sync -> node_session_check -->
+        <mxCell id="e_kyc_session" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=classic;exitX=0.5;exitY=1.0;exitDx=0;exitDy=0;entryX=0.0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" source="node_kyc_role_sync" target="node_session_check" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="280" y="1265" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <!-- Edge: node_map_cache_sync -> node_session_check -->
+        <mxCell id="e_list_session" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=classic;exitX=0.5;exitY=1.0;exitDx=0;exitDy=0;entryX=1.0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" source="node_map_cache_sync" target="node_session_check" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="770" y="1265" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <!-- Edge: node_session_check -> node_conn_a_return -->
+        <mxCell id="e_session_loop" value="Continue" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=classic;fontColor=#000000;fontSize=11;fontStyle=1;exitX=1.0;exitY=0.5;exitDx=0;exitDy=0;entryX=0.0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" source="node_session_check" target="node_conn_a_return" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <!-- Edge: node_session_check -> node_end -->
+        <mxCell id="e_session_exit" value="Exit" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=classic;fontColor=#000000;fontSize=11;fontStyle=1;exitX=0.5;exitY=1.0;exitDx=0;exitDy=0;entryX=0.5;entryY=0.0;entryDx=0;entryDy=0;" edge="1" source="node_session_check" target="node_end" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

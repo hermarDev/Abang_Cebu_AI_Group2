@@ -1,0 +1,128 @@
+/* Main Layout - Full bleed map with floating elevated rail */
+.explore-layout {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100svh;
+  display: flex;
+  overflow: hidden;
+  z-index: 1;
+}
+
+/* Rental Results Rail (Desktop) */
+.rental-results-rail {
+  position: absolute;
+  top: 124px;
+  left: 16px;
+  bottom: 16px;
+  width: 380px;
+  border-radius: var(--radius-xl);
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 10px 32px rgba(0, 50, 120, 0.14), 0 2px 8px rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(226, 232, 240, 0.85);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  z-index: var(--z-results);
+}
+
+.results-header {
+  padding: 20px 20px 14px;
+  border-bottom: 1px solid var(--border);
+  background: var(--background);
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.results-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 9px;
+  letter-spacing: 1.4px;
+  font-weight: 750;
+  color: #475569;
+}
+
+.status-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #0066d5;
+  flex-shrink: 0;
+}
+
+.results-title-group h2 {
+  font-family: var(--font-sans, "Manrope Variable", Arial, sans-serif);
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin: 6px 0 2px;
+  line-height: 1.2;
+}
+
+.results-count {
+  font-size: 12px;
+  color: var(--muted-foreground);
+  margin: 0;
+}
+
+.results-scope-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: 16px;
+  background: #e0f2fe;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--primary);
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mobile-sheet-controls {
+  display: none;
+}
+
+.results-list {
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* Empty state */
+.no-matches-notice {
+  padding: 36px 16px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.no-matches-title {
+  font-family: var(--font-sans, "Manrope Variable", Arial, sans-serif);
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+.no-matches-desc {
+  font-size: 12px;
+  color: var(--muted-foreground);
+  line-height: 1.6;
+  max-width: 240px;
+  margin: 0 0 8px;
+}

@@ -108,36 +108,10 @@ export function MapContainer() {
 ## 5. OpenStreetMap (OSM) Integration
 AbangCebuAI uses **OpenStreetMap** as its primary geographic data foundation. MapLibre GL is the rendering engine that visualizes OpenStreetMap data.
 
-### Standard Configuration: Option A (Direct OpenStreetMap Tiles)
-We have selected **Option A** as the project standard. It uses OpenStreetMap standard raster tiles directly with zero external API key requirements.
+### Standard Configuration: OpenFreeMap Liberty Style
+The map style uses the hosted OpenFreeMap Liberty style with versioned vector tiles and OpenStreetMap-derived data. No API key is required. The style specification is maintained locally at [`public/styles/osm.json`](../../public/styles/osm.json); required provider attribution is included in the style's vector source.
 
-The style specification is maintained locally in the repository at [`public/styles/osm.json`](../../public/styles/osm.json):
-```json
-{
-  "version": 8,
-  "name": "OpenStreetMap Standard",
-  "sources": {
-    "osm": {
-      "type": "raster",
-      "tiles": ["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
-      "tileSize": 256,
-      "attribution": "&copy; <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors"
-    }
-  },
-  "layers": [
-    {
-      "id": "osm-tiles",
-      "type": "raster",
-      "source": "osm",
-      "minzoom": 0,
-      "maxzoom": 19
-    }
-  ]
-}
-```
-
-### Usage in MapLibre:
-Developers building map components can simply point the map style to the local endpoint:
+Developers building map components can point the map style to the local endpoint:
 ```tsx
 const map = new Map({
   container: mapContainerRef.current,

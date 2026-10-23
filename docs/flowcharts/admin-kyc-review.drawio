@@ -1,0 +1,264 @@
+<mxfile host="Electron" modified="2026-10-18T00:00:00.000Z" agent="Antigravity" version="21.0.0" type="device">
+  <diagram id="scrum-126-admin-kyc-review" name="SCRUM-126: ADMIN KYC VERIFICATION REVIEW">
+    <mxGraphModel dx="1200" dy="1600" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1050" pageHeight="1550" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- Title -->
+        <mxCell id="title" value="SCRUM-126: ADMIN KYC VERIFICATION REVIEW" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontFamily=Helvetica;fontSize=18;fontStyle=1;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="250" y="25" width="550" height="35" as="geometry" />
+        </mxCell>
+
+        <!-- Node: node_start -->
+        <mxCell id="node_start" value="START" style="rounded=1;arcSize=50;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Helvetica;fontSize=14;fontStyle=1;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="420" y="80" width="160" height="50" as="geometry" />
+        </mxCell>
+        <!-- Node: node_auth -->
+        <mxCell id="node_auth" value="Authenticated Active&#xa;Admin?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=12;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="420" y="165" width="160" height="90" as="geometry" />
+        </mxCell>
+        <!-- Node: node_deny -->
+        <mxCell id="node_deny" value="Deny Access&#xa;No KYC Data Disclosed" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;size=20;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=12;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="160" y="182.5" width="190" height="55" as="geometry" />
+        </mxCell>
+        <!-- Node: node_conn_e1 -->
+        <mxCell id="node_conn_e1" value="E" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=14;fontStyle=1;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="60" y="185" width="50" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="sub_node_conn_e1" value="Exit" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontFamily=Helvetica;fontSize=11;fontStyle=1;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="40" y="237" width="90" height="20" as="geometry" />
+        </mxCell>
+        <!-- Node: node_queue -->
+        <mxCell id="node_queue" value="Admin Verification Portal:&#xa;Retrieve Eligible Pending KYC Submissions" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;size=20;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=12;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="370" y="295" width="260" height="55" as="geometry" />
+        </mxCell>
+        <!-- Node: node_current -->
+        <mxCell id="node_current" value="Pending Record&#xa;Exists?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=12;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="420" y="385" width="160" height="90" as="geometry" />
+        </mxCell>
+        <!-- Node: node_stale -->
+        <mxCell id="node_stale" value="Stale / Reviewed Record&#xa;Reload Queue" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;size=20;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=12;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="160" y="402.5" width="190" height="55" as="geometry" />
+        </mxCell>
+        <!-- Node: node_inspect -->
+        <mxCell id="node_inspect" value="Inspect Identity / Government ID &amp;&#xa;Document Evidence (Private Storage)" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;size=20;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=12;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="365" y="515" width="270" height="60" as="geometry" />
+        </mxCell>
+        <!-- Node: node_sufficient -->
+        <mxCell id="node_sufficient" value="Evidence&#xa;Sufficient?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=12;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="420" y="610" width="160" height="90" as="geometry" />
+        </mxCell>
+        <!-- Node: node_insufficient -->
+        <mxCell id="node_insufficient" value="Insufficient Evidence&#xa;Request Correction via Owner Flow" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;size=20;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=12;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="160" y="627.5" width="200" height="55" as="geometry" />
+        </mxCell>
+        <!-- Node: node_conn_e2 -->
+        <mxCell id="node_conn_e2" value="E" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=14;fontStyle=1;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="60" y="630" width="50" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="sub_node_conn_e2" value="Exit" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontFamily=Helvetica;fontSize=11;fontStyle=1;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="40" y="682" width="90" height="20" as="geometry" />
+        </mxCell>
+        <!-- Node: node_outcome -->
+        <mxCell id="node_outcome" value="Verification&#xa;Outcome?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=12;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="420" y="740" width="160" height="90" as="geometry" />
+        </mxCell>
+        <!-- Node: node_verified -->
+        <mxCell id="node_verified" value="Persist Verified Status +&#xa;Reviewer ID, Timestamp &amp; Audit Log" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=12;fontStyle=1;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="370" y="870" width="260" height="60" as="geometry" />
+        </mxCell>
+        <!-- Node: node_reason -->
+        <mxCell id="node_reason" value="Actionable Reason&#xa;Present?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=12;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="175" y="740" width="160" height="90" as="geometry" />
+        </mxCell>
+        <!-- Node: node_reason_missing -->
+        <mxCell id="node_reason_missing" value="Prompt Required Reason&#xa;(No State Mutation)" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;size=20;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=12;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="160" y="870" width="190" height="55" as="geometry" />
+        </mxCell>
+        <!-- Node: node_rejected -->
+        <mxCell id="node_rejected" value="Persist Rejected Status +&#xa;Reason &amp; Admin Audit Log" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=12;fontStyle=1;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="160" y="990" width="190" height="60" as="geometry" />
+        </mxCell>
+        <!-- Node: node_db -->
+        <mxCell id="node_db" value="Landlord KYC&#xa;&amp; Audit DB" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=13;fontStyle=1;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="780" y="855" width="130" height="90" as="geometry" />
+        </mxCell>
+        <!-- Node: node_notify -->
+        <mxCell id="node_notify" value="Notify Landlord of Outcome&#xa;via Configured Channel" style="shape=offPageConnector;size=0.38;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11;fontStyle=1;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="380" y="1090" width="240" height="55" as="geometry" />
+        </mxCell>
+        <!-- Node: node_delivered -->
+        <mxCell id="node_delivered" value="Notification&#xa;Delivered?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=12;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="420" y="1185" width="160" height="90" as="geometry" />
+        </mxCell>
+        <!-- Node: node_retry -->
+        <mxCell id="node_retry" value="Delivery Failed&#xa;Retry Notification Dispatch" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;size=20;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=12;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="160" y="1202.5" width="190" height="55" as="geometry" />
+        </mxCell>
+        <!-- Node: node_conn_e_recv -->
+        <mxCell id="node_conn_e_recv" value="E" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Helvetica;fontSize=14;fontStyle=1;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="260" y="1335" width="50" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="sub_node_conn_e_recv" value="From Exits" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontFamily=Helvetica;fontSize=11;fontStyle=1;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="240" y="1387" width="90" height="20" as="geometry" />
+        </mxCell>
+        <!-- Node: node_end -->
+        <mxCell id="node_end" value="END" style="rounded=1;arcSize=50;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Helvetica;fontSize=14;fontStyle=1;fontColor=#000000;align=center;" vertex="1" parent="1">
+          <mxGeometry x="420" y="1335" width="160" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- EDGES / CONNECTORS -->
+        <!-- Edge: node_start -> node_auth -->
+        <mxCell id="e_start_auth" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=classic;exitX=0.5;exitY=1.0;exitDx=0;exitDy=0;entryX=0.5;entryY=0.0;entryDx=0;entryDy=0;" edge="1" source="node_start" target="node_auth" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <!-- Edge: node_auth -> node_deny -->
+        <mxCell id="e_auth_no" value="NO" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=classic;fontColor=#000000;fontSize=11;fontStyle=1;exitX=0.0;exitY=0.5;exitDx=0;exitDy=0;entryX=1.0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" source="node_auth" target="node_deny" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="350" y="210" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <!-- Edge: node_deny -> node_conn_e1 -->
+        <mxCell id="e_deny_conn_e" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=classic;exitX=0.0;exitY=0.5;exitDx=0;exitDy=0;entryX=1.0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" source="node_deny" target="node_conn_e1" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <!-- Edge: node_auth -> node_queue -->
+        <mxCell id="e_auth_yes" value="YES" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=classic;fontColor=#000000;fontSize=11;fontStyle=1;exitX=0.5;exitY=1.0;exitDx=0;exitDy=0;entryX=0.5;entryY=0.0;entryDx=0;entryDy=0;" edge="1" source="node_auth" target="node_queue" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <!-- Edge: node_queue -> node_current -->
+        <mxCell id="e_queue_current" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=classic;exitX=0.5;exitY=1.0;exitDx=0;exitDy=0;entryX=0.5;entryY=0.0;entryDx=0;entryDy=0;" edge="1" source="node_queue" target="node_current" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <!-- Edge: node_current -> node_stale -->
+        <mxCell id="e_current_no" value="NO" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=classic;fontColor=#000000;fontSize=11;fontStyle=1;exitX=0.0;exitY=0.5;exitDx=0;exitDy=0;entryX=1.0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" source="node_current" target="node_stale" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="350" y="430" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <!-- Edge: node_stale -> node_queue -->
+        <mxCell id="e_stale_queue" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=classic;exitX=0.5;exitY=0.0;exitDx=0;exitDy=0;entryX=0.0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" source="node_stale" target="node_queue" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="255" y="322.5" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <!-- Edge: node_current -> node_inspect -->
+        <mxCell id="e_current_yes" value="YES" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=classic;fontColor=#000000;fontSize=11;fontStyle=1;exitX=0.5;exitY=1.0;exitDx=0;exitDy=0;entryX=0.5;entryY=0.0;entryDx=0;entryDy=0;" edge="1" source="node_current" target="node_inspect" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <!-- Edge: node_inspect -> node_sufficient -->
+        <mxCell id="e_inspect_sufficient" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=classic;exitX=0.5;exitY=1.0;exitDx=0;exitDy=0;entryX=0.5;entryY=0.0;entryDx=0;entryDy=0;" edge="1" source="node_inspect" target="node_sufficient" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <!-- Edge: node_sufficient -> node_insufficient -->
+        <mxCell id="e_sufficient_no" value="NO" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=classic;fontColor=#000000;fontSize=11;fontStyle=1;exitX=0.0;exitY=0.5;exitDx=0;exitDy=0;entryX=1.0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" source="node_sufficient" target="node_insufficient" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="360" y="655" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <!-- Edge: node_insufficient -> node_conn_e2 -->
+        <mxCell id="e_insufficient_conn_e" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=classic;exitX=0.0;exitY=0.5;exitDx=0;exitDy=0;entryX=1.0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" source="node_insufficient" target="node_conn_e2" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <!-- Edge: node_sufficient -> node_outcome -->
+        <mxCell id="e_sufficient_yes" value="YES" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=classic;fontColor=#000000;fontSize=11;fontStyle=1;exitX=0.5;exitY=1.0;exitDx=0;exitDy=0;entryX=0.5;entryY=0.0;entryDx=0;entryDy=0;" edge="1" source="node_sufficient" target="node_outcome" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <!-- Edge: node_outcome -> node_verified -->
+        <mxCell id="e_outcome_verified" value="Verified" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=classic;fontColor=#000000;fontSize=11;fontStyle=1;exitX=0.5;exitY=1.0;exitDx=0;exitDy=0;entryX=0.5;entryY=0.0;entryDx=0;entryDy=0;" edge="1" source="node_outcome" target="node_verified" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <!-- Edge: node_outcome -> node_reason -->
+        <mxCell id="e_outcome_rejected" value="Rejected" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=classic;fontColor=#000000;fontSize=11;fontStyle=1;exitX=0.0;exitY=0.5;exitDx=0;exitDy=0;entryX=1.0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" source="node_outcome" target="node_reason" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="335" y="785" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <!-- Edge: node_reason -> node_reason_missing -->
+        <mxCell id="e_reason_no" value="NO" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=classic;fontColor=#000000;fontSize=11;fontStyle=1;exitX=0.5;exitY=1.0;exitDx=0;exitDy=0;entryX=0.5;entryY=0.0;entryDx=0;entryDy=0;" edge="1" source="node_reason" target="node_reason_missing" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="255" y="870" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <!-- Edge: node_reason_missing -> node_reason -->
+        <mxCell id="e_missing_reason" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=classic;exitX=0.0;exitY=0.5;exitDx=0;exitDy=0;entryX=0.0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" source="node_reason_missing" target="node_reason" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="130" y="897.5" />
+              <mxPoint x="130" y="785" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <!-- Edge: node_reason -> node_rejected -->
+        <mxCell id="e_reason_yes" value="YES" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=classic;fontColor=#000000;fontSize=11;fontStyle=1;exitX=0.5;exitY=1.0;exitDx=0;exitDy=0;entryX=0.5;entryY=0.0;entryDx=0;entryDy=0;" edge="1" source="node_reason" target="node_rejected" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="255" y="990" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <!-- Edge: node_verified -> node_db -->
+        <mxCell id="e_verified_db" value="Persist Audit" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;dashed=1;endArrow=classic;fontColor=#000000;fontSize=11;exitX=1.0;exitY=0.5;exitDx=0;exitDy=0;entryX=0.0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" source="node_verified" target="node_db" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="780" y="900" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <!-- Edge: node_verified -> node_notify -->
+        <mxCell id="e_verified_notify" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=classic;exitX=0.5;exitY=1.0;exitDx=0;exitDy=0;entryX=0.5;entryY=0.0;entryDx=0;entryDy=0;" edge="1" source="node_verified" target="node_notify" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <!-- Edge: node_rejected -> node_notify -->
+        <mxCell id="e_rejected_notify" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=classic;exitX=0.5;exitY=1.0;exitDx=0;exitDy=0;entryX=0.0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" source="node_rejected" target="node_notify" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="255" y="1117.5" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <!-- Edge: node_notify -> node_delivered -->
+        <mxCell id="e_notify_delivered" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=classic;exitX=0.5;exitY=1.0;exitDx=0;exitDy=0;entryX=0.5;entryY=0.0;entryDx=0;entryDy=0;" edge="1" source="node_notify" target="node_delivered" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <!-- Edge: node_delivered -> node_retry -->
+        <mxCell id="e_delivered_no" value="NO" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=classic;fontColor=#000000;fontSize=11;fontStyle=1;exitX=0.0;exitY=0.5;exitDx=0;exitDy=0;entryX=1.0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" source="node_delivered" target="node_retry" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="350" y="1230" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <!-- Edge: node_retry -> node_notify -->
+        <mxCell id="e_retry_notify" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=classic;exitX=0.5;exitY=0.0;exitDx=0;exitDy=0;entryX=0.0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" source="node_retry" target="node_notify" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="255" y="1117.5" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <!-- Edge: node_delivered -> node_end -->
+        <mxCell id="e_delivered_yes" value="YES" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=classic;fontColor=#000000;fontSize=11;fontStyle=1;exitX=0.5;exitY=1.0;exitDx=0;exitDy=0;entryX=0.5;entryY=0.0;entryDx=0;entryDy=0;" edge="1" source="node_delivered" target="node_end" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <!-- Edge: node_conn_e_recv -> node_end -->
+        <mxCell id="e_conn_e_end" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.5;endArrow=classic;exitX=1.0;exitY=0.5;exitDx=0;exitDy=0;entryX=0.0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" source="node_conn_e_recv" target="node_end" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

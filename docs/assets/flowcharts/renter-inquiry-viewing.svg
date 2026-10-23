@@ -1,0 +1,167 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1050 1420" width="1050" height="1420" style="background:#ffffff; font-family:Helvetica, Arial, sans-serif;">
+  <defs>
+    <!-- Arrow marker for end of lines -->
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#000000" />
+    </marker>
+    <!-- Arrow marker for start of lines (bidirectional) -->
+    <marker id="arrow-start" viewBox="0 0 10 10" refX="2" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 8 1.5 L 0 5 L 8 8.5 z" fill="#000000" />
+    </marker>
+    <!-- Pattern for grid background -->
+    <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#E2E8F0" stroke-width="0.8"/>
+    </pattern>
+  </defs>
+
+  <!-- Grid Background -->
+  <rect width="100%" height="100%" fill="url(#grid)" />
+
+  <!-- Flowchart Title -->
+  <text x="525.0" y="45" text-anchor="middle" font-size="18" font-weight="bold" fill="#000000" letter-spacing="1">SCRUM-127: RENTER INQUIRY &amp; VIEWING REQUEST FLOW</text>
+
+  <!-- ==================== CONNECTING EDGES ==================== -->
+  <!-- node_start -> node_auth -->
+  <line x1="500.0" y1="130.0" x2="500.0" y2="165.0" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <!-- node_auth -> node_gate -->
+  <path d="M 420 210 L 350 210" fill="none" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <text x="375" y="202" font-size="11" font-weight="bold" fill="#000000">NO</text>
+  <!-- node_gate -> node_auth -->
+  <path d="M 255 182.5 L 255 140 L 500 140 L 500 165" fill="none" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <!-- node_auth -> node_target_check -->
+  <line x1="500.0" y1="255.0" x2="500.0" y2="295.0" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <text x="508" y="275" font-size="11" font-weight="bold" fill="#000000">YES</text>
+  <!-- node_target_check -> node_closed -->
+  <path d="M 420 340 L 350 340" fill="none" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <text x="375" y="332" font-size="11" font-weight="bold" fill="#000000">NO</text>
+  <!-- node_closed -> node_conn_e1 -->
+  <line x1="160.0" y1="340.0" x2="110.0" y2="340.0" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <!-- node_target_check -> node_input_form -->
+  <line x1="500.0" y1="385.0" x2="500.0" y2="425.0" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <text x="508" y="405" font-size="11" font-weight="bold" fill="#000000">YES</text>
+  <!-- node_input_form -> node_validate_input -->
+  <line x1="500.0" y1="490.0" x2="500.0" y2="530.0" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <!-- node_validate_input -> node_field_errors -->
+  <path d="M 420 575 L 350 575" fill="none" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <text x="375" y="567" font-size="11" font-weight="bold" fill="#000000">NO</text>
+  <!-- node_field_errors -> node_input_form -->
+  <path d="M 255 547.5 L 255 457.5 L 360 457.5" fill="none" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <!-- node_validate_input -> node_insert_pending -->
+  <line x1="500.0" y1="620.0" x2="500.0" y2="660.0" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <text x="508" y="640" font-size="11" font-weight="bold" fill="#000000">YES</text>
+  <!-- node_insert_pending -> node_db -->
+  <path d="M 630 690 L 780 690" fill="none" stroke="#000000" stroke-width="1.8" stroke-dasharray="6,4" marker-end="url(#arrow)" />
+  <text x="705" y="680" font-size="11" font-weight="normal" fill="#000000">Insert</text>
+  <!-- node_insert_pending -> node_persist_check -->
+  <line x1="500.0" y1="720.0" x2="500.0" y2="760.0" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <!-- node_persist_check -> node_fail_notice -->
+  <path d="M 420 805 L 350 805" fill="none" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <text x="375" y="797" font-size="11" font-weight="bold" fill="#000000">NO</text>
+  <!-- node_fail_notice -> node_conn_e2 -->
+  <line x1="160.0" y1="805.0" x2="110.0" y2="805.0" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <!-- node_persist_check -> node_notify_landlord -->
+  <line x1="500.0" y1="850.0" x2="500.0" y2="890.0" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <text x="508" y="870" font-size="11" font-weight="bold" fill="#000000">YES</text>
+  <!-- node_notify_landlord -> node_landlord_decision -->
+  <line x1="500.0" y1="945.0" x2="500.0" y2="985.0" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <!-- node_landlord_decision -> node_decline_response -->
+  <path d="M 420 1030 L 350 1030" fill="none" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <text x="360" y="1022" font-size="11" font-weight="normal" fill="#000000">NO (Decline / Expired)</text>
+  <!-- node_decline_response -> node_conn_e3 -->
+  <line x1="160.0" y1="1030.0" x2="110.0" y2="1030.0" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <!-- node_landlord_decision -> node_persist_response -->
+  <line x1="500.0" y1="1075.0" x2="500.0" y2="1115.0" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <text x="508" y="1095" font-size="11" font-weight="normal" fill="#000000">YES (Accept / Schedule)</text>
+  <!-- node_persist_response -> node_end -->
+  <line x1="500.0" y1="1175.0" x2="500.0" y2="1235.0" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+  <!-- node_conn_e_recv -> node_end -->
+  <line x1="310.0" y1="1260.0" x2="420.0" y2="1260.0" stroke="#000000" stroke-width="1.8" marker-end="url(#arrow)" />
+
+  <!-- ==================== FLOWCHART NODES ==================== -->
+  <!-- Node: node_start -->
+  <rect x="420" y="80" width="160" height="50" rx="25" ry="25" fill="#FFFFFF" stroke="#000000" stroke-width="2.2" />
+  <text x="500.0" y="110.0" text-anchor="middle" font-size="14" font-weight="bold" fill="#000000">START</text>
+  <!-- Node: node_auth -->
+  <polygon points="500.0,165 580,210.0 500.0,255 420,210.0" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="500.0" y="206.7" text-anchor="middle" font-size="12" font-weight="normal" fill="#000000">Authenticated</text>
+  <text x="500.0" y="221.7" text-anchor="middle" font-size="12" font-weight="normal" fill="#000000">Renter?</text>
+  <!-- Node: node_gate -->
+  <polygon points="160,182.5 350,182.5 350,219.9 255.0,237.5 160,219.9" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="255.0" y="194.6" text-anchor="middle" font-size="11" font-weight="bold" fill="#000000">Guest: SCRUM-121 Gate</text>
+  <text x="255.0" y="208.9" text-anchor="middle" font-size="11" font-weight="bold" fill="#000000">Preserve Listing &amp; Action</text>
+  <!-- Node: node_target_check -->
+  <polygon points="500.0,295 580,340.0 500.0,385 420,340.0" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="500.0" y="336.7" text-anchor="middle" font-size="12" font-weight="normal" fill="#000000">Listing Eligible</text>
+  <text x="500.0" y="351.7" text-anchor="middle" font-size="12" font-weight="normal" fill="#000000">&amp; Available?</text>
+  <!-- Node: node_closed -->
+  <polygon points="185,312.5 350,312.5 325,367.5 160,367.5" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="255.0" y="336.0" text-anchor="middle" font-size="12" font-weight="bold" fill="#000000">Target Unavailable</text>
+  <text x="255.0" y="352.0" text-anchor="middle" font-size="12" font-weight="normal" fill="#333333">Safe Termination</text>
+  <!-- Node: node_conn_e1 -->
+  <circle cx="85.0" cy="340.0" r="25.0" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="85.0" y="345.0" text-anchor="middle" font-size="14" font-weight="bold" fill="#000000">E</text>
+  <text x="85.0" y="383" text-anchor="middle" font-size="11" font-weight="bold" fill="#000000">Exit</text>
+  <!-- Node: node_input_form -->
+  <polygon points="385,425 640,425 615,490 360,490" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="500.0" y="453.5" text-anchor="middle" font-size="12" font-weight="bold" fill="#000000">Capture Inquiry Message, Move-in Date</text>
+  <text x="500.0" y="469.5" text-anchor="middle" font-size="12" font-weight="normal" fill="#333333">&amp; Viewing Appointment Slot</text>
+  <!-- Node: node_validate_input -->
+  <polygon points="500.0,530 580,575.0 500.0,620 420,575.0" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="500.0" y="571.7" text-anchor="middle" font-size="12" font-weight="bold" fill="#000000">Inputs Valid &amp;</text>
+  <text x="500.0" y="586.7" text-anchor="middle" font-size="12" font-weight="normal" fill="#000000">Within Rate Limits?</text>
+  <!-- Node: node_field_errors -->
+  <polygon points="185,547.5 350,547.5 325,602.5 160,602.5" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="255.0" y="571.0" text-anchor="middle" font-size="12" font-weight="bold" fill="#000000">Field Errors Detected</text>
+  <text x="255.0" y="587.0" text-anchor="middle" font-size="12" font-weight="normal" fill="#333333">Correct or Cancel</text>
+  <!-- Node: node_insert_pending -->
+  <rect x="370" y="660" width="260" height="60" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="500.0" y="686.4000000000001" text-anchor="middle" font-size="12" font-weight="bold" fill="#000000">Derive Landlord from Property &amp;</text>
+  <text x="500.0" y="702.0000000000001" text-anchor="middle" font-size="12" font-weight="normal" fill="#333333">Insert Inquiry with &#x27;Pending&#x27; Status</text>
+  <!-- Node: node_persist_check -->
+  <polygon points="500.0,760 580,805.0 500.0,850 420,805.0" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="500.0" y="801.7" text-anchor="middle" font-size="12" font-weight="normal" fill="#000000">Persistence</text>
+  <text x="500.0" y="816.7" text-anchor="middle" font-size="12" font-weight="normal" fill="#000000">Succeeded?</text>
+  <!-- Node: node_fail_notice -->
+  <polygon points="185,777.5 350,777.5 325,832.5 160,832.5" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="255.0" y="801.0" text-anchor="middle" font-size="12" font-weight="bold" fill="#000000">Persistence Failure</text>
+  <text x="255.0" y="817.0" text-anchor="middle" font-size="12" font-weight="normal" fill="#333333">Retry Without Duplicate</text>
+  <!-- Node: node_conn_e2 -->
+  <circle cx="85.0" cy="805.0" r="25.0" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="85.0" y="810.0" text-anchor="middle" font-size="14" font-weight="bold" fill="#000000">E</text>
+  <text x="85.0" y="848" text-anchor="middle" font-size="11" font-weight="bold" fill="#000000">Exit</text>
+  <!-- Node: node_notify_landlord -->
+  <polygon points="370,890 630,890 630,927.4 500.0,945 370,927.4" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="500.0" y="902.1" text-anchor="middle" font-size="11" font-weight="bold" fill="#000000">Notify Owning Landlord of</text>
+  <text x="500.0" y="916.4" text-anchor="middle" font-size="11" font-weight="bold" fill="#000000">New Inquiry / Viewing Request</text>
+  <!-- Node: node_landlord_decision -->
+  <polygon points="500.0,985 580,1030.0 500.0,1075 420,1030.0" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="500.0" y="1026.7" text-anchor="middle" font-size="12" font-weight="normal" fill="#000000">Landlord Response</text>
+  <text x="500.0" y="1041.7" text-anchor="middle" font-size="12" font-weight="normal" fill="#000000">Outcome?</text>
+  <!-- Node: node_decline_response -->
+  <polygon points="185,1002.5 350,1002.5 325,1057.5 160,1057.5" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="255.0" y="1026.0" text-anchor="middle" font-size="12" font-weight="bold" fill="#000000">Decline / 48h Timeout Notice</text>
+  <text x="255.0" y="1042.0" text-anchor="middle" font-size="12" font-weight="normal" fill="#333333">Status Updated &amp; Renter Notified</text>
+  <!-- Node: node_conn_e3 -->
+  <circle cx="85.0" cy="1030.0" r="25.0" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="85.0" y="1035.0" text-anchor="middle" font-size="14" font-weight="bold" fill="#000000">E</text>
+  <text x="85.0" y="1073" text-anchor="middle" font-size="11" font-weight="bold" fill="#000000">Exit</text>
+  <!-- Node: node_persist_response -->
+  <rect x="360" y="1115" width="280" height="60" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="500.0" y="1141.4" text-anchor="middle" font-size="12" font-weight="bold" fill="#000000">Persist Landlord Response &amp;</text>
+  <text x="500.0" y="1157.0" text-anchor="middle" font-size="12" font-weight="normal" fill="#333333">Notify Renter of Status / Schedule</text>
+  <!-- Node: node_db -->
+  <g>
+    <path d="M 780 660 A 65.0 15 0 0 0 910 660 A 65.0 15 0 0 0 780 660 Z" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+    <path d="M 780 660 L 780 720 A 65.0 15 0 0 0 910 720 L 910 660" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+    <path d="M 780 720 A 65.0 15 0 0 0 910 720" fill="none" stroke="#000000" stroke-width="1.8" />
+    <text x="845.0" y="694.0" text-anchor="middle" font-size="13" font-weight="bold" fill="#000000">Inquiries &amp;</text>
+  </g>
+  <!-- Node: node_conn_e_recv -->
+  <circle cx="285.0" cy="1260.0" r="25.0" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+  <text x="285.0" y="1265.0" text-anchor="middle" font-size="14" font-weight="bold" fill="#000000">E</text>
+  <text x="285.0" y="1303" text-anchor="middle" font-size="11" font-weight="bold" fill="#000000">From Exits</text>
+  <!-- Node: node_end -->
+  <rect x="420" y="1235" width="160" height="50" rx="25" ry="25" fill="#FFFFFF" stroke="#000000" stroke-width="2.2" />
+  <text x="500.0" y="1265.0" text-anchor="middle" font-size="14" font-weight="bold" fill="#000000">END</text>
+
+</svg>

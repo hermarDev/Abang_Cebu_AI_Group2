@@ -1,0 +1,62 @@
+[
+  {
+    "key": "SCRUM-64",
+    "asset": "docs/assets/wireframes/AbangCebu_Landing_Page_Desktop_Wireframe_Blueprint.png",
+    "caption": "Desktop landing-page blueprint · wireframe, not a live application",
+    "source": "Local wireframe; Jira lists same-named attachment",
+    "bullets": [
+      "Map-led rental discovery layout",
+      "Search, filters and listing preview are design concepts"
+    ]
+  },
+  {
+    "key": "SCRUM-65",
+    "asset": "docs/assets/wireframes/AbangCebu_Login_Page_Desktop_Wireframe_Blueprint.png",
+    "caption": "Desktop login-page blueprint · wireframe, not a live application",
+    "source": "Local wireframe; Jira attachment linkage not independently checked",
+    "bullets": [
+      "Login page visual specification",
+      "Auth implementation remains separate work"
+    ]
+  },
+  {
+    "key": "SCRUM-104",
+    "asset": "docs/assets/flowcharts/auth-registration-pkce.png",
+    "caption": "Registration + PKCE verification flow · diagram excerpt",
+    "source": "Local PNG; Jira lists matching editable .drawio attachment",
+    "bullets": [
+      "Defines registration, validation and duplicate checks",
+      "Models email verification and PKCE callback"
+    ]
+  },
+  {
+    "key": "SCRUM-116",
+    "asset": "docs/assets/flowcharts/map-master-orchestration.png",
+    "caption": "Map-first spatial discovery · diagram excerpt",
+    "source": "Local flowchart; attachment linkage not independently checked",
+    "bullets": [
+      "Map initialization and location choice",
+      "Spatial query to price pins and results surfaces"
+    ]
+  },
+  {
+    "key": "SCRUM-118",
+    "asset": "docs/assets/flowcharts/map-search-spatial-query.png",
+    "caption": "Spatial search query · diagram excerpt",
+    "source": "Local PNG; Jira lists matching editable .drawio attachment",
+    "bullets": [
+      "Landmark auto-suggest and viewport query",
+      "PostGIS search specification, not implementation"
+    ]
+  },
+  {
+    "key": "SCRUM-125",
+    "asset": "docs/assets/flowcharts/landlord-listing-draft-submit.png",
+    "caption": "Landlord listing draft/submission · local draft",
+    "source": "Local draft; acceptance and Jira publication not verified",
+    "bullets": [
+      "Draft and submit listing flow",
+      "Ticket remains In Development"
+    ]
+  }
+]
