@@ -78,11 +78,11 @@ flowchart LR
 
 ## 3. Connection Pooling Architecture & Limits
 
-Because Next.js 15 uses a serverless and edge execution model (App Router Route Handlers and Server Components), opening direct PostgreSQL connections for each request will quickly exhaust database connection pools.
+Because Next.js 16 uses a serverless and edge execution model (App Router Route Handlers and Server Components), opening direct PostgreSQL connections for each request will quickly exhaust database connection pools.
 
 ```mermaid
 flowchart TD
-    subgraph NextJSServer["Next.js 15 Runtime (Serverless / Server Actions)"]
+    subgraph NextJSServer["Next.js 16 Runtime (Serverless / Server Actions)"]
         Req1["Request 1"]
         Req2["Request 2"]
         ReqN["Request N..."]

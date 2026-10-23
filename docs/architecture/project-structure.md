@@ -5,42 +5,49 @@ This codebase is organized to support a multi-developer team building a producti
 
 ```
 abang-cebu-ai/
-├── .github/                             # GitHub automation and templates
-│   └── pull_request_template.md         # Team PR quality checklist and reviewer sign-off template
-├── docs/                                # Architecture blueprints, ADRs, and team standards
-│   ├── project-structure.md             # This document (directory layout & module ownership)
-│   ├── git-workflow.md                  # Branch naming, Conventional Commits, and peer review guide
-│   ├── environment-variables.md         # Client vs server variable boundaries & secrets policy
-│   ├── supabase-architecture.md         # PostgreSQL extensions (PostGIS), migrations, and pooling
-│   ├── client-server-boundaries.md      # Server vs Client components & MapLibre WebGL isolation
-│   └── next15-guidelines.md             # Next.js 15, React 19, and Supabase SSR standards
-├── public/                              # Public static assets (favicons, SVGs, static imagery)
+├── docs/                                # Architecture blueprints, requirements, and QA artifacts
+│   ├── architecture/                    # Current framework and system boundaries
+│   ├── database/                         # Database schema and Supabase architecture
+│   ├── design/                           # Product design, UI tokens, and personas
+│   ├── flowcharts/                       # Approved system and user-flow diagrams
+│   ├── pdf/                              # Approved specification and architecture exports
+│   ├── security/                         # Access control and environment policy
+│   ├── specifications/                   # Product and engineering requirements
+│   └── testing/                          # QA plans and test artifacts
+├── public/                              # Logos, fonts, map style, and MapLibre worker assets
+├── scripts/                             # Project maintenance and asset-copy scripts
 ├── supabase/                            # Supabase CLI local database management
 │   ├── config.toml                      # Local emulator and pooler configuration
 │   ├── migrations/                      # Version-controlled SQL migration scripts
 │   └── seed.sql                         # Local testing seed data
 ├── src/
-│   ├── app/                             # Next.js 15 App Router
-│   │   ├── globals.css                  # Tailwind CSS v4 root stylesheet
-│   │   ├── layout.tsx                   # Minimal Root Layout
-│   │   └── page.tsx                     # Minimal placeholder starter page
-│   ├── components/                      # Reusable UI component modules
-│   │   ├── ui/                          # (.gitkeep) Reserved for atomic design primitives (Button, Card, Input)
-│   │   ├── map/                         # (.gitkeep) Reserved for isolated MapLibre GL client components
-│   │   └── features/                    # (.gitkeep) Reserved for domain-scoped feature modules (search, listings)
-│   ├── hooks/                           # (.gitkeep) Reserved for custom React client hooks
+│   ├── app/                             # Next.js 16 App Router and API routes
+│   │   ├── (auth)/                      # Login, registration, and password reset pages
+│   │   ├── api/                         # Auth, places, rentals, and logout handlers
+│   │   ├── auth/                        # OAuth and reset-password callbacks
+│   │   ├── layout.tsx                   # Root layout and global metadata
+│   │   └── page.tsx                     # Home route mounting the rental finder
+│   ├── components/                      # Reusable interface and auth components
+│   │   ├── auth/                        # Account forms and session synchronization
+│   │   ├── features/                    # Reusable feature controls
+│   │   ├── map/                         # MapLibre client components and geometry
+│   │   └── ui/                          # Tested interface primitives
+│   ├── contracts/                      # Shared rental and filter contracts
+│   ├── features/                        # Domain UI, rental, and map behavior
+│   │   ├── listings/                    # Rental preview data
+│   │   ├── map/                         # RestoredFinderShell and map experience
+│   │   └── rentals/                     # Rental filtering and search
 │   ├── lib/                             # Shared utilities and third-party SDK wrappers
-│   │   ├── utils.ts                     # cn() helper (clsx + tailwind-merge)
-│   │   └── supabase/                    # Supabase SSR architecture
-│   │       ├── client.ts                # Browser client (createBrowserClient)
-│   │       ├── server.ts                # Server client (createServerClient + await cookies())
-│   │       ├── middleware.ts            # Auth session refresh handler
-│   │       └── types.ts                 # Database type schemas
-│   ├── server/                          # Server-only logic & database orchestration
-│   │   ├── actions/                     # (.gitkeep) Reserved for Next.js Server Actions
-│   │   └── queries/                     # (.gitkeep) Reserved for database queries
-│   └── types/                           # Global TypeScript interfaces
-│       └── index.ts                     # Domain interfaces (Listings, Coordinates, GeoJSON)
+│   │   ├── auth/                        # Authentication and logout behavior
+│   │   ├── search/                      # Place search helpers
+│   │   ├── supabase/                    # Browser/server clients and session middleware
+│   │   └── utils.ts                     # Canonical cn() helper (clsx + tailwind-merge)
+│   ├── server/                          # Server-only route services and data mapping
+│   │   ├── actions/                     # Reserved for future Server Actions (.gitkeep)
+│   │   ├── places/                      # Place lookup integration
+│   │   ├── queries/                     # Reserved query-module location (.gitkeep)
+│   │   └── rentals/                     # Rental data mapping and validation
+│   └── types/                           # Auth, database, and shared TypeScript types
 ├── .env.example                         # Environment variable specifications
 ├── middleware.ts                        # Next.js edge middleware for Supabase auth refresh
 ├── next.config.ts                       # Next.js compiler configuration
@@ -56,7 +63,7 @@ abang-cebu-ai/
 
 ### `src/app` (Routing & Layouts)
 - **Role**: Presentation and page layout composition.
-- **Rule**: Keep business logic, database queries, and direct third-party API calls outside of `page.tsx` files. Delegate to `src/server/queries` or `src/server/actions`.
+- **Rule**: Keep business logic and direct third-party API calls outside of `page.tsx` files. Follow the existing feature/component/API boundaries; use `src/server/queries` or `src/server/actions` only when those modules are implemented for the operation.
 - **Default Execution**: Every file inside `src/app` is a **React Server Component** unless marked with `'use client'`.
 
 ### `src/components/ui` (Design System Primitives)
@@ -74,14 +81,14 @@ abang-cebu-ai/
   - In Client Components (`'use client'`): use `src/lib/supabase/client.ts` (`const supabase = createClient()`).
 
 ### `src/server` (Backend Services & Queries)
-- **Role**: Server-only operations: direct Supabase SQL queries, PostGIS operations, and external AI service integrations.
+- **Role**: Server-only operations: place lookup and rental-row validation/mapping. The `actions/` and `queries/` directories remain reserved placeholders; current API handlers call the implemented modules directly.
 - **Rule**: Code in this directory will never be bundled into client browser JavaScript.
 
 ---
 
 ## 3. Team Naming & Code Conventions
 - **Directories**: Kebab-case (`src/components/ui`, `src/lib/supabase`).
-- **Component Files**: Kebab-case (`map-container.tsx`, `rental-card.tsx`).
+- **Component Files**: Use PascalCase for the current React components (for example, `MapCanvas.tsx`, `RestoredFinderShell.tsx`).
 - **Component Functions**: PascalCase (`export function MapContainer()`).
 - **Hooks**: Kebab-case prefixed with `use-` (`use-map-bounds.ts`).
 - **Utilities**: Kebab-case (`src/lib/utils.ts`).

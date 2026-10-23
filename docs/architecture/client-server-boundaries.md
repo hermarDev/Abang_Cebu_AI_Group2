@@ -1,7 +1,7 @@
 # Client vs. Server Component Boundaries & MapLibre Integration
 
-## 1. Fundamentals: React Server Components (RSC) in Next.js 15
-Next.js 15 uses the App Router where all components are Server Components by default.
+## 1. Fundamentals: React Server Components (RSC) in Next.js 16
+Next.js 16 uses the App Router where all components are Server Components by default.
 
 | Dimension | Server Component (Default) | Client Component (`'use client'`) |
 | :--- | :--- | :--- |
@@ -35,24 +35,26 @@ ReferenceError: window is not defined
 ```mermaid
 flowchart TD
     subgraph ServerSide["Server Component Boundary (SSR)"]
-        Page["src/app/map/page.tsx (Server Component)"]
-        Query["src/server/queries/get-listings.ts"]
+        Page["src/app/page.tsx (Server Component)"]
+        Finder["src/features/map/RestoredFinderShell.tsx (Client Component)"]
+        API["src/app/api/rentals/route.ts"]
+        Query["src/server/rentals/map-listing.ts"]
+        SupabaseClient["src/lib/supabase/server.ts"]
         SupabaseDB[("Supabase PostgreSQL DB")]
-        
-        Page --> Query
-        Query --> SupabaseDB
-        SupabaseDB --> Query
-        Query -->|Plain JSON Data Array| Page
+
+        Page --> Finder
+        Finder -->|GET /api/rentals| API
+        API --> SupabaseClient
+        SupabaseClient --> SupabaseDB
+        SupabaseDB --> API
+        API --> Query
+        Query -->|Validated rental records| API
     end
 
-    subgraph ClientBoundary["Client Component Boundary ('use client')"]
-        DynamicLoader["src/components/map/index.tsx (next/dynamic ssr:false)"]
-        Container["src/components/map/map-container.tsx"]
-        MapLibreCanvas["WebGL Canvas Instance (MapLibre GL)"]
-        
-        Page -->|Props: markers[]| DynamicLoader
-        DynamicLoader --> Container
-        Container --> MapLibreCanvas
+    subgraph ClientBoundary["Client Map Boundary ('use client')"]
+        Finder -->|selected place, filters, center| Loader["src/components/map/MapCanvasLoader.tsx"]
+        Loader -->|dynamic import, ssr:false| Canvas["src/components/map/MapCanvas.tsx"]
+        Canvas --> MapLibreCanvas["WebGL Canvas Instance (MapLibre GL)"]
     end
 ```
 

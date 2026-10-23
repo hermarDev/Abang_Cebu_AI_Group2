@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 
 /**
  * Creates a Supabase client for use in Server Components, Server Actions, and Route Handlers.
- * In Next.js 15, cookies() returns a Promise and must be awaited.
+ * In Next.js 16, cookies() returns a Promise and must be awaited.
  */
 export async function createClient() {
   const cookieStore = await cookies();
