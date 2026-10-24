@@ -31,25 +31,30 @@ abang-cebu-ai/
 │   │   ├── auth/                        # Account forms and session synchronization
 │   │   ├── features/                    # Reusable feature controls
 │   │   ├── map/                         # MapLibre client components and geometry
+│   │   │   ├── MapCanvasLoader.tsx       # Client-only dynamic map boundary
+│   │   │   └── MapCanvas.tsx             # MapLibre rendering component
 │   │   └── ui/                          # Tested interface primitives
-│   ├── contracts/                      # Shared rental and filter contracts
+│   ├── contracts/                       # Shared rental and filter contracts
 │   ├── features/                        # Domain UI, rental, and map behavior
 │   │   ├── listings/                    # Rental preview data
 │   │   ├── map/                         # RestoredFinderShell and map experience
 │   │   └── rentals/                     # Rental filtering and search
+│   ├── hooks/                           # Reserved placeholder (.gitkeep)
 │   ├── lib/                             # Shared utilities and third-party SDK wrappers
 │   │   ├── auth/                        # Authentication and logout behavior
 │   │   ├── search/                      # Place search helpers
 │   │   ├── supabase/                    # Browser/server clients and session middleware
 │   │   └── utils.ts                     # Canonical cn() helper (clsx + tailwind-merge)
-│   ├── server/                          # Server-only route services and data mapping
-│   │   ├── actions/                     # Reserved for future Server Actions (.gitkeep)
+│   ├── server/                          # Route services and rental data mapping
+│   │   ├── actions/                     # Reserved placeholder (.gitkeep)
 │   │   ├── places/                      # Place lookup integration
-│   │   ├── queries/                     # Reserved query-module location (.gitkeep)
+│   │   ├── queries/                     # Reserved placeholder (.gitkeep)
 │   │   └── rentals/                     # Rental data mapping and validation
+│   ├── styles/                          # Global design tokens and finder surface styles
+│   │   └── finder/                      # Header, results rail, filters, drawer, and base CSS
 │   └── types/                           # Auth, database, and shared TypeScript types
 ├── .env.example                         # Environment variable specifications
-├── middleware.ts                        # Next.js edge middleware for Supabase auth refresh
+├── middleware.ts                        # Supabase session refresh; Next.js 16 legacy Middleware convention
 ├── next.config.ts                       # Next.js compiler configuration
 ├── package.json                         # Project dependencies and npm scripts
 ├── pnpm-lock.yaml                       # Strict deterministic lockfile
@@ -82,7 +87,7 @@ abang-cebu-ai/
 
 ### `src/server` (Backend Services & Queries)
 - **Role**: Server-only operations: place lookup and rental-row validation/mapping. The `actions/` and `queries/` directories remain reserved placeholders; current API handlers call the implemented modules directly.
-- **Rule**: Code in this directory will never be bundled into client browser JavaScript.
+- **Rule**: Keep imports from this directory in server-only code; the directory name alone does not prevent client bundling. Current consumers are Route Handlers.
 
 ---
 
@@ -92,4 +97,4 @@ abang-cebu-ai/
 - **Component Functions**: PascalCase (`export function MapContainer()`).
 - **Hooks**: Kebab-case prefixed with `use-` (`use-map-bounds.ts`).
 - **Utilities**: Kebab-case (`src/lib/utils.ts`).
-- **Path Aliases**: Always use `@/*` mapped to `src/*` (e.g. `@/components/ui/button`).
+- **Path Aliases**: Always use `@/*` mapped to `src/*` (e.g. `@/components/ui/Button`).

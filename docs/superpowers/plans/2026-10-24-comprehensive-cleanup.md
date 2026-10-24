@@ -102,7 +102,10 @@ No dependency is approved for removal. `@supabase/supabase-js` is a declared pee
 - [x] Browser opened `http://localhost:3000/`; after map hydration, observed `.maplibregl-canvas` at 1280×577 and map container text `MapLibre`; observed the sign-in form and switched to sign-up, which displayed name/email/mobile/password fields and a blue `Sign up` control. No credentials were entered and no form submitted.
 - [x] HTTP smoke: `/`, `/login`, `/register`, `/reset-password`, `/api/rentals`, logo/chatbot assets, OSM style JSON, and both generated map worker assets returned HTTP 200.
 - [x] Final review: `git diff --check` exit 0; Markdown validation found 0 broken links in 70 files; removed SVG reference scan found 0 source/docs refs; package manifests unchanged. Git remains on `main`, 4 local commits ahead of `origin/main`; no remote refs changed. The plan/ledger report is recorded in the SDD workspace and is committed with the final local checkpoint.
-- [x] Independent read-only review completed: no Critical or Important findings; one Minor documentation diagram simplification deferred.
-- [x] Commit the final plan/verification ledger update locally; do not push.
+- [x] Independent read-only review found no Critical code findings and three Important documentation inaccuracies: client/server data flow, implied Supabase-query caching, and a general Edge-runtime default. Corrected those descriptions against source and installed Next.js 16 docs.
+- [x] Resolved reviewer Minor findings: included `src/styles/finder/` and corrected the case-sensitive `@/components/ui/Button` example. Kept the linked `next15-guidelines.md` filename and labeled it legacy.
+- [x] Re-run Markdown-link validation after documentation follow-up (383 links across 63 files, 0 broken targets); `git diff --check` passed.
+- [x] Re-run final-tree tests (36 files/175 passed), lint (exit 0, 0 warnings/errors), TypeScript (`pnpm exec tsc --noEmit`, exit 0), and production build (Next.js 16.3.6, exit 0) after documentation follow-up.
+- [x] Recheck `localhost:3000`: existing `next-server` PID 73879 remained; root returned HTTP 200 and browser rendered MapLibre canvas at 1280×577 after hydration. No process was restarted or stopped.
 - [x] Coordination claim verified and completed.
 - [x] Report scoped changes, exact checks, and residual risks.

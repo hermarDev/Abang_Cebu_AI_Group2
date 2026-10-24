@@ -43,7 +43,7 @@ export async function ServerComponent() {
 
 ## 2. Fetch Caching Defaults
 - In Next.js 14, `fetch()` calls were cached by default (`force-cache`).
-- In Next.js 16, the default is `auto no cache`: requests are fetched when needed during request rendering, but may be fetched once during build when a route is statically prerendered. Request-time APIs make the route fetch on each request.
+- In Next.js 16, the default is `auto no cache`: in development, fetches normally run when the route is rendered; during `next build`, fetches for routes that can be statically prerendered may run at build time. If the route uses a request-time API, Next.js fetches the resource on each request.
 - Use `cache: 'no-store'` to bypass the framework cache on every request; use `cache: 'force-cache'` for a persistent cached response.
 
 ```tsx
