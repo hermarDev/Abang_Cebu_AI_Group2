@@ -73,7 +73,7 @@ No dependency is approved for removal. `@supabase/supabase-js` is a declared pee
 - [x] Replace stale `/map` instruction with the actual root route `http://localhost:3000/`.
 - [x] Reran tracked-text and literal local-reference scans excluding the plan and candidate assets; zero SVG path references found.
 - [x] Run markdown local-link validation (70 files, 0 broken local links), final tests (175/175), and production build; deleted SVGs remain unreferenced.
-- [x] Create a local checkpoint commit containing only this verified slice, combined with the independently verified documentation slice: `bef2254`.
+- [x] Create a local checkpoint commit containing only this verified slice: `7a0a360`.
 
 ### Task 4: Correct stale architecture documentation against the current app
 
@@ -84,7 +84,7 @@ No dependency is approved for removal. `@supabase/supabase-js` is a declared pee
 - [x] Update directory tree to describe the current root route, auth/API folders, MapCanvas loader/canvas, utility location, server-module placeholders, and naming convention.
 - [x] Update client/server map diagram to show the root route and actual dynamic loader/canvas boundary; preserve map architecture guidance.
 - [x] Run markdown local-link validation (70 files, 0 broken local links), inspect docs diff for future-looking approved product specs (none changed), then run tests (175/175) and build (Next.js 16.3.6 completed).
-- [x] Create a local checkpoint commit containing only this verified slice, combined with the independently verified asset-removal slice: `bef2254`.
+- [x] Create a local checkpoint commit containing only this verified slice: `bef2254`.
 
 ### Task 5: Exclude only generated MapLibre worker bundles from ESLint
 
@@ -101,8 +101,8 @@ No dependency is approved for removal. `@supabase/supabase-js` is a declared pee
 - [x] Port 3000 was occupied; inspected PID 73879 and parent PID 73862. Both are `next dev` / `next-server` from `/home/hrmr/abang-cebu-ai`; left them running and used that existing server without restarting.
 - [x] Browser opened `http://localhost:3000/`; after map hydration, observed `.maplibregl-canvas` at 1280×577 and map container text `MapLibre`; observed the sign-in form and switched to sign-up, which displayed name/email/mobile/password fields and a blue `Sign up` control. No credentials were entered and no form submitted.
 - [x] HTTP smoke: `/`, `/login`, `/register`, `/reset-password`, `/api/rentals`, logo/chatbot assets, OSM style JSON, and both generated map worker assets returned HTTP 200.
-- [x] Final review: `git diff --check` exit 0; Markdown validation found 0 broken links in 70 files; removed SVG reference scan found 0 source/docs refs; package manifests unchanged. Git remains on `main`, 4 local commits ahead of `origin/main`; no remote refs changed. The plan/ledger report is recorded in the SDD workspace and is committed with the final local checkpoint.
-- [x] Independent read-only review found no Critical code findings and three Important documentation inaccuracies: client/server data flow, implied Supabase-query caching, and a general Edge-runtime default. Corrected those descriptions against source and installed Next.js 16 docs.
+- [x] Final review: `git diff --check` exit 0; Markdown validation found 0 broken links in 70 files; removed SVG reference scan found 0 source/docs refs; package manifests unchanged. Cleanup checkpoints remained local, no remote refs changed. The plan and SDD ledger were recorded before follow-up review corrections.
+- [x] Independent read-only review found no Critical code findings and three Important documentation inaccuracies: client/server data flow, implied Supabase-query caching, and a general Edge-runtime default. Corrected those descriptions against source and installed Next.js 16 docs. The follow-up review found no Critical or Important findings; corrected its remaining route-tree and checkpoint wording observations. The reported duplicate Task 6 heading was not present in the current plan (one `### Task 6` heading).
 - [x] Resolved reviewer Minor findings: included `src/styles/finder/` and corrected the case-sensitive `@/components/ui/Button` example. Kept the linked `next15-guidelines.md` filename and labeled it legacy.
 - [x] Re-run Markdown-link validation after documentation follow-up (383 links across 63 files, 0 broken targets); `git diff --check` passed.
 - [x] Re-run final-tree tests (36 files/175 passed), lint (exit 0, 0 warnings/errors), TypeScript (`pnpm exec tsc --noEmit`, exit 0), and production build (Next.js 16.3.6, exit 0) after documentation follow-up.

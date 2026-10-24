@@ -24,7 +24,7 @@ abang-cebu-ai/
 │   ├── app/                             # Next.js 16 App Router and API routes
 │   │   ├── (auth)/                      # Login, registration, and password reset pages
 │   │   ├── api/                         # Auth, places, rentals, and logout handlers
-│   │   ├── auth/                        # OAuth and reset-password callbacks
+│   │   ├── auth/                        # OAuth, logout, and password-reset callback routes
 │   │   ├── layout.tsx                   # Root layout and global metadata
 │   │   └── page.tsx                     # Home route mounting the rental finder
 │   ├── components/                      # Reusable interface and auth components
