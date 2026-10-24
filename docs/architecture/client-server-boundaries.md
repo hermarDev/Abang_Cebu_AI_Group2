@@ -34,16 +34,13 @@ ReferenceError: window is not defined
 
 ```mermaid
 flowchart TD
-    subgraph ServerSide["Server Component Boundary (SSR)"]
+    subgraph ServerSide["Server Components & Route Handler"]
         Page["src/app/page.tsx (Server Component)"]
-        Finder["src/features/map/RestoredFinderShell.tsx (Client Component)"]
         API["src/app/api/rentals/route.ts"]
         Query["src/server/rentals/map-listing.ts"]
         SupabaseClient["src/lib/supabase/server.ts"]
         SupabaseDB[("Supabase PostgreSQL DB")]
 
-        Page --> Finder
-        Finder -->|GET /api/rentals| API
         API --> SupabaseClient
         SupabaseClient --> SupabaseDB
         SupabaseDB --> API
@@ -51,7 +48,11 @@ flowchart TD
         Query -->|Validated rental records| API
     end
 
-    subgraph ClientBoundary["Client Map Boundary ('use client')"]
+    subgraph ClientBoundary["Client Components ('use client')"]
+        Finder["src/features/map/RestoredFinderShell.tsx"]
+        Page -->|renders| Finder
+        Finder -->|GET /api/rentals| API
+        API -->|JSON rentals| Finder
         Finder -->|selected place, filters, center| Loader["src/components/map/MapCanvasLoader.tsx"]
         Loader -->|dynamic import, ssr:false| Canvas["src/components/map/MapCanvas.tsx"]
         Canvas --> MapLibreCanvas["WebGL Canvas Instance (MapLibre GL)"]
