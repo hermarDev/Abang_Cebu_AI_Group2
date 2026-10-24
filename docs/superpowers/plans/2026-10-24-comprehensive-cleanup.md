@@ -47,7 +47,7 @@
 - `src/components/features/.gitkeep`, `src/components/map/.gitkeep`, `src/components/ui/.gitkeep`: redundant because each directory already contains tracked source files; remove markers only, not directories.
 - `README.md`: `/map` is not an App Router page; the recorded production build lists `/` and auth/API paths, and the map is rendered by the root page. Update this one command-line instruction to the root URL.
 - `docs/architecture/next15-guidelines.md`, `docs/architecture/client-server-boundaries.md`, `docs/architecture/project-structure.md`, and corresponding `docs/README.md` / `README.md` descriptions: have verified stale Next.js 15 descriptions or obsolete placeholder directory contents against the checked-in Next 16/React 19 package and current tree. Correct the conflicting version/structure statements only; preserve the approved specifications and wireframes that describe intended future features.
-- `eslint.config.mjs`: baseline warnings map to exactly two copied MapLibre worker bundles (1,078 and 48 warnings); the worker copy script sources them from `maplibre-gl` and places them in `public/maplibre-gl/`. Retain the workers and license; narrowly ignore only `public/maplibre-gl/**` in ESLint.
+- `eslint.config.mjs`: baseline warnings map to exactly two copied MapLibre worker bundles (1,078 and 47 warnings); the worker copy script sources them from `maplibre-gl` and places them in `public/maplibre-gl/`. Retain the workers and license; narrowly ignore only `public/maplibre-gl/**` in ESLint.
 - `next.config.ts`: a no-op scaffold; preserve because Next.js discovers this convention file and its removal is unnecessary to achieve scoped cleanup.
 - `src/components/ui/examples.tsx`: explicitly referenced by `src/components/ui/README.md` as an interactive component example; retain despite no route import.
 - `src/types/index.ts` interfaces have no consuming runtime code; retain as the documented shared/public type entrypoint pending a dedicated type/API migration.
@@ -63,42 +63,46 @@ No dependency is approved for removal. `@supabase/supabase-js` is a declared pee
 - [x] Add an assertion that the UI-local helper is the exact canonical exported function from `src/lib/utils.ts`; the pre-change focused run failed on function identity as expected.
 - [x] Change `src/components/ui/cn.ts` into a compatibility re-export of `@/lib/utils`; component imports and call semantics are unchanged.
 - [x] Focused UI test passed (7/7); full suite passed (175/175); TypeScript check passed (`pnpm exec tsc --noEmit`).
-- [ ] Create a local checkpoint commit containing only this verified slice.
+- [x] Create a local checkpoint commit containing only this verified slice: `7a0a360`.
 
 ### Task 3: Remove verified dead starter assets and markers; fix the root-route instruction
 
 **Files:** `public/file.svg`, `public/globe.svg`, `public/next.svg`, `public/vercel.svg`, `public/window.svg`, `.gitkeep` files only in populated `src/components/features`, `src/components/map`, and `src/components/ui`, and the single stale line in `README.md`.
 
-- [ ] Before deletion, rerun full tracked-reference checks excluding the plan itself; confirm no HTML, code, script, Next config, or text doc uses the asset paths.
-- [ ] Remove only those five starter SVGs and three populated-directory marker files. Leave `.gitkeep` in empty/reserved folders and preserve `logo_Only.png`.
-- [ ] Replace the stale `/map` instruction with the actual root route `http://localhost:3000/`.
-- [ ] Run markdown local-link validation, tests, and build; check deleted paths are still unreferenced.
-- [ ] Create a local checkpoint commit containing only this verified slice.
+- [x] Remove only those five starter SVGs and three populated-directory marker files. Leave `.gitkeep` in empty/reserved folders and preserve `logo_Only.png`.
+- [x] Replace stale `/map` instruction with the actual root route `http://localhost:3000/`.
+- [x] Reran tracked-text and literal local-reference scans excluding the plan and candidate assets; zero SVG path references found.
+- [x] Run markdown local-link validation (70 files, 0 broken local links), final tests (175/175), and production build; deleted SVGs remain unreferenced.
+- [x] Create a local checkpoint commit containing only this verified slice, combined with the independently verified documentation slice: `bef2254`.
 
 ### Task 4: Correct stale architecture documentation against the current app
 
-**Files:** `README.md`, `docs/README.md`, `docs/architecture/next15-guidelines.md`, `docs/architecture/client-server-boundaries.md`, and `docs/architecture/project-structure.md`.
+**Files:** `README.md`, `docs/README.md`, `docs/architecture/next15-guidelines.md`, `docs/architecture/client-server-boundaries.md`, `docs/architecture/project-structure.md`, `docs/database/supabase-architecture.md`, `docs/database/users-and-profiles-schema.md`, and the version comment in `src/lib/supabase/server.ts`.
 
-- [x] Update references that state the application uses Next.js 15 to Next.js 16; technical examples were checked against current Next 16 behavior.
+- [x] Update references that state the application uses Next.js 15 to Next.js 16, including the Supabase server helper and database overview; technical examples were checked against current Next 16 behavior.
 - [x] Update README's map URL to the root route.
-- [ ] Update the directory tree to describe the current root `RestoredFinderShell`, map loader/canvas, auth/API routes, actual utility location, and existing components. Remove obsolete `.gitkeep`, placeholder starter-page, and untrue filename claims.
-- [ ] Update the client/server map diagram to show the root route and actual dynamic `MapCanvasLoader` / `MapCanvas` boundary; preserve map architecture guidance.
-- [ ] Run markdown link validation (expected: 0 broken local links), inspect docs diff for future-looking approved product specs accidentally changed, then run build and tests.
-- [ ] Create a local checkpoint commit containing only this verified slice.
+- [x] Update directory tree to describe the current root route, auth/API folders, MapCanvas loader/canvas, utility location, server-module placeholders, and naming convention.
+- [x] Update client/server map diagram to show the root route and actual dynamic loader/canvas boundary; preserve map architecture guidance.
+- [x] Run markdown local-link validation (70 files, 0 broken local links), inspect docs diff for future-looking approved product specs (none changed), then run tests (175/175) and build (Next.js 16.3.6 completed).
+- [x] Create a local checkpoint commit containing only this verified slice, combined with the independently verified asset-removal slice: `bef2254`.
 
 ### Task 5: Exclude only generated MapLibre worker bundles from ESLint
 
 **Files:** `eslint.config.mjs`.
 
-- [ ] Add `public/maplibre-gl/**` to the existing global ignore list; do not change lint rules or ignore application source.
-- [ ] Run `pnpm run lint`; verify the previous 1,125 vendor-only warnings disappear and the command still traverses project source.
-- [ ] Run TypeScript check and build; inspect the exact config diff.
-- [ ] Create a local checkpoint commit containing only this verified slice.
+- [x] Add `public/maplibre-gl/**` to the existing global ignore list; do not change lint rules or ignore application source.
+- [x] `pnpm run lint` passed; vendor-only warnings reduced from 1,125 to zero. Explicit source scan (`pnpm exec eslint src eslint.config.mjs --format json`) still checked 98 files, with 0 warnings and 0 errors.
+- [x] Run TypeScript check (`pnpm exec tsc --noEmit`) and build (Next.js 16.3.6 completed); inspect the exact config diff.
+- [x] Create a local checkpoint commit containing only this verified slice: `1ee0c7a`.
 
 ### Task 6: Final validation and local smoke test
 
-- [ ] Run `pnpm run test`, `pnpm run lint`, `pnpm exec tsc --noEmit`, and `pnpm run build` on the final tree; preserve full output and exact exit codes.
-- [ ] Confirm port 3000 is free before starting the app. If occupied, inspect listener PID, command, and working directory; never kill an unrelated process.
-- [ ] Start the project using its existing `pnpm run start` after the build (or documented dev command if necessary); verify HTTP response and browser-visible rendering at `http://localhost:3000/`. Exercise critical sign-in/register entry visibility and the root map UI without submitting credentials or mutating backend data.
-- [ ] Inspect complete `git diff`, `git status`, local commits, and environment-file names only; confirm no secrets or unrelated paths were touched and no remote operation occurred.
-- [ ] Report removed files, consolidated utilities, documentation/config changes, unchanged dependencies, test results, and residual risks separately.
+- [x] Run final-tree `pnpm run test` (36 files, 175 passed); `pnpm run lint` (exit 0, 0 warnings/errors); `pnpm exec tsc --noEmit` (exit 0); and `pnpm run build` (Next.js 16.3.6, exit 0; route table includes `/`, `/login`, `/register`, API routes, and auth callbacks).
+- [x] Port 3000 was occupied; inspected PID 73879 and parent PID 73862. Both are `next dev` / `next-server` from `/home/hrmr/abang-cebu-ai`; left them running and used that existing server without restarting.
+- [x] Browser opened `http://localhost:3000/`; after map hydration, observed `.maplibregl-canvas` at 1280×577 and map container text `MapLibre`; observed the sign-in form and switched to sign-up, which displayed name/email/mobile/password fields and a blue `Sign up` control. No credentials were entered and no form submitted.
+- [x] HTTP smoke: `/`, `/login`, `/register`, `/reset-password`, `/api/rentals`, logo/chatbot assets, OSM style JSON, and both generated map worker assets returned HTTP 200.
+- [x] Final review: `git diff --check` exit 0; Markdown validation found 0 broken links in 70 files; removed SVG reference scan found 0 source/docs refs; package manifests unchanged. Git remains on `main`, 4 local commits ahead of `origin/main`; no remote refs changed. The plan/ledger report is recorded in the SDD workspace and is committed with the final local checkpoint.
+- [x] Independent read-only review completed: no Critical or Important findings; one Minor documentation diagram simplification deferred.
+- [x] Commit the final plan/verification ledger update locally; do not push.
+- [x] Coordination claim verified and completed.
+- [x] Report scoped changes, exact checks, and residual risks.
