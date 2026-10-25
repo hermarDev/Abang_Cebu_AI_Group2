@@ -5,9 +5,9 @@ const source = readFileSync("src/components/map/MapCanvas.tsx", "utf8");
 const styles = readFileSync("src/components/map/MapCanvas.module.css", "utf8");
 
 describe("MapCanvas controls", () => {
-  it("keeps default provider attribution expanded even before style sources load", () => {
+  it("keeps provider attribution available with compact mobile presentation", () => {
     expect(source).toContain("attributionControl: {");
-    expect(source).toContain("compact: false");
+    expect(source).toContain("compact: container.clientWidth <= 640 ? true : undefined");
     expect(source).toContain('https://openfreemap.org');
     expect(source).toContain('https://www.openmaptiles.org/');
     expect(source).toContain('https://www.openstreetmap.org/copyright');
@@ -18,7 +18,7 @@ describe("MapCanvas controls", () => {
     expect(styles).toContain("right: 5rem");
     expect(styles).toContain("bottom: min(calc(var(--results-sheet-height, 42dvh) + 1rem), calc(100dvh - 10rem))");
     expect(styles).not.toContain("bottom: calc(max(42dvh, 18rem) + 5.5rem)");
-    expect(styles).toContain("left: max(0.8rem, env(safe-area-inset-left))");
+    expect(styles).toContain("left: max(5rem, env(safe-area-inset-left))");
     expect(styles).toContain("bottom: min(calc(var(--results-sheet-height, 42dvh) + 1rem), calc(100dvh - 10rem))");
   });
 

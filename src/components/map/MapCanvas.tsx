@@ -120,7 +120,7 @@ export function MapCanvas({ selectedPlace, selectedRentalId, onSelectRental, ren
         container,
         style: process.env.NEXT_PUBLIC_MAP_STYLE_URL || "/styles/osm.json",
         attributionControl: {
-          compact: false,
+          compact: container.clientWidth <= 640 ? true : undefined,
           customAttribution: process.env.NEXT_PUBLIC_MAP_STYLE_URL && process.env.NEXT_PUBLIC_MAP_STYLE_URL !== "/styles/osm.json"
             ? undefined
             : '<a href="https://openfreemap.org">OpenFreeMap</a> <a href="https://www.openmaptiles.org/">© OpenMapTiles</a> Data from <a href="https://www.openstreetmap.org/copyright">© OpenStreetMap contributors</a>',
@@ -144,6 +144,10 @@ export function MapCanvas({ selectedPlace, selectedRentalId, onSelectRental, ren
 
     const onLoad = () => {
       mapLoaded = true;
+      if (container.clientWidth <= 640) {
+        const credits = container.querySelector<HTMLDetailsElement>("details.maplibregl-ctrl-attrib");
+        if (credits?.open) credits.querySelector<HTMLElement>("summary")?.click();
+      }
       mapLoadedRef.current = true;
       const center = map.getCenter();
       searchCenterRef.current = [center.lng, center.lat];

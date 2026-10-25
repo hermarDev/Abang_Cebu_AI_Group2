@@ -64,7 +64,7 @@ for (const viewport of [
         await slider.press(key);
         await expect(shell).toHaveAttribute("data-sheet-position", state);
         expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
-        for (const control of ["Zoom in", "Zoom out", "Locate me"]) {
+        for (const control of state === "expanded" ? [] : ["Locate me"]) {
           const button = page.getByRole("button", { name: control, exact: true });
           await expect(button).toBeVisible();
           const box = await button.boundingBox();
@@ -85,6 +85,9 @@ for (const viewport of [
             await target.click({ trial: true });
           }
         }
+        const attributionToggle = page.locator(".maplibregl-ctrl-attrib-button");
+        const attribution = page.locator("details.maplibregl-ctrl-attrib");
+        if (!(await attribution.evaluate(e => e.hasAttribute("open")))) await attributionToggle.click();
         for (const credit of ["OpenFreeMap", "© OpenMapTiles", "© OpenStreetMap contributors"]) {
           const link = page.getByRole("link", { name: credit, exact: true });
           await expect(link).toHaveCount(1);
