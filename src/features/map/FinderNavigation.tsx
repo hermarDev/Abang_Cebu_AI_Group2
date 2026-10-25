@@ -37,7 +37,7 @@ export function FinderNavigation({
         <div className={styles.brandRow}>
           <Image
             src={resolvedTheme === "dark" ? "/icons/main_Logo_Light.png" : "/icons/main_Logo.png"}
-            alt="AbangCebu"
+            unoptimized alt="AbangCebu"
             width={140}
             height={41}
             className={styles.logo}
