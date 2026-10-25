@@ -1,64 +1,61 @@
 "use client";
 
-import { useEffect, useId, useRef, type HTMLAttributes, type ReactNode } from "react";
-import { createPortal } from "react-dom";
+import { useLayoutEffect, useRef, type HTMLAttributes, type ReactNode } from "react";
+import * as Dialog from "@radix-ui/react-dialog";
 import { cn } from "./cn";
 
-export interface ModalProps extends Omit<HTMLAttributes<HTMLDialogElement>, "title"> {
+export interface ModalProps extends Omit<HTMLAttributes<HTMLDivElement>, "title"> {
   open: boolean;
   onClose: () => void;
   title: string;
   description?: string;
   surface?: "finder";
+  onCloseAutoFocus?: (event: Event) => void;
   children: ReactNode;
 }
 
-export function Modal({ open, onClose, title, description, children, className, surface, ...props }: ModalProps) {
-  const dialogRef = useRef<HTMLDialogElement>(null);
-  const titleId = useId();
-  const descriptionId = useId();
-
-  useEffect(() => {
-    const dialog = dialogRef.current;
-    if (!dialog) return;
-    if (open && !dialog.open) dialog.showModal();
-    if (!open && dialog.open) dialog.close();
+export function Modal({ open, onClose, title, description, children, className, surface, onCloseAutoFocus, ...props }: ModalProps) {
+  const triggerRef = useRef<HTMLElement | null>(null);
+  const wasOpen = useRef(open);
+  useLayoutEffect(() => {
+    if (open && !wasOpen.current) triggerRef.current = typeof document !== "undefined" && document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    wasOpen.current = open;
   }, [open]);
-
-  useEffect(() => {
-    const dialog = dialogRef.current;
-    if (!dialog) return;
-    const handleClose = () => onClose();
-    dialog.addEventListener("close", handleClose);
-    return () => dialog.removeEventListener("close", handleClose);
-  }, [onClose]);
-
-  if (!open || typeof document === "undefined") return null;
-
-  return createPortal(
-    <dialog
-      ref={dialogRef}
-      data-surface={surface}
-      aria-labelledby={titleId}
-      aria-describedby={description ? descriptionId : undefined}
-      onClick={(event) => {
-        if (event.target === event.currentTarget) onClose();
-      }}
-      className={cn(
-        "m-auto w-[calc(100%-2rem)] max-w-lg rounded-[var(--radius)] border border-border bg-card p-0 text-card-foreground shadow-lg backdrop:bg-foreground/50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
-        className,
-      )}
-      {...props}
-    >
-      <div className="p-6">
-        <header className="mb-4 relative pr-12">
-          <button type="button" aria-label="Close dialog" onClick={onClose} className="absolute right-0 top-0 min-h-11 min-w-11 rounded-lg text-current hover:bg-muted">×</button>
-          <h2 id={titleId} className="text-lg font-semibold">{title}</h2>
-          {description && <p id={descriptionId} className="mt-1 text-sm text-muted-foreground">{description}</p>}
-        </header>
-        {children}
-      </div>
-    </dialog>,
-    document.body,
+  return (
+    <Dialog.Root open={open} onOpenChange={(nextOpen) => {
+      if (!nextOpen) onClose();
+    }}>
+      <Dialog.Portal>
+        <Dialog.Overlay className="fixed inset-0 z-[var(--z-index-modal-backdrop)] bg-foreground/50" />
+        <Dialog.Content
+          data-surface={surface}
+          data-slot="dialog-content"
+          onCloseAutoFocus={(event) => {
+            if (triggerRef.current?.isConnected) {
+              event.preventDefault();
+              triggerRef.current.focus();
+            } else {
+              onCloseAutoFocus?.(event);
+            }
+          }}
+          className={cn(
+            "fixed left-1/2 top-1/2 z-[var(--z-index-modal)] w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-[var(--radius)] border border-border bg-card text-card-foreground shadow-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
+            className,
+          )}
+          {...props}
+        >
+          <div className="p-6">
+            <header className="mb-4 relative pr-12">
+              <Dialog.Close asChild>
+                <button type="button" aria-label="Close dialog" className="absolute right-0 top-0 min-h-11 min-w-11 rounded-lg text-current hover:bg-muted">×</button>
+              </Dialog.Close>
+              <Dialog.Title className="text-lg font-semibold">{title}</Dialog.Title>
+              {description && <Dialog.Description className="mt-1 text-sm text-muted-foreground">{description}</Dialog.Description>}
+            </header>
+            {children}
+          </div>
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
   );
 }

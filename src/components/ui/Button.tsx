@@ -1,4 +1,5 @@
 import type { ButtonHTMLAttributes } from "react";
+import styles from "./primitives.module.css";
 import { cn } from "./cn";
 
 export type ButtonVariant = "primary" | "secondary" | "outline" | "ghost" | "destructive";
@@ -37,7 +38,10 @@ export function Button({
     <button
       type={type}
       disabled={disabled}
+      data-slot="button"
+      data-variant={variant}
       className={cn(
+        styles.button,
         "inline-flex min-w-11 items-center justify-center gap-2 rounded-[var(--radius)] font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:pointer-events-none disabled:opacity-50",
         variants[variant],
         sizes[size],

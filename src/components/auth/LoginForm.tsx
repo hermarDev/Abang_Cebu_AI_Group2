@@ -3,6 +3,7 @@
 import { useId, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
+import { FieldError } from "@/components/ui/Field";
 import { Input } from "@/components/ui/Input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
 import { useRouter } from "next/navigation";
@@ -10,31 +11,44 @@ import { getPostLoginRedirect, signInWithEmail } from "@/lib/auth/sign-in";
 
 export function LoginForm({
   onRegister,
+  onForgotPassword,
   statusMessage: initialStatusMessage,
 }: {
   onRegister?: () => void;
+  onForgotPassword?: () => void;
   statusMessage?: string;
 } = {}) {
   const emailId = useId();
   const passwordId = useId();
   const router = useRouter();
-  const [role, setRole] = useState<"renter" | "landlord">("renter");
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [statusMessage, setStatusMessage] = useState<string | null>(initialStatusMessage ?? null);
   const [statusIsError, setStatusIsError] = useState(!initialStatusMessage);
   const [loading, setLoading] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string }>({});
+  const Surface = onRegister ? "div" : Card;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (loading) return;
+    const errors = {
+      email: !email.trim() ? "Enter your email address." : !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()) ? "Enter a valid email address." : undefined,
+      password: !password ? "Enter your password." : undefined,
+    };
+    setFieldErrors(errors);
+    if (errors.email || errors.password) {
+      document.getElementById(errors.email ? emailId : passwordId)?.focus();
+      return;
+    }
     setStatusMessage(null);
     setLoading(true);
     try {
-      const result = await signInWithEmail(email, password, role);
+      const result = await signInWithEmail(email, password);
       if (!result.success) {
         setStatusIsError(true);
-        setStatusMessage(result.message);
+        setStatusMessage(result.message.replace(/^Sign in\b/i, "Log in"));
         return;
       }
       setStatusIsError(false);
@@ -43,52 +57,30 @@ export function LoginForm({
       router.refresh();
     } catch {
       setStatusIsError(true);
-      setStatusMessage("Sign in is temporarily unavailable. Please try again.");
+      setStatusMessage("Log in is temporarily unavailable. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <Card className="w-full max-w-md mx-auto shadow-md">
-      <CardHeader className="text-center">
-        <CardTitle className="text-2xl font-bold">Welcome Back</CardTitle>
-        <CardDescription>Sign in to your AbangCebu account</CardDescription>
-      </CardHeader>
-      <CardContent>
-        {/* Role Segmented Selector */}
-        <div className="flex rounded-md bg-muted p-1 mb-6" role="tablist" aria-label="User role selection">
-          <button
-            type="button"
-            role="tab"
-            aria-selected={role === "renter"}
-            className={`flex-1 py-1.5 text-sm font-medium rounded transition-colors ${
-              role === "renter" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
-            }`}
-            onClick={() => setRole("renter")}
-          >
-            Renter
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={role === "landlord"}
-            className={`flex-1 py-1.5 text-sm font-medium rounded transition-colors ${
-              role === "landlord" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
-            }`}
-            onClick={() => setRole("landlord")}
-          >
-            Landlord
-          </button>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
+    <Surface {...(onRegister ? { className: "w-full" } : { className: "w-full max-w-md mx-auto shadow-md", "data-surface": "finder" })}>
+      {!onRegister && (
+        <CardHeader className="text-center">
+          <CardTitle className="text-2xl font-bold">Welcome Back</CardTitle>
+          <CardDescription>Log in to your AbangCebu account</CardDescription>
+        </CardHeader>
+      )}
+      <CardContent className={onRegister ? "p-0" : undefined}>
+        <form onSubmit={handleSubmit} className="space-y-4" noValidate>
           <div>
             <label htmlFor={emailId} className="block text-sm font-medium mb-1">
               Email Address
             </label>
             <Input
               id={emailId}
+              aria-invalid={Boolean(fieldErrors.email)}
+              aria-describedby={fieldErrors.email ? `${emailId}-error` : undefined}
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -103,13 +95,17 @@ export function LoginForm({
               <label htmlFor={passwordId} className="block text-sm font-medium">
                 Password
               </label>
-              <Link href="/reset-password" className="text-xs text-action hover:underline">
-                Forgot password?
-              </Link>
+              {onForgotPassword ? (
+                <button type="button" className="text-xs text-action hover:underline" onClick={onForgotPassword}>Forgot password?</button>
+              ) : (
+                <Link href="/reset-password" className="text-xs text-action hover:underline">Forgot password?</Link>
+              )}
             </div>
             <div className="relative">
               <Input
                 id={passwordId}
+                aria-invalid={Boolean(fieldErrors.password)}
+                aria-describedby={fieldErrors.password ? `${passwordId}-error` : undefined}
                 type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -127,6 +123,8 @@ export function LoginForm({
               </button>
             </div>
           </div>
+          {fieldErrors.email && <FieldError id={`${emailId}-error`} role="alert">{fieldErrors.email}</FieldError>}
+          {fieldErrors.password && <FieldError id={`${passwordId}-error`} role="alert">{fieldErrors.password}</FieldError>}
 
           {statusMessage && (
             <div
@@ -138,21 +136,23 @@ export function LoginForm({
           )}
 
           <Button type="submit" variant="primary" fullWidth size="lg" disabled={loading}>
-            {loading ? "Signing in…" : `Sign In as ${role === "renter" ? "Renter" : "Landlord"}`}
+            {loading ? "Logging in…" : "Log In"}
           </Button>
 
-          <div className="text-center mt-4">
-            <span className="text-sm text-muted-foreground">Don&apos;t have an account? </span>
-            <button
-              type="button"
-              className="text-sm font-medium text-action hover:underline"
-              onClick={onRegister ?? (() => router.push("/register"))}
-            >
-              Register here
-            </button>
-          </div>
+          {!onRegister && (
+            <div className="text-center mt-4">
+              <span className="text-sm text-muted-foreground">Don&apos;t have an account? </span>
+              <button
+                type="button"
+                className="text-sm font-medium text-action hover:underline"
+                onClick={onRegister ?? (() => router.push("/register"))}
+              >
+                Register
+              </button>
+            </div>
+          )}
         </form>
       </CardContent>
-    </Card>
+    </Surface>
   );
 }

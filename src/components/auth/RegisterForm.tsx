@@ -2,12 +2,17 @@
 
 import { useId, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import * as RadioGroup from "@radix-ui/react-radio-group";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { TurnstileWidget } from "./TurnstileWidget";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
+import { validateRegistration } from "@/lib/auth/validation";
+import type { RegisterPayload } from "@/types/auth";
 
 export function RegisterForm({ onLogin }: { onLogin?: () => void } = {}) {
   const router = useRouter();
+  const Surface = onLogin ? "div" : Card;
   const nameId = useId();
   const emailId = useId();
   const phoneId = useId();
@@ -21,8 +26,12 @@ export function RegisterForm({ onLogin }: { onLogin?: () => void } = {}) {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Partial<Record<keyof RegisterPayload, string>>>({});
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [registered, setRegistered] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState("");
+  const [resetKey, setResetKey] = useState(0);
+  const verificationRequired = process.env.NODE_ENV === "production";
 
   // Live password strength calculation
   const strengthScore = useMemo(() => {
@@ -44,8 +53,21 @@ export function RegisterForm({ onLogin }: { onLogin?: () => void } = {}) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
+    setFieldErrors({});
     setSuccessMessage(null);
     setRegistered(false);
+    if (loading) return;
+    const validation = validateRegistration({ fullName, email, phoneNumber: phoneNumber || undefined, password, role });
+    if (!validation.ok) {
+      setFieldErrors(validation.errors);
+      const firstInvalid = (["fullName", "email", "phoneNumber", "password"] as const).find((field) => validation.errors[field]);
+      if (firstInvalid) (e.currentTarget as HTMLFormElement).querySelector<HTMLInputElement>(`[name="${firstInvalid}"]`)?.focus();
+      return;
+    }
+    if (verificationRequired && !turnstileToken) {
+      setErrorMessage("Complete the security verification before registering. If it is unavailable, reload and try again.");
+      return;
+    }
     setLoading(true);
 
     try {
@@ -58,55 +80,58 @@ export function RegisterForm({ onLogin }: { onLogin?: () => void } = {}) {
           phoneNumber: phoneNumber || undefined,
           password,
           role,
+          turnstileToken: turnstileToken || undefined,
         }),
       });
 
       const data = await res.json();
       if (!res.ok || !data.success) {
+        const details: unknown = data?.error?.details;
+        if (typeof details === "object" && details !== null) {
+          const errors = details as Partial<Record<keyof RegisterPayload, unknown>>;
+          setFieldErrors(Object.fromEntries(Object.entries(errors).filter((entry): entry is [string, string] => typeof entry[1] === "string")) as Partial<Record<keyof RegisterPayload, string>>);
+        }
         setErrorMessage(data?.error?.message || "Registration failed. Please check your inputs.");
       } else {
-        setSuccessMessage("Account created successfully! Check your email to verify your registration.");
+        setSuccessMessage("If registration can proceed, check your email for the next steps.");
         setRegistered(true);
       }
     } catch {
       setErrorMessage("Network error. Please try again later.");
     } finally {
+      setTurnstileToken("");
+      setResetKey((key) => key + 1);
       setLoading(false);
     }
   };
 
   return (
-    <Card className="w-full max-w-lg mx-auto shadow-md">
-      <CardHeader className="text-center">
+    <Surface {...(onLogin ? { className: "w-full" } : { className: "w-full max-w-lg mx-auto shadow-md", "data-surface": "finder" })}>
+      {!onLogin && <CardHeader className="text-center">
         <CardTitle className="text-2xl font-bold">Create an Account</CardTitle>
         <CardDescription>Join AbangCebu to discover and list rentals in Cebu</CardDescription>
-      </CardHeader>
-      <CardContent>
-        {/* Role Segmented Selector */}
-        <div className="flex rounded-md bg-muted p-1 mb-6" role="tablist" aria-label="User role selection">
-          <button
-            type="button"
-            role="tab"
-            aria-selected={role === "renter"}
-            className={`flex-1 py-1.5 text-sm font-medium rounded transition-colors ${
-              role === "renter" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
-            }`}
-            onClick={() => setRole("renter")}
-          >
-            Renter
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={role === "landlord"}
-            className={`flex-1 py-1.5 text-sm font-medium rounded transition-colors ${
-              role === "landlord" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
-            }`}
-            onClick={() => setRole("landlord")}
-          >
-            Landlord
-          </button>
-        </div>
+      </CardHeader>}
+      <CardContent className={onLogin ? "p-0" : undefined}>
+        {/* Role RadioGroup Selector */}
+        <RadioGroup.Root
+          value={role}
+          onValueChange={(value) => {
+            if (value === "renter" || value === "landlord") setRole(value);
+          }}
+          className="flex rounded-md bg-muted p-1 mb-6"
+          aria-label="Account type"
+        >
+          <RadioGroup.Item value="renter" className={`min-h-11 flex-1 rounded text-center text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring ${
+            role === "renter" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+          }`}>
+            Renter <span className="block text-xs font-normal">Find rentals</span>
+          </RadioGroup.Item>
+          <RadioGroup.Item value="landlord" className={`min-h-11 flex-1 rounded text-center text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring ${
+            role === "landlord" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+          }`}>
+            Landlord <span className="block text-xs font-normal">List properties</span>
+          </RadioGroup.Item>
+        </RadioGroup.Root>
 
         {successMessage && registered ? (
           <div className="p-4 text-center rounded bg-accent text-accent-foreground border border-border" role="status">
@@ -114,24 +139,29 @@ export function RegisterForm({ onLogin }: { onLogin?: () => void } = {}) {
             <p className="text-sm">{successMessage}</p>
             <div className="mt-4">
               <button type="button" className="text-sm font-medium text-action hover:underline" onClick={onLogin ?? (() => router.push("/login"))}>
-                Return to Login
+                {onLogin ? "Log In" : "Return to Login"}
               </button>
             </div>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4" noValidate>
             <div>
               <label htmlFor={nameId} className="block text-sm font-medium mb-1">
                 Full Name
               </label>
               <Input
                 id={nameId}
+                name="fullName"
                 type="text"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
                 placeholder="Juan dela Cruz"
+                autoComplete="name"
+                aria-invalid={Boolean(fieldErrors.fullName)}
+                aria-describedby={fieldErrors.fullName ? `${nameId}-error` : undefined}
                 required
               />
+              {fieldErrors.fullName && <p id={`${nameId}-error`} className="mt-1 text-sm text-destructive" role="alert">{fieldErrors.fullName}</p>}
             </div>
 
             <div>
@@ -140,13 +170,17 @@ export function RegisterForm({ onLogin }: { onLogin?: () => void } = {}) {
               </label>
               <Input
                 id={emailId}
+                name="email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="name@example.com"
                 autoComplete="email"
+                aria-invalid={Boolean(fieldErrors.email)}
+                aria-describedby={fieldErrors.email ? `${emailId}-error` : undefined}
                 required
               />
+              {fieldErrors.email && <p id={`${emailId}-error`} className="mt-1 text-sm text-destructive" role="alert">{fieldErrors.email}</p>}
             </div>
 
             <div>
@@ -155,13 +189,18 @@ export function RegisterForm({ onLogin }: { onLogin?: () => void } = {}) {
               </label>
               <Input
                 id={phoneId}
+                name="phoneNumber"
                 type="tel"
                 inputMode="numeric"
                 maxLength={11}
                 value={phoneNumber}
                 onChange={(e) => setPhoneNumber(e.target.value)}
                 placeholder="09171234567"
+                autoComplete="tel"
+                aria-invalid={Boolean(fieldErrors.phoneNumber)}
+                aria-describedby={fieldErrors.phoneNumber ? `${phoneId}-error` : undefined}
               />
+              {fieldErrors.phoneNumber && <p id={`${phoneId}-error`} className="mt-1 text-sm text-destructive" role="alert">{fieldErrors.phoneNumber}</p>}
             </div>
 
             <div>
@@ -171,12 +210,19 @@ export function RegisterForm({ onLogin }: { onLogin?: () => void } = {}) {
               <div className="relative">
                 <Input
                   id={passwordId}
+                  name="password"
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Min. 8 characters"
+                  placeholder="8–72 characters"
+                  autoComplete="new-password"
+                  minLength={8}
+                  maxLength={72}
+                  aria-invalid={Boolean(fieldErrors.password)}
+                  aria-describedby={`${passwordId}-policy${fieldErrors.password ? ` ${passwordId}-error` : ""}`}
                   required
                 />
+                {fieldErrors.password && <p id={`${passwordId}-error`} className="mt-1 text-sm text-destructive" role="alert">{fieldErrors.password}</p>}
                 <button
                   type="button"
                   className="absolute right-2 top-1/2 -translate-y-1/2 px-2 py-1 text-xs text-muted-foreground hover:text-foreground"
@@ -187,6 +233,7 @@ export function RegisterForm({ onLogin }: { onLogin?: () => void } = {}) {
                 </button>
               </div>
 
+              <p id={`${passwordId}-policy`} className="mt-2 text-xs text-muted-foreground">Use 8–72 characters and at least 3 of: uppercase, lowercase, numbers, and symbols.</p>
               {password && (
                 <div className="mt-2 text-xs flex items-center justify-between">
                   <span className="text-muted-foreground">Strength: {strengthLabel}</span>
@@ -209,14 +256,18 @@ export function RegisterForm({ onLogin }: { onLogin?: () => void } = {}) {
                 </div>
               )}
             </div>
-
             {errorMessage && (
               <div className="p-3 text-sm rounded bg-destructive/10 text-destructive border border-destructive/20" role="alert">
                 {errorMessage}
               </div>
             )}
 
-            <Button type="submit" variant="primary" fullWidth size="lg" disabled={loading}>
+            <TurnstileWidget onTokenChange={setTurnstileToken} resetKey={resetKey} />
+            {verificationRequired && !turnstileToken && (
+              <p role="status" className="text-sm text-muted-foreground">Complete the security verification to register. If unavailable, reload and try again.</p>
+            )}
+
+            <Button type="submit" variant="primary" fullWidth size="lg" disabled={loading || (verificationRequired && !turnstileToken)}>
               {loading ? "Registering..." : `Register as ${role === "renter" ? "Renter" : "Landlord"}`}
             </Button>
 
@@ -227,12 +278,12 @@ export function RegisterForm({ onLogin }: { onLogin?: () => void } = {}) {
                 className="text-sm font-medium text-action hover:underline"
                 onClick={onLogin ?? (() => router.push("/login"))}
               >
-                Sign In
+                {onLogin ? "Log In" : "Return to Login"}
               </button>
             </div>
           </form>
         )}
       </CardContent>
-    </Card>
+    </Surface>
   );
 }

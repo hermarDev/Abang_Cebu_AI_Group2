@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Map as MapLibreMap, Marker, Popup, setWorkerUrl } from "maplibre-gl";
 import type { GeoJSONSource } from "maplibre-gl";
+import * as RadixPopover from "@radix-ui/react-popover";
 import type { PlaceResult } from "@/lib/search/places";
 import { formatPrice, searchPreviewRentals } from "@/features/rentals/search";
 import type { RentalResult } from "@/contracts/preview";
@@ -14,6 +15,12 @@ import { groupRentalsByCoordinates, makeRadiusPolygon, METRO_CEBU_CENTER } from 
 
 function escapeHtml(value: string) {
   return value.replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char]!);
+}
+
+function verificationLabel(status: RentalResult["verificationStatus"]): string {
+  if (!status) return "Verification status unknown";
+  if (status === "unverified") return "Not verified";
+  return `${status.replaceAll("_", " ")} listing`;
 }
 
 // Serve MapLibre's worker files together so its worker can resolve the shared module.
@@ -51,14 +58,16 @@ type MapCanvasProps = {
   onSearchCenterChange?: (center: [number, number]) => void;
 };
 
-export function MapCanvas({ selectedPlace, selectedRentalId = null, onSelectRental, rentals = [], dataStatus = "error", filters: externalFilters, onFiltersChange, locationQuery: externalLocationQuery, onLocationQueryChange, searchRadiusKm: externalSearchRadiusKm, onSearchRadiusKmChange, onSearchCenterChange }: MapCanvasProps) {
+export function MapCanvas({ selectedPlace, selectedRentalId, onSelectRental, rentals = [], dataStatus = "error", filters: externalFilters, onFiltersChange, locationQuery: externalLocationQuery, onLocationQueryChange, searchRadiusKm: externalSearchRadiusKm, onSearchRadiusKmChange, onSearchCenterChange }: MapCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [selectedRental, setSelectedRental] = useState<string | null>(selectedRentalId);
+  const [selectedRental, setSelectedRental] = useState<string | null>(null);
+  const activeSelectedRental = selectedRentalId !== undefined ? selectedRentalId : selectedRental;
   const [internalFilters, setInternalFilters] = useState(DEFAULT_RENTAL_FILTERS);
   const [internalLocationQuery, setInternalLocationQuery] = useState("");
   const [filterOpen, setFilterOpen] = useState(false);
   const [searchCenter, setSearchCenter] = useState<[number, number]>(METRO_CEBU_CENTER);
   const searchCenterRef = useRef<[number, number]>(METRO_CEBU_CENTER);
+  const searchAppliedZoomRef = useRef(DEFAULT_ZOOM);
   const [internalSearchRadiusKm, setInternalSearchRadiusKm] = useState(2);
   const mapLoadedRef = useRef(false);
   const onSearchCenterChangeRef = useRef(onSearchCenterChange);
@@ -92,6 +101,8 @@ export function MapCanvas({ selectedPlace, selectedRentalId = null, onSelectRent
   const [statusMessage, setStatusMessage] = useState(
     "Map centered on the default search area. Use Locate me to find your position.",
   );
+  const [areaDirty, setAreaDirty] = useState(false);
+  const [chooserGroup, setChooserGroup] = useState<{ rentals: RentalResult[]; anchor: HTMLElement } | null>(null);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -106,6 +117,12 @@ export function MapCanvas({ selectedPlace, selectedRentalId = null, onSelectRent
       map = new MapLibreMap({
         container,
         style: process.env.NEXT_PUBLIC_MAP_STYLE_URL || "/styles/osm.json",
+        attributionControl: {
+          compact: false,
+          customAttribution: process.env.NEXT_PUBLIC_MAP_STYLE_URL && process.env.NEXT_PUBLIC_MAP_STYLE_URL !== "/styles/osm.json"
+            ? undefined
+            : '<a href="https://openfreemap.org">OpenFreeMap</a> <a href="https://www.openmaptiles.org/">© OpenMapTiles</a> Data from <a href="https://www.openstreetmap.org/copyright">© OpenStreetMap contributors</a>',
+        },
         center: METRO_CEBU_CENTER,
         zoom: DEFAULT_ZOOM,
         bearing: 0,
@@ -141,20 +158,33 @@ export function MapCanvas({ selectedPlace, selectedRentalId = null, onSelectRent
       }
     };
 
-    const onMoveEnd = () => {
+    const onMoveEnd = (event: { originalEvent?: unknown }) => {
+      if (!event.originalEvent) return;
       const center = map.getCenter();
-      searchCenterRef.current = [center.lng, center.lat];
-      setSearchCenter(searchCenterRef.current);
-      onSearchCenterChangeRef.current?.(searchCenterRef.current);
+      if (Math.abs(center.lng - searchCenterRef.current[0]) > 0.000001 || Math.abs(center.lat - searchCenterRef.current[1]) > 0.000001 || Math.abs(map.getZoom() - searchAppliedZoomRef.current) > 0.05) {
+        setAreaDirty(true);
+      }
     };
     map.once("load", onLoad);
     map.on("error", onMapError);
     map.on("moveend", onMoveEnd);
 
+    // ResizeObserver + rAF: track container size changes smoothly
+    let rafId = 0;
+    const resizeObserver = typeof ResizeObserver !== "undefined"
+      ? new ResizeObserver(() => {
+          cancelAnimationFrame(rafId);
+          rafId = requestAnimationFrame(() => { map.resize(); });
+        })
+      : null;
+    resizeObserver?.observe(container);
+
     return () => {
       active = false;
       locationRequestRef.current += 1;
       mapLoadedRef.current = false;
+      cancelAnimationFrame(rafId);
+      resizeObserver?.disconnect();
       markerRef.current?.remove();
       rentalPopupRef.current?.remove();
       rentalMarkersRef.current.forEach((marker) => marker.remove());
@@ -244,10 +274,12 @@ export function MapCanvas({ selectedPlace, selectedRentalId = null, onSelectRent
 
     const [longitude, latitude] = place.coordinates;
     publishSearchCenter([longitude, latitude]);
+    searchAppliedZoomRef.current = LOCATION_ZOOM;
     setLocationQuery(place.name);
     rentalPopupRef.current?.remove();
     map.flyTo({ center: [longitude, latitude], zoom: LOCATION_ZOOM, duration: 1000 });
     setLocationStatus("idle");
+    setAreaDirty(false);
     setStatusMessage(`Map centered on ${place.name}.`);
   }, [setLocationQuery, publishSearchCenter]);
 
@@ -267,17 +299,15 @@ export function MapCanvas({ selectedPlace, selectedRentalId = null, onSelectRent
       const titles = group.rentals.map((rental) => rental.title);
       element.type = "button";
       element.className = "rental-map-marker";
+      element.setAttribute("aria-pressed", String(group.rentals.some((rental) => rental.id === activeSelectedRental)));
       element.setAttribute("aria-label", group.rentals.length === 1
         ? `${group.rentals[0].title}, ${formatPrice(group.rentals[0].price)} per month`
         : `${group.rentals.length} rentals at this location: ${titles.join(", ")}`);
+      if (group.rentals.length > 1) element.setAttribute("aria-haspopup", "dialog");
       element.textContent = group.rentals.length === 1 ? formatPrice(group.rentals[0].price) : String(group.rentals.length);
       element.addEventListener("click", () => {
         if (group.rentals.length > 1) {
-          const choice = window.prompt(`Choose a rental:\n${group.rentals.map((rental, index) => `${index + 1}. ${rental.title} — ${formatPrice(rental.price)} / month`).join("\n")}`);
-          const index = Number(choice) - 1;
-          if (!Number.isInteger(index) || index < 0 || index >= group.rentals.length) return;
-          setSelectedRental(group.rentals[index].id);
-          onSelectRentalRef.current?.(group.rentals[index].id);
+          setChooserGroup({ rentals: group.rentals, anchor: element });
           return;
         }
         const rental = group.rentals[0];
@@ -309,10 +339,10 @@ export function MapCanvas({ selectedPlace, selectedRentalId = null, onSelectRent
     updateArea();
     const onStyleLoad = () => updateArea();
     map.on("style.load", onStyleLoad);
-    const selected = visibleRentals.find((rental) => rental.id === selectedRentalId || rental.id === selectedRental);
+    const selected = visibleRentals.find((rental) => rental.id === activeSelectedRental);
     if (selected) map.flyTo({ center: selected.coordinates, zoom: Math.max(map.getZoom(), 14), duration: 350 });
     return () => { map.off("style.load", onStyleLoad); };
-  }, [markerGroups, visibleRentals, searchCenter, searchRadiusMeters, selectedRental, selectedRentalId, mapStatus]);
+  }, [markerGroups, visibleRentals, searchCenter, searchRadiusMeters, activeSelectedRental, mapStatus]);
 
   return (
     <section className={styles.mapRoot} aria-label="Rental map">
@@ -329,6 +359,43 @@ export function MapCanvas({ selectedPlace, selectedRentalId = null, onSelectRent
           <strong>Map unavailable</strong>
           <span>The default search area remains selected.</span>
         </div>
+      )}
+
+      {areaDirty && mapStatus === "ready" && (
+        <button type="button" className={styles.searchAreaButton} onClick={() => {
+          const center = mapRef.current?.getCenter();
+          if (center) publishSearchCenter([center.lng, center.lat]);
+          setAreaDirty(false);
+        }}>
+          Search this area
+        </button>
+      )}
+
+      {chooserGroup && (
+        <RadixPopover.Root open onOpenChange={(next) => { if (!next) setChooserGroup(null); }}>
+          <RadixPopover.Anchor virtualRef={{ current: chooserGroup.anchor }} />
+          <RadixPopover.Portal>
+            <RadixPopover.Content className={styles.markerChooser} sideOffset={8} onOpenAutoFocus={(e) => { e.preventDefault(); const first = (e.currentTarget as HTMLElement).querySelector<HTMLButtonElement>("[role=option]"); first?.focus(); }} onCloseAutoFocus={(e) => { e.preventDefault(); chooserGroup.anchor.focus(); }} onKeyDown={(e) => {
+              const options = Array.from((e.currentTarget as HTMLElement).querySelectorAll<HTMLButtonElement>("[role=option]"));
+              const idx = options.indexOf(e.target as HTMLButtonElement);
+              if (e.key === "ArrowDown") { e.preventDefault(); options[(idx + 1) % options.length]?.focus(); }
+              if (e.key === "ArrowUp") { e.preventDefault(); options[idx <= 0 ? options.length - 1 : idx - 1]?.focus(); }
+              if (e.key === "Escape") setChooserGroup(null);
+            }}>
+              <strong id="marker-chooser-label">Choose a rental</strong>
+              <div role="listbox" aria-labelledby="marker-chooser-label">
+                {chooserGroup.rentals.map((rental) => (
+                  <button key={rental.id} role="option" type="button" aria-selected={activeSelectedRental === rental.id} className={styles.chooserOption} onClick={() => { setSelectedRental(rental.id); onSelectRentalRef.current?.(rental.id); setChooserGroup(null); }}>
+                    <span>{rental.title}</span>
+                    <span className={styles.chooserMeta}>{formatPrice(rental.price)} / month · {(rental.propertyType ?? rental.type).replaceAll(/[-_]/g, " ")}</span>
+                    <span className={styles.chooserBadge}>{verificationLabel(rental.verificationStatus)}</span>
+                  </button>
+                ))}
+              </div>
+              <RadixPopover.Arrow className={styles.chooserArrow} />
+            </RadixPopover.Content>
+          </RadixPopover.Portal>
+        </RadixPopover.Root>
       )}
 
       {!externallyControlled && <MapSearch onSelect={selectPlace} disabled={mapStatus !== "ready"} />}
@@ -348,11 +415,11 @@ export function MapCanvas({ selectedPlace, selectedRentalId = null, onSelectRent
           Refine rental search
         </button>
       </div>}
-      {visibleRentals.length > 0 ? (
+      {!externallyControlled && visibleRentals.length > 0 ? (
         <aside className={styles.rentalResults} aria-label="Rental listings">
           <strong>Available rentals</strong>
           {visibleRentals.slice(0, 5).map((rental) => (
-            <button key={rental.id} type="button" className={selectedRental === rental.id ? styles.selectedRental : ""} onClick={() => { setSelectedRental(rental.id); onSelectRentalRef.current?.(rental.id); mapRef.current?.flyTo({ center: rental.coordinates, zoom: 15, duration: 500 }); }}>
+            <button key={rental.id} type="button" className={activeSelectedRental === rental.id ? styles.selectedRental : ""} onClick={() => { setSelectedRental(rental.id); onSelectRentalRef.current?.(rental.id); mapRef.current?.flyTo({ center: rental.coordinates, zoom: 15, duration: 500 }); }}>
               <span>{rental.title}</span><span>{rental.locality}</span><strong>{formatPrice(rental.price)} / month</strong>
             </button>
           ))}

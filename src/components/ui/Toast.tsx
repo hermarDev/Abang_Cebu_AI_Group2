@@ -36,7 +36,7 @@ export function Toast({ open, onClose, children, variant = "default", duration =
       id={id}
       role={variant === "error" ? "alert" : "status"}
       aria-live={variant === "error" ? "assertive" : "polite"}
-      className={cn("fixed bottom-4 right-4 z-50 max-w-sm rounded-[var(--radius)] border p-4 shadow-lg", variants[variant], className)}
+      className={cn("fixed bottom-4 right-4 z-[var(--z-index-toast)] max-w-sm rounded-[var(--radius)] border p-4 shadow-lg", variants[variant], className)}
     >
       {children}
     </div>,

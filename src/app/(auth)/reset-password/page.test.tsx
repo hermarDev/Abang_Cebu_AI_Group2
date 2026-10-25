@@ -2,6 +2,11 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import ResetPasswordPage from "./page";
 
+// SSR cannot render Radix portals; test route-to-form data flow inline.
+vi.mock("@/components/ui/Modal", () => ({
+  Modal: ({ open, children }: { open: boolean; children: React.ReactNode }) => open ? <div>{children}</div> : null,
+}));
+
 const { cookieGet } = vi.hoisted(() => ({ cookieGet: vi.fn() }));
 vi.mock("next/headers", () => ({ cookies: async () => ({ get: cookieGet }) }));
 vi.mock("next/image", () => ({ default: () => null }));

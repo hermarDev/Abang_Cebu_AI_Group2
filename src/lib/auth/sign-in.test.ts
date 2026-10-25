@@ -33,7 +33,7 @@ beforeEach(() => {
 describe("signInWithEmail", () => {
   it("signs in with Supabase and accepts the canonical matching profile role", async () => {
     await expect(
-      signInWithEmail(" renter@example.com ", "Password1!", "renter"),
+      signInWithEmail(" renter@example.com ", "Password1!"),
     ).resolves.toEqual({ success: true });
     expect(signInWithPassword).toHaveBeenCalledWith({
       email: "renter@example.com",
@@ -43,14 +43,12 @@ describe("signInWithEmail", () => {
     expect(signOut).not.toHaveBeenCalled();
   });
 
-  it("clears the new local session when the selected role differs from the profile", async () => {
+  it("uses the canonical profile role without a client-selected role", async () => {
+    maybeSingle.mockResolvedValue({ data: { role: "landlord", is_suspended: false }, error: null });
     await expect(
-      signInWithEmail("renter@example.com", "Password1!", "landlord"),
-    ).resolves.toMatchObject({
-      success: false,
-      message: "This account does not have the selected role.",
-    });
-    expect(signOut).toHaveBeenCalledWith({ scope: "local" });
+      signInWithEmail("renter@example.com", "Password1!"),
+    ).resolves.toEqual({ success: true });
+    expect(signOut).not.toHaveBeenCalled();
   });
 
   it("clears suspended users' local sessions", async () => {
@@ -59,7 +57,7 @@ describe("signInWithEmail", () => {
       error: null,
     });
     await expect(
-      signInWithEmail("renter@example.com", "Password1!", "renter"),
+      signInWithEmail("renter@example.com", "Password1!"),
     ).resolves.toMatchObject({
       success: false,
       message: "This account is suspended. Contact support for help.",
@@ -75,7 +73,6 @@ describe("signInWithEmail", () => {
     const result = await signInWithEmail(
       "renter@example.com",
       "wrong",
-      "renter",
     );
     expect(result).toMatchObject({
       success: false,
@@ -88,7 +85,7 @@ describe("signInWithEmail", () => {
   it("fails closed and clears the session if reading the canonical profile throws", async () => {
     maybeSingle.mockRejectedValue(new Error("connection failed"));
     await expect(
-      signInWithEmail("renter@example.com", "Password1!", "renter"),
+      signInWithEmail("renter@example.com", "Password1!"),
     ).resolves.toMatchObject({
       success: false,
       message: "We could not verify this account. Please try again.",

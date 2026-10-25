@@ -12,7 +12,8 @@ it("renders the map-first finder without claiming unavailable rentals are live",
   expect(html).toContain("Loading rentals…");
   expect(html).toContain('aria-busy="true"');
   expect(html).toContain('aria-label="Open account dialog"');
-  expect(html).toContain('aria-label="Ask AbangCebu"');
+  expect(html).not.toContain('aria-label="Ask AbangCebu"');
+  expect(html).toContain("Show listings");
   expect(html).toContain("Loading the interactive map…");
   expect(html).not.toContain("Garden room in Lahug");
 });

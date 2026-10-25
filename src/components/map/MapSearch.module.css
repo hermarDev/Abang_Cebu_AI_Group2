@@ -1,6 +1,6 @@
 .searchRoot {
   position: absolute;
-  z-index: 4;
+  z-index: var(--z-index-search-bar);
   top: max(1rem, calc(env(safe-area-inset-top) + 0.5rem));
   left: max(1rem, env(safe-area-inset-left));
   width: min(38rem, calc(100% - 2rem));
@@ -79,6 +79,22 @@
   cursor: not-allowed;
 }
 
+.clearButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2rem;
+  min-height: 2rem;
+  border: 0;
+  border-radius: 50%;
+  padding: 0;
+  background: transparent;
+  color: #526378;
+  cursor: pointer;
+}
+.clearButton:hover { background: #f0f4f8; }
+.clearButton:focus-visible { outline: 2px solid #2563eb; outline-offset: 1px; }
+
 .resultPanel {
   margin-top: 0.5rem;
   overflow: hidden;
@@ -141,7 +157,24 @@
 
 .resultError {
   color: #9f1d1d;
+  padding: 0.875rem 1rem;
+  font-size: 0.875rem;
 }
+.resultError p { margin: 0; }
+.retryButton {
+  margin-top: 0.5rem;
+  border: 1px solid #9f1d1d;
+  border-radius: 0.375rem;
+  padding: 0.3rem 0.75rem;
+  background: transparent;
+  color: #9f1d1d;
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.retryButton:hover { background: #fef2f2; }
+.retryButton:focus-visible { outline: 2px solid #2563eb; outline-offset: 1px; }
 
 .srOnly {
   position: absolute;

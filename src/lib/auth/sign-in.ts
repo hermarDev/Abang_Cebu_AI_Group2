@@ -1,8 +1,7 @@
 import { createClient } from "@/lib/supabase/client";
 import { mapSupabaseAuthError } from "@/lib/auth/auth-error";
-import { isSafeRedirectUrl } from "@/types/auth";
+import { isRegisterableRole, isSafeRedirectUrl } from "@/types/auth";
 
-export type SignInRole = "renter" | "landlord";
 export type SignInResult = { success: true } | { success: false; message: string };
 
 export function getPostLoginRedirect(destination: string | null): string {
@@ -12,7 +11,6 @@ export function getPostLoginRedirect(destination: string | null): string {
 export async function signInWithEmail(
   email: string,
   password: string,
-  expectedRole: SignInRole,
 ): Promise<SignInResult> {
   const supabase = createClient();
   let data: Awaited<ReturnType<typeof supabase.auth.signInWithPassword>>["data"];
@@ -62,11 +60,11 @@ export async function signInWithEmail(
       };
     }
 
-    if (profile.role !== expectedRole) {
+    if (!isRegisterableRole(profile.role)) {
       await supabase.auth.signOut({ scope: "local" });
       return {
         success: false,
-        message: "This account does not have the selected role.",
+        message: "We could not verify this account. Please try again.",
       };
     }
 
