@@ -26,7 +26,7 @@ test("desktop results and navigation reopen without remounting map or losing rad
   await page.getByRole("button", { name: "Collapse listings", exact: true }).click();
   await page.getByRole("button", { name: "Show listings", exact: true }).click();
   await page.getByRole("button", { name: "Open menu", exact: true }).click();
-  await page.getByRole("button", { name: "Close dialog", exact: true }).click();
+  await page.getByRole("button", { name: "Map", exact: true }).click();
   await expect(page.getByText("Search area: 5 km radius", { exact: true })).toBeVisible();
   expect(await canvas.evaluate((node, before) => node === before, original)).toBe(true);
   await expect(page.getByRole("button", { name: "Open menu", exact: true })).toBeFocused();

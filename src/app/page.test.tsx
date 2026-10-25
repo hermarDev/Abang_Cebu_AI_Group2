@@ -1,9 +1,12 @@
 import { renderToStaticMarkup } from "react-dom/server";
-import { expect, it } from "vitest";
+import { expect, it, vi } from "vitest";
+
+const auth = vi.hoisted(() => ({ getUser: vi.fn().mockResolvedValue({ data: { user: null }, error: null }) }));
+vi.mock("@/lib/supabase/server", () => ({ createClient: async () => ({ auth }) }));
 import Home from "./page";
 
-it("renders the map-first finder without claiming unavailable rentals are live", () => {
-  const html = renderToStaticMarkup(<Home />);
+it("renders the map-first finder without claiming unavailable rentals are live", async () => {
+  const html = renderToStaticMarkup(await Home());
 
   expect(html).toContain("AbangCebu");
   expect(html).toContain('aria-label="Budget, any maximum"');
@@ -16,4 +19,11 @@ it("renders the map-first finder without claiming unavailable rentals are live",
   expect(html).toContain("Show listings");
   expect(html).toContain("Loading the interactive map…");
   expect(html).not.toContain("Garden room in Lahug");
+});
+
+it("uses verified authentication state for the drawer", async () => {
+  auth.getUser.mockResolvedValueOnce({ data: { user: { id: "verified-user" } }, error: null });
+  expect((await Home()).props.authenticated).toBe(true);
+  auth.getUser.mockResolvedValueOnce({ data: { user: { id: "untrusted" } }, error: { message: "invalid" } });
+  expect((await Home()).props.authenticated).toBe(false);
 });

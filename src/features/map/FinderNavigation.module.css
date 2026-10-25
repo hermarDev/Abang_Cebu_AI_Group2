@@ -1,4 +1,6 @@
 .dialog {
+  --nav-blue: #1d4ed8;
+  --nav-selected: #eff6ff;
   position: fixed;
   inset: 0 auto 0 0;
   width: min(320px, calc(100vw - 32px));
@@ -21,7 +23,8 @@
 .dialog > div > header {
   flex: none;
   margin: 0;
-  padding: max(16px, env(safe-area-inset-top)) 64px 16px 20px;
+  height: 56px;
+  padding: max(8px, env(safe-area-inset-top)) 16px 8px;
 }
 
 .dialog > div > header > button {
@@ -53,9 +56,10 @@
 .brandRow {
   display: flex;
   min-height: 52px;
-  align-items: center;
-  border-bottom: 1px solid var(--border);
-  padding: 0 48px 12px 4px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 0 4px 12px;
 }
 
 .logo {
@@ -93,8 +97,8 @@
 }
 
 .currentPage {
-  background: var(--accent);
-  color: var(--accent-foreground);
+  background: var(--nav-selected);
+  color: var(--nav-blue);
   font-weight: 700;
 }
 
@@ -138,7 +142,6 @@
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 4px;
-  border: 1px solid var(--border);
   border-radius: 8px;
   padding: 4px;
   background: var(--muted);
@@ -166,9 +169,8 @@
 }
 
 .appearanceOption:has(input:checked) {
-  background: var(--card);
-  color: var(--card-foreground);
-  box-shadow: 0 1px 3px rgb(15 39 66 / 18%);
+  background: var(--nav-selected);
+  color: var(--nav-blue);
 }
 
 .appearanceOption:has(input:focus-visible) {
@@ -184,8 +186,10 @@
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 8px 12px;
-  background: var(--card);
-  color: var(--card-foreground);
+  background: #2563eb;
+  color: #ffffff;
+  text-decoration: none;
+  justify-content: center;
   cursor: pointer;
   font: inherit;
   font-size: 14px;
@@ -195,13 +199,55 @@
 
 .accountAction:hover,
 .accountAction:focus-visible {
-  background: var(--accent);
+  background: #1d4ed8;
 }
 
 .dialog :is(button, a, input):focus-visible {
   outline: 3px solid var(--ring);
   outline-offset: 2px;
 }
+
+.dialog svg {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  stroke-width: 1.75;
+}
+
+:global(.dark) .dialog {
+  --nav-blue: #93c5fd;
+  --nav-selected: #172f50;
+}
+
+.mapButton {
+  position: absolute;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--card-foreground);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.mapButton:hover { background: var(--accent); }
+.brandRow p { margin: 0; color: var(--muted-foreground); font-size: 13px; }
+.faq { padding: 4px 12px; color: var(--muted-foreground); font-size: 13px; }
+.faq h3 { margin: 8px 0 4px; color: var(--card-foreground); font-size: inherit; font-weight: 600; }
+.faq p { margin: 0 0 8px; }
+.content > * { flex-shrink: 0; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .dialog[data-state="open"] { animation: drawer-enter 160ms ease-out; }
+  .dialog[data-state="closed"] { animation: drawer-exit 120ms ease-in; }
+}
+@keyframes drawer-enter { from { transform: translateX(-100%); } to { transform: translateX(0); } }
+@keyframes drawer-exit { from { transform: translateX(0); } to { transform: translateX(-100%); } }
 
 @media (max-height: 520px) {
   .content {

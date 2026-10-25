@@ -10,11 +10,14 @@ export interface ModalProps extends Omit<HTMLAttributes<HTMLDivElement>, "title"
   title: string;
   description?: string;
   surface?: "finder";
+  closeControl?: ReactNode;
+  hideTitle?: boolean;
+  restoreTriggerFocus?: boolean;
   onCloseAutoFocus?: (event: Event) => void;
   children: ReactNode;
 }
 
-export function Modal({ open, onClose, title, description, children, className, surface, onCloseAutoFocus, ...props }: ModalProps) {
+export function Modal({ open, onClose, title, description, children, className, surface, closeControl, hideTitle = false, restoreTriggerFocus = true, onCloseAutoFocus, ...props }: ModalProps) {
   const triggerRef = useRef<HTMLElement | null>(null);
   const wasOpen = useRef(open);
   useLayoutEffect(() => {
@@ -31,7 +34,7 @@ export function Modal({ open, onClose, title, description, children, className, 
           data-surface={surface}
           data-slot="dialog-content"
           onCloseAutoFocus={(event) => {
-            if (triggerRef.current?.isConnected) {
+            if (restoreTriggerFocus && triggerRef.current?.isConnected) {
               event.preventDefault();
               triggerRef.current.focus();
             } else {
@@ -47,9 +50,9 @@ export function Modal({ open, onClose, title, description, children, className, 
           <div className="p-6">
             <header className="mb-4 relative pr-12">
               <Dialog.Close asChild>
-                <button type="button" aria-label="Close dialog" className="absolute right-0 top-0 min-h-11 min-w-11 rounded-lg text-current hover:bg-muted">×</button>
+                {closeControl ?? <button type="button" aria-label="Close dialog" className="absolute right-0 top-0 min-h-11 min-w-11 rounded-lg text-current hover:bg-muted">×</button>}
               </Dialog.Close>
-              <Dialog.Title className="text-lg font-semibold">{title}</Dialog.Title>
+              <Dialog.Title className={hideTitle ? "sr-only" : "text-lg font-semibold"}>{title}</Dialog.Title>
               {description && <Dialog.Description className="mt-1 text-sm text-muted-foreground">{description}</Dialog.Description>}
             </header>
             {children}
