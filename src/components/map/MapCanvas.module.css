@@ -57,7 +57,7 @@
 }
 
 .controlledControls {
-  bottom: calc(max(1.25rem, env(safe-area-inset-bottom)) + 4.5rem);
+  bottom: calc(max(1.25rem, env(safe-area-inset-bottom)) + 5rem);
 }
 
 .zoomControls {
@@ -70,7 +70,11 @@
 }
 
 .zoomControls button {
-  padding: 0.5rem;
+  display: grid;
+  place-items: center;
+  width: 3rem;
+  height: 3rem;
+  padding: 0;
   border-radius: 0;
   box-shadow: none;
   font-size: 1.5rem;
