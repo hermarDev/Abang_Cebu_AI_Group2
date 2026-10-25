@@ -75,6 +75,10 @@ for (const viewport of [
           expect(box!.y + box!.height).toBeLessThanOrEqual(viewport.height);
           await button.click({ trial: true, position: { x: box!.width / 2, y: box!.height / 2 } });
         }
+        if (state === "expanded") {
+          await expect(page.getByRole("group", { name: "Rental search filters" })).toBeHidden();
+          await expect(page.getByRole("button", { name: "Open rental assistant" })).toBeHidden();
+        }
         if (state !== "expanded") {
           for (const target of [page.getByRole("button", { name: "Open menu", exact: true }), page.getByRole("button", { name: /^Filters/ })]) {
             await expect(target).toBeVisible();

@@ -52,7 +52,7 @@ export function QuickFilters({ filters, onChange, onOpenFilters }: {
       ? propertyTypes.find((item) => item.value === filters.propertyTypes[0])?.label ?? "Property type"
       : `${filters.propertyTypes.length} types`;
 
-  return <div className={styles.quickFilters} role="group" aria-label="Rental search filters">
+  return <div className={styles.quickFilters} data-finder-quick-filters role="group" aria-label="Rental search filters">
     <RadixPopover.Root>
       <RadixPopover.Trigger asChild><button className={styles.filterButton} type="button" aria-label={`Budget${filters.maxPrice == null ? ", any maximum" : `, up to ${filters.maxPrice.toLocaleString("en-PH")} pesos`}`} onClick={() => setBudgetDraft(filters.maxPrice ?? null)}><Wallet size={16} aria-hidden="true" />{budgetLabel}</button></RadixPopover.Trigger>
       <RadixPopover.Portal><RadixPopover.Content className={styles.filterPopover} align="start" sideOffset={8} aria-label="Budget filter">
