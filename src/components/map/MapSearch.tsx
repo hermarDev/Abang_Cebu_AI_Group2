@@ -77,7 +77,7 @@ export default function MapSearch({ onSelect, disabled, className }: MapSearchPr
         <input
           ref={inputRef}
           className={styles.searchInput}
-          type="search"
+          type="text"
           role="combobox"
           aria-label="Search places"
           aria-autocomplete="list"

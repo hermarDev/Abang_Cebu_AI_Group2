@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Bookmark, Compass, HelpCircle, PlusCircle, UserRound } from "lucide-react";
+import { Bookmark, Compass, HelpCircle, PlusCircle, UserRound, Sun, Moon, Monitor } from "lucide-react";
 import { Modal } from "@/components/ui/Modal";
 import styles from "./FinderNavigation.module.css";
 
@@ -76,15 +76,16 @@ export function FinderNavigation({
             <legend>Appearance</legend>
             <div className={styles.appearanceOptions}>
               {appearanceOptions.map(({ label, value }) => (
-                <label key={value} className={styles.appearanceOption}>
+                <label key={value} title={label} className={styles.appearanceOption}>
                   <input
                     type="radio"
+                    aria-label={label}
                     name="finder-appearance"
                     value={value}
                     checked={preference === value}
                     onChange={() => onPreferenceChange(value)}
                   />
-                  <span>{label}</span>
+                  {value === "light" ? <Sun size={19} aria-hidden="true" /> : value === "dark" ? <Moon size={19} aria-hidden="true" /> : <Monitor size={19} aria-hidden="true" />}
                 </label>
               ))}
             </div>

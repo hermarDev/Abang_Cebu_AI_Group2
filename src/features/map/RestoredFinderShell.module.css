@@ -84,9 +84,12 @@
 .guestCard small { color: var(--muted-foreground); line-height: 1.4; }
 .assistant { position: fixed; z-index: var(--z-index-fab); right: max(1.25rem, env(safe-area-inset-right)); bottom: max(1.25rem, env(safe-area-inset-bottom)); display: grid; justify-items: end; gap: .7rem; }
 .assistant:has(.chatPanel) { z-index: var(--z-index-modal); }
-.chatLauncher { position: relative; display: grid; width: 3.7rem; height: 3.7rem; place-items: center; overflow: hidden; border: 0; border-radius: 50%; background: var(--card); box-shadow: 0 6px 24px rgb(13 46 70 / 24%); cursor: pointer; }
+.chatLauncher { position: absolute; z-index: var(--z-index-fab); right: max(5rem, env(safe-area-inset-right)); bottom: 5.75rem; display: grid; width: 3rem; height: 3rem; place-items: center; border: 1px solid var(--border); border-radius: 50%; background: var(--action); color: var(--action-foreground); box-shadow: 0 6px 24px rgb(13 46 70 / 20%); cursor: pointer; }
 .chatLauncher img { width: 100%; height: 100%; object-fit: cover; }
-.chatLauncher > svg { position: absolute; right: -.1rem; bottom: -.1rem; border-radius: 50%; padding: .18rem; background: var(--action); color: var(--action-foreground); }
+.chatLauncher > svg { position: static; }
+@media (max-width: 1023px) {
+  .chatLauncher { right: auto; left: 1rem; bottom: min(calc(var(--results-sheet-height, 64px) + 1rem), calc(100dvh - 10rem)); }
+}
 .chatPanel { display: grid; width: min(22rem, calc(100vw - 2rem)); height: min(30rem, calc(100dvh - 7rem)); grid-template-rows: auto 1fr auto; overflow: hidden; border: 1px solid var(--border); border-radius: 1.1rem; background: var(--card); box-shadow: 0 12px 36px rgb(13 46 70 / 22%); }
 .chatHeader { display: flex; align-items: center; gap: .65rem; border-bottom: 1px solid var(--border); padding: .85rem; }
 .chatHeader img { border-radius: 50%; object-fit: cover; }
@@ -129,7 +132,7 @@
   .app > .drawer { position: absolute; inset: 0 auto 0 0; width: var(--navigation-width); overflow-y: auto; z-index: var(--z-index-fab); }
   .app[data-nav-open="true"] .signIn { display: none; }
   .header { width: min(40rem, calc(100% - 8rem)); }
-  .mapViewport { left: calc(var(--results-width) + 2rem); }
+  .mapViewport { left: 0; }
   .app[data-results-collapsed="true"] .mapViewport { left: 0; }
   .resultsRail { top: 13.5rem; bottom: auto; width: var(--results-width); max-height: calc(100% - 15rem); }
   .app[data-results-collapsed="true"] .resultsRail { display: none; }

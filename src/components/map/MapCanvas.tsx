@@ -1,5 +1,7 @@
 "use client";
 
+import { Plus, Minus, LocateFixed } from "lucide-react";
+
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Map as MapLibreMap, Marker, Popup, setWorkerUrl } from "maplibre-gl";
 import type { GeoJSONSource } from "maplibre-gl";
@@ -438,8 +440,8 @@ export function MapCanvas({ selectedPlace, selectedRentalId, onSelectRental, ren
 
       <div className={`${styles.mapControls} ${externallyControlled ? styles.controlledControls : ""}`} role="group" aria-label="Map controls">
         <div className={styles.zoomControls}>
-          <button className={styles.secondaryButton} type="button" aria-label="Zoom in" disabled={mapStatus !== "ready"} onClick={() => mapRef.current?.zoomIn()}>+</button>
-          <button className={styles.secondaryButton} type="button" aria-label="Zoom out" disabled={mapStatus !== "ready"} onClick={() => mapRef.current?.zoomOut()}>−</button>
+          <button className={styles.secondaryButton} type="button" aria-label="Zoom in" disabled={mapStatus !== "ready"} onClick={() => mapRef.current?.zoomIn()}><Plus size={20} aria-hidden="true" /></button>
+          <button className={styles.secondaryButton} type="button" aria-label="Zoom out" disabled={mapStatus !== "ready"} onClick={() => mapRef.current?.zoomOut()}><Minus size={20} aria-hidden="true" /></button>
         </div>
         <button
           className={styles.controlButton}
@@ -452,7 +454,7 @@ export function MapCanvas({ selectedPlace, selectedRentalId, onSelectRental, ren
               : "Locate me"
           }
         >
-          {locationStatus === "locating" ? "Locating…" : "Locate me"}
+          <LocateFixed size={20} aria-hidden="true" />
         </button>
 
       </div>

@@ -4,7 +4,8 @@
   top: max(6rem, calc(env(safe-area-inset-top) + 5rem));
   left: max(1rem, env(safe-area-inset-left));
   display: flex;
-  width: min(31.25rem, calc(100% - 2rem));
+  width: max-content;
+  max-inline-size: calc(100% - 2rem);
   max-width: 31.25rem;
   align-items: center;
   gap: .5rem;

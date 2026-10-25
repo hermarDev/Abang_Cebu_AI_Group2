@@ -5,7 +5,7 @@ import type { RentalFilters, PropertyType } from "@/contracts/rental-filters";
 import { formatPrice } from "@/features/rentals/search";
 import { Button } from "@/components/ui/Button";
 import * as RadixPopover from "@radix-ui/react-popover";
-import { SlidersHorizontal } from "lucide-react";
+import { SlidersHorizontal, Wallet, Building2 } from "lucide-react";
 import styles from "./FinderQuickFilters.module.css";
 
 export const propertyTypes: { value: PropertyType; label: string }[] = [
@@ -54,7 +54,7 @@ export function QuickFilters({ filters, onChange, onOpenFilters }: {
 
   return <div className={styles.quickFilters} role="group" aria-label="Rental search filters">
     <RadixPopover.Root>
-      <RadixPopover.Trigger asChild><button className={styles.filterButton} type="button" aria-label={`Budget${filters.maxPrice == null ? ", any maximum" : `, up to ${filters.maxPrice.toLocaleString("en-PH")} pesos`}`} onClick={() => setBudgetDraft(filters.maxPrice ?? null)}>{budgetLabel}</button></RadixPopover.Trigger>
+      <RadixPopover.Trigger asChild><button className={styles.filterButton} type="button" aria-label={`Budget${filters.maxPrice == null ? ", any maximum" : `, up to ${filters.maxPrice.toLocaleString("en-PH")} pesos`}`} onClick={() => setBudgetDraft(filters.maxPrice ?? null)}><Wallet size={16} aria-hidden="true" />{budgetLabel}</button></RadixPopover.Trigger>
       <RadixPopover.Portal><RadixPopover.Content className={styles.filterPopover} align="start" sideOffset={8} aria-label="Budget filter">
         <form onSubmit={(event) => { event.preventDefault(); onChange({ ...filters, maxPrice: budgetDraft }); }}>
           <fieldset className={styles.choiceList}><legend className="sr-only">Maximum monthly rent</legend>{budgetOptions.map((option) => <label key={option.value ?? "any"}><input type="radio" name="quick-budget" checked={budgetDraft === option.value} onChange={() => setBudgetDraft(option.value)} /><span>{option.label}</span></label>)}</fieldset>
@@ -63,7 +63,7 @@ export function QuickFilters({ filters, onChange, onOpenFilters }: {
       </RadixPopover.Content></RadixPopover.Portal>
     </RadixPopover.Root>
     <RadixPopover.Root>
-      <RadixPopover.Trigger asChild><button className={styles.filterButton} type="button" aria-label={`Property type, ${filters.propertyTypes.length ? filters.propertyTypes.map((value) => propertyTypes.find((item) => item.value === value)?.label ?? value).join(", ") : "Any"}`} onClick={() => setTypeDraft(filters.propertyTypes)}>{typeLabel}</button></RadixPopover.Trigger>
+      <RadixPopover.Trigger asChild><button className={styles.filterButton} type="button" aria-label={`Property type, ${filters.propertyTypes.length ? filters.propertyTypes.map((value) => propertyTypes.find((item) => item.value === value)?.label ?? value).join(", ") : "Any"}`} onClick={() => setTypeDraft(filters.propertyTypes)}><Building2 size={16} aria-hidden="true" />{typeLabel}</button></RadixPopover.Trigger>
       <RadixPopover.Portal><RadixPopover.Content className={styles.filterPopover} align="start" sideOffset={8} aria-label="Property type filter">
         <fieldset className={styles.typeList}><legend className={styles.legendRow}>Rental types <button type="button" className={styles.clearButton} onClick={() => setTypeDraft([])}>Clear</button></legend>{propertyTypes.map((item) => <label key={item.value}><input type="checkbox" checked={typeDraft.includes(item.value)} onChange={(event) => setTypeDraft((current) => event.target.checked ? [...current, item.value] : current.filter((value) => value !== item.value))} /><span>{item.label}</span></label>)}</fieldset>
         <div className={styles.popoverActions}><RadixPopover.Close asChild><Button type="button" onClick={() => onChange({ ...filters, propertyTypes: typeDraft })}>Apply types</Button></RadixPopover.Close></div>
