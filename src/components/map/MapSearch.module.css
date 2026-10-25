@@ -8,20 +8,20 @@
 
 .searchForm {
   display: flex;
-  min-height: 3.5rem;
+  min-height: 3rem;
   align-items: center;
   gap: 0.625rem;
   border: 1px solid rgb(15 39 66 / 14%);
-  border-radius: 0.875rem;
+  border-radius: 999px;
   padding: 0.375rem 0.5rem 0.375rem 1rem;
-  background: rgb(255 255 255 / 97%);
-  color: #0f2742;
+  background: var(--card);
+  color: var(--card-foreground);
   box-shadow: 0 4px 16px rgb(15 39 66 / 14%);
 }
 
-.searchIcon {
-  flex: none;
-  color: #526378;
+.searchForm:focus-within {
+  border-color: var(--ring);
+  box-shadow: 0 0 0 1px var(--ring);
 }
 
 .searchInput {
@@ -31,27 +31,29 @@
   border: 0;
   outline: none;
   background: transparent;
-  color: #0f2742;
+  color: var(--card-foreground);
   font: inherit;
-  font-size: 0.95rem;
+  font-size: 1rem;
 }
 
 .searchInput::placeholder {
-  color: #637083;
+  color: var(--muted-foreground);
 }
 
 .searchInput:focus-visible {
-  outline: 2px solid #2563eb;
-  outline-offset: 1px;
-  border-radius: 0.25rem;
+  outline: none;
 }
 
 .searchButton {
+  display: grid;
+  place-items: center;
+  flex: 0 0 2.75rem;
+  width: 2.75rem;
   min-height: 2.75rem;
   border: 0;
   border-radius: 999px;
-  padding: 0.5rem 1rem;
-  background: #123452;
+  padding: 0;
+  background: #2563eb;
   color: #fff;
   font: inherit;
   font-weight: 700;
@@ -60,7 +62,7 @@
 }
 
 .searchButton:hover:not(:disabled) {
-  background: #0d2b45;
+  background: #1d4ed8;
 }
 
 .searchButton:disabled {
@@ -71,7 +73,7 @@
 }
 
 .searchButton:focus-visible {
-  outline: 3px solid #f59e0b;
+  outline: 2px solid var(--ring);
   outline-offset: 2px;
 }
 
@@ -83,13 +85,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  min-width: 2rem;
-  min-height: 2rem;
+  min-width: 2.75rem;
+  min-height: 2.75rem;
   border: 0;
   border-radius: 50%;
   padding: 0;
   background: transparent;
-  color: #526378;
+  color: var(--muted-foreground);
   cursor: pointer;
 }
 .clearButton:hover { background: #f0f4f8; }
@@ -99,9 +101,9 @@
   margin-top: 0.5rem;
   overflow: hidden;
   border: 1px solid rgb(15 39 66 / 12%);
-  border-radius: 0.875rem;
-  background: #fff;
-  color: #0f2742;
+  border-radius: 999px;
+  background: var(--card);
+  color: var(--card-foreground);
   box-shadow: 0 8px 24px rgb(15 39 66 / 16%);
 }
 
@@ -115,7 +117,7 @@
 .resultOption {
   display: flex;
   width: 100%;
-  min-height: 3.5rem;
+  min-height: 3rem;
   flex-direction: column;
   align-items: flex-start;
   justify-content: center;
@@ -144,7 +146,7 @@
 }
 
 .placeDetail {
-  color: #526378;
+  color: var(--muted-foreground);
   font-size: 0.8125rem;
 }
 
@@ -191,7 +193,5 @@
     top: max(5.5rem, calc(env(safe-area-inset-top) + 4.25rem));
   }
 
-  .searchButton {
-    padding-inline: 0.75rem;
-  }
+
 }

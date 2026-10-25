@@ -24,8 +24,8 @@ it("shows the selected budget and one or multiple property types in the toolbar"
   const multiple = renderToStaticMarkup(<QuickFilters filters={{ ...DEFAULT_RENTAL_FILTERS, propertyTypes: ["studio", "apartment"] }} onChange={() => undefined} onOpenFilters={() => undefined} mapRadius={2} onRadiusChange={() => undefined} />);
 
   expect(selected).toContain("Up to ₱5,000");
-  expect(selected).toContain(">Studio</button>");
-  expect(multiple).toContain(">2 types</button>");
+  expect(selected).toContain(">Studio</span>");
+  expect(multiple).toContain(">2 types</span>");
 });
 
 it("exposes the mobile sheet scroll region before its persistent apply footer", () => {

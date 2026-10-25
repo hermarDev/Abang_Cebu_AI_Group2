@@ -73,11 +73,12 @@ export default function MapSearch({ onSelect, disabled, className }: MapSearchPr
   return (
     <div className={className ?? styles.searchRoot}>
       <form className={styles.searchForm} role="search" onSubmit={handleSearchSubmit}>
-        <Search className={styles.searchIcon} aria-hidden="true" size={19} />
         <input
           ref={inputRef}
           className={styles.searchInput}
           type="text"
+          enterKeyHint="search"
+          autoComplete="off"
           role="combobox"
           aria-label="Search places"
           aria-autocomplete="list"
@@ -103,8 +104,8 @@ export default function MapSearch({ onSelect, disabled, className }: MapSearchPr
             <X size={16} aria-hidden="true" />
           </button>
         )}
-        <button className={styles.searchButton} type="submit" disabled={disabled || query.trim().length < 3}>
-          Search
+        <button className={styles.searchButton} type="submit" aria-label="Search" disabled={disabled || query.trim().length < 3}>
+          <Search size={20} aria-hidden="true" />
         </button>
       </form>
 
