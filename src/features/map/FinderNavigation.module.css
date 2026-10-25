@@ -180,10 +180,10 @@
 
 .accountAction {
   display: flex;
-  min-height: 44px;
+  min-height: 50px;
   align-items: center;
-  gap: 12px;
-  border: 1px solid var(--border);
+  gap: 8px;
+  border: 1px solid transparent;
   border-radius: 8px;
   padding: 8px 12px;
   background: #2563eb;

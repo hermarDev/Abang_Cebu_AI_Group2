@@ -42,7 +42,7 @@ test("short drawer scroll keeps account and appearance reachable", async ({ page
   await page.goto("/");
   await page.getByRole("button", { name: "Open menu" }).click();
   const drawer = page.getByRole("dialog");
-  for (const name of ["Saved rentals", "List your property", "Log in / Create account"]) {
+  for (const name of ["Saved rentals", "List your property", "Log in"]) {
     const action = drawer.getByRole("button", { name, exact: true });
     await action.scrollIntoViewIfNeeded();
     await action.click();

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Search, Bookmark, MessageCircle, HousePlus, CircleHelp, Headset, Map, UserRound, Sun, Moon, Monitor } from "lucide-react";
+import { Search, Bookmark, MessageCircle, HousePlus, CircleHelp, Headset, Map, UserRound, LogIn, Sun, Moon, Monitor } from "lucide-react";
 import { Modal } from "@/components/ui/Modal";
 import styles from "./FinderNavigation.module.css";
 
@@ -72,7 +72,7 @@ export function FinderNavigation({ open, onClose, preference, resolvedTheme, onP
           </fieldset>
           {authenticated
             ? <Link href="/auth/logout" className={styles.accountAction}><UserRound aria-hidden="true" /><span>Account / Sign out</span></Link>
-            : <button type="button" className={styles.accountAction} onClick={onAccount}><UserRound aria-hidden="true" /><span>Log in / Create account</span></button>}
+            : <button type="button" className={styles.accountAction} onClick={onAccount}><LogIn aria-hidden="true" /><span>Log in</span></button>}
         </footer>
       </div>
     </Modal>

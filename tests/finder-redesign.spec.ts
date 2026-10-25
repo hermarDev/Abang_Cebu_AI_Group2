@@ -32,7 +32,7 @@ test("account handoff returns keyboard focus to the stable menu trigger", async 
   await page.goto("/");
   const trigger = page.getByRole("button", { name: "Open menu" });
   await trigger.click();
-  await page.getByRole("button", { name: "Log in / Create account", exact: true }).click();
+  await page.getByRole("button", { name: "Log in", exact: true }).click();
   await expect(page.getByRole("dialog")).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(trigger).toBeFocused();
