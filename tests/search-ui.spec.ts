@@ -37,6 +37,20 @@ for (const width of [320, 375, 390, 430, 768, 1024, 1440]) {
       const box = await button.boundingBox();
       expect(box!.height).toBeGreaterThanOrEqual(44);
     }
+    await filters.getByRole("button", { name: /^Budget/ }).click();
+    await page.getByRole("radio", { name: "Up to ₱2,500", exact: true }).check();
+    await page.getByRole("button", { name: "Apply budget" }).click();
+    await filters.getByRole("button", { name: /^Property type/ }).click();
+    await page.getByRole("checkbox", { name: "Private room", exact: true }).check();
+    await page.getByRole("button", { name: "Apply types" }).click();
+    await expect(filters.getByRole("button", { name: "Filters, 2 active filter categories", exact: true })).toBeVisible();
+    expect(await filters.evaluate(e => e.scrollWidth <= e.clientWidth)).toBe(true);
+    const bounds = await filters.boundingBox();
+    for (const button of await filters.getByRole("button").all()) {
+      const box = await button.boundingBox();
+      expect(box!.x).toBeGreaterThanOrEqual(bounds!.x);
+      expect(box!.x + box!.width).toBeLessThanOrEqual(bounds!.x + bounds!.width);
+    }
     await page.setViewportSize({ width, height: 480 });
     await input.fill("Mandaue");
     await input.press("Enter");

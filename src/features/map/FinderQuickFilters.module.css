@@ -85,10 +85,13 @@
   .quickFilters {
     top: calc(max(.5rem, env(safe-area-inset-top)) + 7.75rem);
     left: .5rem;
-    width: max-content;
-    max-width: calc(100% - 1rem);
+    width: calc(100% - 1rem);
+    max-width: 31.25rem;
     max-inline-size: calc(100% - 1rem);
     gap: .375rem;
   }
   .filterButton { gap: .375rem; padding-inline: .625rem; font-size: .8125rem; }
+  .filterButton:not(.filtersButton) { flex: 0 1 auto; min-width: 0; }
+  .filtersButton { flex: 0 0 auto; }
+  .activeCount { flex-shrink: 0; }
 }
