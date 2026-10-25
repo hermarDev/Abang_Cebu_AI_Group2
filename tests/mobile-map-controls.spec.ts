@@ -12,8 +12,9 @@ test("mobile map controls stay compact and attribution can expand", async ({ pag
   const chat = await page.getByRole("button", { name: "Open rental assistant" }).boundingBox();
   const info = await page.locator(".maplibregl-ctrl-attrib-button").boundingBox();
   expect(chat!.width).toBe(56);
-  expect(Math.abs(chat!.y + chat!.height / 2 - info!.y - info!.height / 2)).toBeLessThanOrEqual(2);
-  expect(info!.x - chat!.x - chat!.width).toBeGreaterThanOrEqual(12);
+  const location = await locate.boundingBox();
+  expect(Math.abs(location!.x + location!.width / 2 - info!.x - info!.width / 2)).toBeLessThanOrEqual(2);
+  expect(location!.y - info!.y - info!.height).toBeGreaterThanOrEqual(12);
   await page.locator(".maplibregl-ctrl-attrib-button").click();
   await expect(page.getByRole("link", { name: "OpenFreeMap", exact: true })).toBeVisible();
   await page.getByRole("slider", { name: "Adjust results sheet" }).press("End");
