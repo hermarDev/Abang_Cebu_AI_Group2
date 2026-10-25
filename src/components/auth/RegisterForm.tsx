@@ -1,6 +1,7 @@
 "use client";
 
 import { useId, useMemo, useState } from "react";
+import { Eye, EyeOff } from "lucide-react";
 import { useRouter } from "next/navigation";
 import * as RadioGroup from "@radix-ui/react-radio-group";
 import { Button } from "@/components/ui/Button";
@@ -118,7 +119,7 @@ export function RegisterForm({ onLogin }: { onLogin?: () => void } = {}) {
           onValueChange={(value) => {
             if (value === "renter" || value === "landlord") setRole(value);
           }}
-          className="flex rounded-md bg-muted p-1 mb-6"
+          className="flex rounded-md bg-muted p-1 mb-4"
           aria-label="Account type"
         >
           <RadioGroup.Item value="renter" className={`min-h-11 flex-1 rounded text-center text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring ${
@@ -155,7 +156,7 @@ export function RegisterForm({ onLogin }: { onLogin?: () => void } = {}) {
                 type="text"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                placeholder="Juan dela Cruz"
+                placeholder="Enter your full name"
                 autoComplete="name"
                 aria-invalid={Boolean(fieldErrors.fullName)}
                 aria-describedby={fieldErrors.fullName ? `${nameId}-error` : undefined}
@@ -211,6 +212,7 @@ export function RegisterForm({ onLogin }: { onLogin?: () => void } = {}) {
                 <Input
                   id={passwordId}
                   name="password"
+                  className="pr-12"
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -225,11 +227,11 @@ export function RegisterForm({ onLogin }: { onLogin?: () => void } = {}) {
                 {fieldErrors.password && <p id={`${passwordId}-error`} className="mt-1 text-sm text-destructive" role="alert">{fieldErrors.password}</p>}
                 <button
                   type="button"
-                  className="absolute right-2 top-1/2 -translate-y-1/2 px-2 py-1 text-xs text-muted-foreground hover:text-foreground"
+                  className="absolute right-0 top-0 grid min-h-11 min-w-11 place-items-center rounded-md text-muted-foreground hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring"
                   onClick={() => setShowPassword(!showPassword)}
                   aria-label={showPassword ? "Hide password" : "Show password"}
                 >
-                  {showPassword ? "Hide" : "Show"}
+                  {showPassword ? <EyeOff size={19} aria-hidden="true" /> : <Eye size={19} aria-hidden="true" />}
                 </button>
               </div>
 
