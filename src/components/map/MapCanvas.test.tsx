@@ -18,7 +18,7 @@ describe("MapCanvas controls", () => {
     expect(styles).toContain("right: 5rem");
     expect(styles).toContain("bottom: min(calc(var(--results-sheet-height, 42dvh) + 1rem), calc(100dvh - 10rem))");
     expect(styles).not.toContain("bottom: calc(max(42dvh, 18rem) + 5.5rem)");
-    expect(styles).toContain("left: max(5rem, env(safe-area-inset-left))");
+    expect(styles).toContain("left: max(5.25rem, env(safe-area-inset-left))");
     expect(styles).toContain("bottom: min(calc(var(--results-sheet-height, 42dvh) + 1rem), calc(100dvh - 10rem))");
   });
 

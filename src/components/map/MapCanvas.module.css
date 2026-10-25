@@ -21,8 +21,9 @@
 @media (max-width: 1023px) {
   .mapRoot :global(.maplibregl-ctrl-bottom-right) {
     right: auto;
-    left: max(5rem, env(safe-area-inset-left));
+    left: max(5.25rem, env(safe-area-inset-left));
     bottom: min(calc(var(--results-sheet-height, 42dvh) + 1rem), calc(100dvh - 10rem));
+    transform: translateY(-6px);
     max-width: calc(100% - 6rem);
   }
 }
