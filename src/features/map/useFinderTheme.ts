@@ -27,7 +27,7 @@ function getOsTheme(): FinderResolvedTheme {
   }
 }
 
-function getResolvedTheme(): FinderResolvedTheme {
+export function getResolvedTheme(): FinderResolvedTheme {
   const preference = readPreference();
   return preference === "system" ? getOsTheme() : preference;
 }

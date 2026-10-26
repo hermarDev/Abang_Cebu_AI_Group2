@@ -17,7 +17,19 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: `(() => {
+          let theme;
+          try { theme = localStorage.getItem("abangcebu-theme"); } catch {}
+          if (theme !== "light" && theme !== "dark") {
+            try { theme = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"; }
+            catch { theme = "light"; }
+          }
+          document.documentElement.classList.add(theme);
+          document.documentElement.style.colorScheme = theme;
+        })();` }} />
+      </head>
       <body
         className={`${manrope.variable} antialiased`}
       >
