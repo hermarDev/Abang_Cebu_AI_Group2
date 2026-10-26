@@ -1,112 +1,85 @@
 # AbangCebuAI
 
-An intelligent, AI-enhanced geospatial rental and property discovery platform in Cebu, Philippines.
+AbangCebuAI is a rental discovery project for Cebu, Philippines. The application combines a map, rental filters and place search with Supabase authentication and listing data.
 
-Built with **Next.js 16 (App Router)**, **React 19**, **TypeScript**, **Supabase (PostgreSQL & PostGIS)**, **MapLibre GL**, and **OpenStreetMap**.
+## Project status
 
----
+The finder runs on the home route (`/`). It reads published, available listings from Supabase. Place search uses Photon; the map uses MapLibre GL with OpenFreeMap styling and OpenStreetMap-derived data.
 
-## 🚀 Tech Stack
+The documentation also describes planned renter, landlord, moderation and AI-assistant workflows. A specification or wireframe does not mean that workflow is implemented or deployed. Check the source and the pull request for the branch you are using.
 
-- **Framework**: [Next.js 16](https://nextjs.org/) (App Router, Turbopack)
-- **UI Library**: [React 19](https://react.dev/)
-- **Language**: [TypeScript](https://www.typescriptlang.org/) (Strict mode)
-- **Styling**: [Tailwind CSS v4](https://tailwindcss.com/)
-- **Backend / Database**: [Supabase](https://supabase.com/) (`@supabase/ssr`, PostgreSQL, RLS)
-- **Geospatial & Mapping**: [MapLibre GL](https://maplibre.org/) with the OpenFreeMap Liberty style and OpenStreetMap-derived map data (via [`public/styles/osm.json`](./public/styles/osm.json))
-- **Package Manager**: [pnpm](https://pnpm.io/)
+Current limitations include a 200-record limit on the rentals endpoint and process-local place-search caching. Cached place results are not shared between server instances. Sample rentals are fictional and must not be presented as live offers.
 
----
+## Stack
 
-## 📁 Architecture & Documentation
+- Next.js 16 App Router, React 19 and TypeScript
+- Tailwind CSS v4 and CSS modules
+- Supabase Auth and PostgreSQL, with PostGIS migrations and row-level security
+- MapLibre GL, OpenFreeMap and Photon
+- Vitest for unit tests
 
-Comprehensive architectural guidelines, specifications, and QA test matrices are centralized in the **[Engineering Documentation Hub (`docs/README.md`)](./docs/README.md)**:
+Use Node.js 22, matching CI, and pnpm 10.33.0, pinned in `package.json`.
 
-### 🏛️ System Architecture & Framework Standards
-- **[Platform Vision & System Boundaries](./docs/architecture/what-is-abangcebu-ai.md)**: High-level product vision, actor capabilities, and technical boundaries.
-- **[Project Directory Architecture & Ownership](./docs/architecture/project-structure.md)**: Directory tree conventions, module responsibilities, and team boundaries.
-- **[Next.js 16 & React 19 Guidelines](./docs/architecture/next15-guidelines.md)**: Async request APIs, fetch caching behavior, and Supabase SSR integration.
-- **[Client vs. Server Component Boundaries](./docs/architecture/client-server-boundaries.md)**: WebGL isolation pattern for MapLibre GL, preventing SSR memory leaks, and RSC data flow.
-- **[Git Branching & PR Collaboration Strategy](./docs/architecture/git-workflow.md)**: Team branch standards (`feature/*`, `fix/*`), PR checklist template, and peer review workflow.
-- **[Team Contribution & Forking Workflow](./CONTRIBUTING.md)**: Step-by-step guide for forking, branching, and submitting Pull Requests for review.
+## Local setup
 
-### 🗄️ Database & Schema Design
-- **[Database ERD Architecture](./docs/database/database-erd.md)**: 11-entity relational data model in 3NF with PostGIS spatial extensions.
-- **[Users & Profiles Table Schema Specification](./docs/database/users-and-profiles-schema.md)**: DDL specifications for `profiles`, roles, and KYC verifications.
-- **[Supabase Database Architecture & Extensions](./docs/database/supabase-architecture.md)**: Required extensions (PostGIS, UUID), CLI migration strategy, and connection pooling.
-
-### 🛡️ Security & Authorization
-- **[Role-Based Access Control (RBAC) Matrix](./docs/security/rbac-matrix.md)**: Comprehensive role-to-permission mapping across guest, renter, landlord, and admin.
-- **[Row Level Security (RLS) Policy Specifications](./docs/security/rls-policies.md)**: PostgreSQL RLS policies enforcing tenant isolation and authorization.
-- **[Environment Variables & Secrets Governance](./docs/security/environment-variables.md)**: Client (`NEXT_PUBLIC_*`) vs Server variables, zero-leak policy, and local setup guide.
-
-### 📋 Functional Specification Documents (FSD)
-- **[User Registration Workflow & Data Contract](./docs/specifications/auth/auth-registration-spec.md)**: Zero-trust registration contracts, PKCE validation, and anti-abuse defense.
-- **[User Login & Session Token Lifecycle](./docs/specifications/auth/auth-session-lifecycle.md)**: Token rotation, cookie chunking, and Edge middleware session validation.
-- **[User Logout & Session Invalidation](./docs/specifications/auth/auth-logout-spec.md)**: Multi-tab session synchronization and secure cookie disposal.
-- **[Password Reset & Recovery Workflow](./docs/specifications/auth/auth-password-reset-spec.md)**: Anti-enumeration recovery, OTP verification, and session revocation.
-- **[Authentication Error Handling & Edge Cases](./docs/specifications/auth/auth-error-handling.md)**: Canonical JSON error taxonomy and UX presentation matrix.
-
-### 🎨 UI Design System & Wireframe Blueprints
-- **[UI Framework & Styling Guidelines](./docs/design/styling-guidelines.md)**: Tailwind CSS v4 design tokens, Cebu coastal palette, and WCAG 2.2 AA accessibility.
-- **[Renter Persona & Access Rights](./docs/design/renter-persona.md)**: "Mika" student/young professional renter profile and spatial journey map.
-- **[Landing Page Wireframes & Specifications](./docs/design/landing-page-wireframe.md)**: 1440px desktop split layout & 390px mobile map-first bottom-sheet viewports.
-- **[Mobile Map Viewport & Bottom Sheet](./docs/design/mobile-map-wireframes.md)**: 3-snap bottom sheet mechanics (peek 88px, mid 48dvh, full 88dvh).
-- **[Authentication & Dashboard Wireframe Specs](./docs/design/login-page-wireframe.md)**: Login, registration, renter dashboard, profile, and admin dashboard specs.
-
-### 🧪 Quality Assurance & Performance Testing
-- **[Authentication QA Test Plan](./docs/testing/auth-test-plan.md)**: 36 formulated test scenarios and master QA test execution matrix.
-- **[Role & Access Verification Test Cases](./docs/testing/rbac-test-cases.md)**: 30 RBAC test scenarios across 6 test suites.
-- **[Protected Route & Middleware Test Scenarios](./docs/testing/middleware-test-scenarios.md)**: 35 Edge runtime middleware protection scenarios.
-- **[Authentication Baseline Latency & Load Strategy](./docs/testing/auth-performance-baseline.md)**: P50/P95/P99 latency thresholds, k6 load scripts, and connection pool sizing.
-- **[Formal Architecture PDFs](./docs/pdf/)**: Standalone compiled PDF deliverables for all engineering specifications.
-
----
-
-## 🛠️ Getting Started
-
-### 1. Prerequisites
-- Node.js `v20+` or `v22+`
-- `pnpm` (`v10+`)
-
-### 2. Installation
 ```bash
 git clone https://github.com/hermarDev/Abang_Cebu_AI_Group2.git
 cd Abang_Cebu_AI_Group2
-pnpm install
-```
-
-### 3. Environment Variables
-Copy the example environment configuration:
-```bash
+pnpm install --frozen-lockfile
 cp .env.example .env.local
 ```
-Fill in your Supabase project credentials in `.env.local`:
-```env
-NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+
+Do not overwrite an existing environment file. Set these values for your development Supabase project:
+
+| Variable | Purpose |
+| --- | --- |
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Public anonymous key; access still depends on RLS |
+| `NEXT_PUBLIC_MAP_STYLE_URL` | Map style path; use `/styles/osm.json` for the included style |
+| `NEXT_PUBLIC_SITE_URL` | Canonical application origin used by password recovery; use HTTPS in production |
+| `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | Public Cloudflare Turnstile site key for verification widgets |
+| `TURNSTILE_SECRET_KEY` | Server-only Turnstile verification secret |
+
+The environment template may not list every authentication variable above. Add the values needed for the flow you are testing. Production registration and recovery verify Turnstile tokens; local development does not establish that hosted bot protection works. Configure allowed hostnames, Supabase Site URL and redirect allowlists for the environment. See the [password recovery implementation guide](docs/specifications/auth/password-reset-implementation.md).
+
+Never put a service-role key in a `NEXT_PUBLIC_*` variable or browser code. Normal browser access uses the anonymous key with RLS. Do not commit environment files or copy production credentials into test fixtures.
+
+### Database
+
+Use a separate development Supabase project or an approved local Supabase instance. Review the ordered SQL files in [`supabase/migrations`](supabase/migrations) and the [database setup guidance](docs/database/supabase-architecture.md) before applying them. Application configuration alone does not create the tables or policies.
+
+The repository includes [`supabase/seed.sql`](supabase/seed.sql); inspect it before using it in a disposable development database. Do not reset, seed or migrate a shared or production database without approval. Hosted email delivery, callback URLs and deployed RLS require separate verification.
+
+### Start the application
+
+```bash
+pnpm dev
 ```
 
-### 4. Running the Development Server
-```bash
-pnpm dev --turbopack
-```
-Open [http://localhost:3000](http://localhost:3000) to view the interactive spatial Map Explorer centered on Cebu City; it is rendered on the home route (`/`).
+Open [localhost:3000](http://localhost:3000). The map finder is on `/`, not `/map`. External map and search services require network access. If rentals are empty, confirm that the development database contains published, available listings visible under its RLS policies.
 
----
-
-## 🧪 Quality Scripts
+## Checks
 
 ```bash
-# Type check without emitting files
-pnpm tsc --noEmit
-
-# Run ESLint
+pnpm test
+pnpm exec tsc --noEmit
 pnpm lint
-
-# Production build test
 pnpm build
-
-# Start production server
-pnpm start
 ```
+
+Use `pnpm test:watch` while developing. After a successful build, `pnpm start` runs the production server locally.
+
+Some development branches include Playwright browser tests. Use their checked-in configuration and scripts when available; do not assume those tools exist on every branch. Unit tests and a successful build do not verify live email delivery, deployed database policies or production performance.
+
+## Documentation
+
+- [Documentation index](docs/README.md)
+- [Project structure](docs/architecture/project-structure.md)
+- [Next.js and React guidelines](docs/architecture/next15-guidelines.md)
+- [Client and server boundaries](docs/architecture/client-server-boundaries.md)
+- [Database architecture](docs/database/database-erd.md)
+- [Environment and secrets guidance](docs/security/environment-variables.md)
+- [Authentication test plan](docs/testing/auth-test-plan.md)
+- [Contributing](CONTRIBUTING.md)
+
+Treat design documents and test plans as requirements unless they include explicit implementation or execution evidence.
