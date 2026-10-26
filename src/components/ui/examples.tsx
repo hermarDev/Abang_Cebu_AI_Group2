@@ -34,10 +34,7 @@ export function UIExamples() {
           </label>
           <label className="grid gap-1 text-sm">
             Location
-            <Select aria-label="Location" defaultValue="cebu-city">
-              <option value="cebu-city">Cebu City</option>
-              <option value="mandaue">Mandaue</option>
-            </Select>
+            <Select aria-label="Location" defaultValue="cebu-city" options={[{ value: "cebu-city", label: "Cebu City" }, { value: "mandaue", label: "Mandaue" }]} />
           </label>
           <Skeleton className="h-4 w-2/3" />
         </CardContent>

@@ -35,6 +35,8 @@ export function getActiveFilterCount(filters: RentalFilters) {
   return categories.filter((category) => category.some(isActive)).length;
 }
 
+type QuickPopover = "budget" | "types" | null;
+
 export function QuickFilters({ filters, onChange, onOpenFilters }: {
   filters: RentalFilters;
   onChange: (filters: RentalFilters) => void;
@@ -42,6 +44,7 @@ export function QuickFilters({ filters, onChange, onOpenFilters }: {
   mapRadius: number;
   onRadiusChange: (radius: number) => void;
 }) {
+  const [openPopover, setOpenPopover] = useState<QuickPopover>(null);
   const [budgetDraft, setBudgetDraft] = useState(filters.maxPrice ?? null);
   const [typeDraft, setTypeDraft] = useState<PropertyType[]>(filters.propertyTypes);
   const activeCount = getActiveFilterCount(filters);
@@ -53,7 +56,7 @@ export function QuickFilters({ filters, onChange, onOpenFilters }: {
       : `${filters.propertyTypes.length} types`;
 
   return <div className={styles.quickFilters} data-finder-quick-filters role="group" aria-label="Rental search filters">
-    <RadixPopover.Root>
+    <RadixPopover.Root open={openPopover === "budget"} onOpenChange={(open) => setOpenPopover(open ? "budget" : null)}>
       <RadixPopover.Trigger asChild><button className={styles.filterButton} type="button" aria-label={`Budget${filters.maxPrice == null ? ", any maximum" : `, up to ${filters.maxPrice.toLocaleString("en-PH")} pesos`}`} onClick={() => setBudgetDraft(filters.maxPrice ?? null)}><Wallet size={16} aria-hidden="true" /><span className={styles.chipLabel}>{budgetLabel}</span><ChevronDown size={14} aria-hidden="true" /></button></RadixPopover.Trigger>
       <RadixPopover.Portal><RadixPopover.Content className={styles.filterPopover} align="start" sideOffset={8} aria-label="Budget filter">
         <form onSubmit={(event) => { event.preventDefault(); onChange({ ...filters, maxPrice: budgetDraft }); }}>
@@ -62,13 +65,13 @@ export function QuickFilters({ filters, onChange, onOpenFilters }: {
         </form>
       </RadixPopover.Content></RadixPopover.Portal>
     </RadixPopover.Root>
-    <RadixPopover.Root>
+    <RadixPopover.Root open={openPopover === "types"} onOpenChange={(open) => setOpenPopover(open ? "types" : null)}>
       <RadixPopover.Trigger asChild><button className={styles.filterButton} type="button" aria-label={`Property type, ${filters.propertyTypes.length ? filters.propertyTypes.map((value) => propertyTypes.find((item) => item.value === value)?.label ?? value).join(", ") : "Any"}`} onClick={() => setTypeDraft(filters.propertyTypes)}><Building2 size={16} aria-hidden="true" /><span className={styles.chipLabel}>{typeLabel}</span><ChevronDown size={14} aria-hidden="true" /></button></RadixPopover.Trigger>
       <RadixPopover.Portal><RadixPopover.Content className={styles.filterPopover} align="start" sideOffset={8} aria-label="Property type filter">
         <fieldset className={styles.typeList}><legend className={styles.legendRow}>Rental types <button type="button" className={styles.clearButton} onClick={() => setTypeDraft([])}>Clear</button></legend>{propertyTypes.map((item) => <label key={item.value}><input type="checkbox" checked={typeDraft.includes(item.value)} onChange={(event) => setTypeDraft((current) => event.target.checked ? [...current, item.value] : current.filter((value) => value !== item.value))} /><span>{item.label}</span></label>)}</fieldset>
         <div className={styles.popoverActions}><RadixPopover.Close asChild><Button type="button" onClick={() => onChange({ ...filters, propertyTypes: typeDraft })}>Apply types</Button></RadixPopover.Close></div>
       </RadixPopover.Content></RadixPopover.Portal>
     </RadixPopover.Root>
-    <button className={`${styles.filterButton} ${styles.filtersButton}`} type="button" aria-haspopup="dialog" onClick={onOpenFilters} aria-label={`Filters${activeCount ? `, ${activeCount} active filter categories` : ""}`}><SlidersHorizontal size={16} aria-hidden="true" /><span>Filters</span>{activeCount > 0 && <span className={styles.activeCount} aria-hidden="true">{activeCount}</span>}</button>
+    <button className={`${styles.filterButton} ${styles.filtersButton}`} type="button" aria-haspopup="dialog" onClick={() => { setOpenPopover(null); onOpenFilters(); }} aria-label={`Filters${activeCount ? `, ${activeCount} active filter categories` : ""}`}><SlidersHorizontal size={16} aria-hidden="true" /><span>Filters</span>{activeCount > 0 && <span className={styles.activeCount} aria-hidden="true">{activeCount}</span>}</button>
   </div>;
 }

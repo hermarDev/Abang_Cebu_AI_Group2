@@ -1,7 +1,7 @@
 "use client";
 
 import { useId, useMemo, useState } from "react";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Mail, LockKeyhole, UserRound, Search, HousePlus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import * as RadioGroup from "@radix-ui/react-radio-group";
 import { Button } from "@/components/ui/Button";
@@ -16,13 +16,11 @@ export function RegisterForm({ onLogin }: { onLogin?: () => void } = {}) {
   const Surface = onLogin ? "div" : Card;
   const nameId = useId();
   const emailId = useId();
-  const phoneId = useId();
   const passwordId = useId();
 
   const [role, setRole] = useState<"renter" | "landlord">("renter");
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
-  const [phoneNumber, setPhoneNumber] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -58,10 +56,10 @@ export function RegisterForm({ onLogin }: { onLogin?: () => void } = {}) {
     setSuccessMessage(null);
     setRegistered(false);
     if (loading) return;
-    const validation = validateRegistration({ fullName, email, phoneNumber: phoneNumber || undefined, password, role });
+    const validation = validateRegistration({ fullName, email, password, role });
     if (!validation.ok) {
       setFieldErrors(validation.errors);
-      const firstInvalid = (["fullName", "email", "phoneNumber", "password"] as const).find((field) => validation.errors[field]);
+      const firstInvalid = (["fullName", "email", "password"] as const).find((field) => validation.errors[field]);
       if (firstInvalid) (e.currentTarget as HTMLFormElement).querySelector<HTMLInputElement>(`[name="${firstInvalid}"]`)?.focus();
       return;
     }
@@ -78,7 +76,6 @@ export function RegisterForm({ onLogin }: { onLogin?: () => void } = {}) {
         body: JSON.stringify({
           fullName,
           email,
-          phoneNumber: phoneNumber || undefined,
           password,
           role,
           turnstileToken: turnstileToken || undefined,
@@ -125,12 +122,12 @@ export function RegisterForm({ onLogin }: { onLogin?: () => void } = {}) {
           <RadioGroup.Item value="renter" className={`min-h-11 flex-1 rounded text-center text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring ${
             role === "renter" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
           }`}>
-            Renter <span className="block text-xs font-normal">Find rentals</span>
+            <span className="inline-flex items-center justify-center gap-2"><Search size={18} aria-hidden="true" />Renter</span> <span className="block text-xs font-normal">Find rentals</span>
           </RadioGroup.Item>
           <RadioGroup.Item value="landlord" className={`min-h-11 flex-1 rounded text-center text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring ${
             role === "landlord" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
           }`}>
-            Landlord <span className="block text-xs font-normal">List properties</span>
+            <span className="inline-flex items-center justify-center gap-2"><HousePlus size={18} aria-hidden="true" />Landlord</span> <span className="block text-xs font-normal">List properties</span>
           </RadioGroup.Item>
         </RadioGroup.Root>
 
@@ -150,7 +147,10 @@ export function RegisterForm({ onLogin }: { onLogin?: () => void } = {}) {
               <label htmlFor={nameId} className="block text-sm font-medium mb-1">
                 Full Name
               </label>
+              <div className="relative">
+                <UserRound aria-hidden="true" className="pointer-events-none absolute left-3 top-3 size-[18px] text-muted-foreground" />
               <Input
+                className="pl-10"
                 id={nameId}
                 name="fullName"
                 type="text"
@@ -162,6 +162,7 @@ export function RegisterForm({ onLogin }: { onLogin?: () => void } = {}) {
                 aria-describedby={fieldErrors.fullName ? `${nameId}-error` : undefined}
                 required
               />
+              </div>
               {fieldErrors.fullName && <p id={`${nameId}-error`} className="mt-1 text-sm text-destructive" role="alert">{fieldErrors.fullName}</p>}
             </div>
 
@@ -169,7 +170,10 @@ export function RegisterForm({ onLogin }: { onLogin?: () => void } = {}) {
               <label htmlFor={emailId} className="block text-sm font-medium mb-1">
                 Email Address
               </label>
+              <div className="relative">
+                <Mail aria-hidden="true" className="pointer-events-none absolute left-3 top-3 size-[18px] text-muted-foreground" />
               <Input
+                className="pl-10"
                 id={emailId}
                 name="email"
                 type="email"
@@ -181,27 +185,8 @@ export function RegisterForm({ onLogin }: { onLogin?: () => void } = {}) {
                 aria-describedby={fieldErrors.email ? `${emailId}-error` : undefined}
                 required
               />
+              </div>
               {fieldErrors.email && <p id={`${emailId}-error`} className="mt-1 text-sm text-destructive" role="alert">{fieldErrors.email}</p>}
-            </div>
-
-            <div>
-              <label htmlFor={phoneId} className="block text-sm font-medium mb-1">
-                Philippine Mobile Number (Optional)
-              </label>
-              <Input
-                id={phoneId}
-                name="phoneNumber"
-                type="tel"
-                inputMode="numeric"
-                maxLength={11}
-                value={phoneNumber}
-                onChange={(e) => setPhoneNumber(e.target.value)}
-                placeholder="09171234567"
-                autoComplete="tel"
-                aria-invalid={Boolean(fieldErrors.phoneNumber)}
-                aria-describedby={fieldErrors.phoneNumber ? `${phoneId}-error` : undefined}
-              />
-              {fieldErrors.phoneNumber && <p id={`${phoneId}-error`} className="mt-1 text-sm text-destructive" role="alert">{fieldErrors.phoneNumber}</p>}
             </div>
 
             <div>
@@ -209,10 +194,11 @@ export function RegisterForm({ onLogin }: { onLogin?: () => void } = {}) {
                 Password
               </label>
               <div className="relative">
+                <LockKeyhole aria-hidden="true" className="pointer-events-none absolute left-3 top-3 size-[18px] text-muted-foreground" />
                 <Input
                   id={passwordId}
                   name="password"
-                  className="pr-12"
+                  className="pl-10 pr-12"
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -273,16 +259,16 @@ export function RegisterForm({ onLogin }: { onLogin?: () => void } = {}) {
               {loading ? "Registering..." : `Register as ${role === "renter" ? "Renter" : "Landlord"}`}
             </Button>
 
-            <div className="text-center mt-4">
+            {!onLogin && <div className="text-center mt-4">
               <span className="text-sm text-muted-foreground">Already have an account? </span>
               <button
                 type="button"
                 className="text-sm font-medium text-action hover:underline"
-                onClick={onLogin ?? (() => router.push("/login"))}
+                onClick={() => router.push("/login")}
               >
-                {onLogin ? "Log In" : "Return to Login"}
+                Return to Login
               </button>
-            </div>
+            </div>}
           </form>
         )}
       </CardContent>

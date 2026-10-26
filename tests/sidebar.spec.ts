@@ -50,7 +50,7 @@ test("short drawer scroll keeps account and appearance reachable", async ({ page
     await page.keyboard.press("Escape");
     await page.getByRole("button", { name: "Open menu" }).click();
   }
-  await drawer.getByRole("radio", { name: "Dark", exact: true }).click();
+  await drawer.getByRole("button", { name: "Switch to dark mode", exact: true }).click();
   await expect(page.locator("main")).toHaveAttribute("data-theme", "dark");
   await expect(drawer.getByRole("link", { name: "Contact support" })).toHaveAttribute("href", "mailto:support@abangcebu.ai");
   await drawer.getByRole("link", { name: "Find rentals" }).click();

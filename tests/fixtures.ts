@@ -18,12 +18,12 @@ export const test = base.extend({
       if (url.pathname === "/api/rentals") {
         return route.fulfill({ json: { rentals: [] } });
       }
-      if (url.pathname === "/styles/osm.json") {
+      if (url.pathname === "/styles/osm.json" || url.pathname === "/styles/osm-dark.json") {
         // shortcut: fixture tests controls, not provider tiles; verify geography separately.
         return route.fulfill({ json: {
           version: 8,
           sources: { fixture: { type: "geojson", data: { type: "FeatureCollection", features: [] }, attribution: providerAttribution } },
-          layers: [{ id: "background", type: "background", paint: { "background-color": "#e5edf0" } }, { id: "fixture", type: "circle", source: "fixture" }],
+          layers: [{ id: "background", type: "background", paint: { "background-color": url.pathname.includes("osm-dark") ? "#0c0c0c" : "#e5edf0" } }, { id: "fixture", type: "circle", source: "fixture" }],
         } });
       }
       return route.continue();

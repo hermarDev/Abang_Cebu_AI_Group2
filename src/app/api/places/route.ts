@@ -4,7 +4,7 @@ export async function GET(request: Request) {
   const query = new URL(request.url).searchParams.get("q")?.trim() ?? "";
   const headers = { "Cache-Control": "no-store" };
   if (query.length < 3 || query.length > 120) {
-    return Response.json({ error: "Enter 3–120 characters to search Metro Cebu." }, { status: 400, headers });
+    return Response.json({ error: "Enter 3–120 characters to search Cebu." }, { status: 400, headers });
   }
 
   try {

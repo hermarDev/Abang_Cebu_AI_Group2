@@ -29,7 +29,7 @@ export function Modal({ open, onClose, title, description, children, className, 
       if (!nextOpen) onClose();
     }}>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-[var(--z-index-modal-backdrop)] bg-foreground/50" />
+        <Dialog.Overlay data-slot="dialog-overlay" className="fixed inset-0 z-[var(--z-index-modal-backdrop)] bg-black/50" />
         <Dialog.Content
           data-surface={surface}
           data-slot="dialog-content"

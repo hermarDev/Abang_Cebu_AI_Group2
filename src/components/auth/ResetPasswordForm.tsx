@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { TurnstileWidget } from "./TurnstileWidget";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
-import { KeyRound } from "lucide-react";
+import { KeyRound, Mail, LockKeyhole, Eye, EyeOff } from "lucide-react";
 
 const genericSuccess = "If an account is associated with this email, a password recovery link has been dispatched.";
 
@@ -19,6 +19,8 @@ export function ResetPasswordForm({ isRecovery = false, onBackToLogin, embedded 
   const [email, setEmail] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [passwordMismatch, setPasswordMismatch] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -107,11 +109,13 @@ export function ResetPasswordForm({ isRecovery = false, onBackToLogin, embedded 
             <>
               <div>
                 <label htmlFor={newPasswordId} className="mb-1 block text-sm font-medium">New password</label>
+                <div className="relative">
+                  <LockKeyhole aria-hidden="true" className="pointer-events-none absolute left-3 top-3 size-[18px] text-muted-foreground" />
                 <Input
-                  className="border-input bg-card text-foreground focus-visible:outline-ring"
+                  className="pl-10 pr-12 border-input bg-card text-foreground focus-visible:outline-ring"
                   id={newPasswordId}
                   name="newPassword"
-                  type="password"
+                  type={showNewPassword ? "text" : "password"}
                   autoComplete="new-password"
                   minLength={8}
                   maxLength={72}
@@ -119,15 +123,21 @@ export function ResetPasswordForm({ isRecovery = false, onBackToLogin, embedded 
                   onChange={(e) => setNewPassword(e.target.value)}
                   required
                 />
+                  <button type="button" className="absolute right-0 top-0 grid min-h-11 min-w-11 place-items-center rounded-md text-muted-foreground hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring" onClick={() => setShowNewPassword(value => !value)} aria-label={showNewPassword ? "Hide new password" : "Show new password"} aria-pressed={showNewPassword}>
+                    {showNewPassword ? <EyeOff size={19} aria-hidden="true" /> : <Eye size={19} aria-hidden="true" />}
+                  </button>
+                </div>
                 <p className="mt-2 text-xs text-muted-foreground">Use 8–72 characters and include at least three: uppercase, lowercase, number, or symbol.</p>
               </div>
               <div>
                 <label htmlFor={confirmPasswordId} className="mb-1 block text-sm font-medium">Confirm new password</label>
+                <div className="relative">
+                  <LockKeyhole aria-hidden="true" className="pointer-events-none absolute left-3 top-3 size-[18px] text-muted-foreground" />
                 <Input
-                  className="border-input bg-card text-foreground focus-visible:outline-ring"
+                  className="pl-10 pr-12 border-input bg-card text-foreground focus-visible:outline-ring"
                   id={confirmPasswordId}
                   name="confirmPassword"
-                  type="password"
+                  type={showConfirmPassword ? "text" : "password"}
                   autoComplete="new-password"
                   minLength={8}
                   maxLength={72}
@@ -137,14 +147,20 @@ export function ResetPasswordForm({ isRecovery = false, onBackToLogin, embedded 
                   onChange={(e) => { setConfirmPassword(e.target.value); setPasswordMismatch(false); }}
                   required
                 />
+                  <button type="button" className="absolute right-0 top-0 grid min-h-11 min-w-11 place-items-center rounded-md text-muted-foreground hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring" onClick={() => setShowConfirmPassword(value => !value)} aria-label={showConfirmPassword ? "Hide confirmed password" : "Show confirmed password"} aria-pressed={showConfirmPassword}>
+                    {showConfirmPassword ? <EyeOff size={19} aria-hidden="true" /> : <Eye size={19} aria-hidden="true" />}
+                  </button>
+                </div>
                 {passwordMismatch && <p id={`${confirmPasswordId}-error`} role="alert" className="text-sm text-destructive">Passwords do not match.</p>}
               </div>
             </>
           ) : (
             <div>
               <label htmlFor={emailId} className="mb-1 block text-sm font-medium">Email Address</label>
+              <div className="relative">
+                <Mail aria-hidden="true" className="pointer-events-none absolute left-3 top-3 size-[18px] text-muted-foreground" />
               <Input
-                className="border-input bg-card text-foreground placeholder:text-muted-foreground focus-visible:outline-ring"
+                className="pl-10 border-input bg-card text-foreground placeholder:text-muted-foreground focus-visible:outline-ring"
                 id={emailId}
                 type="email"
                 autoComplete="email"
@@ -153,6 +169,7 @@ export function ResetPasswordForm({ isRecovery = false, onBackToLogin, embedded 
                 placeholder="name@example.com"
                 required
               />
+              </div>
             </div>
           )}
           {!isRecovery && <TurnstileWidget onTokenChange={setTurnstileToken} resetKey={resetKey} />}

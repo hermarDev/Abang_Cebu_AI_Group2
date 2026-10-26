@@ -21,7 +21,11 @@
 .search { display: flex; min-width: 0; align-items: center; gap: .5rem; border: 1px solid var(--border); border-radius: 2rem; padding: .35rem .85rem; background: var(--muted); }
 .search input { width: 100%; min-width: 0; height: 2.4rem; border: 0; outline: 0; background: transparent; color: inherit; font: inherit; }
 .search span { color: var(--muted-foreground); font-size: .65rem; font-weight: 800; letter-spacing: .12em; }
-.signIn { position: absolute; z-index: var(--z-index-search-bar); top: max(1rem, env(safe-area-inset-top)); right: max(1rem, env(safe-area-inset-right)); padding: .5rem 1rem; border: 1px solid var(--border); border-radius: 2rem; background: var(--card); box-shadow: 0 4px 20px rgb(0 50 120 / 12%); font: inherit; font-size: .85rem; font-weight: 700; }
+.signIn { position: absolute; z-index: var(--z-index-search-bar); top: max(1rem, env(safe-area-inset-top)); right: max(1rem, env(safe-area-inset-right)); padding: .5rem 1rem; border: 1px solid var(--border); border-radius: 2rem; background: var(--card); box-shadow: 0 2px 8px rgb(15 23 42 / 9%); font: inherit; font-size: .85rem; font-weight: 700; transition: background-color 150ms ease, box-shadow 150ms ease; }
+.signIn > svg { flex: none; }
+.signIn:active { background: var(--muted); box-shadow: 0 1px 3px rgb(15 23 42 / 8%); }
+.signIn:focus-visible { outline: 3px solid var(--ring); outline-offset: 3px; }
+@media (prefers-reduced-motion: reduce) { .signIn { transition: none; } }
 .mapStage { position: absolute; inset: 0; }
 .workspace { position: relative; height: 100%; }
 .mapViewport { position: absolute; inset: 0; }
@@ -107,17 +111,33 @@
 .chatComposer input { min-width: 0; flex: 1; border: 1px solid var(--input); border-radius: 1.2rem; padding: .55rem .8rem; background: var(--card); color: var(--card-foreground); font: inherit; }
 .chatComposer > button { background: var(--action); color: var(--action-foreground); }
 
-.accountModeTabs { display: flex; margin-bottom: 1rem; border-radius: .6rem; background: var(--muted); padding: .25rem; }
-.accountModeTab, .accountModeTabActive { min-height: 2.5rem; flex: 1; border: 0; border-radius: .45rem; background: transparent; color: var(--muted-foreground); cursor: pointer; font: inherit; font-size: .85rem; font-weight: 700; }
-.accountModeTabActive { background: var(--action); color: var(--action-foreground); box-shadow: 0 1px 3px rgb(13 46 70 / 18%); }
-.accountDialog { max-height: calc(100dvh - 2rem); overflow-y: auto; overscroll-behavior: contain; scroll-padding: 1.5rem; }
-.accountBrand { display: flex; justify-content: center; margin: 0 0 1rem; }
-.accountBrand img { display: block; width: 8.625rem; height: auto; }
-.accountBack { width: 100%; margin-top: .75rem; }
+.accountModeTabs { display: flex; margin: 1rem 0; border: 1px solid var(--border); border-radius: .7rem; background: var(--muted); padding: .25rem; }
+.accountModeTab, .accountModeTabActive { min-height: 2.75rem; flex: 1; border: 0; border-radius: .5rem; background: transparent; color: var(--muted-foreground); cursor: pointer; font: inherit; font-size: .875rem; font-weight: 700; }
+.accountModeTabActive { background: var(--accent); color: var(--accent-foreground); box-shadow: inset 0 0 0 1px var(--ring); }
+.accountDialog { display: flex; width: min(30rem, calc(100vw - 2rem)); height: min(42.5rem, calc(100dvh - max(1rem, env(safe-area-inset-top)) - max(1rem, env(safe-area-inset-bottom)))); max-height: none; flex-direction: column; overflow: hidden; overscroll-behavior: contain; border-radius: 1.1rem; padding: 0; }
+.accountDialog > div { display: grid; min-height: 0; height: 100%; grid-template-rows: auto minmax(0, 1fr) auto; padding: 0; }
+.accountDialog > div > header { position: absolute; inset: 0 0 auto; z-index: 1; margin: 0; padding: 0; }
+.accountDialog > div > header > p { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+.accountHeader { display: flex; min-height: 5rem; align-items: center; border-bottom: 1px solid var(--border); padding: .75rem 1.5rem; }
+.accountHeader img { display: block; width: 8.625rem; height: auto; }
+.accountClose { position: absolute; top: .75rem; right: .75rem; display: grid; width: 2.75rem; height: 2.75rem; place-items: center; border: 0; border-radius: .7rem; background: transparent; color: var(--muted-foreground); cursor: pointer; }
+.accountClose:hover { background: var(--muted); color: var(--foreground); }
+.accountBody { min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 1.25rem 1.5rem; scrollbar-color: var(--input) transparent; scrollbar-width: thin; }
+.accountContent { width: 100%; }
+.accountHeading { margin: 0; color: var(--card-foreground); font-size: 1.5rem; font-weight: 750; letter-spacing: -.025em; line-height: 1.2; }
+.accountFooter { display: grid; gap: .35rem; border-top: 1px solid var(--border); padding: .65rem 1.5rem max(.65rem, env(safe-area-inset-bottom)); background: var(--card); }
+.accountFooter > span { color: var(--muted-foreground); font-size: .8125rem; text-align: center; }
+.accountFooter > span button { border: 0; padding: .25rem; background: transparent; color: var(--action); cursor: pointer; font: inherit; font-weight: 700; }
+.accountBack { width: 100%; min-height: 2.75rem; margin: 0; }
 
-.accountButtons { display: grid; gap: .65rem; }
-.accountButtons > button, .emailButton { min-height: 2.9rem; }
-.emailButton { display: flex; align-items: center; justify-content: center; gap: .55rem; border: 1px solid var(--border); border-radius: .65rem; color: var(--card-foreground); font-weight: 700; text-decoration: none; }
+@media (max-height: 44rem) {
+  .accountDialog { height: calc(100dvh - max(1rem, env(safe-area-inset-top)) - max(1rem, env(safe-area-inset-bottom))); }
+}
+
+@media (max-width: 360px) {
+  .accountHeader, .accountBody, .accountFooter { padding-inline: 1rem; }
+}
+
 .filterPopover { z-index: 60; width: min(18rem, calc(100vw - 2rem)); max-height: min(70dvh, 30rem); overflow-y: auto; border: 1px solid var(--border); border-radius: .9rem; padding: .75rem; background: var(--popover); color: var(--popover-foreground); box-shadow: 0 10px 35px rgb(13 27 43 / 18%); }
 .filterPopover:focus { outline: none; }
 .filterPopover fieldset { max-height: min(58dvh, 24rem); overflow-y: auto; }
@@ -139,7 +159,9 @@
   .app[data-results-collapsed="true"] .mapViewport { left: 0; }
   .resultsRail { top: 13.5rem; bottom: auto; width: var(--results-width); max-height: calc(100% - 15rem); }
   .app[data-results-collapsed="true"] .resultsRail { display: none; }
-  .resultsToggle { position: absolute; z-index: var(--z-index-fab); top: 10rem; left: 1rem; display: inline-flex; min-height: 2.75rem; align-items: center; border: 1px solid var(--border); border-radius: .7rem; padding: .5rem .85rem; background: var(--card); color: var(--card-foreground); cursor: pointer; font: inherit; font-size: .8rem; font-weight: 700; }
+  .app[data-results-collapsed="false"] .resultsToggle { display: none; }
+  .app[data-results-collapsed="true"] .resultsToggle { top: 10rem; }
+  .app[data-results-collapsed="true"] .resultsToggle { position: absolute; left: 1rem; display: inline-flex; }
   .guestCard { margin-top: 1.5rem; }
 }
 @media (min-width: 1024px) and (max-width: 1100px) {
@@ -152,16 +174,17 @@
   .app { min-height: 0; }
   .drawer { color-scheme: light; }
   .app[data-theme="dark"] .drawer { color-scheme: dark; }
-  .sheetControls { display: flex; flex: none; align-items: center; justify-content: space-between; min-height: 64px; }
+  .sheetControls { position: relative; display: flex; flex: none; align-items: center; justify-content: space-between; min-height: 64px; }
   .sheetAction { min-height: 44px; border: 0; padding: .5rem; background: transparent; color: var(--card-foreground); font: inherit; font-size: .875rem; font-weight: 700; cursor: pointer; }
-  .sheetHandle { display: grid; width: 44px; min-width: 2.75rem; min-height: 2.75rem; place-items: center; touch-action: none; cursor: ns-resize; }
+  .sheetHandle { position: absolute; inset: 0; display: grid; width: 100%; min-height: 2.75rem; place-items: center; touch-action: none; cursor: ns-resize; }
+  .sheetAction { position: relative; z-index: 1; }
   .sheetHandle span { width: 2.5rem; height: .3rem; border-radius: 1rem; background: var(--muted-foreground); }
   .sheetHandle:focus-visible { outline: 3px solid var(--ring); outline-offset: -3px; }
   .resultsHeader { flex: none; }
   .resultsHeader .available { display: none; }
   .resultsContent { min-height: 0; overflow-y: auto; overscroll-behavior: contain; gap: .7rem; padding-bottom: env(safe-area-inset-bottom); }
   .inventoryState button { min-height: 2.75rem; }
-  .app[data-sheet-position="expanded"] .resultsRail { z-index: var(--z-index-bottom-sheet); height: min(90dvh, calc(100dvh - 12rem)); }
+  .app[data-sheet-position="expanded"] .resultsRail { z-index: var(--z-index-bottom-sheet); height: min(90dvh, calc(100dvh - 8rem)); }
   .app[data-sheet-position="expanded"] :is([data-finder-quick-filters], .headerSearch) { display: none; }
   .header { top: max(.5rem, env(safe-area-inset-top)); left: .5rem; width: calc(100% - 1rem); grid-template-columns: 2.5rem auto 1fr; gap: .45rem; padding: .4rem; }
   .header img { width: 7.2rem; }

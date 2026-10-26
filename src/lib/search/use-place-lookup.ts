@@ -14,6 +14,7 @@ const UNAVAILABLE_MESSAGE = "Place search is unavailable. Retry or choose a pres
 export function usePlaceLookup() {
   const [lookup, setLookup] = useState<LookupState>({ status: "idle", places: [] });
   const active = useRef<AbortController | null>(null);
+  const cache = useRef(new Map<string, { expires: number; places: PlaceResult[] }>());
 
   useEffect(() => () => active.current?.abort(), []);
 
@@ -31,6 +32,13 @@ export function usePlaceLookup() {
       return;
     }
 
+    const key = query.toLowerCase();
+    const cached = cache.current.get(key);
+    if (cached && cached.expires > Date.now()) {
+      active.current = null;
+      setLookup({ status: "ready", places: cached.places });
+      return;
+    }
     const controller = new AbortController();
     active.current = controller;
     setLookup({ status: "loading", places: [] });
@@ -41,7 +49,11 @@ export function usePlaceLookup() {
       if (!response.ok) throw new Error(UNAVAILABLE_MESSAGE);
       const places = parsePlacesResponse(await response.json());
       if (!places) throw new Error(UNAVAILABLE_MESSAGE);
-      if (active.current === controller) setLookup({ status: "ready", places });
+      if (active.current === controller) {
+        if (cache.current.size >= 20) cache.current.delete(cache.current.keys().next().value!);
+        cache.current.set(key, { expires: Date.now() + 60_000, places });
+        setLookup({ status: "ready", places });
+      }
     } catch {
       if (active.current === controller && !controller.signal.aborted) {
         setLookup({ status: "error", places: [], error: UNAVAILABLE_MESSAGE });

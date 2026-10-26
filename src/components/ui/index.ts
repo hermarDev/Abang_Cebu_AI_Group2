@@ -3,7 +3,7 @@ export type { ButtonProps, ButtonSize, ButtonVariant } from "./Button";
 export { Input } from "./Input";
 export type { InputProps } from "./Input";
 export { Select } from "./Select";
-export type { SelectProps } from "./Select";
+export type { SelectProps, SelectOption } from "./Select";
 export { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "./Card";
 export type { CardProps } from "./Card";
 export { Badge } from "./Badge";

@@ -69,10 +69,9 @@ describe("RegisterForm", () => {
     const html = renderToStaticMarkup(<RegisterForm onLogin={() => {}} />);
     expect(html).toContain("Find rentals");
     expect(html).toContain("List properties");
-    expect(html).toContain("Already have an account?");
-    expect(html).toContain(">Log In</button>");
-    expect(html).not.toContain("Sign In");
+    expect(html).not.toContain("Already have an account?");
     expect(html).not.toContain("Return to Login");
+    expect(html).not.toContain("Sign In");
     expect(html).not.toContain("Create an Account");
     expect(html).not.toContain("shadow-md");
   });
@@ -114,13 +113,12 @@ describe("RegisterForm", () => {
     await submit();
 
     const email = findInput("email");
-    const phone = findInput("phoneNumber");
-    expect(email.props["aria-invalid"]).toBe(true);
-    expect(phone.props["aria-invalid"]).toBe(true);
     expect(email.props["aria-describedby"]).toContain(`${email.props.id}-error`);
-    expect(phone.props["aria-describedby"]).toContain(`${phone.props.id}-error`);
+    expect(findElement(renderForm(), (el) => el.props.name === "phoneNumber")).toBeUndefined();
     const html = renderToStaticMarkup(renderForm());
     expect(html).toContain("The submitted registration data is invalid.");
+    expect(html).not.toContain("Philippine Mobile Number");
+    expect(html).not.toContain("Enter a valid Philippine mobile number.");
     expect(findInput("fullName").props.value).toBe("Juan dela Cruz");
     expect(findInput("email").props.value).toBe("juan@example.com");
   });
@@ -142,12 +140,33 @@ describe("RegisterForm", () => {
     expect(JSON.parse(request.mock.calls[0][1].body)).not.toHaveProperty("phoneNumber");
   });
 
-  it("uses browser autocomplete hints for registration inputs", () => {
+  it("keeps signup to name, email, account type and password", () => {
     const html = renderToStaticMarkup(<RegisterForm />);
     expect(html).toContain('autoComplete="name"');
     expect(html).toContain('autoComplete="email"');
-    expect(html).toContain('autoComplete="tel"');
     expect(html).toContain('autoComplete="new-password"');
+    expect(html).not.toContain('type="tel"');
+    expect(html).not.toContain("Philippine Mobile Number");
+  });
+
+  it("routes standalone signup's return action to login", () => {
+    const push = vi.fn();
+    state.active = true;
+    const tree = RegisterForm();
+    const back = findElement(tree, (element) => element.props.children === "Return to Login");
+    expect(back?.props.onClick).toBeTypeOf("function");
+    (back?.props.onClick as () => void)();
+    expect(push).not.toHaveBeenCalled();
+  });
+
+
+  it("renders an accessible icon control for the signup password", () => {
+    const html = renderToStaticMarkup(<RegisterForm onLogin={() => {}} />);
+    expect(html).toContain('aria-label="Show password"');
+    expect(html).toContain('class="lucide lucide-eye');
+    expect(html).toContain("min-h-11 min-w-11");
+    expect(html).not.toContain(">Show</button>");
+    expect(html).not.toContain(">Hide</button>");
   });
 
   it("describes the server password length and character-class policy", () => {
@@ -158,10 +177,10 @@ describe("RegisterForm", () => {
     expect(html).toContain("at least 3 of: uppercase, lowercase, numbers, and symbols");
     expect(html).toContain('aria-describedby=');
   });
-  it("limits the Philippine mobile number input to 11 characters", () => {
+  it("does not render a public signup phone field", () => {
     const html = renderToStaticMarkup(<RegisterForm />);
-    expect(html).toContain('type="tel"');
-    expect(html).toContain('maxLength="11"');
+    expect(html).not.toContain('type="tel"');
+    expect(html).not.toContain("Philippine Mobile Number");
   });
 
   it("uses a radiogroup for account type instead of tabs", () => {

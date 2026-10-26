@@ -141,15 +141,11 @@ describe("RestoredFinderShell", () => {
     expect(logo.props.src).toBe("/icons/main_Logo.png");
     expect(logo.props.alt).toBe("AbangCebu");
 
-    const backToMap = modalChildren.find((child) => (child.props as { children?: unknown }).children === "Back to map");
-    expect(backToMap).toBeDefined();
-    if (!backToMap) throw new Error("Back to map action missing");
-    const renderButton = backToMap.type as (props: Record<string, unknown>) => ReactElement<{ type: string; children: string; onClick: () => void }>;
-    const button = renderButton(backToMap.props as Record<string, unknown>);
+    const footer = modalChildren[2];
+    const footerButton = findElement<{ children: ReactNode }>(footer, (element) => element.type === Button);
+    expect(footerButton?.props.children).toBe("Continue browsing map");
+    const button = (footerButton!.type as (props: Record<string, unknown>) => ReactElement<{ type: string; children: string; onClick: () => void }>)(footerButton!.props);
     expect(button.type).toBe("button");
-    expect(button.props.children).toBe("Back to map");
-    expect(button.props.onClick).toBeTypeOf("function");
-
     button.props.onClick();
     const closedModal = findElement<{ open: boolean; title: string }>(captureShell(), (element) => element.props.title === "Account access");
     expect(closedModal?.props.open).toBe(false);
@@ -230,9 +226,9 @@ describe("RestoredFinderShell", () => {
     expect(html).not.toContain("Expand results");
     expect(html).not.toMatch(/class="[^"]*sheetActions/);
     expect(html).toContain('aria-label="Adjust results sheet"');
-    // Ad hoc browser coverage: tests/finder-redesign.spec.ts > "mobile listings peek is readable and actionable"
-    // asserts the 64px+safe-area peek button height and viewport containment.
+    // Browser coverage checks compact collapse and the larger middle snap.
     expect(html).toContain("Show listings (");
+    expect(html).toMatch(/id="rental-results-content"[^>]*hidden=""/);
   });
   it("changes sheet positions with keyboard and map selection while preserving its boundary", () => {
     vi.stubGlobal("requestAnimationFrame", () => 1);
@@ -259,7 +255,7 @@ describe("RestoredFinderShell", () => {
     expect(render("ready")).toMatch(/aria-label="Rental listings"[^>]*inert=""/);
     expect(render("ready")).toContain('data-sheet-position="half"');
   });
-  it("keeps collapsed content out of keyboard navigation and exposes it at half", () => {
+  it("hides compact collapsed content and exposes it in the larger middle snap", () => {
     expect(render("ready")).toMatch(/id="rental-results-content"[^>]*hidden=""/);
     moveSheet("ArrowUp");
     expect(render("ready")).not.toMatch(/id="rental-results-content"[^>]*hidden=""/);
@@ -316,10 +312,10 @@ describe("RestoredFinderShell", () => {
     expect(render()).not.toContain('aria-label="Main menu"'); // Native Modal portals only after mounting.
     expect(render()).toContain('data-nav-open="false"');
   });
-  it("does not expose sample data in production for empty or failed reads", () => {
+  it("offers explicit sample opt-in in production without enabling it automatically", () => {
     vi.stubEnv("NODE_ENV", "production");
-    expect(render("ready")).not.toContain("Use sample data");
-    expect(render("error")).not.toContain("Use sample data");
+    expect(render("ready")).toContain("Use sample data");
+    expect(render("error")).toContain("Use sample data");
     vi.unstubAllEnvs();
   });
   it("offers radius expansion for empty inventory rather than clearing filters", () => {
@@ -360,7 +356,7 @@ describe("RestoredFinderShell", () => {
     expect(render()).toContain(rental.title);
   });
   it.each([
-    { ok: true, json: async () => ({ rentals: [] }), message: "No verified rentals here yet" },
+    { ok: true, json: async () => ({ rentals: [] }), message: "No rentals found" },
     { ok: false, json: async () => ({}), message: "Couldn’t load rentals" },
     { ok: true, json: async () => ({ rentals: null }), message: "Couldn’t load rentals" },
     { ok: true, json: async () => { throw new Error("Invalid JSON"); }, message: "Couldn’t load rentals" },
@@ -423,12 +419,12 @@ describe("RestoredFinderShell", () => {
     expect(html).toContain('aria-label="Filters"');
     expect(html).not.toContain('aria-label="Search area radius"');
     // Radius rail chip remains a shell-level status display, but no <select> in the toolbar.
-    expect(html).toContain("Search area: 2 km radius");
+    expect(html).toContain("Search area: <b>2 km radius</b>");
     expect(html).not.toContain('id="rental-radius"');
   });
   it.each([
     ["loading", "Loading rentals…", "Checking the configured rental data service…"],
-    ["ready", "No verified rentals here yet", "Try expanding your search radius or browsing another area."],
+    ["ready", "No rentals found", "Try adjusting your search, expanding the search area, or browsing another location."],
   ] as const)("keeps the %s inventory state explicit", (rentalStatus, title, message) => {
     const html = renderToStaticMarkup(<RestoredFinderShell rentalStatus={rentalStatus} />);
 
