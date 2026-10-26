@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { FinderNavigation } from "./FinderNavigation";
-import { useFinderTheme } from "./useFinderTheme";
+import { getResolvedTheme, useFinderTheme } from "./useFinderTheme";
 import type { RentalResult } from "@/contracts/preview";
 import { SAMPLE_RENTALS } from "@/features/listings/preview-rentals";
 import { searchPreviewRentals } from "@/features/rentals/search";
@@ -77,9 +77,11 @@ export function RestoredFinderShell({ rentalStatus: statusOverride, initialAccou
   const mapViewport = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (typeof document === "undefined") return;
-    document.documentElement.classList.toggle("dark", activeTheme === "dark");
-    document.documentElement.classList.toggle("light", activeTheme === "light");
-    document.documentElement.style.colorScheme = activeTheme;
+    // Hydration's server snapshot is light; resolve the client preference before touching the root.
+    const theme = getResolvedTheme();
+    document.documentElement.classList.toggle("dark", theme === "dark");
+    document.documentElement.classList.toggle("light", theme === "light");
+    document.documentElement.style.colorScheme = theme;
   }, [activeTheme]);
   useEffect(() => {
     const media = window.matchMedia("(min-width: 1024px)");
