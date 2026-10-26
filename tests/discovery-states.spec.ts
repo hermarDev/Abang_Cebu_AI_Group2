@@ -17,9 +17,8 @@ test("inventory failure offers retry and recovers to genuine empty state", async
 test("desktop results and navigation reopen without remounting map or losing radius", async ({ page }) => {
   await page.goto("/");
   await page.getByRole("button", { name: /^Filters/ }).click();
-  const radius = page.getByRole("combobox", { name: "Search radius", exact: true });
-  await radius.click();
-  await page.getByRole("option", { name: "5 km", exact: true }).click();
+  const radius = page.getByRole("spinbutton", { name: "Search radius", exact: true });
+  await radius.fill("5");
   await page.getByRole("button", { name: /^(Apply filters|Show \d+ rentals)$/ }).click();
   const canvas = page.locator("canvas.maplibregl-canvas");
   await expect(canvas).toBeVisible();
