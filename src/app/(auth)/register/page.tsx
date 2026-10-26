@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { RegisterForm } from "@/components/auth/RegisterForm";
+import { RestoredFinderShell } from "@/features/map/RestoredFinderShell";
 
 export const metadata: Metadata = {
   title: "Register — AbangCebu",
@@ -7,9 +7,5 @@ export const metadata: Metadata = {
 };
 
 export default function RegisterPage() {
-  return (
-    <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center p-4">
-      <RegisterForm />
-    </div>
-  );
+  return <RestoredFinderShell initialAccountOpen initialAccountMode="sign-up" />;
 }

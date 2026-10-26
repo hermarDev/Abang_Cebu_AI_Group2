@@ -62,13 +62,6 @@ export interface RegisteredUserSummary {
  */
 export interface RegisterSuccessResponse {
   success: true;
-  data: {
-    user: RegisteredUserSummary;
-    /** Whether an activation email was dispatched requiring PKCE confirmation */
-    requiresEmailVerification: boolean;
-    /** Recommended client redirect route (/search, /landlord/onboarding, etc.) */
-    redirectUrl: string;
-  };
   message: string;
 }
 

@@ -1,3 +1,4 @@
+import { validatePasswordStrength } from "@/types/auth";
 import type { RegisterPayload, RegisterableRole } from "@/types/auth";
 
 export type RegistrationValidation =
@@ -17,8 +18,9 @@ export function normalizePhilippineMobile(value: string): string | null {
 }
 
 export function validateRegistration(payload: unknown): RegistrationValidation {
-  if (typeof payload !== "object" || payload === null || Array.isArray(payload)) return { ok: false, errors: { email: "Enter valid registration details." } };
-  const input = payload as Record<string, unknown>;
+  const input = typeof payload === "object" && payload !== null && !Array.isArray(payload)
+    ? payload as Record<string, unknown>
+    : {};
   const errors: Partial<Record<keyof RegisterPayload, string>> = {};
   const email = typeof input.email === "string" ? input.email.trim().toLowerCase() : "";
   const fullName = typeof input.fullName === "string" ? input.fullName.trim().replace(/\s+/g, " ") : "";
@@ -26,8 +28,7 @@ export function validateRegistration(payload: unknown): RegistrationValidation {
   const role = input.role;
   if (typeof role !== "string" || !["renter", "landlord"].includes(role)) errors.role = "Choose renter or landlord.";
   if (email.length > 254 || !emailPattern.test(email)) errors.email = "Enter a valid email address.";
-  const classes = [/[a-z]/, /[A-Z]/, /\d/, /[^a-zA-Z0-9]/].filter((pattern) => pattern.test(password)).length;
-  if (password.length < 8 || password.length > 72 || classes < 3) errors.password = "Use 8–72 characters with at least 3 of: uppercase, lowercase, number, symbol.";
+  if (!validatePasswordStrength(password).isValid) errors.password = "Use 8–72 characters with at least 3 of: uppercase, lowercase, number, symbol.";
   if (fullName.length < 2 || fullName.length > 100 || !namePattern.test(fullName)) errors.fullName = "Enter a name of 2–100 letters, spaces, hyphens, or periods.";
 
   let phoneNumber: string | undefined;

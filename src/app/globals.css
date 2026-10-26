@@ -6,8 +6,8 @@
 @import "../styles/finder/drawer.css";
 
 :root {
-  /* Coastal Sand / Warm Surface Canvas */
-  --background: #faf8f5;
+  /* White and cool slate surfaces */
+  --background: #ffffff;
   --foreground: #0f2742;
 
   /* Card Surfaces & Overlays */
@@ -16,26 +16,26 @@
   --popover: #ffffff;
   --popover-foreground: #0f2742;
 
-  /* Brand / Deep Maritime Navy */
-  --primary: #0f2742;
+  /* Blue-led brand and actions */
+  --primary: #2563eb;
   --primary-foreground: #ffffff;
-
-  /* Action / Tropical Emerald (CTAs, Bookings, Primary Interactions) */
-  --action: #047857;
+  --action: #2563eb;
   --action-foreground: #ffffff;
-  --action-hover: #065f46;
+  --action-hover: #1d4ed8;
 
-  /* Secondary / Coastal Reef Teal (Badges, Active Filters, Secondary Actions) */
-  --secondary: #0d9488;
+  /* Cyan secondary actions and blue-tinted selected surfaces */
+  --secondary: #0e7490;
   --secondary-foreground: #ffffff;
+  --accent: #eff6ff;
+  --accent-foreground: #1e40af;
 
-  /* Muted Surfaces & Captions */
-  --muted: #f3efe8;
-  --muted-foreground: #675a3e;
+  /* Semantic success remains green, separate from primary actions. */
+  --success: #15803d;
+  --success-foreground: #ffffff;
 
-  /* Accent Highlight Surfaces */
-  --accent: #f0fdfc;
-  --accent-foreground: #0f766e;
+  /* Cool slate muted surfaces and captions */
+  --muted: #f1f5f9;
+  --muted-foreground: #475569;
 
   /* Destructive / Sinulog Crimson */
   --destructive: #e11d48;
@@ -46,9 +46,9 @@
   --warning-foreground: #ffffff;
 
   /* Borders & Controls */
-  --border: #e6decb;
-  --input: #e6decb;
-  --ring: #047857;
+  --border: #dbe4ee;
+  --input: #cbd5e1;
+  --ring: #2563eb;
 
   /* Radius Base Token */
   --radius: 0.5rem;
@@ -57,10 +57,11 @@
   --sheet-collapsed-height: calc(env(safe-area-inset-bottom, 0px) + 88px);
   --sheet-mid-height: 48dvh;
   --sheet-expanded-height: calc(100dvh - env(safe-area-inset-top, 0px) - 16px);
+  --mobile-sheet-peek-height: 22dvh;
 }
 
 .dark {
-  /* Deep Visayan Sea / Navy Midnight Canvas */
+  /* Blue-led dark theme with cool slate surfaces */
   --background: #09182a;
   --foreground: #f0f4f9;
 
@@ -70,26 +71,24 @@
   --popover: #0f2742;
   --popover-foreground: #f0f4f9;
 
-  /* Brand / Highlight Navy */
-  --primary: #518ec3;
+  /* Blue primary/action and cyan secondary */
+  --primary: #60a5fa;
   --primary-foreground: #09182a;
+  --action: #2563eb;
+  --action-foreground: #ffffff;
+  --action-hover: #1d4ed8;
+  --secondary: #22d3ee;
+  --secondary-foreground: #083344;
+  --accent: #173b5f;
+  --accent-foreground: #bfdbfe;
 
-  /* Action / High-Contrast Emerald */
-  --action: #10b981;
-  --action-foreground: #022c22;
-  --action-hover: #34d399;
-
-  /* Secondary / Bright Coastal Teal */
-  --secondary: #2dd4bf;
-  --secondary-foreground: #042f2e;
+  /* Semantic success stays green, separate from blue actions. */
+  --success: #4ade80;
+  --success-foreground: #052e16;
 
   /* Muted Surfaces & Captions */
   --muted: #173b5f;
-  --muted-foreground: #b9d0e7;
-
-  /* Accent Highlight Surfaces */
-  --accent: #115e59;
-  --accent-foreground: #99f6ee;
+  --muted-foreground: #cbd5e1;
 
   /* Destructive / Sinulog Crimson */
   --destructive: #fb7185;
@@ -100,10 +99,12 @@
   --warning-foreground: #451a03;
 
   /* Borders & Controls */
-  --border: #1b4571;
-  --input: #1b4571;
-  --ring: #34d399;
+  --border: #244663;
+  --input: #315675;
+  --ring: #60a5fa;
 }
+
+.light { color-scheme: light; }
 
 @media (prefers-color-scheme: dark) {
   :root:not(.light) {
@@ -113,24 +114,26 @@
     --card-foreground: #f0f4f9;
     --popover: #0f2742;
     --popover-foreground: #f0f4f9;
-    --primary: #518ec3;
+    --primary: #60a5fa;
     --primary-foreground: #09182a;
-    --action: #10b981;
-    --action-foreground: #022c22;
-    --action-hover: #34d399;
-    --secondary: #2dd4bf;
-    --secondary-foreground: #042f2e;
+    --action: #2563eb;
+    --action-foreground: #ffffff;
+    --action-hover: #1d4ed8;
+    --secondary: #22d3ee;
+    --secondary-foreground: #083344;
+    --accent: #173b5f;
+    --accent-foreground: #bfdbfe;
+    --success: #4ade80;
+    --success-foreground: #052e16;
     --muted: #173b5f;
-    --muted-foreground: #b9d0e7;
-    --accent: #115e59;
-    --accent-foreground: #99f6ee;
+    --muted-foreground: #cbd5e1;
     --destructive: #fb7185;
     --destructive-foreground: #4c0519;
     --warning: #fbbf24;
     --warning-foreground: #451a03;
-    --border: #1b4571;
-    --input: #1b4571;
-    --ring: #34d399;
+    --border: #244663;
+    --input: #315675;
+    --ring: #60a5fa;
   }
 }
 
@@ -148,47 +151,47 @@
   --color-cebu-navy-900: #0f2742;
   --color-cebu-navy-950: #09182a;
 
-  /* Cebu Emerald (Lush Tropical Green & Primary Actions) */
-  --color-cebu-emerald-50: #ecfdf5;
-  --color-cebu-emerald-100: #d1fae5;
-  --color-cebu-emerald-200: #a7f3d0;
-  --color-cebu-emerald-300: #6ee7b7;
-  --color-cebu-emerald-400: #34d399;
-  --color-cebu-emerald-500: #10b981;
-  --color-cebu-emerald-600: #059669;
-  --color-cebu-emerald-700: #047857;
-  --color-cebu-emerald-800: #065f46;
-  --color-cebu-emerald-900: #064e3b;
-  --color-cebu-emerald-950: #022c22;
+  /* Blue action palette (legacy utility names retained for existing callers) */
+  --color-cebu-emerald-50: #eff6ff;
+  --color-cebu-emerald-100: #dbeafe;
+  --color-cebu-emerald-200: #bfdbfe;
+  --color-cebu-emerald-300: #93c5fd;
+  --color-cebu-emerald-400: #60a5fa;
+  --color-cebu-emerald-500: #3b82f6;
+  --color-cebu-emerald-600: #2563eb;
+  --color-cebu-emerald-700: #1d4ed8;
+  --color-cebu-emerald-800: #1e40af;
+  --color-cebu-emerald-900: #1e3a8a;
+  --color-cebu-emerald-950: #172554;
 
-  /* Cebu Teal (Coastal Reef & Active Pin Accents) */
-  --color-cebu-teal-50: #f0fdfc;
-  --color-cebu-teal-100: #ccfbf7;
-  --color-cebu-teal-200: #99f6ee;
-  --color-cebu-teal-300: #5eead8;
-  --color-cebu-teal-400: #2dd4bf;
-  --color-cebu-teal-500: #14b8a6;
-  --color-cebu-teal-600: #0d9488;
-  --color-cebu-teal-700: #0f766e;
-  --color-cebu-teal-800: #115e59;
-  --color-cebu-teal-900: #134e4a;
+  /* Cyan secondary and selected-state accents */
+  --color-cebu-teal-50: #ecfeff;
+  --color-cebu-teal-100: #cffafe;
+  --color-cebu-teal-200: #a5f3fc;
+  --color-cebu-teal-300: #67e8f9;
+  --color-cebu-teal-400: #22d3ee;
+  --color-cebu-teal-500: #06b6d4;
+  --color-cebu-teal-600: #0e7490;
+  --color-cebu-teal-700: #155e75;
+  --color-cebu-teal-800: #164e63;
+  --color-cebu-teal-900: #083344;
   --color-cebu-teal-950: #042f2e;
 
-  /* Cebu Sand (Warm Coastal Beach Neutrals & Limestone) */
-  --color-cebu-sand-50: #faf8f5;
-  --color-cebu-sand-100: #f3efe8;
-  --color-cebu-sand-200: #e6decb;
-  --color-cebu-sand-300: #d3c4a8;
-  --color-cebu-sand-400: #bbaa84;
-  --color-cebu-sand-500: #9f8e65;
-  --color-cebu-sand-600: #83734e;
-  --color-cebu-sand-700: #675a3e;
-  --color-cebu-sand-800: #534934;
-  --color-cebu-sand-900: #453c2d;
-  --color-cebu-sand-950: #262017;
+  /* Neutral white and cool slate surfaces */
+  --color-cebu-sand-50: #ffffff;
+  --color-cebu-sand-100: #f1f5f9;
+  --color-cebu-sand-200: #dbe4ee;
+  --color-cebu-sand-300: #cbd5e1;
+  --color-cebu-sand-400: #94a3b8;
+  --color-cebu-sand-500: #64748b;
+  --color-cebu-sand-600: #475569;
+  --color-cebu-sand-700: #334155;
+  --color-cebu-sand-800: #1e293b;
+  --color-cebu-sand-900: #0f172a;
+  --color-cebu-sand-950: #020617;
 
   /* Cebu Amber (Golden Hour, Verified Badges & Warnings) */
-  --color-cebu-amber-50: #fffbeb;
+  --color-cebu-amber-50: #f1f5f9;
   --color-cebu-amber-100: #fef3c7;
   --color-cebu-amber-200: #fde68a;
   --color-cebu-amber-300: #fcd34d;
@@ -226,6 +229,8 @@
   --color-action: var(--action);
   --color-action-foreground: var(--action-foreground);
   --color-action-hover: var(--action-hover);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
@@ -240,7 +245,7 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
 
-  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-sans: var(--font-manrope), ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 
   --radius-xs: calc(var(--radius) - 6px);
@@ -251,18 +256,18 @@
   --radius-2xl: calc(var(--radius) + 8px);
   --radius-3xl: calc(var(--radius) + 16px);
 
-  /* Mobile Map Viewport Z-Index Hierarchy */
+  /* Canonical map and overlay layers: 0 / 10 / 20 / 30 / 40 / 50 / 60 */
   --z-index-map-canvas: 0;
   --z-index-map-vector: 10;
   --z-index-map-pin: 20;
-  --z-index-map-pin-active: 25;
-  --z-index-map-controls: 30;
+  --z-index-map-pin-active: 20;
+  --z-index-map-controls: 10;
+  --z-index-fab: 30;
   --z-index-search-bar: 40;
-  --z-index-bottom-sheet: 50;
-  --z-index-fab: 60;
-  --z-index-modal-backdrop: 70;
-  --z-index-modal: 80;
-  --z-index-toast: 90;
+  --z-index-bottom-sheet: 20;
+  --z-index-modal-backdrop: 50;
+  --z-index-modal: 50;
+  --z-index-toast: 60;
 }
 
 /* Mobile Safe Area & Layout Utilities */
@@ -334,25 +339,19 @@ body {
   }
 }
 
-/* Portals live outside the finder shell, so carry its light/blue tokens explicitly. */
-dialog[data-surface="finder"] {
-  color-scheme: light;
-  --background: #ffffff;
-  --foreground: #18344d;
-  --card: #ffffff;
-  --card-foreground: #18344d;
-  --primary: #2563eb;
-  --primary-foreground: #ffffff;
-  --action: #2563eb;
-  --action-foreground: #ffffff;
-  --action-hover: #1d4ed8;
-  --muted: #f1f5f9;
-  --muted-foreground: #52677b;
-  --border: #d8e2ec;
-  --input: #d8e2ec;
-  --ring: #2563eb;
+/* Portalled finder surfaces inherit the root semantic theme. */
+:root { color-scheme: light; }
+.dark { color-scheme: dark; }
+
+[data-slot="dialog-content"][data-surface="finder"] {
+  color-scheme: inherit;
   background: var(--card);
   color: var(--card-foreground);
+}
+
+/* Keep portalled success toasts green while action buttons use blue. */
+body > [role="status"].fixed.bottom-4.right-4.border-action {
+  border-color: var(--success);
 }
 
 /* Original AbangCebu finder header overrides for Next-rendered markup. */

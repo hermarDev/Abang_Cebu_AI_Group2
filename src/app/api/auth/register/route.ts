@@ -3,6 +3,11 @@ import { createClient } from "@/lib/supabase/server";
 import { validateRegistration } from "@/lib/auth/validation";
 import type { RegisterSuccessResponse } from "@/types/auth";
 
+const registrationAccepted: RegisterSuccessResponse = {
+  success: true,
+  message: "If registration can proceed, check your email for the next steps.",
+};
+
 async function verifyTurnstile(token: string | undefined, request: Request) {
   if (process.env.NODE_ENV !== "production") return true;
   const secret = process.env.TURNSTILE_SECRET_KEY;
@@ -41,7 +46,8 @@ export async function POST(request: Request) {
       email,
       password,
       options: {
-        emailRedirectTo: `${origin}/auth/callback?next=${role === "landlord" ? "/landlord/onboarding" : "/search"}`,
+        // Both roles return to discovery until protected onboarding routes exist.
+        emailRedirectTo: `${origin}/auth/callback?next=/`,
         data: { role, full_name: fullName, ...(phoneNumber ? { phone_number: phoneNumber } : {}), ...(preferredLandmark ? { preferred_landmark: preferredLandmark } : {}) },
       },
     });
@@ -49,15 +55,13 @@ export async function POST(request: Request) {
       const mapped = mapSupabaseAuthError(error, {
         fallbackMessage: "We could not create your account. Check your details and try again.",
       });
+      if (mapped.body.error.code === "EMAIL_ALREADY_REGISTERED") {
+        return NextResponse.json(registrationAccepted, { status: 201 });
+      }
       return NextResponse.json(mapped.body, { status: mapped.status });
     }
 
-    const response: RegisterSuccessResponse = {
-      success: true,
-      data: { user: { id: data.user.id, email: data.user.email ?? email, role, fullName, phoneNumber: phoneNumber ?? null, isEmailConfirmed: Boolean(data.user.email_confirmed_at), createdAt: data.user.created_at }, requiresEmailVerification: !data.user.email_confirmed_at, redirectUrl: `/auth/verify-request?email=${encodeURIComponent(email)}` },
-      message: "Account created successfully. Please check your email to activate your account.",
-    };
-    return NextResponse.json(response, { status: 201 });
+    return NextResponse.json(registrationAccepted, { status: 201 });
   } catch {
     return NextResponse.json({ success: false, error: { code: "REGISTRATION_FAILED", message: "We could not create your account. Try again later." } }, { status: 500 });
   }

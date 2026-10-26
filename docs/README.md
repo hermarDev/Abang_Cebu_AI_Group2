@@ -52,8 +52,8 @@ docs/
 ├── architecture/                            # System Boundaries & Framework Standards
 │   ├── what-is-abangcebu-ai.md              # Official product vision & platform boundaries
 │   ├── client-server-boundaries.md          # Next.js Server vs Client Components governance
-│   ├── next15-guidelines.md                 # Modern App Router conventions & caching
-│   ├── project-structure.md                 # Monorepo directory structure & conventions
+│   ├── next15-guidelines.md                 # Next.js 16, React 19, and Supabase SSR standards (legacy filename)
+│   ├── project-structure.md                 # Current project directory layout and module boundaries
 │   └── git-workflow.md                      # SCRUM-49: Branching, PRs, and commit guidelines
 │
 ├── testing/                                 # Quality Assurance & Verification Test Plans

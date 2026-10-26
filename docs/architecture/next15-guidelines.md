@@ -1,7 +1,7 @@
-# Next.js 15 & React 19 Development Guidelines
+# Next.js 16 & React 19 Development Guidelines
 
-## 1. Asynchronous Request APIs (Breaking Change)
-In Next.js 15, request-specific dynamic data (`params`, `searchParams`, `cookies()`, and `headers()`) are asynchronous and must be awaited.
+## 1. Asynchronous Request APIs
+In Next.js 16, request-specific dynamic data (`params`, `searchParams`, `cookies()`, and `headers()`) is asynchronous and must be awaited.
 
 ### `params` and `searchParams` in Page Props
 ```tsx
@@ -10,7 +10,7 @@ export default function Page({ params }: { params: { id: string } }) {
   return <div>Listing {params.id}</div>;
 }
 
-// ✅ Next.js 15 Syntax (Required)
+// ✅ Next.js 16 Syntax (Required)
 export default async function Page({
   params,
   searchParams,
@@ -30,7 +30,7 @@ export default async function Page({
 import { cookies, headers } from 'next/headers';
 
 export async function ServerComponent() {
-  // ✅ Must await in Next.js 15
+  // ✅ Must await in Next.js 16
   const cookieStore = await cookies();
   const token = cookieStore.get('auth-token')?.value;
 
@@ -41,15 +41,21 @@ export async function ServerComponent() {
 
 ---
 
-## 2. Fetch Caching Defaults (Breaking Change)
+## 2. Fetch Caching Defaults
 - In Next.js 14, `fetch()` calls were cached by default (`force-cache`).
-- In **Next.js 15, `fetch()` calls are UNCACHED by default** (`cache: 'no-store'`).
+- In Next.js 16, the default is `auto no cache`: in development, fetches normally run when the route is rendered; during `next build`, fetches for routes that can be statically prerendered may run at build time. If the route uses a request-time API, Next.js fetches the resource on each request.
+- Use `cache: 'no-store'` to bypass the framework cache on every request; use `cache: 'force-cache'` for a persistent cached response.
 
 ```tsx
-// Uncached by default in Next.js 15:
+// Default: auto no cache (Next.js 16)
 const liveData = await fetch('https://api.example.com/listings');
 
-// If you want static caching at build/request time:
+// Explicitly uncached on every request:
+const freshData = await fetch('https://api.example.com/live-listings', {
+  cache: 'no-store',
+});
+
+// Explicit persistent caching:
 const staticData = await fetch('https://api.example.com/cebu-zones', {
   cache: 'force-cache',
 });
@@ -63,7 +69,7 @@ const revalidatedData = await fetch('https://api.example.com/prices', {
 ---
 
 ## 3. React 19 Standards
-Next.js 15 ships with React 19.
+Next.js 16 ships with React 19.
 
 ### Direct `ref` Support (No `forwardRef` needed)
 In React 19, `ref` is passed directly as a standard prop to functional components:
@@ -84,8 +90,8 @@ export function Input({ ref, ...props }: InputProps) {
 
 ---
 
-## 4. Supabase SSR Integration with Next.js 15
-Because Next.js 15 makes `cookies()` asynchronous, Supabase's server client factory must await the cookie store before defining `getAll()` and `setAll()`:
+## 4. Supabase SSR Integration with Next.js 16
+Because Next.js 16 makes `cookies()` asynchronous, Supabase's server client factory must await the cookie store before defining `getAll()` and `setAll()`:
 
 ```typescript
 import { createServerClient } from '@supabase/ssr';

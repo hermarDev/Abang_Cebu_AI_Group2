@@ -25,7 +25,7 @@ Comprehensive architectural guidelines, specifications, and QA test matrices are
 ### 🏛️ System Architecture & Framework Standards
 - **[Platform Vision & System Boundaries](./docs/architecture/what-is-abangcebu-ai.md)**: High-level product vision, actor capabilities, and technical boundaries.
 - **[Project Directory Architecture & Ownership](./docs/architecture/project-structure.md)**: Directory tree conventions, module responsibilities, and team boundaries.
-- **[Next.js 16 & React 19 Guidelines](./docs/architecture/next15-guidelines.md)**: Asynchronous `cookies()` / `params`, caching defaults (`no-store`), and Supabase SSR integration.
+- **[Next.js 16 & React 19 Guidelines](./docs/architecture/next15-guidelines.md)**: Async request APIs, fetch caching behavior, and Supabase SSR integration.
 - **[Client vs. Server Component Boundaries](./docs/architecture/client-server-boundaries.md)**: WebGL isolation pattern for MapLibre GL, preventing SSR memory leaks, and RSC data flow.
 - **[Git Branching & PR Collaboration Strategy](./docs/architecture/git-workflow.md)**: Team branch standards (`feature/*`, `fix/*`), PR checklist template, and peer review workflow.
 - **[Team Contribution & Forking Workflow](./CONTRIBUTING.md)**: Step-by-step guide for forking, branching, and submitting Pull Requests for review.
@@ -91,8 +91,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 ```bash
 pnpm dev --turbopack
 ```
-Open [http://localhost:3000](http://localhost:3000) in your browser.
-Visit [http://localhost:3000/map](http://localhost:3000/map) to view the interactive spatial Map Explorer centered on Cebu City.
+Open [http://localhost:3000](http://localhost:3000) to view the interactive spatial Map Explorer centered on Cebu City; it is rendered on the home route (`/`).
 
 ---
 

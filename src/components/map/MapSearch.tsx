@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState, type KeyboardEvent } from "react";
-import { Search } from "lucide-react";
+import { Search, X } from "lucide-react";
 import { usePlaceLookup } from "@/lib/search/use-place-lookup";
 import type { PlaceResult } from "@/lib/search/places";
 import styles from "./MapSearch.module.css";
@@ -16,15 +16,16 @@ export default function MapSearch({ onSelect, disabled, className }: MapSearchPr
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
+  const composingRef = useRef(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const { status, places, error, search, reset } = usePlaceLookup();
-  const showOptions = open && query.trim().length >= 3;
+  const showOptions = open && query.trim().length >= 3 && status !== "idle";
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (disabled) return;
     setOpen(true);
-    void search(query);
+    if (!composingRef.current) void search(query);
   };
 
   const select = (place: PlaceResult) => {
@@ -35,16 +36,29 @@ export default function MapSearch({ onSelect, disabled, className }: MapSearchPr
     inputRef.current?.focus();
   };
 
+  const clearInput = () => {
+    setQuery("");
+    setOpen(false);
+    setActiveIndex(-1);
+    reset();
+    inputRef.current?.focus();
+  };
+
   const onKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    // Block keyboard shortcuts during IME composition
+    if (composingRef.current || event.nativeEvent.isComposing) return;
     if (event.key === "Escape") {
-      setOpen(false);
-      reset();
+      if (open) {
+        setOpen(false);
+        reset();
+        setActiveIndex(-1);
+      }
       return;
     }
     if (event.key === "ArrowDown" && places.length > 0) {
       event.preventDefault();
       setOpen(true);
-      setActiveIndex((current) => (current + 1) % places.length);
+      setActiveIndex((current) => (current < 0 ? 0 : (current + 1) % places.length));
     }
     if (event.key === "ArrowUp" && places.length > 0) {
       event.preventDefault();
@@ -59,20 +73,23 @@ export default function MapSearch({ onSelect, disabled, className }: MapSearchPr
   return (
     <div className={className ?? styles.searchRoot}>
       <form className={styles.searchForm} role="search" onSubmit={handleSearchSubmit}>
-        <Search className={styles.searchIcon} aria-hidden="true" size={19} />
         <input
           ref={inputRef}
           className={styles.searchInput}
-          type="search"
+          type="text"
+          enterKeyHint="search"
+          autoComplete="off"
           role="combobox"
           aria-label="Search places"
           aria-autocomplete="list"
-          aria-expanded={showOptions && places.length > 0}
+          aria-expanded={showOptions}
           aria-controls="place-search-results"
           aria-activedescendant={activeIndex >= 0 ? `place-option-${activeIndex}` : undefined}
           placeholder="Search places or an address"
           value={query}
           disabled={disabled}
+          onCompositionStart={() => { composingRef.current = true; }}
+          onCompositionEnd={() => { composingRef.current = false; }}
           onChange={(event) => {
             setQuery(event.target.value);
             setOpen(false);
@@ -82,17 +99,27 @@ export default function MapSearch({ onSelect, disabled, className }: MapSearchPr
           onFocus={() => setOpen(true)}
           onKeyDown={onKeyDown}
         />
-        <button className={styles.searchButton} type="submit" disabled={disabled || query.trim().length < 3}>
-          Search
+        {query.length > 0 && (
+          <button className={styles.clearButton} type="button" aria-label="Clear search" onClick={clearInput}>
+            <X size={16} aria-hidden="true" />
+          </button>
+        )}
+        <button className={styles.searchButton} type="submit" aria-label="Search" disabled={disabled || query.trim().length < 3}>
+          <Search size={20} aria-hidden="true" />
         </button>
       </form>
 
       {showOptions && (
-        <div className={styles.resultPanel}>
-          {status === "loading" && <p className={styles.resultMessage} role="status">Searching places…</p>}
-          {status === "error" && <p className={styles.resultError} role="alert">{error}</p>}
+        <div className={styles.resultPanel} aria-live="polite">
+          {status === "loading" && <p id="place-search-results" className={styles.resultMessage} role="status">Searching places…</p>}
+          {status === "error" && (
+            <div id="place-search-results" className={styles.resultError} role="alert">
+              <p>{error}</p>
+              <button type="button" className={styles.retryButton} onClick={() => void search(query)}>Retry</button>
+            </div>
+          )}
           {status === "ready" && places.length === 0 && (
-            <p className={styles.resultMessage} role="status">No places found. Try a nearby landmark.</p>
+            <p id="place-search-results" className={styles.resultMessage} role="status">No matching places in Cebu. Try a nearby landmark.</p>
           )}
           {places.length > 0 && (
             <ul id="place-search-results" className={styles.resultList} role="listbox" aria-label="Place search results">

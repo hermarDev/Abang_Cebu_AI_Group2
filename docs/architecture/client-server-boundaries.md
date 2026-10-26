@@ -1,15 +1,15 @@
 # Client vs. Server Component Boundaries & MapLibre Integration
 
-## 1. Fundamentals: React Server Components (RSC) in Next.js 15
-Next.js 15 uses the App Router where all components are Server Components by default.
+## 1. Fundamentals: React Server Components (RSC) in Next.js 16
+Next.js 16 uses the App Router where all components are Server Components by default.
 
 | Dimension | Server Component (Default) | Client Component (`'use client'`) |
 | :--- | :--- | :--- |
-| **Execution** | Runs exclusively on the Node.js/Edge runtime | Pre-rendered to HTML on server, hydrated in browser |
-| **Data Access** | Direct PostgreSQL queries, private API keys | Read serialized props, call Server Actions, or use browser SDK |
+| **Execution** | Server Components run in the configured server runtime; Route Handlers use Node.js by default unless configured otherwise | Pre-rendered to HTML on server, hydrated in browser |
+| **Data Access** | Query through server integrations/Route Handlers; keep privileged keys server-side | Read serialized props, call Route Handlers or Server Actions, or use browser SDK |
 | **Browser APIs** | ❌ No `window`, `document`, WebGL, or localStorage | ✅ Full access to DOM, canvas, and browser events |
 | **React Hooks** | ❌ No `useState`, `useEffect`, `useRef` | ✅ All standard React hooks supported |
-| **Client Bundle**| **0 KB** JavaScript added to client | Adds component code to browser JS bundle |
+| **Client Bundle**| No Server Component JavaScript is shipped for that component; it may still serialize rendered output | Adds component code to browser JS bundle |
 
 ---
 
@@ -29,30 +29,33 @@ ReferenceError: window is not defined
 ### The Architectural Solution
 1. **Dynamic Client Quarantine (`next/dynamic`)**:
    Wrap the map component in a dynamic loader configured with `{ ssr: false }`. Next.js skips server-side evaluation entirely and only mounts the component once the client DOM is ready.
-2. **Server-Side Data Preparation**:
-   The Server Component fetches listing coordinates and metadata, strips sensitive data, and passes plain serialized arrays/GeoJSON across the boundary as props.
+2. **Rental Data Request**:
+   The Server Component renders the client finder shell. The shell requests `GET /api/rentals`; the Route Handler reads published rentals through the server Supabase client, maps and validates records, and returns serialized rental data. The API response is fetched with `cache: "no-store"`; it is not passed from the page as props.
 
 ```mermaid
 flowchart TD
-    subgraph ServerSide["Server Component Boundary (SSR)"]
-        Page["src/app/map/page.tsx (Server Component)"]
-        Query["src/server/queries/get-listings.ts"]
+    subgraph ServerSide["Server Components & Route Handler"]
+        Page["src/app/page.tsx (Server Component)"]
+        API["src/app/api/rentals/route.ts"]
+        Query["src/server/rentals/map-listing.ts"]
+        SupabaseClient["src/lib/supabase/server.ts"]
         SupabaseDB[("Supabase PostgreSQL DB")]
-        
-        Page --> Query
-        Query --> SupabaseDB
-        SupabaseDB --> Query
-        Query -->|Plain JSON Data Array| Page
+
+        API --> SupabaseClient
+        SupabaseClient --> SupabaseDB
+        SupabaseDB --> API
+        API --> Query
+        Query -->|Validated rental records| API
     end
 
-    subgraph ClientBoundary["Client Component Boundary ('use client')"]
-        DynamicLoader["src/components/map/index.tsx (next/dynamic ssr:false)"]
-        Container["src/components/map/map-container.tsx"]
-        MapLibreCanvas["WebGL Canvas Instance (MapLibre GL)"]
-        
-        Page -->|Props: markers[]| DynamicLoader
-        DynamicLoader --> Container
-        Container --> MapLibreCanvas
+    subgraph ClientBoundary["Client Components ('use client')"]
+        Finder["src/features/map/RestoredFinderShell.tsx"]
+        Page -->|renders| Finder
+        Finder -->|GET /api/rentals| API
+        API -->|JSON rentals| Finder
+        Finder -->|selected place, filters, center| Loader["src/components/map/MapCanvasLoader.tsx"]
+        Loader -->|dynamic import, ssr:false| Canvas["src/components/map/MapCanvas.tsx"]
+        Canvas --> MapLibreCanvas["WebGL Canvas Instance (MapLibre GL)"]
     end
 ```
 
@@ -100,7 +103,7 @@ export function MapContainer() {
 ---
 
 ## 4. Boundaries for Supabase Operations
-- **Data Fetching for Pages**: Always fetch inside Server Components using `src/lib/supabase/server.ts`. This benefits from server caching, prevents exposing DB credentials, and keeps client bundles lean.
+- **Data Fetching**: Use the server client in Server Components, Server Actions, and Route Handlers to keep privileged access and queries off the client bundle. Using the server client does not automatically cache Supabase query results; configure caching explicitly only when the route and data allow it.
 - **Client Interactions (Realtime / Auth triggers)**: Use `src/lib/supabase/client.ts` inside Client Components (`'use client'`).
 
 ---

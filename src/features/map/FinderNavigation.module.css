@@ -1,0 +1,271 @@
+.dialog {
+  --nav-blue: #1d4ed8;
+  --nav-selected: #eff6ff;
+  position: fixed;
+  inset: 0 auto 0 0;
+  width: min(320px, calc(100vw - 32px));
+  max-width: none;
+  height: 100dvh;
+  max-height: 100dvh;
+  overflow: hidden;
+  transform: none;
+  translate: 0 0 !important;
+  border-radius: 0 12px 12px 0;
+}
+
+.dialog > div {
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+  padding: 0;
+}
+
+.dialog > div > header {
+  flex: none;
+  margin: 0;
+  height: 56px;
+  padding: max(8px, env(safe-area-inset-top)) 16px 8px;
+}
+
+.dialog > div > header > button {
+  top: max(8px, env(safe-area-inset-top));
+  right: 12px;
+}
+
+.dialog :global([data-radix-dialog-title]) {
+  font-size: 1rem;
+}
+
+.content {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 16px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0 16px max(16px, env(safe-area-inset-bottom));
+  color: var(--card-foreground);
+  color-scheme: light;
+}
+
+:global(.dark) .content {
+  color-scheme: dark;
+}
+
+.brandRow {
+  display: flex;
+  min-height: 52px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 0 4px 12px;
+}
+
+.logo {
+  display: block;
+  width: min(140px, 100%);
+  height: auto;
+}
+
+.mainNavigation {
+  display: grid;
+  gap: 4px;
+}
+
+.navItem {
+  display: flex;
+  width: 100%;
+  min-height: 44px;
+  align-items: center;
+  gap: 12px;
+  border: 0;
+  border-radius: 8px;
+  padding: 8px 12px;
+  background: transparent;
+  color: var(--card-foreground);
+  cursor: pointer;
+  font: inherit;
+  font-size: 14px;
+  text-align: left;
+  text-decoration: none;
+}
+
+.navItem:hover,
+.navItem:focus-visible {
+  background: var(--accent);
+}
+
+.currentPage {
+  background: var(--nav-selected);
+  color: var(--nav-blue);
+  font-weight: 700;
+}
+
+.support {
+  display: grid;
+  gap: 4px;
+  border-top: 1px solid var(--border);
+  padding-top: 12px;
+}
+
+.support h2 {
+  margin: 0 0 4px 12px;
+  color: var(--muted-foreground);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.footer {
+  display: grid;
+  gap: 12px;
+  margin-top: auto;
+  border-top: 1px solid var(--border);
+  padding-top: 12px;
+}
+
+.appearance {
+  min-width: 0;
+  margin: 0;
+  border: 0;
+  padding: 0;
+}
+
+.appearance legend {
+  margin-bottom: 8px;
+  color: var(--muted-foreground);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.appearanceOptions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+  border-radius: 8px;
+  padding: 4px;
+  background: var(--muted);
+}
+
+.appearanceOption {
+  position: relative;
+  display: grid;
+  min-height: 44px;
+  place-items: center;
+  border-radius: 6px;
+  color: var(--muted-foreground);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.appearanceOption input {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.appearanceOption:has(input:checked) {
+  background: var(--nav-selected);
+  color: var(--nav-blue);
+}
+
+.appearanceOption:has(input:focus-visible) {
+  outline: 3px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.accountAction {
+  display: flex;
+  min-height: 50px;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  padding: 8px 12px;
+  background: #2563eb;
+  color: #ffffff;
+  text-decoration: none;
+  justify-content: center;
+  cursor: pointer;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 650;
+  text-align: left;
+}
+
+.accountAction:hover,
+.accountAction:focus-visible {
+  background: #1d4ed8;
+}
+
+.dialog :is(button, a, input):focus-visible {
+  outline: 3px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.dialog svg {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  stroke-width: 1.75;
+}
+
+:global(.dark) .dialog {
+  --nav-blue: #93c5fd;
+  --nav-selected: #172f50;
+}
+
+.mapButton {
+  position: absolute;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--card-foreground);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.mapButton:hover { background: var(--accent); }
+.brandRow p { margin: 0; color: var(--muted-foreground); font-size: 13px; }
+.faq { padding: 4px 12px; color: var(--muted-foreground); font-size: 13px; }
+.faq h3 { margin: 8px 0 4px; color: var(--card-foreground); font-size: inherit; font-weight: 600; }
+.faq p { margin: 0 0 8px; }
+.content > * { flex-shrink: 0; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .dialog[data-state="open"] { animation: drawer-enter 160ms ease-out; }
+  .dialog[data-state="closed"] { animation: drawer-exit 120ms ease-in; }
+}
+@keyframes drawer-enter { from { transform: translateX(-100%); } to { transform: translateX(0); } }
+@keyframes drawer-exit { from { transform: translateX(0); } to { transform: translateX(-100%); } }
+
+@media (max-height: 520px) {
+  .content {
+    gap: 8px;
+  }
+
+  .brandRow {
+    min-height: 40px;
+    padding-bottom: 8px;
+  }
+
+  .footer {
+    gap: 8px;
+    padding-top: 8px;
+  }
+
+  .appearanceOption,
+  .accountAction {
+    min-height: 44px;
+  }
+}

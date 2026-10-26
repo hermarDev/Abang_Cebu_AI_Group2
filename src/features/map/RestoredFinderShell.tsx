@@ -1,95 +1,34 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { FinderNavigation } from "./FinderNavigation";
+import { useFinderTheme } from "./useFinderTheme";
 import type { RentalResult } from "@/contracts/preview";
 import { SAMPLE_RENTALS } from "@/features/listings/preview-rentals";
-import { formatPrice, searchPreviewRentals } from "@/features/rentals/search";
-import { DEFAULT_RENTAL_FILTERS, type RentalFilters, type PropertyType } from "@/contracts/rental-filters";
+import { searchPreviewRentals } from "@/features/rentals/search";
+import { DEFAULT_RENTAL_FILTERS, type RentalFilters } from "@/contracts/rental-filters";
+import { Skeleton } from "@/components/ui/Skeleton";
 import { RentalFilterDialog } from "@/features/rentals/RentalFilterDialog";
 import Image from "next/image";
 import Link from "next/link";
-import { Building2, Bookmark, Compass, HelpCircle, Menu, MessageCircle, PlusCircle, Send, User, X } from "lucide-react";
-import { AccountAccessContent } from "@/components/auth/AccountAccessContent";
+import { FinderAssistant } from "./FinderAssistant";
+import { Menu, User } from "lucide-react";
+import { AccountAccessContent, type AccountMode } from "@/components/auth/AccountAccessContent";
 import MapSearch from "@/components/map/MapSearch";
 import type { PlaceResult } from "@/lib/search/places";
 import MapCanvasLoader from "@/components/map/MapCanvasLoader";
 import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
+import { QuickFilters } from "./FinderQuickFilters";
+import { RentalCard } from "@/features/listings/RentalCard";
 import styles from "./RestoredFinderShell.module.css";
+
+const sheetPositions = ["collapsed", "half", "expanded"] as const;
+const sheetHeights = ["calc(64px + env(safe-area-inset-bottom))", "min(55dvh, calc(100dvh - 22rem))", "calc(100dvh - max(44px, env(safe-area-inset-bottom)))"];
 
 const sampleRentals: RentalResult[] = SAMPLE_RENTALS.map((rental) => ({ ...rental, distanceMeters: null }));
 
-const propertyTypes: { value: PropertyType; label: string }[] = [
-  { value: "private_room", label: "Private room" }, { value: "bedspace", label: "Bedspace" },
-  { value: "boarding_house", label: "Boarding house" }, { value: "shared_room", label: "Shared room" },
-  { value: "studio", label: "Studio" }, { value: "apartment", label: "Apartment" },
-  { value: "condo", label: "Condo" }, { value: "house", label: "House" },
-];
-
-const budgetOptions: { value: number | null; label: string }[] = [
-  { value: null, label: "Any maximum" }, { value: 2500, label: "Up to ₱2,500" },
-  { value: 3500, label: "Up to ₱3,500" }, { value: 5000, label: "Up to ₱5,000" },
-  { value: 8000, label: "Up to ₱8,000" },
-];
-
-function QuickFilters({ filters, onChange, onOpenFilters, mapRadius, onRadiusChange }: { filters: RentalFilters; onChange: (filters: RentalFilters) => void; onOpenFilters: () => void; mapRadius: number; onRadiusChange: (radius: number) => void }) {
-  const [budgetOpen, setBudgetOpen] = useState(false);
-  const [typeOpen, setTypeOpen] = useState(false);
-  const [budgetDraft, setBudgetDraft] = useState<number | null>(filters.maxPrice ?? null);
-  const [typeDraft, setTypeDraft] = useState<PropertyType[]>(filters.propertyTypes);
-  const activeCount = Object.entries(filters).filter(([key, value]) => {
-    if (key === "propertyTypes" || key === "furnishingTypes") return Array.isArray(value) && value.length > 0;
-    if (key === "minPrice" || key === "maxPrice") return value !== null && value !== undefined;
-    return value === true || (value !== null && value !== undefined && value !== false && value !== "any");
-  }).length;
-  const budgetSummary = filters.maxPrice == null ? "Any" : filters.maxPrice % 1000 === 0 ? `≤ ₱${filters.maxPrice / 1000}k` : `≤ ₱${(filters.maxPrice / 1000).toFixed(1)}k`;
-  const typeSummary = filters.propertyTypes.length === 0 ? "Any" : filters.propertyTypes.length === 1 ? propertyTypes.find((item) => item.value === filters.propertyTypes[0])?.label : `${filters.propertyTypes.length} types`;
-
-  return <div className={styles.quickFilters} role="group" aria-label="Rental search filters">
-    <label className={styles.areaControl}><span>Area</span><select aria-label="Search area radius" value={mapRadius} onChange={(event) => onRadiusChange(Number(event.target.value))}><option value={1}>1 km radius</option><option value={2}>2 km radius</option><option value={5}>5 km radius</option></select></label>
-    <button type="button" onClick={() => { setBudgetDraft(filters.maxPrice ?? null); setBudgetOpen(true); }} aria-label={`Budget, ${filters.maxPrice == null ? "any maximum" : `up to ${filters.maxPrice.toLocaleString("en-PH")} pesos`}`}><span>Budget</span><b>{budgetSummary}</b></button>
-    <button type="button" onClick={() => { setTypeDraft(filters.propertyTypes); setTypeOpen(true); }} aria-label={`Property type, ${typeSummary}`}><span>Type</span><b>{typeSummary}</b></button>
-    <button type="button" onClick={onOpenFilters} aria-label={`All filters${activeCount ? `, ${activeCount} active` : ""}`}><span>Filters</span><b>{activeCount || "All"}</b></button>
-    <Modal surface="finder" open={budgetOpen} onClose={() => setBudgetOpen(false)} title="Maximum monthly rent" description="Choose a budget ceiling for your search." className={styles.choiceDialog}>
-      <form onSubmit={(event) => { event.preventDefault(); onChange({ ...filters, maxPrice: budgetDraft }); setBudgetOpen(false); }}>
-        <fieldset className={styles.choiceList}><legend className="sr-only">Monthly rent budget</legend>{budgetOptions.map((option) => <label key={option.value ?? "any"}><input type="radio" name="budget" checked={budgetDraft === option.value} onChange={() => setBudgetDraft(option.value)} /><span>{option.label}</span></label>)}</fieldset>
-        <div className={styles.modalActions}><Button type="button" variant="outline" onClick={() => setBudgetOpen(false)}>Cancel</Button><Button type="submit">Apply budget</Button></div>
-      </form>
-    </Modal>
-    <Modal surface="finder" open={typeOpen} onClose={() => setTypeOpen(false)} title="Property type" description="Select one or more rental categories." className={styles.choiceDialog}>
-      <form onSubmit={(event) => { event.preventDefault(); onChange({ ...filters, propertyTypes: typeDraft }); setTypeOpen(false); }}>
-        <fieldset className={styles.typeList}><legend className={styles.legendRow}>Rental types <button type="button" className={styles.clearButton} onClick={() => setTypeDraft([])}>Clear</button></legend>{propertyTypes.map((item) => <label key={item.value}><input type="checkbox" checked={typeDraft.includes(item.value)} onChange={(event) => setTypeDraft((current) => event.target.checked ? [...current, item.value] : current.filter((value) => value !== item.value))} /><span>{item.label}</span></label>)}</fieldset>
-        <div className={styles.modalActions}><Button type="button" variant="outline" onClick={() => setTypeOpen(false)}>Cancel</Button><Button type="submit">Apply types</Button></div>
-      </form>
-    </Modal>
-  </div>;
-}
-
-function GuestDrawer({ open, onClose, onAccount }: { open: boolean; onClose: () => void; onAccount: () => void }) {
-  if (!open) return null;
-  return <Modal surface="finder" open={open} onClose={onClose} title="AbangCebu Menu" className={styles.drawerDialog}><aside className={styles.drawer}>
-    <button className={styles.closeButton} onClick={onClose} aria-label="Close menu"><X size={20} /></button><Image src="/icons/main_Logo.png" alt="AbangCebu" width={140} height={41} className={styles.drawerLogo} />
-    <nav aria-label="Main menu"><p className={styles.sectionLabel}>EXPLORE</p><Link href="/" className={styles.navItem} onClick={onClose}><Compass size={18} />Find rentals</Link>
-      <button className={styles.navItem} onClick={onAccount}><Bookmark size={18} aria-hidden="true" />Saved rentals</button>
-      <p className={styles.sectionLabel}>FOR LANDLORDS</p><button className={styles.navItem} onClick={() => { onClose(); onAccount(); }}><PlusCircle size={18} />List your property</button>
-      <p className={styles.sectionLabel}>SUPPORT</p><a href="mailto:support@abangcebu.ai" className={styles.navItem}><HelpCircle size={18} />Help &amp; FAQs</a></nav>
-    <div className={styles.guestCard}><div><User size={18} /><b>Guest account</b></div><button onClick={onAccount}>Sign in / Create account</button><small>Free for renters and landlords in Cebu.</small></div>
-  </aside></Modal>;
-}
-
-function Assistant() {
-  const [open, setOpen] = useState(false);
-  return <div className={styles.assistant}>
-    {open && <section className={styles.chatPanel} aria-label="AbangCebu assistant">
-      <header className={styles.chatHeader}><Image src="/icons/chatbot_logo.png" alt="" width={36} height={36} /><div><b>AbangCebu assistant</b><span>Rental chat is not connected</span></div><button onClick={() => setOpen(false)} aria-label="Close chat"><X size={18} /></button><button onClick={() => setOpen(false)} aria-label="Reset chat"><span aria-hidden="true">↻</span></button></header>
-      <div className={styles.chatMessages}><p>Hi! I can help you look for a place in Cebu. Live rental recommendations will appear once the rental service is available.</p><div className={styles.chatNotice} role="status">AI chat service is not connected. No properties are recommended.</div><div className={styles.suggestions}><button disabled>Find a room under ₱3,500</button><button disabled>Show rentals near IT Park</button></div></div>
-      <form className={styles.chatComposer} onSubmit={(event) => event.preventDefault()}><label className="sr-only" htmlFor="assistant-message">Message AbangCebu</label><input id="assistant-message" placeholder="Ask about rentals…" disabled /><button aria-label="Send message" disabled><Send size={18} /></button></form>
-    </section>}
-    <button className={styles.chatLauncher} aria-label="Ask AbangCebu" onClick={() => setOpen((value) => !value)}><Image src="/icons/chatbot_logo.png" alt="" width={56} height={56} /><MessageCircle size={19} aria-hidden="true" /></button>
-  </div>;
-}
-
-export function RestoredFinderShell({ rentalStatus: statusOverride }: { rentalStatus?: "loading" | "error" | "ready" }) {
+export function RestoredFinderShell({ rentalStatus: statusOverride, initialAccountMode, initialAccountOpen = false, isRecovery = false, statusMessage: initialStatusMessage, initialErrorMessage, authenticated = false }: { authenticated?: boolean; rentalStatus?: "loading" | "error" | "ready"; initialAccountMode?: AccountMode; initialAccountOpen?: boolean; isRecovery?: boolean; statusMessage?: string; initialErrorMessage?: string }) {
   const [inventory, setInventory] = useState<{ status: "loading" | "error" | "ready"; rentals: RentalResult[] }>({ status: "loading", rentals: [] });
   const [sampleMode, setSampleMode] = useState(false);
   const [request, setRequest] = useState(0);
@@ -112,46 +51,127 @@ export function RestoredFinderShell({ rentalStatus: statusOverride }: { rentalSt
     void loadRentals();
     return () => controller.abort();
   }, [statusOverride, request]);
-  const rentalStatus = sampleMode ? "ready" : statusOverride ?? inventory.status;
-  const rentals = sampleMode ? sampleRentals : statusOverride === undefined ? inventory.rentals : [];
+  const samplesAllowed = process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test";
+  const usingSamples = samplesAllowed && sampleMode;
+  const rentalStatus = usingSamples ? "ready" : statusOverride ?? inventory.status;
+  const rentals = usingSamples ? sampleRentals : statusOverride === undefined ? inventory.rentals : [];
   const [filters, setFilters] = useState<RentalFilters>(DEFAULT_RENTAL_FILTERS);
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [accountOpen, setAccountOpen] = useState(false);
-  const [accountMode, setAccountMode] = useState<"sign-in" | "sign-up">("sign-in");
+  const [helpOpen, setHelpOpen] = useState(false);
+  const [accountOpen, setAccountOpen] = useState(initialAccountOpen);
+  const [accountMode, setAccountMode] = useState<AccountMode>(initialAccountMode ?? "sign-in");
   const [mapRadius, setMapRadius] = useState(2);
   const [locationQuery, setLocationQuery] = useState("");
+  const [selectedRentalId, setSelectedRentalId] = useState<string | null>(null);
   const [selectedPlace, setSelectedPlace] = useState<PlaceResult | null>(null);
   const [searchCenter, setSearchCenter] = useState<[number, number]>([123.8854, 10.3157]);
   const visibleRentals = searchPreviewRentals(rentals, { ...filters, radiusKm: mapRadius }, "", searchCenter);
-  const title = rentalStatus === "loading" ? "Loading rentals…" : rentalStatus === "error" ? "Rental inventory unavailable" : "No verified rentals found";
-  const statusMessage = rentalStatus === "loading" ? "Checking the configured rental data service…" : rentalStatus === "error" ? "Live listings could not be loaded. No sample properties are shown." : "No live rental records match your search area.";
+  const [desktop, setDesktop] = useState(false);
+  const [sheetIndex, setSheetIndex] = useState(0);
+  const index = useRef(sheetIndex);
+  const sheetDrag = useRef<{ id: number; y: number } | null>(null);
+  const [resultsHidden, setResultsHidden] = useState(false);
+  const { preference, resolvedTheme: activeTheme, setPreference } = useFinderTheme();
+  const menuTrigger = useRef<HTMLButtonElement>(null);
+  const mapViewport = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    document.documentElement.classList.toggle("dark", activeTheme === "dark");
+    document.documentElement.classList.toggle("light", activeTheme === "light");
+    document.documentElement.style.colorScheme = activeTheme;
+  }, [activeTheme]);
+  useEffect(() => {
+    const media = window.matchMedia("(min-width: 1024px)");
+    const update = () => setDesktop(media.matches);
+    update();
+    media.addEventListener("change", update);
+    return () => media.removeEventListener("change", update);
+  }, []);
+  useEffect(() => {
+    const viewport = mapViewport.current;
+    if (!viewport || typeof ResizeObserver === "undefined") return;
+    // MapLibre tracks window resize; notify only when its container changes size.
+    const observer = new ResizeObserver(() => window.dispatchEvent(new Event("resize")));
+    observer.observe(viewport);
+    return () => observer.disconnect();
+  }, []);
+  useEffect(() => {
+    if (!helpOpen) return;
+    const frame = requestAnimationFrame(() => document.querySelector<HTMLButtonElement>('[aria-label="AbangCebu assistant"] button[aria-label="Close chat"]')?.focus());
+    return () => cancelAnimationFrame(frame);
+  }, [helpOpen]);
+  const moveSheetTo = (next: number) => {
+    const bounded = Math.max(0, Math.min(2, next));
+    index.current = bounded;
+    setSheetIndex(bounded);
+  };
+  const revealRental = (id: string) => {
+    setSelectedRentalId(id);
+    setResultsHidden(false);
+    moveSheetTo(Math.max(1, index.current));
+    requestAnimationFrame(() => {
+      const card = document.getElementById(`rental-card-${id}`);
+      card?.scrollIntoView({ block: "nearest", behavior: "instant" });
+    });
+  };
+  const closeNavigation = () => { setDrawerOpen(false); menuTrigger.current?.focus(); };
+  const noInventory = rentals.length === 0;
+  const title = rentalStatus === "loading" ? "Loading rentals…" : rentalStatus === "error" ? "Couldn’t load rentals" : noInventory ? "No verified rentals here yet" : "No rentals match these filters";
+  const statusMessage = rentalStatus === "loading" ? "Checking the configured rental data service…" : rentalStatus === "error" ? "Live listings could not be loaded. No sample properties are shown." : noInventory ? "Try expanding your search radius or browsing another area." : "Try clearing filters or expanding your search radius.";
 
-  return <main className={styles.app}><header className={styles.header}>
-    <button className={styles.iconButton} aria-label="Open menu" onClick={() => setDrawerOpen(true)}><Menu size={21} /></button>
-    <Link href="/" aria-label="AbangCebu home"><Image src="/icons/main_Logo.png" alt="AbangCebu" width={138} height={40} priority /></Link>
+  return <main className={styles.app} data-nav-open={false} data-theme={activeTheme} data-results-hidden={resultsHidden} data-results-collapsed={resultsHidden} data-sheet-position={sheetPositions[sheetIndex]} style={{ "--results-sheet-height": sheetHeights[sheetIndex], "--mobile-sheet-peek-height": sheetHeights[sheetIndex] } as React.CSSProperties}><FinderNavigation authenticated={authenticated} open={drawerOpen} preference={preference} resolvedTheme={activeTheme} onPreferenceChange={setPreference} onClose={closeNavigation} onAccount={() => { setDrawerOpen(false); setAccountOpen(true); }} onHelp={() => { setDrawerOpen(false); setHelpOpen(true); }} /><div className={styles.workspace}><header className={styles.header}>
+    <button ref={menuTrigger} className={styles.iconButton} aria-label="Open menu" aria-expanded={drawerOpen} aria-controls="finder-navigation" onClick={() => setDrawerOpen((value) => !value)}><Menu size={21} /></button>
+    <Link href="/" aria-label="AbangCebu home"><Image src={activeTheme === "dark" ? "/icons/main_Logo_Light.png" : "/icons/main_Logo.png"} unoptimized alt="AbangCebu" width={138} height={40} priority /></Link>
     <MapSearch className={styles.headerSearch} disabled={false} onSelect={setSelectedPlace} />
   </header>
-  <button className={styles.signIn} aria-label="Open account dialog" onClick={() => setAccountOpen(true)}><User size={17} /><span>Sign in</span></button>
+  {authenticated ? <Link href="/auth/logout" className={styles.signIn}><User size={17} /><span>Account</span></Link> : <button className={styles.signIn} aria-label="Open account dialog" onClick={() => setAccountOpen(true)}><User size={17} /><span>Log In</span></button>}
   <QuickFilters filters={filters} onChange={setFilters} onOpenFilters={() => setAdvancedOpen(true)} mapRadius={mapRadius} onRadiusChange={setMapRadius} />
-  <section className={styles.mapStage}><MapCanvasLoader rentals={rentals} selectedPlace={selectedPlace} dataStatus={rentalStatus} filters={filters} onFiltersChange={setFilters} locationQuery={locationQuery} onLocationQueryChange={setLocationQuery} searchRadiusKm={mapRadius} onSearchRadiusKmChange={setMapRadius} onSearchCenterChange={setSearchCenter} />
-    <div className={styles.resultsRail} role="complementary" aria-label="Rental listings" aria-busy={rentalStatus === "loading"}><div className={styles.resultsHeader}><div><span className={styles.available}><i />{sampleMode ? "SAMPLE RENTALS" : "RENTALS IN CEBU"}</span><h1>Find rentals in Cebu</h1><p role="status">{rentalStatus === "loading" ? "Loading…" : rentalStatus === "error" ? "Listings unavailable" : `${visibleRentals.length} ${visibleRentals.length === 1 ? "listing" : "listings"} found${sampleMode ? " in sample data" : ""}`}</p></div></div>
-      {sampleMode && <div className={styles.inventoryState} role="status"><b>Sample data is on</b><p>These fictional rentals are for checking Area, Budget, Type, and Filters. They are not real offers.</p><button onClick={() => setSampleMode(false)}>Return to live data</button></div>}
-      {rentalStatus !== "ready" || visibleRentals.length === 0 ? <div className={styles.inventoryState} role={rentalStatus === "error" ? "alert" : "status"}><b>{title}</b><p>{statusMessage}</p>{rentalStatus === "error" || (rentalStatus === "ready" && rentals.length === 0) ? <><button onClick={() => setSampleMode(true)}>Use sample data</button>{rentalStatus === "error" && statusOverride === undefined && <button onClick={() => { setInventory({ status: "loading", rentals: [] }); setRequest((value) => value + 1); }}>Try again</button>}</> : rentalStatus === "ready" ? <button onClick={() => { setFilters(DEFAULT_RENTAL_FILTERS); setLocationQuery(""); }}>Clear filters</button> : null}</div> : <ul className={styles.rentalList}>{visibleRentals.map((rental) => <li key={rental.id}><article className={styles.rentalCard}>
-        <div className={styles.noPhoto}><Building2 size={22} aria-hidden="true" /><span>No photos provided</span></div>
-        <span className={styles.category}>{propertyTypes.find(({ value }) => value === (rental.propertyType ?? rental.type))?.label ?? rental.type.replaceAll(/[-_]/g, " ")}</span>
-        <h2>{rental.title}</h2><p className={styles.price}>{formatPrice(rental.price)}<span> / month · per {rental.basis}</span></p>
-        <p>{rental.locality}</p><p>{rental.description}</p>
-        {rental.amenities.length > 0 && <ul className={styles.amenities} aria-label="Amenities">{rental.amenities.map((amenity, index) => <li key={`${amenity}-${index}`}>{amenity}</li>)}</ul>}
-      </article></li>)}</ul>}
+  <section className={styles.mapStage}><div ref={mapViewport} className={styles.mapViewport}><MapCanvasLoader selectedRentalId={selectedRentalId} onSelectRental={revealRental} rentals={rentals} selectedPlace={selectedPlace} dataStatus={rentalStatus} filters={filters} onFiltersChange={setFilters} locationQuery={locationQuery} onLocationQueryChange={setLocationQuery} searchRadiusKm={mapRadius} onSearchRadiusKmChange={setMapRadius} onSearchCenterChange={setSearchCenter} /></div>
+    <button className={styles.resultsToggle} aria-label={resultsHidden ? "Show listings" : "Collapse listings"} aria-expanded={!resultsHidden} aria-controls="rental-results" onClick={() => setResultsHidden((value) => !value)}>{resultsHidden ? rentalStatus === "ready" ? `Show listings (${visibleRentals.length})` : "Show listings" : "Collapse listings"}</button>
+    <div id="rental-results" className={styles.resultsRail} role="complementary" aria-label="Rental listings" aria-busy={rentalStatus === "loading"} hidden={resultsHidden} inert={!desktop && (drawerOpen || accountOpen || advancedOpen || resultsHidden) ? true : undefined}>
+      <div className={styles.sheetControls}>
+        <button type="button" className={styles.sheetAction} aria-expanded={sheetIndex > 0} aria-controls="rental-results-content" onClick={() => moveSheetTo(sheetIndex === 0 ? 1 : 0)}>{sheetIndex > 0 ? "Back to map" : rentalStatus === "loading" ? "Show listings" : rentalStatus === "error" ? "Listings unavailable" : `Show listings (${visibleRentals.length})`}</button>
+        <div role="slider" tabIndex={0} aria-label="Adjust results sheet" aria-valuemin={0} aria-valuemax={2} aria-valuenow={sheetIndex} aria-valuetext={sheetPositions[sheetIndex]} aria-orientation="vertical" aria-controls="rental-results" className={styles.sheetHandle}
+          onKeyDown={(event) => {
+            if (event.key === "Home") { event.preventDefault(); moveSheetTo(0); }
+            if (event.key === "End") { event.preventDefault(); moveSheetTo(2); }
+            if (event.key === "ArrowDown") { event.preventDefault(); moveSheetTo(index.current - 1); }
+            if (event.key === "ArrowUp") { event.preventDefault(); moveSheetTo(index.current + 1); }
+          }}
+          onPointerDown={(event) => {
+            if (!event.isPrimary || event.button !== 0) return;
+            sheetDrag.current = { id: event.pointerId, y: event.clientY };
+            event.currentTarget.setPointerCapture(event.pointerId);
+          }}
+          onPointerUp={(event) => {
+            const drag = sheetDrag.current;
+            sheetDrag.current = null;
+            if (drag?.id === event.pointerId && Math.abs(drag.y - event.clientY) >= 40) {
+              const distance = Math.abs(drag.y - event.clientY);
+              const steps = distance >= 120 ? 2 : 1;
+              moveSheetTo(index.current + (drag.y > event.clientY ? steps : -steps));
+            }
+          }}
+          onPointerCancel={() => { sheetDrag.current = null; }}
+          onLostPointerCapture={() => { sheetDrag.current = null; }}><span aria-hidden="true" /></div>
+      </div>
+      <div className={styles.resultsHeader}><div><span className={styles.available}><i />{usingSamples ? "SAMPLE RENTALS" : "RENTALS IN CEBU"}</span><h1>Find rentals in Cebu</h1><p role="status">{rentalStatus === "loading" ? "Loading…" : rentalStatus === "error" ? "Listings unavailable" : `${visibleRentals.length} ${visibleRentals.length === 1 ? "listing" : "listings"} found${usingSamples ? " in sample data" : ""}`}</p></div></div>
+      <div id="rental-results-content" hidden={!desktop && sheetIndex === 0} className={styles.resultsContent}>
+      {rentalStatus === "loading" && <div aria-hidden="true" data-testid="rental-loading-skeletons" className="grid gap-3">{[0, 1, 2].map((index) => <div key={index} className="grid gap-3 rounded-lg border border-border p-3"><Skeleton className="h-24 w-full" /><Skeleton className="h-5 w-3/4" /><Skeleton className="h-4 w-1/2" /></div>)}</div>}
+      {usingSamples && <div className={styles.inventoryState} role="status"><b>Sample data is on</b><p>These fictional rentals are for checking Area, Budget, Type, and Filters. They are not real offers.</p><button onClick={() => setSampleMode(false)}>Return to live data</button></div>}
+      {rentalStatus !== "ready" || visibleRentals.length === 0 ? <div className={styles.inventoryState} role={rentalStatus === "error" ? "alert" : "status"}><b>{title}</b><p>{statusMessage}</p>{rentalStatus === "ready" && mapRadius < 5 && <button onClick={() => setMapRadius(5)}>Expand search</button>}{rentalStatus === "error" || (rentalStatus === "ready" && noInventory) ? <>{samplesAllowed && <button onClick={() => setSampleMode(true)}>Use sample data</button>}{rentalStatus === "error" && statusOverride === undefined && <button onClick={() => { setInventory({ status: "loading", rentals: [] }); setRequest((value) => value + 1); }}>Try again</button>}</> : rentalStatus === "ready" ? <button onClick={() => { setFilters(DEFAULT_RENTAL_FILTERS); }}>Clear filters</button> : null}</div> : <ul className={styles.rentalList}>{visibleRentals.map((rental) => <li key={rental.id}><RentalCard rental={rental} selected={selectedRentalId === rental.id} onSelect={setSelectedRentalId} /></li>)}</ul>}
       <p className={styles.radius}>Search area: {mapRadius} km radius</p>
+      </div>
     </div>
   </section>
-  {advancedOpen && <RentalFilterDialog filters={filters} open onOpenChange={setAdvancedOpen} onApply={setFilters} matchCount={visibleRentals.length} />}
-  <GuestDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} onAccount={() => { setDrawerOpen(false); setAccountOpen(true); }} />
-  <Modal surface="finder" open={accountOpen} onClose={() => setAccountOpen(false)} title="Welcome to AbangCebu" description="Browse as a guest. Sign in to save rentals or manage a property." className={styles.accountDialog}>
-    <AccountAccessContent mode={accountMode} onModeChange={setAccountMode} />
-    <div className={styles.guestNote}><User size={17} /><span>You can keep browsing as a guest. Account supports renters and landlords.</span></div><div className={styles.landlordNote}><Building2 size={18} /><span><b>Listing a property?</b> Sign in with your landlord account to access authorized tools.</span></div>
+  {advancedOpen && <RentalFilterDialog filters={filters} open onOpenChange={setAdvancedOpen} onApply={setFilters} matchCount={visibleRentals.length} mapRadius={mapRadius} onMapRadiusChange={setMapRadius} getDraftCount={rentalStatus === "ready" ? (draft, radius) => searchPreviewRentals(rentals, { ...draft, radiusKm: radius }, "", searchCenter).length : undefined} />}
+  <Modal surface="finder" open={accountOpen} onCloseAutoFocus={(event) => { event.preventDefault(); menuTrigger.current?.focus(); }} onClose={() => setAccountOpen(false)} title="Account access" description={authenticated ? "Manage your current session." : "Log in or register to continue."} className={styles.accountDialog}>
+    <div className={styles.accountBrand}><Image src={activeTheme === "dark" ? "/icons/main_Logo_Light.png" : "/icons/main_Logo.png"} unoptimized alt="AbangCebu" width={138} height={40} /></div>
+    {initialErrorMessage && <p role="alert">{initialErrorMessage}</p>}
+    {authenticated ? <Link href="/auth/logout">Account / Sign out</Link> : <AccountAccessContent mode={accountMode} onModeChange={setAccountMode} isRecovery={isRecovery} statusMessage={initialStatusMessage} />}
+    <Button type="button" variant="ghost" className={styles.accountBack} onClick={() => setAccountOpen(false)}>Back to map</Button>
   </Modal>
-  <Assistant /></main>;
+  <button type="button" className={styles.chatLauncher} aria-label="Open rental assistant" title="Rental assistant" onClick={() => setHelpOpen(true)}><Image src="/icons/chatbot_logo.png" alt="" width={48} height={48} /></button>
+  <FinderAssistant open={helpOpen} onOpenChange={setHelpOpen} onSearch={() => document.querySelector<HTMLInputElement>('input[role="combobox"]')?.focus()} onFilters={() => setAdvancedOpen(true)} /></div></main>;
 }

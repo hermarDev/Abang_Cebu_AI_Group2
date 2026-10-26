@@ -48,7 +48,7 @@ The architecture strictly adheres to five core engineering principles:
 4. **Search Path Sanitization on `SECURITY DEFINER` Functions**:  
    To prevent CVE-class schema hijacking attacks, all `SECURITY DEFINER` trigger and helper functions explicitly set `SET search_path = public, auth, extensions`.
 5. **Deterministic TypeScript Contracts**:  
-   Database schemas are mirrored in `src/types/database.ts`, ensuring full compile-time type safety across Next.js 15 Server Components, Route Handlers, and client hooks.
+   Database schemas are mirrored in `src/types/database.ts`, ensuring full compile-time type safety across Next.js 16 Server Components, Route Handlers, and client hooks.
 
 ---
 

@@ -40,6 +40,78 @@ describe("validateRegistration", () => {
   });
 
   it.each([
+    "Abcdef12",
+    "Abcdef1!",
+    `A1!${"a".repeat(69)}`,
+  ])("accepts a password at a server policy length boundary", (password) => {
+    expect(validateRegistration({ ...validPayload, password }).ok).toBe(true);
+  });
+
+  it("rejects a Unicode character as a substitute for the password symbol class", () => {
+    const result = validateRegistration({ ...validPayload, password: "Abcdefgh😀" });
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.errors).toHaveProperty("password");
+  });
+
+  it("returns actionable required-field errors for malformed payloads", () => {
+    for (const payload of [null, "payload", []]) {
+      const result = validateRegistration(payload);
+      expect(result).toEqual({
+        ok: false,
+        errors: {
+          role: "Choose renter or landlord.",
+          email: "Enter a valid email address.",
+          password: "Use 8–72 characters with at least 3 of: uppercase, lowercase, number, symbol.",
+          fullName: "Enter a name of 2–100 letters, spaces, hyphens, or periods.",
+        },
+      });
+    }
+  });
+
+  it("returns field-specific errors without echoing submitted personal data", () => {
+    const privateEmail = "not-a-valid-private@example";
+    const privatePassword = "PrivatePassword";
+    const privateName = "<Private Person>";
+    const result = validateRegistration({
+      ...validPayload,
+      email: privateEmail,
+      password: privatePassword,
+      fullName: privateName,
+      role: "admin",
+      phoneNumber: 123,
+    });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.errors).toMatchObject({
+        role: "Choose renter or landlord.",
+        email: "Enter a valid email address.",
+        password: "Use 8–72 characters with at least 3 of: uppercase, lowercase, number, symbol.",
+        fullName: "Enter a name of 2–100 letters, spaces, hyphens, or periods.",
+        phoneNumber: "Enter a valid Philippine mobile number.",
+      });
+      const safeErrors = JSON.stringify(result.errors);
+      for (const privateValue of [privateEmail, privatePassword, privateName]) {
+        expect(safeErrors).not.toContain(privateValue);
+      }
+    }
+  });
+
+  it("omits an empty optional phone number from the registration payload", () => {
+    const result = validateRegistration({ ...validPayload, phoneNumber: "" });
+    expect(result).toEqual({
+      ok: true,
+      value: {
+        email: "mika.example+test@example.com",
+        password: "R3nt!ngSafe",
+        fullName: "Mika Santos",
+        role: "renter",
+        preferredLandmark: "USC Talamban",
+      },
+    });
+  });
+
+  it.each([
     [{ ...validPayload, role: "admin" }, "role"],
     [{ ...validPayload, password: "weak" }, "password"],
     [{ ...validPayload, password: "a".repeat(73) }, "password"],

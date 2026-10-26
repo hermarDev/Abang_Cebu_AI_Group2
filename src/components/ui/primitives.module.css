@@ -1,0 +1,34 @@
+.button {
+  box-shadow: 0 1px 2px rgb(15 39 66 / 12%);
+}
+
+.button:focus-visible,
+.control:focus-visible {
+  border-color: var(--ring);
+  outline-color: var(--ring);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ring) 22%, transparent);
+}
+
+.button:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.control {
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.control[aria-invalid="true"]:focus-visible {
+  border-color: var(--destructive);
+  outline-color: var(--destructive);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--destructive) 18%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .button:active:not(:disabled) {
+    transform: none;
+  }
+
+  .control {
+    transition: none;
+  }
+}
