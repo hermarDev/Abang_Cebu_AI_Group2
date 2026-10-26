@@ -11,6 +11,7 @@ export function getPostLoginRedirect(destination: string | null): string {
 export async function signInWithEmail(
   email: string,
   password: string,
+  captchaToken?: string,
 ): Promise<SignInResult> {
   const supabase = createClient();
   let data: Awaited<ReturnType<typeof supabase.auth.signInWithPassword>>["data"];
@@ -19,6 +20,7 @@ export async function signInWithEmail(
     ({ data, error } = await supabase.auth.signInWithPassword({
       email: email.trim().toLowerCase(),
       password,
+      ...(captchaToken ? { options: { captchaToken } } : {}),
     }));
   } catch {
     return {

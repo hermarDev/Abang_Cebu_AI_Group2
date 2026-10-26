@@ -4,6 +4,7 @@ import { useId, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { FieldError } from "@/components/ui/Field";
+import { TurnstileWidget } from "./TurnstileWidget";
 import { Input } from "@/components/ui/Input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
 import { useRouter } from "next/navigation";
@@ -27,6 +28,9 @@ export function LoginForm({
   const [statusMessage, setStatusMessage] = useState<string | null>(initialStatusMessage ?? null);
   const [statusIsError, setStatusIsError] = useState(!initialStatusMessage);
   const [loading, setLoading] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState("");
+  const [resetKey, setResetKey] = useState(0);
+  const verificationRequired = process.env.NODE_ENV === "production" || Boolean(process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY);
   const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string }>({});
   const Surface = onRegister ? "div" : Card;
 
@@ -42,10 +46,15 @@ export function LoginForm({
       document.getElementById(errors.email ? emailId : passwordId)?.focus();
       return;
     }
+    if (verificationRequired && !turnstileToken) {
+      setStatusIsError(true);
+      setStatusMessage("Complete the security verification before logging in. If it is unavailable, reload and try again.");
+      return;
+    }
     setStatusMessage(null);
     setLoading(true);
     try {
-      const result = await signInWithEmail(email, password);
+      const result = await signInWithEmail(email, password, turnstileToken || undefined);
       if (!result.success) {
         setStatusIsError(true);
         setStatusMessage(result.message.replace(/^Sign in\b/i, "Log in"));
@@ -59,6 +68,8 @@ export function LoginForm({
       setStatusIsError(true);
       setStatusMessage("Log in is temporarily unavailable. Please try again.");
     } finally {
+      setTurnstileToken("");
+      setResetKey(key => key + 1);
       setLoading(false);
     }
   };
@@ -135,6 +146,7 @@ export function LoginForm({
             </div>
           )}
 
+          {verificationRequired && <TurnstileWidget onTokenChange={setTurnstileToken} resetKey={resetKey} />}
           <Button type="submit" variant="primary" fullWidth size="lg" disabled={loading}>
             {loading ? "Logging in…" : "Log In"}
           </Button>
