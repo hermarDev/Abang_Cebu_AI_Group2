@@ -1,36 +1,32 @@
-## 🎯 Jira Ticket
-- Ticket: [SCRUM-](https://abangcebuai.atlassian.net/browse/SCRUM-)
+## Summary
 
----
+<!-- Explain what changed and why. Link the Jira ticket or related issue. -->
 
-## 📝 Summary of Changes
-<!-- Provide a brief, high-level summary of what was added, modified, or fixed. -->
+Ticket:
 
----
+## Verification
 
-## 🏷️ Type of Change
-- [ ] 🚀 **Feature** (New capability or UI component)
-- [ ] 🐛 **Bug Fix** (Fix for an existing issue)
-- [ ] 📄 **Documentation** (Updates to `/docs` or README)
-- [ ] 🧹 **Chore / Refactor** (Code cleanup, dependency updates, tooling)
-- [ ] 🛡️ **Security / Governance** (RLS policies, auth, permissions)
+<!-- Check only executed, passing checks. Explain failures, blocked checks and checks that were not applicable below. -->
 
----
+- [ ] Unit tests: `pnpm test`
+- [ ] Typecheck: `pnpm exec tsc --noEmit`
+- [ ] Lint: `pnpm lint`
+- [ ] Production build: `pnpm build`
+- [ ] Relevant regression coverage added or updated
+- [ ] Staged diff reviewed for secrets and unrelated changes
 
-## ✅ Quality Checklist (Required before merging)
-- [ ] **TypeScript Check**: `pnpm tsc --noEmit` passed with 0 errors.
-- [ ] **Lint Check**: `pnpm lint` passed with 0 errors and 0 warnings.
-- [ ] **Production Build**: `pnpm build` completed successfully.
-- [ ] **No Secrets Exposed**: Diff does not contain API keys, private service keys, or `.env` files.
-- [ ] **Local Verification**: Changes tested on local browser (`http://localhost:3000`).
+Browser/manual checks and evidence:
 
----
+<!-- Include route, viewport, expected behavior and observed result. Attach screenshots for UI changes. Distinguish fixtures from live integrations. -->
 
-## 📸 Visual Verification / Screenshots (If applicable)
-<!-- Attach a screenshot or terminal output proving the changes work as expected. -->
+Not run, blocked or not applicable:
 
----
+## Configuration and risk
 
-## 👥 Peer Reviewers
-- [ ] Reviewer 1: @
-- [ ] Reviewer 2 (Team Lead / QA): @
+<!-- Note environment variables, schema/RLS changes, migration or rollback steps, compatibility concerns and known limitations. Never include credential values. -->
+
+## Review
+
+<!-- Request the relevant area owner and team lead. -->
+
+Reviewers:

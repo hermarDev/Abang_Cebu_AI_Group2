@@ -31,6 +31,13 @@ beforeEach(() => {
 });
 
 describe("signInWithEmail", () => {
+  it("passes the verification token to Supabase Auth", async () => {
+    await signInWithEmail("renter@example.com", "Password1!", "verified-token");
+    expect(signInWithPassword).toHaveBeenCalledWith({
+      email: "renter@example.com", password: "Password1!", options: { captchaToken: "verified-token" },
+    });
+  });
+
   it("signs in with Supabase and accepts the canonical matching profile role", async () => {
     await expect(
       signInWithEmail(" renter@example.com ", "Password1!"),

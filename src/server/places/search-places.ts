@@ -6,17 +6,30 @@ const REQUEST_INTERVAL_MS = 1000;
 const CACHE_LIMIT = 100;
 
 const cache = new Map<string, { expires: number; places: PlaceResult[] }>();
+const pending = new Map<string, Promise<PlaceResult[]>>();
 let nextRequestAt = 0;
 
 export async function searchPlaces(query: string): Promise<PlaceResult[]> {
   const normalized = query.trim().toLowerCase();
   const cached = cache.get(normalized);
   if (cached && cached.expires > Date.now()) return cached.places;
+  const existing = pending.get(normalized);
+  if (existing) return existing;
   if (Date.now() < nextRequestAt) {
     throw new Error("Place search is rate limited.");
   }
 
   nextRequestAt = Date.now() + REQUEST_INTERVAL_MS;
+  const operation = fetchPlaces(query, normalized);
+  pending.set(normalized, operation);
+  try {
+    return await operation;
+  } finally {
+    pending.delete(normalized);
+  }
+}
+
+async function fetchPlaces(query: string, normalized: string): Promise<PlaceResult[]> {
   const url = new URL("https://photon.komoot.io/api/");
   url.search = new URLSearchParams({
     q: query.trim(),
