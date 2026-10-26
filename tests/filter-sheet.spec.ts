@@ -6,17 +6,17 @@ test("keeps search radius available in the filter drawer and applies edits only 
   const trigger = page.getByRole("button", { name: /^Filters/ });
   await trigger.click();
   const dialog = page.getByRole("dialog", { name: "Filters" });
-  const radius = dialog.getByRole("combobox", { name: "Search radius", exact: true });
+  const radius = dialog.getByRole("spinbutton", { name: "Search radius", exact: true });
   await expect(radius).toHaveValue("2");
-  await radius.selectOption("5");
+  await radius.fill("5");
   await page.keyboard.press("Escape");
   await trigger.click();
-  await expect(dialog.getByRole("combobox", { name: "Search radius", exact: true })).toHaveValue("2");
-  await dialog.getByRole("combobox", { name: "Search radius", exact: true }).selectOption("5");
+  await expect(dialog.getByRole("spinbutton", { name: "Search radius", exact: true })).toHaveValue("2");
+  await dialog.getByRole("button", { name: "5 km", exact: true }).click();
   await dialog.getByRole("button", { name: /^(Apply filters|Show \d+ rentals)$/ }).click();
   await expect(dialog).toBeHidden();
   await trigger.click();
-  await expect(dialog.getByRole("combobox", { name: "Search radius", exact: true })).toHaveValue("5");
+  await expect(dialog.getByRole("spinbutton", { name: "Search radius", exact: true })).toHaveValue("5");
 });
 
 for (const viewport of [{ width: 360, height: 800 }, { width: 430, height: 932 }, { width: 1440, height: 900 }]) {
@@ -38,6 +38,17 @@ for (const viewport of [{ width: 360, height: 800 }, { width: 430, height: 932 }
     await expect(dialog.getByLabel("Private room")).toBeHidden();
     await propertyTypeSummary.click();
     await expect(dialog.getByLabel("Private room")).toBeVisible();
+    await dialog.getByLabel("Private room", { exact: true }).check();
+    await propertyTypeSummary.click();
+    await expect(propertyTypeSummary).toContainText("Private room");
+    const essentials = dialog.locator("summary").filter({ hasText: "Essentials" });
+    await essentials.click();
+    await dialog.getByLabel("Wi-Fi", { exact: true }).check();
+    await essentials.click();
+    await expect(essentials).toContainText("1 selected");
+    await expect(dialog.getByText("No matching rentals. Try a wider area or fewer filters.")).toBeVisible();
+    await expect(apply).toBeEnabled();
+    await apply.click({ trial: true });
     const minimum = dialog.getByLabel("Minimum monthly budget (₱)");
     const maximum = dialog.getByLabel("Maximum monthly budget (₱)");
     await minimum.fill("9000");

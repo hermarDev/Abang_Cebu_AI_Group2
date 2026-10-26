@@ -56,7 +56,7 @@ for (const width of [320, 375, 390, 430, 768, 1024, 1440]) {
     await input.press("Enter");
     await expect(page.getByText("No matching places in Cebu. Try a nearby landmark.")).toBeVisible();
     await page.getByRole("button", { name: "Open menu" }).click();
-    await page.getByRole("radio", { name: "Dark", exact: true }).click();
+    await page.getByRole("button", { name: "Switch to dark mode", exact: true }).click();
     await page.keyboard.press("Escape");
     await expect(page.locator("main")).toHaveAttribute("data-theme", "dark");
     await expect(submit).toBeVisible();

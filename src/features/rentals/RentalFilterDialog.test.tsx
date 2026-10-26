@@ -52,6 +52,17 @@ it("keeps area and monthly budget visible while secondary filter groups collapse
   expect(html).not.toContain("Show 9 rentals");
 });
 
+it("keeps zero-result filters actionable and summarizes selected groups", () => {
+  const html = renderToStaticMarkup(<RentalFilterDialog filters={{ ...DEFAULT_RENTAL_FILTERS, propertyTypes: ["apartment"], wifiAvailable: true, verifiedOnly: true }} open onApply={() => undefined} matchCount={0} getDraftCount={() => 0} />);
+  expect(html).toContain("No matching rentals. Try a wider area or fewer filters.");
+  expect(html).toContain("Apply filters");
+  expect(html).not.toContain("Show 0 rentals");
+  expect(html).toContain("Apartment</span>");
+  expect(html.match(/1 selected/g)).toHaveLength(2);
+  expect(html).toContain("lucide-chevron-down");
+  expect(html).not.toContain('type="submit" disabled');
+});
+
 it("passes the draft radius into a valid live preview", () => {
   const count = vi.fn((_draft: RentalFilters, radius: number) => radius * 2);
   const html = renderToStaticMarkup(<RentalFilterDialog filters={DEFAULT_RENTAL_FILTERS} open mapRadius={5} onApply={() => undefined} matchCount={0} getDraftCount={count} />);

@@ -1,8 +1,10 @@
+// Cebu extent from DENR Provincial_Boundary (EPSG:4326), rounded outward.
+// This is a search envelope, not an exact administrative polygon.
 export const PLACE_BOUNDS = {
-  west: 123.75,
-  south: 10.18,
-  east: 124.05,
-  north: 10.5,
+  west: 123.29,
+  south: 9.41,
+  east: 124.58,
+  north: 11.53,
 } as const;
 
 export type PlaceResult = {

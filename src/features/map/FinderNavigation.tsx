@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { flushSync } from "react-dom";
 import Image from "next/image";
 import Link from "next/link";
 import { Search, Bookmark, MessageCircle, HousePlus, CircleHelp, Headset, Map, UserRound, LogIn, Sun, Moon, Monitor } from "lucide-react";
@@ -18,14 +19,42 @@ export interface FinderNavigationProps {
   authenticated?: boolean;
 }
 
-const appearanceOptions = [
-  { label: "Light", value: "light", Icon: Sun },
-  { label: "Dark", value: "dark", Icon: Moon },
-  { label: "System", value: "system", Icon: Monitor },
-] as const;
-
 export function FinderNavigation({ open, onClose, preference, resolvedTheme, onPreferenceChange, onAccount, onHelp, authenticated = false }: FinderNavigationProps) {
   const [faqOpen, setFaqOpen] = useState(false);
+  const transitionRunning = useRef(false);
+
+  async function toggleTheme(button: HTMLButtonElement) {
+    if (transitionRunning.current) {
+      onPreferenceChange(resolvedTheme === "dark" ? "light" : "dark");
+      return;
+    }
+    const nextTheme = resolvedTheme === "dark" ? "light" : "dark";
+    if (!document.startViewTransition || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      onPreferenceChange(nextTheme);
+      return;
+    }
+    const { left, top, width, height } = button.getBoundingClientRect();
+    const x = left + width / 2;
+    const y = top + height / 2;
+    const radius = Math.hypot(Math.max(x, window.innerWidth - x), Math.max(y, window.innerHeight - y));
+    transitionRunning.current = true;
+    document.documentElement.classList.add(styles.themeTransition);
+    try {
+      const transition = document.startViewTransition(() => flushSync(() => onPreferenceChange(nextTheme)));
+      await transition.ready;
+      await document.documentElement.animate(
+        { clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${radius}px at ${x}px ${y}px)`] },
+        { duration: 450, easing: "ease-out", pseudoElement: "::view-transition-new(root)" },
+      ).finished;
+      await transition.finished;
+    } catch {
+      // A skipped transition must never prevent the requested theme from applying.
+      onPreferenceChange(nextTheme);
+    } finally {
+      document.documentElement.classList.remove(styles.themeTransition);
+      transitionRunning.current = false;
+    }
+  }
   return (
     <Modal id="finder-navigation" open={open} onClose={onClose} title="AbangCebu Menu" hideTitle surface="finder" className={styles.dialog}
       restoreTriggerFocus={false}
@@ -62,13 +91,17 @@ export function FinderNavigation({ open, onClose, preference, resolvedTheme, onP
           <fieldset className={styles.appearance}>
             <legend>Appearance</legend>
             <div className={styles.appearanceOptions}>
-              {appearanceOptions.map(({ label, value, Icon }) => (
-                <label key={value} title={label} className={styles.appearanceOption}>
-                  <input type="radio" aria-label={label} name="finder-appearance" value={value} checked={preference === value} onChange={() => onPreferenceChange(value)} />
-                  <Icon aria-hidden="true" />
-                </label>
-              ))}
+              <button type="button" className={styles.manualTheme} aria-pressed={preference !== "system"}
+                aria-label={`Switch to ${resolvedTheme === "dark" ? "light" : "dark"} mode`}
+                onClick={(event) => { void toggleTheme(event.currentTarget); }}>
+                {resolvedTheme === "dark" ? <Moon aria-hidden="true" /> : <Sun aria-hidden="true" />}
+                <span>{resolvedTheme === "dark" ? "Dark" : "Light"}</span>
+              </button>
+              <button type="button" className={styles.systemTheme} aria-pressed={preference === "system"} onClick={() => onPreferenceChange("system")}>
+                <Monitor aria-hidden="true" /><span>System</span>
+              </button>
             </div>
+            {preference === "system" && <p className={styles.themeHint}>Matches your device appearance.</p>}
           </fieldset>
           {authenticated
             ? <Link href="/auth/logout" className={styles.accountAction}><UserRound aria-hidden="true" /><span>Account / Sign out</span></Link>

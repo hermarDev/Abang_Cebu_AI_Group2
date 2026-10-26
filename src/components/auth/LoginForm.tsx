@@ -1,6 +1,7 @@
 "use client";
 
 import { useId, useState } from "react";
+import { Eye, EyeOff, Mail, LockKeyhole } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { FieldError } from "@/components/ui/Field";
@@ -88,7 +89,10 @@ export function LoginForm({
             <label htmlFor={emailId} className="block text-sm font-medium mb-1">
               Email Address
             </label>
+            <div className="relative">
+              <Mail aria-hidden="true" className="pointer-events-none absolute left-3 top-3 size-[18px] text-muted-foreground" />
             <Input
+              className="pl-10"
               id={emailId}
               aria-invalid={Boolean(fieldErrors.email)}
               aria-describedby={fieldErrors.email ? `${emailId}-error` : undefined}
@@ -99,6 +103,7 @@ export function LoginForm({
               autoComplete="email"
               required
             />
+            </div>
           </div>
 
           <div>
@@ -113,10 +118,12 @@ export function LoginForm({
               )}
             </div>
             <div className="relative">
+              <LockKeyhole aria-hidden="true" className="pointer-events-none absolute left-3 top-3 size-[18px] text-muted-foreground" />
               <Input
                 id={passwordId}
                 aria-invalid={Boolean(fieldErrors.password)}
                 aria-describedby={fieldErrors.password ? `${passwordId}-error` : undefined}
+                className="pl-10 pr-12"
                 type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -126,11 +133,11 @@ export function LoginForm({
               />
               <button
                 type="button"
-                className="absolute right-2 top-1/2 -translate-y-1/2 px-2 py-1 text-xs text-muted-foreground hover:text-foreground"
+                className="absolute right-0 top-0 grid min-h-11 min-w-11 place-items-center rounded-md text-muted-foreground hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring"
                 onClick={() => setShowPassword(!showPassword)}
                 aria-label={showPassword ? "Hide password" : "Show password"}
               >
-                {showPassword ? "Hide" : "Show"}
+                {showPassword ? <EyeOff size={19} aria-hidden="true" /> : <Eye size={19} aria-hidden="true" />}
               </button>
             </div>
           </div>

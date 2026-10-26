@@ -19,6 +19,6 @@ for (const query of ["", "ab", "x".repeat(121)]) {
     const response = await request.get("/api/places", { params: { q: query } });
     expect(response.status()).toBe(400);
     expect(response.headers()["cache-control"]).toBe("no-store");
-    expect(await response.json()).toEqual({ error: "Enter 3–120 characters to search Metro Cebu." });
+    expect(await response.json()).toEqual({ error: "Enter 3–120 characters to search Cebu." });
   });
 }

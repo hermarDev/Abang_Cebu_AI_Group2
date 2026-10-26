@@ -62,24 +62,24 @@
 
 .dark {
   /* Blue-led dark theme with cool slate surfaces */
-  --background: #09182a;
-  --foreground: #f0f4f9;
+  --background: #10151c;
+  --foreground: #f3f6fa;
 
   /* Card Surfaces & Overlays */
-  --card: #0f2742;
-  --card-foreground: #f0f4f9;
-  --popover: #0f2742;
-  --popover-foreground: #f0f4f9;
+  --card: #161e28;
+  --card-foreground: #f3f6fa;
+  --popover: #202b38;
+  --popover-foreground: #f3f6fa;
 
   /* Blue primary/action and cyan secondary */
   --primary: #60a5fa;
-  --primary-foreground: #09182a;
+  --primary-foreground: #10151c;
   --action: #2563eb;
   --action-foreground: #ffffff;
   --action-hover: #1d4ed8;
   --secondary: #22d3ee;
   --secondary-foreground: #083344;
-  --accent: #173b5f;
+  --accent: #25456d;
   --accent-foreground: #bfdbfe;
 
   /* Semantic success stays green, separate from blue actions. */
@@ -87,8 +87,8 @@
   --success-foreground: #052e16;
 
   /* Muted Surfaces & Captions */
-  --muted: #173b5f;
-  --muted-foreground: #cbd5e1;
+  --muted: #202b38;
+  --muted-foreground: #aebbcb;
 
   /* Destructive / Sinulog Crimson */
   --destructive: #fb7185;
@@ -99,8 +99,8 @@
   --warning-foreground: #451a03;
 
   /* Borders & Controls */
-  --border: #244663;
-  --input: #315675;
+  --border: #334253;
+  --input: #74869a;
   --ring: #60a5fa;
 }
 
@@ -108,31 +108,31 @@
 
 @media (prefers-color-scheme: dark) {
   :root:not(.light) {
-    --background: #09182a;
-    --foreground: #f0f4f9;
-    --card: #0f2742;
-    --card-foreground: #f0f4f9;
-    --popover: #0f2742;
-    --popover-foreground: #f0f4f9;
+    --background: #10151c;
+    --foreground: #f3f6fa;
+    --card: #161e28;
+    --card-foreground: #f3f6fa;
+    --popover: #202b38;
+    --popover-foreground: #f3f6fa;
     --primary: #60a5fa;
-    --primary-foreground: #09182a;
+    --primary-foreground: #10151c;
     --action: #2563eb;
     --action-foreground: #ffffff;
     --action-hover: #1d4ed8;
     --secondary: #22d3ee;
     --secondary-foreground: #083344;
-    --accent: #173b5f;
+    --accent: #25456d;
     --accent-foreground: #bfdbfe;
     --success: #4ade80;
     --success-foreground: #052e16;
-    --muted: #173b5f;
-    --muted-foreground: #cbd5e1;
+    --muted: #202b38;
+    --muted-foreground: #aebbcb;
     --destructive: #fb7185;
     --destructive-foreground: #4c0519;
     --warning: #fbbf24;
     --warning-foreground: #451a03;
-    --border: #244663;
-    --input: #315675;
+    --border: #334253;
+    --input: #74869a;
     --ring: #60a5fa;
   }
 }

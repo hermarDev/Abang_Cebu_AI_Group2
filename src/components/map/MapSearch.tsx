@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, type KeyboardEvent } from "react";
+import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { Search, X } from "lucide-react";
 import { usePlaceLookup } from "@/lib/search/use-place-lookup";
 import type { PlaceResult } from "@/lib/search/places";
@@ -19,16 +19,26 @@ export default function MapSearch({ onSelect, disabled, className }: MapSearchPr
   const composingRef = useRef(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const { status, places, error, search, reset } = usePlaceLookup();
+  const pending = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const cancelPending = () => { if (pending.current) clearTimeout(pending.current); pending.current = null; };
+  useEffect(() => () => { if (pending.current) clearTimeout(pending.current); }, []);
+  const scheduleSearch = (value: string) => {
+    cancelPending();
+    if (disabled || composingRef.current || value.trim().length < 3 || value.trim().length > 120) return;
+    pending.current = setTimeout(() => { pending.current = null; setOpen(true); void search(value); }, 600);
+  };
   const showOptions = open && query.trim().length >= 3 && status !== "idle";
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    cancelPending();
     if (disabled) return;
     setOpen(true);
     if (!composingRef.current) void search(query);
   };
 
   const select = (place: PlaceResult) => {
+    cancelPending();
     setQuery("");
     setOpen(false);
     reset();
@@ -37,6 +47,7 @@ export default function MapSearch({ onSelect, disabled, className }: MapSearchPr
   };
 
   const clearInput = () => {
+    cancelPending();
     setQuery("");
     setOpen(false);
     setActiveIndex(-1);
@@ -48,6 +59,7 @@ export default function MapSearch({ onSelect, disabled, className }: MapSearchPr
     // Block keyboard shortcuts during IME composition
     if (composingRef.current || event.nativeEvent.isComposing) return;
     if (event.key === "Escape") {
+      cancelPending();
       if (open) {
         setOpen(false);
         reset();
@@ -88,13 +100,14 @@ export default function MapSearch({ onSelect, disabled, className }: MapSearchPr
           placeholder="Search places or an address"
           value={query}
           disabled={disabled}
-          onCompositionStart={() => { composingRef.current = true; }}
-          onCompositionEnd={() => { composingRef.current = false; }}
+          onCompositionStart={() => { composingRef.current = true; cancelPending(); reset(); }}
+          onCompositionEnd={(event) => { composingRef.current = false; scheduleSearch(event.currentTarget.value); }}
           onChange={(event) => {
             setQuery(event.target.value);
             setOpen(false);
             setActiveIndex(-1);
             reset();
+            scheduleSearch(event.target.value);
           }}
           onFocus={() => setOpen(true)}
           onKeyDown={onKeyDown}

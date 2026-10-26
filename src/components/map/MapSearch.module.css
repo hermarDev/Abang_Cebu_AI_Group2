@@ -98,18 +98,22 @@
 .clearButton:focus-visible { outline: 2px solid #2563eb; outline-offset: 1px; }
 
 .resultPanel {
+  position: relative;
+  z-index: 1;
   margin-top: 0.5rem;
   overflow: hidden;
-  border: 1px solid rgb(15 39 66 / 12%);
-  border-radius: 999px;
+  border: 1px solid var(--border);
+  border-radius: 0.875rem;
   background: var(--card);
   color: var(--card-foreground);
   box-shadow: 0 8px 24px rgb(15 39 66 / 16%);
 }
 
 .resultList {
-  max-height: min(22rem, 55dvh);
+  max-height: min(22rem, 45dvh);
   overflow-y: auto;
+  overscroll-behavior: contain;
+  margin: 0;
   padding: 0.375rem;
   list-style: none;
 }
@@ -133,7 +137,7 @@
 
 .resultOption:hover,
 .resultOption[aria-selected="true"] {
-  background: #eff6ff;
+  background: var(--accent);
 }
 
 .resultOption:focus-visible {

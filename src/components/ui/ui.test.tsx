@@ -37,13 +37,14 @@ describe("UI primitives semantics", () => {
     expect(html).toContain("aria-[invalid=true]:border-destructive");
   });
 
-  it("renders a labelled native select with a 44px minimum target", () => {
+  it("renders a labelled styled combobox with hidden form compatibility", () => {
     const html = render(<Select aria-label="Neighborhood"><option>Cebu City</option></Select>);
     expect(html).toContain('aria-label="Neighborhood"');
     expect(html).toContain('data-slot="select"');
-    expect(html).toContain("<option>Cebu City</option>");
-    expect(html).toContain("min-h-11");
-    expect(html).toContain("focus-visible:outline-ring");
+    expect(html).toContain('role="combobox"');
+    expect(html).toContain("Cebu City</span>");
+    expect(html).toContain('aria-hidden="true"');
+    expect(html).toContain('tabindex="-1"');
   });
 
   it("keeps card headings semantic and uses semantic color tokens", () => {

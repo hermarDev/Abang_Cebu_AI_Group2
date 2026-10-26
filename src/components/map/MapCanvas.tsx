@@ -1,6 +1,6 @@
 "use client";
 
-import { Plus, Minus, LocateFixed } from "lucide-react";
+import { Plus, Minus, LocateFixed, Search } from "lucide-react";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Map as MapLibreMap, Marker, Popup, setWorkerUrl } from "maplibre-gl";
@@ -11,6 +11,7 @@ import { formatPrice, searchPreviewRentals } from "@/features/rentals/search";
 import type { RentalResult } from "@/contracts/preview";
 import { DEFAULT_RENTAL_FILTERS } from "@/contracts/rental-filters";
 import { RentalFilterDialog } from "@/features/rentals/RentalFilterDialog";
+import { Select } from "@/components/ui/Select";
 import MapSearch from "./MapSearch";
 import styles from "./MapCanvas.module.css";
 import { groupRentalsByCoordinates, makeRadiusPolygon, METRO_CEBU_CENTER } from "./map-geometry";
@@ -44,6 +45,14 @@ const LOCATION_ERROR_MESSAGES: Record<number, string> = {
 
 type MapStatus = "loading" | "ready" | "unavailable";
 type LocationStatus = "idle" | "locating" | "located" | "fallback";
+type ResolvedTheme = "light" | "dark";
+
+const DEFAULT_LIGHT_STYLE_URL = "/styles/osm.json";
+
+export function resolveMapStyleUrl(resolvedTheme: ResolvedTheme = "light", configuredStyleUrl?: string): string {
+  if (configuredStyleUrl && configuredStyleUrl !== DEFAULT_LIGHT_STYLE_URL) return configuredStyleUrl;
+  return resolvedTheme === "dark" ? "/styles/osm-dark.json" : DEFAULT_LIGHT_STYLE_URL;
+}
 
 type MapCanvasProps = {
   selectedPlace?: PlaceResult | null;
@@ -58,9 +67,10 @@ type MapCanvasProps = {
   searchRadiusKm?: number;
   onSearchRadiusKmChange?: (radius: number) => void;
   onSearchCenterChange?: (center: [number, number]) => void;
+  resolvedTheme?: ResolvedTheme;
 };
 
-export function MapCanvas({ selectedPlace, selectedRentalId, onSelectRental, rentals = [], dataStatus = "error", filters: externalFilters, onFiltersChange, locationQuery: externalLocationQuery, onLocationQueryChange, searchRadiusKm: externalSearchRadiusKm, onSearchRadiusKmChange, onSearchCenterChange }: MapCanvasProps) {
+export function MapCanvas({ selectedPlace, selectedRentalId, onSelectRental, rentals = [], dataStatus = "error", filters: externalFilters, onFiltersChange, locationQuery: externalLocationQuery, onLocationQueryChange, searchRadiusKm: externalSearchRadiusKm, onSearchRadiusKmChange, onSearchCenterChange, resolvedTheme = "light" }: MapCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [selectedRental, setSelectedRental] = useState<string | null>(null);
   const activeSelectedRental = selectedRentalId !== undefined ? selectedRentalId : selectedRental;
@@ -72,6 +82,8 @@ export function MapCanvas({ selectedPlace, selectedRentalId, onSelectRental, ren
   const searchAppliedZoomRef = useRef(DEFAULT_ZOOM);
   const [internalSearchRadiusKm, setInternalSearchRadiusKm] = useState(2);
   const mapLoadedRef = useRef(false);
+  const requestedStyleRef = useRef<string | null>(null);
+  const initialResolvedThemeRef = useRef(resolvedTheme);
   const onSearchCenterChangeRef = useRef(onSearchCenterChange);
   useEffect(() => { onSearchCenterChangeRef.current = onSearchCenterChange; }, [onSearchCenterChange]);
   const publishSearchCenter = useCallback((center: [number, number]) => {
@@ -104,6 +116,7 @@ export function MapCanvas({ selectedPlace, selectedRentalId, onSelectRental, ren
     "Map centered on the default search area. Use Locate me to find your position.",
   );
   const [areaDirty, setAreaDirty] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
   const [chooserGroup, setChooserGroup] = useState<{ rentals: RentalResult[]; anchor: HTMLElement } | null>(null);
 
   useEffect(() => {
@@ -116,9 +129,12 @@ export function MapCanvas({ selectedPlace, selectedRentalId, onSelectRental, ren
     let map: MapLibreMap;
 
     try {
+      const configuredStyleUrl = process.env.NEXT_PUBLIC_MAP_STYLE_URL;
+      const initialStyleUrl = resolveMapStyleUrl(initialResolvedThemeRef.current, configuredStyleUrl);
+      requestedStyleRef.current = initialStyleUrl;
       map = new MapLibreMap({
         container,
-        style: process.env.NEXT_PUBLIC_MAP_STYLE_URL || "/styles/osm.json",
+        style: initialStyleUrl,
         attributionControl: {
           compact: container.clientWidth <= 640 ? true : undefined,
           customAttribution: process.env.NEXT_PUBLIC_MAP_STYLE_URL && process.env.NEXT_PUBLIC_MAP_STYLE_URL !== "/styles/osm.json"
@@ -171,6 +187,10 @@ export function MapCanvas({ selectedPlace, selectedRentalId, onSelectRental, ren
         setAreaDirty(true);
       }
     };
+    const onDragStart = () => setIsDragging(true);
+    const onDragEnd = () => setIsDragging(false);
+    map.on("dragstart", onDragStart);
+    map.on("dragend", onDragEnd);
     map.once("load", onLoad);
     map.on("error", onMapError);
     map.on("moveend", onMoveEnd);
@@ -198,10 +218,22 @@ export function MapCanvas({ selectedPlace, selectedRentalId, onSelectRental, ren
       markerRef.current = null;
       map.off("error", onMapError);
       map.off("moveend", onMoveEnd);
+      map.off("dragstart", onDragStart);
+      map.off("dragend", onDragEnd);
       map.remove();
       mapRef.current = null;
     };
   }, []);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    const configuredStyleUrl = process.env.NEXT_PUBLIC_MAP_STYLE_URL;
+    const styleUrl = resolveMapStyleUrl(resolvedTheme, configuredStyleUrl);
+    if (styleUrl === requestedStyleRef.current) return;
+    requestedStyleRef.current = styleUrl;
+    map.setStyle(styleUrl);
+  }, [resolvedTheme]);
 
   const locateMe = useCallback(() => {
     const map = mapRef.current;
@@ -336,10 +368,14 @@ export function MapCanvas({ selectedPlace, selectedRentalId, onSelectRental, ren
       };
       if (!map.getSource("rental-search-area")) {
         map.addSource("rental-search-area", { type: "geojson", data });
-        map.addLayer({ id: "rental-search-area-fill", type: "fill", source: "rental-search-area", paint: { "fill-color": "#2563eb", "fill-opacity": 0.08 } });
-        map.addLayer({ id: "rental-search-area-outline", type: "line", source: "rental-search-area", paint: { "line-color": "#2563eb", "line-width": 2, "line-opacity": 0.7 } });
       } else {
         (map.getSource("rental-search-area") as GeoJSONSource).setData(data);
+      }
+      if (!map.getLayer("rental-search-area-fill")) {
+        map.addLayer({ id: "rental-search-area-fill", type: "fill", source: "rental-search-area", paint: { "fill-color": "#2563eb", "fill-opacity": 0.08 } });
+      }
+      if (!map.getLayer("rental-search-area-outline")) {
+        map.addLayer({ id: "rental-search-area-outline", type: "line", source: "rental-search-area", paint: { "line-color": "#2563eb", "line-width": 2, "line-opacity": 0.7 } });
       }
     };
     updateArea();
@@ -349,6 +385,30 @@ export function MapCanvas({ selectedPlace, selectedRentalId, onSelectRental, ren
     if (selected) map.flyTo({ center: selected.coordinates, zoom: Math.max(map.getZoom(), 14), duration: 350 });
     return () => { map.off("style.load", onStyleLoad); };
   }, [markerGroups, visibleRentals, searchCenter, searchRadiusMeters, activeSelectedRental, mapStatus]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || mapStatus !== "ready") return;
+    const updatePreview = () => {
+      if (!map.isStyleLoaded()) return;
+      const center = map.getCenter();
+      const data = makeRadiusPolygon([center.lng, center.lat], searchRadiusMeters);
+      const source = map.getSource("rental-search-preview") as GeoJSONSource | undefined;
+      if (source) source.setData(data);
+      else map.addSource("rental-search-preview", { type: "geojson", data });
+      if (!map.getLayer("rental-search-preview-outline")) {
+        map.addLayer({ id: "rental-search-preview-outline", type: "line", source: "rental-search-preview", paint: { "line-color": "#2563eb", "line-width": 2, "line-dasharray": [3, 3] } });
+      }
+      map.setLayoutProperty("rental-search-preview-outline", "visibility", isDragging || areaDirty ? "visible" : "none");
+    };
+    updatePreview();
+    map.on("move", updatePreview);
+    map.on("style.load", updatePreview);
+    return () => {
+      map.off("move", updatePreview);
+      map.off("style.load", updatePreview);
+    };
+  }, [mapStatus, isDragging, areaDirty, searchRadiusMeters]);
 
   return (
     <section className={styles.mapRoot} aria-label="Rental map">
@@ -367,13 +427,23 @@ export function MapCanvas({ selectedPlace, selectedRentalId, onSelectRental, ren
         </div>
       )}
 
-      {areaDirty && mapStatus === "ready" && (
-        <button type="button" className={styles.searchAreaButton} onClick={() => {
-          const center = mapRef.current?.getCenter();
+      {isDragging && mapStatus === "ready" && (
+        <>
+          <span data-map-drag-target aria-hidden="true" className={styles.dragTarget} />
+          <div role="status" className={`${styles.searchAreaButton} ${styles.dragFeedback}`}>Move map to choose an area</div>
+        </>
+      )}
+      {areaDirty && !isDragging && mapStatus === "ready" && (
+        <button type="button" aria-label="Search this area" className={styles.searchAreaButton} onClick={() => {
+          const map = mapRef.current;
+          map?.stop();
+          const center = map?.getCenter();
           if (center) publishSearchCenter([center.lng, center.lat]);
+          searchAppliedZoomRef.current = mapRef.current?.getZoom() ?? DEFAULT_ZOOM;
           setAreaDirty(false);
         }}>
-          Search this area
+          <Search size={18} aria-hidden="true" />
+          <span>Search this area<small>{searchRadiusKm} km radius</small></span>
         </button>
       )}
 
@@ -410,12 +480,10 @@ export function MapCanvas({ selectedPlace, selectedRentalId, onSelectRental, ren
         <input id="rental-location" value={locationQuery} onChange={(event) => setLocationQuery(event.target.value)} placeholder="Area or landmark" />
         <span>{visibleRentals.length} rentals within {searchRadiusKm} km</span>
       </div>}
-      {!externallyControlled && <label className={styles.radiusControl}>
-        Search radius
-        <select aria-label="Search radius" value={searchRadiusKm} onChange={(event) => setSearchRadiusKm(Number(event.target.value))}>
-          <option value={1}>1 km</option><option value={2}>2 km</option><option value={5}>5 km</option>
-        </select>
-      </label>}
+      {!externallyControlled && <div className={styles.radiusControl}>
+        <span id="search-radius-label">Search radius</span>
+        <Select aria-label="Search radius" aria-labelledby="search-radius-label" value={String(searchRadiusKm)} onValueChange={(value) => setSearchRadiusKm(Number(value))} options={[{ value: "1", label: "1 km" }, { value: "2", label: "2 km" }, { value: "5", label: "5 km" }]} />
+      </div>}
       {!externallyControlled && <div className={styles.filterTrigger}>
         <button type="button" aria-haspopup="dialog" aria-expanded={filterOpen} onClick={() => setFilterOpen(true)}>
           Refine rental search

@@ -33,6 +33,16 @@ describe("LoginForm", () => {
     expect(html).not.toContain("User role selection");
   });
 
+  it("uses a labeled eye button instead of text to reveal the password", () => {
+    const html = renderToStaticMarkup(<LoginForm onRegister={() => undefined} />);
+
+    expect(html).toContain('aria-label="Show password"');
+    expect(html).toContain('class="lucide lucide-eye');
+    expect(html).toContain("min-h-11 min-w-11");
+    expect(html).not.toContain(">Show</button>");
+    expect(html).not.toContain(">Hide</button>");
+  });
+
   it("shows password-reset success feedback when provided", () => {
     const html = renderToStaticMarkup(
       <LoginForm statusMessage="Your password has been reset. Sign in with your new password." />,

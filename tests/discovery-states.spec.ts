@@ -11,14 +11,14 @@ test("inventory failure offers retry and recovers to genuine empty state", async
   await expect(page.getByRole("alert").filter({ hasText: "Couldn’t load rentals" })).toBeVisible();
   unavailable = false;
   await page.getByRole("button", { name: "Try again", exact: true }).click();
-  await expect(page.getByText("No verified rentals here yet", { exact: true })).toBeVisible();
+  await expect(page.getByText("No rentals found", { exact: true })).toBeVisible();
 });
 
 test("desktop results and navigation reopen without remounting map or losing radius", async ({ page }) => {
   await page.goto("/");
   await page.getByRole("button", { name: /^Filters/ }).click();
-  const radius = page.getByRole("combobox", { name: "Search radius", exact: true });
-  await radius.selectOption("5");
+  const radius = page.getByRole("spinbutton", { name: "Search radius", exact: true });
+  await radius.fill("5");
   await page.getByRole("button", { name: /^(Apply filters|Show \d+ rentals)$/ }).click();
   const canvas = page.locator("canvas.maplibregl-canvas");
   await expect(canvas).toBeVisible();

@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { SlidersHorizontal } from "lucide-react";
+import { ChevronDown, SlidersHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
+import { Select } from "@/components/ui/Select";
 import { DEFAULT_RENTAL_FILTERS, type PropertyType, type RentalFilters } from "@/contracts/rental-filters";
 import styles from "./RentalFilterDialog.module.css";
 
@@ -37,7 +38,7 @@ export function getBudgetError(filters: RentalFilters): string {
 }
 
 export function countDraftRentals(draft: RentalFilters, radius: number, count?: Props["getDraftCount"]): number | null {
-  if (getBudgetError(draft)) return null;
+  if (getBudgetError(draft) || !Number.isInteger(radius) || radius < 1 || radius > 50) return null;
   return count?.(draft, radius) ?? null;
 }
 
@@ -60,6 +61,7 @@ export function resetDraft(state: DraftState): DraftState {
 }
 
 export function applyDraft(state: DraftState, onApply: (filters: RentalFilters) => void, onRadiusChange?: (radius: number) => void) {
+  if (!Number.isInteger(state.radius) || state.radius < 1 || state.radius > 50) return;
   onApply(state.draft);
   onRadiusChange?.(state.radius);
 }
@@ -76,40 +78,48 @@ export function RentalFilterDialog({ filters, open: controlledOpen, onOpenChange
   const setRadiusDraft = (radius: number) => setState((current) => setDraftRadius(current, radius));
   const setOpen = (next: boolean) => { setLocalOpen(next); onOpenChange?.(next); };
   const updateBoolean = (field: keyof RentalFilters, checked: boolean) => updateDraft((current) => ({ ...current, [field]: checked ? true : null }));
+  const radiusError = !Number.isInteger(state.radius) || state.radius < 1 || state.radius > 50;
   const budgetError = getBudgetError(draft);
   const draftCount = countDraftRentals(draft, state.radius, getDraftCountCallback);
+  const essentialsCount = [draft.occupants, draft.bathroom, draft.wifiAvailable, draft.cookingAllowed, draft.laundryAllowed, draft.aircon, draft.motorcycleParking, draft.carParking, draft.waterIncluded, draft.electricityIncluded].filter(Boolean).length;
+  const policiesCount = [draft.curfewType, draft.verifiedOnly, draft.directLandlordOnly].filter(Boolean).length;
 
   return <>
     {onOpenChange === undefined && <Button type="button" variant="outline" onClick={() => setOpen(true)} aria-haspopup="dialog" aria-expanded={open}>
       <SlidersHorizontal size={16} aria-hidden="true" /> Refine rental search
     </Button>}
     <Modal surface="finder" open={open} onClose={() => setOpen(false)} title="Filters" description="Choose what matters for your next place." data-filter-surface="responsive-sheet" className={styles.dialog}>
-      <form onSubmit={(event) => { event.preventDefault(); if (budgetError) return; applyDraft(state, onApply, onMapRadiusChange); setOpen(false); }} className={styles.form} noValidate>
+      <form onSubmit={(event) => { event.preventDefault(); if (budgetError || radiusError) return; applyDraft(state, onApply, onMapRadiusChange); setOpen(false); }} className={styles.form} noValidate>
         <div className={styles.options} data-scroll-region="filter-options">
           <section className={styles.filterGroup} aria-labelledby="rental-area-heading">
             <h3 id="rental-area-heading">Search area</h3>
-            <label htmlFor="rental-radius">Search radius<select id="rental-radius" value={state.radius} onChange={(event) => setRadiusDraft(Number(event.target.value))}><option value={1}>1 km</option><option value={2}>2 km</option><option value={5}>5 km</option></select></label>
+            <div className={styles.field}>
+              <label htmlFor="rental-radius">Search radius</label>
+              <div className={styles.radiusInput}><input id="rental-radius" type="number" inputMode="numeric" min="1" max="50" step="1" value={Number.isNaN(state.radius) ? "" : state.radius} aria-invalid={radiusError} aria-describedby="rental-radius-help" onChange={(event) => setRadiusDraft(event.target.value === "" ? NaN : Number(event.target.value))} /><span>km</span></div>
+              <div className={styles.radiusPresets} aria-label="Radius presets">{[1, 2, 5, 10].map(radius => <button type="button" key={radius} aria-pressed={state.radius === radius} onClick={() => setRadiusDraft(radius)}>{radius} km</button>)}</div>
+              <p id="rental-radius-help" className={radiusError ? "text-destructive" : "text-muted-foreground"}>{radiusError ? "Enter a whole number from 1 to 50 km." : "Choose 1–50 km from your selected map location."}</p>
+            </div>
           </section>
           <section className={styles.filterGroup} aria-labelledby="rental-budget-heading">
-            <h3 id="rental-budget-heading">Monthly budget</h3>
+            <h3 id="rental-budget-heading">Monthly budget (₱)</h3>
             <div className={styles.budgetGrid}>
-              <label htmlFor="rental-min-price">Minimum monthly budget (₱)<input id="rental-min-price" type="number" min="0" max="50000" step="500" value={draft.minPrice ?? ""} aria-invalid={Boolean(budgetError)} aria-describedby={budgetError ? "rental-budget-error" : undefined} onChange={(event) => updateDraft((current) => ({ ...current, minPrice: event.target.value === "" ? null : Number(event.target.value) }))} /></label>
-              <label htmlFor="rental-max-price">Maximum monthly budget (₱)<input id="rental-max-price" type="number" min="0" max="50000" step="500" value={draft.maxPrice ?? ""} aria-invalid={Boolean(budgetError)} aria-describedby={budgetError ? "rental-budget-error" : undefined} onChange={(event) => updateDraft((current) => ({ ...current, maxPrice: event.target.value === "" ? null : Number(event.target.value) }))} /></label>
+              <label htmlFor="rental-min-price">Minimum<input aria-label="Minimum monthly budget (₱)" id="rental-min-price" type="number" min="0" max="50000" step="500" value={draft.minPrice ?? ""} aria-invalid={Boolean(budgetError)} aria-describedby={budgetError ? "rental-budget-error" : undefined} onChange={(event) => updateDraft((current) => ({ ...current, minPrice: event.target.value === "" ? null : Number(event.target.value) }))} /></label>
+              <label htmlFor="rental-max-price">Maximum<input aria-label="Maximum monthly budget (₱)" id="rental-max-price" type="number" min="0" max="50000" step="500" value={draft.maxPrice ?? ""} aria-invalid={Boolean(budgetError)} aria-describedby={budgetError ? "rental-budget-error" : undefined} onChange={(event) => updateDraft((current) => ({ ...current, maxPrice: event.target.value === "" ? null : Number(event.target.value) }))} /></label>
               {budgetError && <p id="rental-budget-error" className="text-sm text-destructive sm:col-span-2" role="alert">{budgetError}</p>}
             </div>
           </section>
           <details className={styles.filterGroup}>
-            <summary>Property type{draft.propertyTypes.length > 0 ? ` (${draft.propertyTypes.length} selected)` : ""}</summary>
+            <summary><span>Property type</span><span className={styles.selection}>{draft.propertyTypes.length === 1 ? types.find(type => type.id === draft.propertyTypes[0])?.label : draft.propertyTypes.length ? `${draft.propertyTypes.length} selected` : "Any type"}</span><ChevronDown size={18} aria-hidden="true" /></summary>
             <fieldset className={styles.optionGrid}>
               <legend className="sr-only">Property type</legend>
               {types.map(({ id, label }) => <label key={id}><input type="checkbox" checked={draft.propertyTypes.includes(id)} onChange={(event) => updateDraft((current) => ({ ...current, propertyTypes: event.target.checked ? [...current.propertyTypes, id] : current.propertyTypes.filter((type) => type !== id) }))} />{label}</label>)}
             </fieldset>
           </details>
           <details className={styles.filterGroup}>
-            <summary>Essentials</summary>
+            <summary><span>Essentials</span><span className={styles.selection}>{essentialsCount ? `${essentialsCount} selected` : "Any"}</span><ChevronDown size={18} aria-hidden="true" /></summary>
             <div className={styles.essentialFields}>
               <label htmlFor="rental-occupants">People staying<input id="rental-occupants" type="number" min="1" max="20" value={draft.occupants ?? ""} onChange={(event) => updateDraft((current) => ({ ...current, occupants: event.target.value === "" ? null : Number(event.target.value) }))} /></label>
-              <label htmlFor="rental-bathroom">Bathroom<select id="rental-bathroom" value={draft.bathroom ?? ""} onChange={(event) => updateDraft((current) => ({ ...current, bathroom: event.target.value === "" ? null : event.target.value as RentalFilters["bathroom"] }))}><option value="">Any bathroom</option><option value="private">Private</option><option value="shared">Shared</option></select></label>
+              <div className={styles.field}><span id="rental-bathroom-label">Bathroom</span><Select id="rental-bathroom" aria-labelledby="rental-bathroom-label" value={draft.bathroom ?? ""} onValueChange={(value) => updateDraft((current) => ({ ...current, bathroom: value === "" ? null : value as RentalFilters["bathroom"] }))} options={[{ value: "", label: "Any bathroom" }, { value: "private", label: "Private" }, { value: "shared", label: "Shared" }]} /></div>
               <fieldset className={styles.optionGrid}>
                 <legend className="sr-only">Essentials</legend>
                 <label><input type="checkbox" checked={draft.wifiAvailable === true} onChange={(event) => updateBoolean("wifiAvailable", event.target.checked)} />Wi-Fi</label>
@@ -124,9 +134,9 @@ export function RentalFilterDialog({ filters, open: controlledOpen, onOpenChange
             </div>
           </details>
           <details className={styles.filterGroup}>
-            <summary>Policies</summary>
+            <summary><span>Policies</span><span className={styles.selection}>{policiesCount ? `${policiesCount} selected` : "Any"}</span><ChevronDown size={18} aria-hidden="true" /></summary>
             <div className={styles.essentialFields}>
-              <label htmlFor="rental-curfew">Curfew<select id="rental-curfew" value={draft.curfewType ?? ""} onChange={(event) => updateDraft((current) => ({ ...current, curfewType: event.target.value === "" ? null : event.target.value as RentalFilters["curfewType"] }))}><option value="">Any curfew policy</option><option value="none">No curfew</option><option value="fixed">Fixed curfew</option><option value="conditional">Conditional curfew</option></select></label>
+              <div className={styles.field}><span id="rental-curfew-label">Curfew</span><Select id="rental-curfew" aria-labelledby="rental-curfew-label" value={draft.curfewType ?? ""} onValueChange={(value) => updateDraft((current) => ({ ...current, curfewType: value === "" ? null : value as RentalFilters["curfewType"] }))} options={[{ value: "", label: "Any curfew" }, { value: "none", label: "No curfew" }, { value: "fixed", label: "Fixed curfew" }, { value: "conditional", label: "Conditional curfew" }]} /></div>
               <fieldset className={styles.optionGrid}>
                 <legend>Trust</legend>
                 <label><input type="checkbox" checked={draft.verifiedOnly === true} onChange={(event) => updateBoolean("verifiedOnly", event.target.checked)} />Verified listings</label>
@@ -136,8 +146,9 @@ export function RentalFilterDialog({ filters, open: controlledOpen, onOpenChange
           </details>
         </div>
         <footer data-sticky-footer="true" className={styles.footer}>
+          {draftCount === 0 && <p role="status" className={styles.noMatches}>No matching rentals. Try a wider area or fewer filters.</p>}
           <Button type="button" variant="ghost" onClick={() => setState(resetDraft)}>Reset</Button>
-          <Button type="submit" disabled={Boolean(budgetError)}>{draftCount == null ? "Apply filters" : `Show ${draftCount} rentals`}</Button>
+          <Button type="submit" disabled={Boolean(budgetError) || radiusError}>{draftCount == null || draftCount === 0 ? "Apply filters" : `Show ${draftCount} rentals`}</Button>
         </footer>
       </form>
     </Modal>

@@ -1,0 +1,77 @@
+.panel { --listing-accent: var(--action); --listing-border: var(--border); --listing-muted: var(--muted-foreground); width: min(24rem, calc(100% - 2rem)); gap: 0; overflow: hidden; padding: 0; }
+.header { flex: none; border-bottom: 1px solid var(--listing-border); padding: 1.1rem 1.15rem 0; }
+.headingRow, .headingAndCount { display: flex; align-items: center; }
+.headingRow { justify-content: space-between; }
+.headingAndCount { gap: .55rem; }
+.headingAndCount h1 { margin: 0; color: var(--card-foreground); font-size: 1.2rem; font-weight: 750; letter-spacing: -.025em; }
+.countBadge { display: inline-grid; min-width: 1.65rem; height: 1.65rem; place-items: center; border-radius: 50%; padding-inline: .3rem; background: var(--accent); color: var(--accent-foreground); font-size: .75rem; font-weight: 750; }
+.collapseButton { display: grid; width: 2.5rem; min-width: 2.75rem; height: 2.5rem; min-height: 2.75rem; place-items: center; border: 1px solid var(--listing-border); border-radius: .7rem; background: var(--card); color: var(--card-foreground); cursor: pointer; }
+.collapseButton:hover { background: var(--accent); }
+.categories { display: flex; gap: 1.05rem; overflow-x: auto; margin: .6rem -1.15rem 0; padding: 0 1.15rem; scrollbar-width: none; }
+.categories::-webkit-scrollbar { display: none; }
+.categoryButton, .categoryActive { position: relative; min-height: 2.9rem; flex: none; border: 0; padding: .45rem 0; background: transparent; color: var(--listing-muted); cursor: pointer; font: inherit; font-size: .8rem; font-weight: 650; white-space: nowrap; }
+.categoryButton:hover { color: var(--foreground); }
+.categoryActive { color: var(--listing-accent); }
+.categoryActive::after { position: absolute; right: 0; bottom: 0; left: 0; height: 2px; border-radius: 2px 2px 0 0; background: var(--listing-accent); content: ""; }
+.resultsStatus { margin: 0; padding: .45rem 0 .75rem; color: var(--listing-muted); font-size: .77rem; }
+.content { min-height: 0; flex: 1; overflow-y: auto; align-content: start; gap: .75rem; padding: 1rem 1.15rem; overscroll-behavior: contain; scrollbar-color: var(--input) transparent; scrollbar-width: thin; }
+.content[hidden] { display: none; }
+.skeletons { display: grid; width: 100%; gap: .75rem; }
+.skeleton { display: grid; gap: .65rem; border: 1px solid var(--listing-border); border-radius: .8rem; padding: .8rem; }
+.emptyState { display: grid; justify-items: center; gap: .6rem; margin-block: auto; padding: 1rem .25rem; text-align: center; }
+.loadingState { display: grid; justify-items: center; gap: .5rem; margin-block: auto; padding: 1rem .25rem; text-align: center; }
+.loadingState b { color: var(--card-foreground); }
+.loadingState p { max-width: 19rem; margin: 0; color: var(--listing-muted); font-size: .82rem; line-height: 1.55; }
+.emptyIcon { display: grid; width: 3.5rem; height: 3.5rem; place-items: center; border-radius: 50%; background: var(--accent); color: var(--accent-foreground); }
+.emptyState > b { color: var(--card-foreground); font-size: 1rem; }
+.emptyState > p { max-width: 19rem; margin: 0; color: var(--listing-muted); font-size: .82rem; line-height: 1.55; }
+.emptyActions { display: grid; width: 100%; gap: .55rem; margin-top: .35rem; }
+.expandButton, .secondaryButton { display: flex; min-height: 2.85rem; align-items: center; justify-content: center; gap: .5rem; border: 1px solid transparent; border-radius: .7rem; padding: .55rem .85rem; cursor: pointer; font: inherit; font-size: .85rem; font-weight: 700; }
+.expandButton { background: var(--action); color: var(--action-foreground); }
+.expandButton:hover { background: var(--action-hover); }
+.secondaryButton { border-color: var(--listing-border); background: var(--muted); color: var(--card-foreground); }
+.secondaryButton:hover { background: var(--accent); }
+.linkButton { min-height: 2.75rem; border: 0; background: transparent; color: var(--action); cursor: pointer; font: inherit; font-weight: 700; }
+.sampleNotice { display: grid; gap: .4rem; border: 1px solid color-mix(in srgb, var(--warning) 38%, var(--listing-border)); border-radius: .7rem; padding: .75rem; background: color-mix(in srgb, var(--warning) 10%, var(--card)); color: var(--card-foreground); font-size: .77rem; line-height: 1.4; }
+.sampleNotice p { margin: 0; color: var(--listing-muted); }
+.sampleNotice button, .sampleMapNotice button { justify-self: start; min-height: 2.5rem; border: 0; background: transparent; color: var(--action); cursor: pointer; font: inherit; font-weight: 700; }
+.rentalList { gap: .65rem; }
+.radiusFooter { display: flex; flex: none; min-height: 3.65rem; align-items: center; justify-content: space-between; gap: .5rem; margin-top: auto; border-top: 1px solid var(--listing-border); padding: .55rem .8rem; color: var(--muted-foreground); font-size: .8rem; }
+.radiusFooter > span { flex: 1; border-radius: .65rem; padding: .6rem .7rem; background: var(--accent); color: var(--accent-foreground); }
+.radiusFooter b { color: var(--card-foreground); font-weight: 750; }
+.radiusFooter > button { display: grid; width: 2.75rem; min-width: 2.75rem; height: 2.75rem; place-items: center; border: 1px solid var(--listing-border); border-radius: .7rem; background: var(--card); color: var(--card-foreground); cursor: pointer; }
+.radiusFooter > button:hover { background: var(--accent); }
+.sampleMapNotice { position: absolute; z-index: var(--z-index-fab); top: max(1rem, env(safe-area-inset-top)); right: max(1rem, env(safe-area-inset-right)); display: flex; max-width: min(29rem, calc(100% - 2rem)); align-items: center; gap: .45rem .8rem; border: 1px solid var(--warning); border-radius: .8rem; padding: .4rem .7rem; background: var(--card); color: var(--card-foreground); box-shadow: 0 4px 16px rgb(13 46 70 / 15%); font-size: .72rem; }
+.sampleMapNotice[hidden] { display: none; }
+.sampleMapNotice b { color: var(--warning-foreground); }
+.sampleMapNotice button { min-height: 2.4rem; }
+.srOnly { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; clip-path: inset(50%); }
+
+@media (min-width: 1024px) {
+  .reopenButton { z-index: var(--z-index-fab); display: inline-flex; min-height: 2.75rem; align-items: center; gap: .45rem; border: 1px solid var(--border); border-radius: .7rem; padding: .5rem .85rem; background: var(--card); color: var(--card-foreground); box-shadow: 0 4px 16px rgb(13 46 70 / 15%); cursor: pointer; font: inherit; font-size: .8rem; font-weight: 700; }
+  [data-results-collapsed="true"] .reopenButton { position: absolute; top: 10rem; left: 1rem; display: inline-flex; }
+  [data-results-collapsed="false"] .reopenButton { display: none; }
+  .reopenButton:hover { background: var(--accent); }
+  .reopenButton > span { display: grid; min-width: 1.35rem; height: 1.35rem; place-items: center; border-radius: 50%; padding-inline: .25rem; background: var(--accent); color: var(--accent-foreground); font-size: .7rem; }
+  .panel.panel { top: 10rem; bottom: 1.25rem; width: min(24rem, calc(100% - 2rem)); max-height: none; gap: 0; padding: 0; }
+  .panel[hidden] { display: none; }
+  .sampleMapNotice { top: auto; right: max(1rem, env(safe-area-inset-right)); bottom: 1.25rem; }
+}
+
+@media (max-width: 1023px) {
+  .panel { top: auto; right: 0; bottom: 0; left: 0; width: 100%; height: min(var(--results-sheet-height), 95dvh); max-height: 95dvh; border: 0; border-radius: 1.2rem 1.2rem 0 0; }
+  .panel[hidden] { display: none; }
+  .headingRow { display: none; }
+  .header { padding: .1rem .95rem 0; }
+  .categories { margin: 0 -.95rem; padding-inline: .95rem; }
+  .resultsStatus { padding: .25rem 0 .55rem; }
+  .content { min-height: 0; overflow-y: auto; padding: .65rem .95rem calc(.7rem + env(safe-area-inset-bottom)); }
+  .sampleNotice { margin-bottom: .5rem; }
+  .loadingState, .emptyState { margin-block: 0; }
+  .radiusFooter { min-height: 3.25rem; margin: 0 -.95rem; padding-inline: .95rem; }
+  .sampleMapNotice { top: max(.65rem, env(safe-area-inset-top)); right: .65rem; left: auto; max-width: calc(100% - 1.3rem); flex-wrap: wrap; justify-content: flex-end; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .categories, .content { scroll-behavior: auto; }
+}
