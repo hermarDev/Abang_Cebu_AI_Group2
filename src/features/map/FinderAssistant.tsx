@@ -229,6 +229,8 @@ export function FinderAssistant({ open, onOpenChange: setOpen, onSearch, onFilte
   const messageEndRef = useRef<HTMLDivElement>(null);
   const localHistoryKey = userId ? `${LOCAL_HISTORY_KEY}:account:${userId}` : `${LOCAL_HISTORY_KEY}:guest`;
   const historyOwner = authenticated ? userId ?? "signed-in" : "guest";
+  const currentUserName = authenticated ? displayName || "You" : "Guest";
+  const currentUserPhoto = authenticated ? profilePhotoUrl : null;
 
   const updateConversations = useCallback((next: SavedConversation[] | ((current: SavedConversation[]) => SavedConversation[])) => {
     const value = typeof next === "function" ? next(conversationsRef.current) : next;
@@ -554,7 +556,7 @@ export function FinderAssistant({ open, onOpenChange: setOpen, onSearch, onFilte
         <div className={styles.chatHistoryList}>
           {conversations.map((conversation) => <div key={conversation.id} className={styles.chatHistoryItem}>
             <button type="button" className={styles.chatHistoryOpen} onClick={() => { void selectConversation(conversation); }} disabled={historyLoading}>
-              <span className={styles.chatHistoryIdentity}><ProfileAvatar url={profilePhotoUrl} name={displayName || "Guest"} className={styles.chatHistoryAvatar} /><b>{displayName || "Guest"}</b></span>
+              <span className={styles.chatHistoryIdentity}><ProfileAvatar url={currentUserPhoto} name={currentUserName} className={styles.chatHistoryAvatar} /><b>{currentUserName}</b></span>
               <span className={styles.chatHistoryPreview}>{conversation.preview || "Start a conversation"}</span><small>{formatDate(conversation.updatedAt)}</small>
             </button>
             {pendingDeleteId === conversation.id ? <div className={styles.chatDeleteConfirm}><span>Delete this chat?</span><button type="button" onClick={() => { void deleteConversation(conversation); }}>Delete</button><button type="button" onClick={() => setPendingDeleteId(null)}>Cancel</button></div>
@@ -567,7 +569,7 @@ export function FinderAssistant({ open, onOpenChange: setOpen, onSearch, onFilte
             return message.role === "user"
               ? <div key={`${message.role}-${index}`} className={styles.chatUserMessage}>
                 <p className={styles.chatMessageUser}>{message.content}</p>
-                <ProfileAvatar url={authenticated ? profilePhotoUrl : null} name={displayName || "You"} className={styles.chatUserAvatar} />
+                <ProfileAvatar url={currentUserPhoto} name={currentUserName} className={styles.chatUserAvatar} />
               </div>
               : <div key={`${message.role}-${index}`} className={styles.chatAssistantMessage}>
                 <Image src="/icons/chatbot_logo.png" alt="" width={24} height={24} />

@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { getAssistantAccess } from "@/server/assistant-access";
 import type { Json } from "@/types/database";
 
 type ConversationMessage = { role: "user" | "assistant"; content: string };
@@ -10,9 +10,11 @@ const maxAssistantMessageLength = 8_000;
 const maxConversationBytes = 60_000;
 
 async function getAuthenticatedClient() {
-  const supabase = await createClient();
-  const { data: { user }, error } = await supabase.auth.getUser();
-  return error || !user ? null : { supabase, user };
+  const access = await getAssistantAccess(true);
+  if ("response" in access) return { response: access.response } as const;
+  const user = access.user;
+  if (!user) return { response: Response.json({ error: "Sign in with a renter account to access chat history." }, { status: 401, headers: responseHeaders }) } as const;
+  return { supabase: access.supabase, user };
 }
 
 function parseMessages(value: unknown): ConversationMessage[] | null {
@@ -58,7 +60,7 @@ function serializeConversation(row: { id: string; title: string; messages: Json;
 
 export async function GET(request: Request) {
   const authenticated = await getAuthenticatedClient();
-  if (!authenticated) return Response.json({ error: "Sign in to access saved chats." }, { status: 401, headers: responseHeaders });
+  if ("response" in authenticated) return authenticated.response;
 
   const id = new URL(request.url).searchParams.get("id");
   if (id) {
@@ -89,7 +91,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   const authenticated = await getAuthenticatedClient();
-  if (!authenticated) return Response.json({ error: "Sign in to save chats to your account." }, { status: 401, headers: responseHeaders });
+  if ("response" in authenticated) return authenticated.response;
 
   let body: unknown;
   try { body = await request.json(); } catch { return Response.json({ error: "Send a valid conversation." }, { status: 400, headers: responseHeaders }); }
@@ -106,7 +108,7 @@ export async function POST(request: Request) {
 
 export async function PATCH(request: Request) {
   const authenticated = await getAuthenticatedClient();
-  if (!authenticated) return Response.json({ error: "Sign in to save chats to your account." }, { status: 401, headers: responseHeaders });
+  if ("response" in authenticated) return authenticated.response;
 
   let body: unknown;
   try { body = await request.json(); } catch { return Response.json({ error: "Send a valid conversation." }, { status: 400, headers: responseHeaders }); }
@@ -129,7 +131,7 @@ export async function PATCH(request: Request) {
 
 export async function DELETE(request: Request) {
   const authenticated = await getAuthenticatedClient();
-  if (!authenticated) return Response.json({ error: "Sign in to manage saved chats." }, { status: 401, headers: responseHeaders });
+  if ("response" in authenticated) return authenticated.response;
 
   let body: unknown;
   try { body = await request.json(); } catch { return Response.json({ error: "Choose a chat to delete." }, { status: 400, headers: responseHeaders }); }

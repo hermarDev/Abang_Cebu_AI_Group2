@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { getAssistantAccess } from "@/server/assistant-access";
 
 type ConversationMessage = {
   role: "user" | "assistant";
@@ -78,6 +79,9 @@ async function loadRelevantRentals(query: string) {
 }
 
 export async function POST(request: Request) {
+  const access = await getAssistantAccess();
+  if ("response" in access) return access.response;
+
   let body: unknown;
   try {
     body = await request.json();

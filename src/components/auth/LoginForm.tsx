@@ -63,7 +63,7 @@ export function LoginForm({
       }
       setStatusIsError(false);
       const next = new URLSearchParams(window.location.search).get("next");
-      router.replace(getPostLoginRedirect(next));
+      router.replace(getPostLoginRedirect(next, result.role));
       router.refresh();
     } catch {
       setStatusIsError(true);

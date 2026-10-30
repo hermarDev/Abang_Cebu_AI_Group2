@@ -1,4 +1,4 @@
-import { copyFile, mkdir } from "node:fs/promises";
+import { copyFile, mkdir, readFile, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { join } from "node:path";
 
@@ -10,9 +10,11 @@ const workers = ["maplibre-gl-worker.mjs", "maplibre-gl-shared.mjs"];
 
 await mkdir(outputDir, { recursive: true });
 await Promise.all(
-  workers.map((worker) =>
-    copyFile(join(sourceDir, worker), join(outputDir, worker)),
-  ),
+  workers.map(async (worker) => {
+    const source = await readFile(join(sourceDir, worker), "utf8");
+    const withoutMissingSourceMap = source.replace(/^[\t ]*\/\/# sourceMappingURL=.*(?:\r?\n|$)/gm, "");
+    await writeFile(join(outputDir, worker), withoutMissingSourceMap);
+  }),
 );
 const licensePath = join(outputDir, "LICENSE.txt");
 await copyFile(

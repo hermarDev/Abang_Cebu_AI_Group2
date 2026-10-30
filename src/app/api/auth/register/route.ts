@@ -46,8 +46,7 @@ export async function POST(request: Request) {
       email,
       password,
       options: {
-        // Both roles return to discovery until protected onboarding routes exist.
-        emailRedirectTo: `${origin}/auth/callback?next=/`,
+        emailRedirectTo: `${origin}/auth/callback?next=${role === "landlord" ? "/landlord/dashboard" : "/"}`,
         data: { role, full_name: fullName, ...(phoneNumber ? { phone_number: phoneNumber } : {}), ...(preferredLandmark ? { preferred_landmark: preferredLandmark } : {}) },
       },
     });

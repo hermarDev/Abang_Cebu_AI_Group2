@@ -164,6 +164,39 @@ export interface Database {
           }
         ];
       };
+      favorites: {
+        Row: {
+          user_id: string;
+          listing_id: string;
+          created_at: string;
+        };
+        Insert: {
+          user_id?: string;
+          listing_id: string;
+          created_at?: string;
+        };
+        Update: {
+          user_id?: string;
+          listing_id?: string;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "favorites_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "favorites_listing_id_fkey";
+            columns: ["listing_id"];
+            isOneToOne: false;
+            referencedRelation: "listings";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
     };
     Views: Record<string, never>;
     Functions: {
@@ -175,6 +208,8 @@ export interface Database {
         Args: Record<PropertyKey, never>;
         Returns: boolean;
       };
+      submit_landlord_listing: { Args: { listing_id: string }; Returns: boolean; };
+      review_landlord_listing: { Args: { listing_id: string; decision: string; reason?: string | null }; Returns: boolean; };
     };
     Enums: {
       user_role: UserRole;

@@ -27,6 +27,7 @@
 .signIn:focus-visible { outline: 3px solid var(--ring); outline-offset: 3px; }
 @media (prefers-reduced-motion: reduce) { .signIn { transition: none; } }
 .accountMenu { position: absolute; z-index: var(--z-index-search-bar); top: max(1rem, env(safe-area-inset-top)); right: max(1rem, env(safe-area-inset-right)); }
+.accountAvatar { display: block; width: 1.75rem; height: 1.75rem; flex: 0 0 auto; border: 1px solid var(--border); border-radius: 50%; object-fit: cover; }
 .accountMenu > summary { position: static; list-style: none; }
 .accountMenu > summary::-webkit-details-marker { display: none; }
 .accountMenu > summary > svg:last-child { transition: transform 140ms ease; }
@@ -313,3 +314,25 @@
   .chatTypingDots i { animation: none; }
   .chatComposer > button, .suggestions button { transition: none; }
 }
+
+.rentalPhoto { display: block; width: 100%; height: 10rem; border-radius: .6rem; object-fit: cover; }
+
+.rentalPhotoFrame { position: relative; min-width: 0; }
+.favoriteButton {
+  position: absolute;
+  top: .55rem;
+  right: .55rem;
+  display: grid;
+  width: 2.5rem;
+  height: 2.5rem;
+  place-items: center;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--card);
+  color: var(--action);
+  box-shadow: 0 2px 8px rgb(15 39 66 / 18%);
+  cursor: pointer;
+}
+.favoriteButton:hover { background: var(--accent); }
+.favoriteButton:focus-visible { outline: 3px solid var(--ring); outline-offset: 2px; }
+.favoriteFeedback { margin: 0 0 .75rem; border: 1px solid var(--border); border-radius: .75rem; padding: .65rem .8rem; background: var(--card); color: var(--muted-foreground); font-size: .8rem; line-height: 1.45; }

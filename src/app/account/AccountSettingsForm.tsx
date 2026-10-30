@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore, useTransition, type ChangeEvent, type FormEvent } from "react";
-import { Camera, KeyRound, LogOut, Mail, Phone, ShieldCheck, UserRound } from "lucide-react";
+import { Camera, KeyRound, LogOut, Mail, Phone, ShieldCheck, UserRound, X, ZoomIn } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { Modal } from "@/components/ui/Modal";
 import { Select } from "@/components/ui/Select";
 import { getCountries, getCountryCallingCode, parsePhoneNumberFromString, type CountryCode } from "libphonenumber-js/max";
 import { parseValidPhoneNumber } from "@/lib/phone-number";
@@ -59,6 +60,7 @@ export function AccountSettingsForm({ profile }: { profile: AccountProfile }) {
   const [savedProfile, setSavedProfile] = useState({ fullName: profile.fullName.trim().replace(/\s+/g, " "), phoneCountry: initialPhoneCountry, phoneNumber: initialPhoneNumber });
   const [avatarUrl, setAvatarUrl] = useState(profile.avatarUrl);
   const [avatarPreview, setAvatarPreview] = useState(profile.avatarUrl);
+  const [avatarPreviewOpen, setAvatarPreviewOpen] = useState(false);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [profileResult, setProfileResult] = useState<AccountActionResult | null>(null);
   const [passwordResult, setPasswordResult] = useState<AccountActionResult | null>(null);
@@ -202,9 +204,12 @@ export function AccountSettingsForm({ profile }: { profile: AccountProfile }) {
           <div><h2 id="profile-details-heading" className="text-lg font-semibold">Personal details</h2><p className="mt-1 text-sm text-muted-foreground">Keep the contact information on your profile up to date.</p></div>
         </header>
         <div className="mb-5 flex flex-wrap items-center gap-4 rounded-xl border border-border bg-muted/50 p-4">
-          <div className="grid size-16 shrink-0 place-items-center overflow-hidden rounded-full border border-border bg-card text-muted-foreground">
-            {avatarPreview ? <Image src={avatarPreview} alt="Profile photo preview" width={64} height={64} unoptimized className="size-full object-cover" /> : <UserRound size={26} aria-hidden="true" />}
-          </div>
+          {avatarPreview
+            ? <button type="button" aria-label="View profile photo" title="View full-size profile photo" onClick={() => setAvatarPreviewOpen(true)} className="group relative grid size-16 shrink-0 cursor-zoom-in place-items-center overflow-visible rounded-full border border-border bg-card text-muted-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
+              <Image src={avatarPreview} alt="" width={64} height={64} unoptimized className="size-full rounded-full object-cover" />
+              <span className="absolute bottom-0 right-0 grid size-6 translate-x-1 translate-y-1 place-items-center rounded-full border border-border bg-card text-action shadow-sm"><ZoomIn size={14} aria-hidden="true" /></span>
+            </button>
+            : <div className="grid size-16 shrink-0 place-items-center overflow-hidden rounded-full border border-border bg-card text-muted-foreground"><UserRound size={26} aria-hidden="true" /></div>}
           <div className="min-w-0 flex-1">
             <p className="text-sm font-semibold">Profile photo</p>
 
@@ -298,5 +303,17 @@ export function AccountSettingsForm({ profile }: { profile: AccountProfile }) {
       </section>
       <p className="px-1 text-sm leading-relaxed text-muted-foreground">Need help with your account? <a className="font-medium text-action hover:underline" href="mailto:support@abangcebu.ai">Contact support</a>.</p>
     </aside>
+    {avatarPreview && <Modal
+      open={avatarPreviewOpen}
+      onClose={() => setAvatarPreviewOpen(false)}
+      title="Profile photo"
+      description={fullName.trim() ? `${fullName.trim()}'s profile photo` : "Your profile photo"}
+      className="max-w-3xl"
+      closeControl={<button type="button" aria-label="Close profile photo" className="absolute right-0 top-0 grid size-11 place-items-center rounded-lg hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"><X size={18} aria-hidden="true" /></button>}
+    >
+      <div className="relative mx-auto h-[64dvh] max-h-[42rem] min-h-[8rem] w-full max-w-3xl overflow-hidden rounded-xl bg-muted">
+        <Image src={avatarPreview} alt="Profile photo" fill sizes="(max-width: 768px) 90vw, 48rem" unoptimized className="object-contain" />
+      </div>
+    </Modal>}
   </div>;
 }
