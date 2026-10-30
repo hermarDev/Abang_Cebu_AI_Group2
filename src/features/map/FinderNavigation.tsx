@@ -4,8 +4,9 @@ import { useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import Image from "next/image";
 import Link from "next/link";
-import { Search, Bookmark, MessageCircle, HousePlus, CircleHelp, Headset, Map, UserRound, LogIn, Sun, Moon, Monitor } from "lucide-react";
+import { Search, Bookmark, MessageCircle, HousePlus, CircleHelp, Headset, Map, UserRound, LogIn, Sun, Moon, Monitor, ClipboardCheck, LayoutDashboard } from "lucide-react";
 import { Modal } from "@/components/ui/Modal";
+import type { UserRole } from "@/types/database";
 import styles from "./FinderNavigation.module.css";
 
 export interface FinderNavigationProps {
@@ -17,9 +18,10 @@ export interface FinderNavigationProps {
   onAccount: () => void;
   onHelp: () => void;
   authenticated?: boolean;
+  userRole?: UserRole | null;
 }
 
-export function FinderNavigation({ open, onClose, preference, resolvedTheme, onPreferenceChange, onAccount, onHelp, authenticated = false }: FinderNavigationProps) {
+export function FinderNavigation({ open, onClose, preference, resolvedTheme, onPreferenceChange, onAccount, onHelp, authenticated = false, userRole = null }: FinderNavigationProps) {
   const [faqOpen, setFaqOpen] = useState(false);
   const transitionRunning = useRef(false);
 
@@ -67,23 +69,24 @@ export function FinderNavigation({ open, onClose, preference, resolvedTheme, onP
       closeControl={<button type="button" className={styles.mapButton}><Map aria-hidden="true" /><span>Map</span></button>}>
       <div className={styles.content}>
         <div className={styles.brandRow}>
-          <Image src={resolvedTheme === "dark" ? "/icons/main_Logo_Light.png" : "/icons/main_Logo.png"} unoptimized alt="AbangCebu" width={140} height={41} className={styles.logo} />
+          <Image src={resolvedTheme === "dark" ? "/icons/main_Logo_Light.png" : "/icons/main_Logo.png"} unoptimized alt="AbangCebu" width={299} height={100} loading="eager" className={styles.logo} />
           <p>Find your next home in Cebu</p>
         </div>
         <nav aria-label="Main menu" className={styles.mainNavigation}>
-          <Link href="/" aria-current="page" className={`${styles.navItem} ${styles.currentPage}`} onClick={(event) => { if (!event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey) { event.preventDefault(); onClose(); } }}>
-            <Search aria-hidden="true" /><span>Find rentals</span>
+          <Link href={userRole === "landlord" ? "/landlord/map" : "/"} aria-current="page" className={`${styles.navItem} ${styles.currentPage}`} onClick={(event) => { if (userRole === "landlord") { onClose(); return; } if (!event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey) { event.preventDefault(); onClose(); } }}>
+            <Search aria-hidden="true" /><span>{userRole === "landlord" ? "Your property map" : "Find rentals"}</span>
           </Link>
-          <button type="button" className={styles.navItem} onClick={onAccount}><Bookmark aria-hidden="true" /><span>Saved rentals</span></button>
-          <button type="button" className={styles.navItem} onClick={() => { onClose(); onHelp(); }}><MessageCircle aria-hidden="true" /><span>Help finding a rental</span></button>
-          <button type="button" className={styles.navItem} onClick={onAccount}><HousePlus aria-hidden="true" /><span>List your property</span></button>
+          {userRole === "landlord" && <Link href="/landlord/dashboard" className={styles.navItem} onClick={onClose}><LayoutDashboard aria-hidden="true" /><span>Landlord dashboard</span></Link>}
+          {(userRole === "renter" || !authenticated) && <Link href="/favorites" className={styles.navItem} onClick={onClose}><Bookmark aria-hidden="true" /><span>Saved rentals</span></Link>}
+          {(userRole === "renter" || !authenticated) && <button type="button" className={styles.navItem} onClick={() => { onClose(); onHelp(); }}><MessageCircle aria-hidden="true" /><span>Help finding a rental</span></button>}
+          {userRole === "landlord" && <Link href="/list-property" className={styles.navItem} onClick={onClose}><HousePlus aria-hidden="true" /><span>List your property</span></Link>}{userRole === "admin" && <Link href="/admin/listings" className={styles.navItem} onClick={onClose}><ClipboardCheck aria-hidden="true" /><span>Review property listings</span></Link>}
         </nav>
         <section className={styles.support} aria-labelledby="finder-support-heading">
           <h2 id="finder-support-heading">Support</h2>
           <button type="button" className={styles.navItem} aria-expanded={faqOpen} aria-controls="finder-faq" onClick={() => setFaqOpen(value => !value)}><CircleHelp aria-hidden="true" /><span>Help &amp; FAQ</span></button>
           {faqOpen && <div id="finder-faq" className={styles.faq}>
             <h3>How do I find a rental?</h3><p>Use Budget, Property type, or Filters to narrow your search.</p>
-            <h3>Need more help?</h3><p>Open Help finding a rental for search tools, or contact support.</p>
+            <h3>Need more help?</h3><p>Use the map search and filters to narrow your options, or contact support.</p>
           </div>}
           <a href="mailto:support@abangcebu.ai" className={styles.navItem}><Headset aria-hidden="true" /><span>Contact support</span></a>
         </section>
@@ -104,7 +107,7 @@ export function FinderNavigation({ open, onClose, preference, resolvedTheme, onP
             {preference === "system" && <p className={styles.themeHint}>Matches your device appearance.</p>}
           </fieldset>
           {authenticated
-            ? <Link href="/auth/logout" className={styles.accountAction}><UserRound aria-hidden="true" /><span>Account / Sign out</span></Link>
+            ? <Link href="/account" className={styles.accountAction}><UserRound aria-hidden="true" /><span>Account settings</span></Link>
             : <button type="button" className={styles.accountAction} onClick={onAccount}><LogIn aria-hidden="true" /><span>Log in</span></button>}
         </footer>
       </div>

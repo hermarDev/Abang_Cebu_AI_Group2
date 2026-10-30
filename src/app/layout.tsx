@@ -3,6 +3,7 @@ import localFont from "next/font/local";
 import "maplibre-gl/dist/maplibre-gl.css";
 import "./globals.css";
 import { LogoutSyncListener } from "@/components/auth/LogoutSyncListener";
+import { ThemeSync } from "@/components/theme/ThemeSync";
 
 const manrope = localFont({ src: "../../public/fonts/manrope-latin-wght-normal.woff2", variable: "--font-manrope", weight: "200 800" });
 
@@ -18,21 +19,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <head>
-        <script dangerouslySetInnerHTML={{ __html: `(() => {
-          let theme;
-          try { theme = localStorage.getItem("abangcebu-theme"); } catch {}
-          if (theme !== "light" && theme !== "dark") {
-            try { theme = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"; }
-            catch { theme = "light"; }
-          }
-          document.documentElement.classList.add(theme);
-          document.documentElement.style.colorScheme = theme;
-        })();` }} />
-      </head>
       <body
         className={`${manrope.variable} antialiased`}
       >
+        <ThemeSync />
         <LogoutSyncListener />
         {children}
       </body>

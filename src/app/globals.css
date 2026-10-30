@@ -5,6 +5,8 @@
 @import "../styles/finder/filter-dialog.css";
 @import "../styles/finder/drawer.css";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   /* White and cool slate surfaces */
   --background: #ffffff;

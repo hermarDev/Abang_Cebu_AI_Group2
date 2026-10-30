@@ -41,7 +41,7 @@ export function mapListing(value: unknown): RentalResult {
   if (maxOccupants !== null && !Number.isInteger(maxOccupants)) throw new Error("Invalid listing");
 
   return {
-    id: text(row.id), title: text(row.title), description: row.description == null ? "" : text(row.description),
+    id: text(row.id), title: text(row.title), address: row.address == null ? text(row.city) : text(row.address), imageUrls: Array.isArray(row.image_urls) ? row.image_urls.filter((url): url is string => typeof url === "string" && /^https?:\/\//i.test(url)) : [], description: row.description == null ? "" : text(row.description),
     locality: text(row.city), coordinates: [number(row.longitude, -180, 180), number(row.latitude, -90, 90)],
     price: number(row.price, 0, Number.MAX_SAFE_INTEGER), type: propertyType, propertyType,
     basis: propertyType === "bedspace" ? "bed" : "room", available: true, distanceMeters: null,

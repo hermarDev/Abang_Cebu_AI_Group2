@@ -13,17 +13,48 @@
   inset: 0;
 }
 
-/* Keep live source credits clear of the shell's chat launcher. */
-.mapRoot :global(.maplibregl-ctrl-bottom-right) {
-  right: 5rem;
+.mapRoot :global(.maplibregl-ctrl-bottom-left) {
+  right: 0;
+  left: 0;
+  display: flex;
+  width: 100%;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.mapRoot :global(.maplibregl-ctrl-bottom-left .maplibregl-ctrl) {
+  float: none;
+  margin: 0 0 0.625rem;
+  pointer-events: auto;
 }
 
 @media (max-width: 1023px) {
-  .mapRoot :global(.maplibregl-ctrl-bottom-right) {
-    right: calc(max(0.8rem, env(safe-area-inset-right)) + 5px);
-    left: auto;
-    bottom: calc(min(calc(var(--results-sheet-height, 42dvh) + 1rem), calc(100dvh - 10rem)) + 50px);
-    max-width: calc(100% - 2rem);
+  .mapRoot :global(.maplibregl-ctrl-bottom-left) {
+    right: 0;
+    bottom: min(calc(var(--results-sheet-height, 42dvh) + 1rem), calc(100dvh - 10rem));
+    left: 0;
+    width: 100%;
+    justify-content: center;
+    padding-left: calc(4rem + max(1rem, env(safe-area-inset-left)));
+    padding-right: calc(4rem + max(1rem, env(safe-area-inset-right)));
+    box-sizing: border-box;
+  }
+
+  .mapRoot :global(.maplibregl-ctrl-bottom-left .maplibregl-ctrl) {
+    margin-bottom: 0;
+  }
+
+  .mapRoot :global(.maplibregl-ctrl-bottom-left .maplibregl-ctrl-attrib) {
+    min-width: 0;
+    max-width: min(12rem, 100%);
+    font-size: 0.625rem;
+    line-height: 1.25;
+    text-align: left;
+    overflow-wrap: anywhere;
+  }
+
+  :global(main[data-sheet-position="expanded"]) .mapRoot :global(.maplibregl-ctrl-bottom-left) {
+    bottom: calc(min(calc(var(--results-sheet-height, 42dvh) + 1rem), calc(100dvh - 10rem)) + 0.625rem);
   }
 }
 
@@ -34,7 +65,7 @@
   left: max(1rem, env(safe-area-inset-left));
   max-width: min(26rem, calc(100% - 2rem));
   transform: translateY(5rem);
-  border: 1px solid rgb(15 39 66 / 12%);
+  border: 1px solid var(--border);
   border-radius: 0.75rem;
   padding: 0.65rem 0.85rem;
   background: var(--card);
@@ -57,6 +88,16 @@
 
 .controlledControls {
   bottom: calc(max(1.25rem, env(safe-area-inset-bottom)) + 5rem);
+}
+
+.mapControls.assistantControls {
+  position: static;
+  flex-direction: row;
+  align-items: center;
+}
+
+.mapControls.assistantControls .zoomControls {
+  flex-direction: row;
 }
 
 .zoomControls {
@@ -91,14 +132,14 @@
 }
 
 @media (max-width: 1023px) {
-  .zoomControls { display: none; }
+  .mapControls.assistantControls { display: none; }
   :global(main[data-sheet-position="expanded"]) .controlledControls { display: none; }
   .controlledControls {
-    align-items: center;
+    align-items: flex-end;
     right: max(0.8rem, env(safe-area-inset-right));
     bottom: min(calc(var(--results-sheet-height, 42dvh) + 1rem), calc(100dvh - 10rem));
-    flex-direction: row;
-    gap: 0.375rem;
+    flex-direction: column;
+    gap: 0.625rem;
   }
 }
 
@@ -145,7 +186,7 @@
   flex-direction: column;
   gap: 0.375rem;
   transform: translate(-50%, -50%);
-  border: 1px solid #e6decb;
+  border: 1px solid var(--border);
   border-radius: 1rem;
   padding: 1.25rem;
   background: var(--card);
@@ -155,7 +196,7 @@
 }
 
 .mapFallback span {
-  color: #675a3e;
+  color: var(--muted-foreground);
   font-size: 0.875rem;
 }
 
@@ -182,8 +223,8 @@
 }
 
 .rentalSearch label { font-weight: 700; }
-.rentalSearch input { min-height: 2.75rem; min-width: 0; border: 1px solid #e6decb; border-radius: 0.5rem; padding: 0.5rem 0.75rem; font: inherit; }
-.rentalSearch span { color: #526378; font-size: 0.8125rem; }
+.rentalSearch input { min-height: 2.75rem; min-width: 0; border: 1px solid var(--input); border-radius: 0.5rem; padding: 0.5rem 0.75rem; background: var(--card); color: var(--card-foreground); font: inherit; }
+.rentalSearch span { color: var(--muted-foreground); font-size: 0.8125rem; }
 
 .filterTrigger {
   position: absolute;
@@ -211,14 +252,14 @@
 }
 
 .rentalResults > strong { font-size: 1rem; }
-.previewNote { margin: 0; border-radius: 0.5rem; padding: 0.55rem; background: #fff7dd; color: #634b0a; font-size: 0.75rem; line-height: 1.4; }
-.rentalResults > button { display: grid; gap: 0.15rem; min-height: 3.5rem; border: 1px solid #e6decb; border-radius: 0.6rem; padding: 0.55rem 0.65rem; background: #fff; color: #0f2742; text-align: left; cursor: pointer; }
-.rentalResults > button span:nth-child(2) { color: #526378; font-size: 0.8rem; }
+.previewNote { margin: 0; border: 1px solid color-mix(in srgb, var(--warning) 35%, var(--border)); border-radius: 0.5rem; padding: 0.55rem; background: color-mix(in srgb, var(--warning) 12%, var(--card)); color: var(--warning); font-size: 0.75rem; line-height: 1.4; }
+.rentalResults > button { display: grid; gap: 0.15rem; min-height: 3.5rem; border: 1px solid var(--border); border-radius: 0.6rem; padding: 0.55rem 0.65rem; background: var(--card); color: var(--card-foreground); text-align: left; cursor: pointer; }
+.rentalResults > button span:nth-child(2) { color: var(--muted-foreground); font-size: 0.8rem; }
 .rentalResults > button strong { color: #2563eb; font-size: 0.85rem; }
 .rentalResults > button:focus-visible { outline: 3px solid #2563eb; outline-offset: 1px; }
-.rentalResults > button.selectedRental { border-color: #2563eb; background: #eff6ff; }
+.rentalResults > button.selectedRental { border-color: var(--action); background: var(--accent); }
 
-:global(.rental-map-marker) {
+.mapRoot :global(.rental-map-marker) {
   min-height: 2.4rem;
   border: 2px solid #fff;
   border-radius: 999px;
@@ -231,14 +272,14 @@
   font-weight: 700;
   cursor: pointer;
 }
-:global(.rental-map-marker[aria-pressed="true"]) {
+.mapRoot :global(.rental-map-marker[aria-pressed="true"]) {
   background: var(--foreground);
   color: var(--background);
   outline: 3px solid var(--ring);
   outline-offset: 2px;
 }
-:global(.rental-map-marker:focus-visible) { outline: 3px solid #f59e0b; outline-offset: 2px; }
-:global(.rental-search-center) { width: 0.8rem; height: 0.8rem; border: 2px solid #fff; border-radius: 50%; background: #2563eb; box-shadow: 0 0 0 5px rgb(37 99 235 / 18%); }
+.mapRoot :global(.rental-map-marker:focus-visible) { outline: 3px solid #f59e0b; outline-offset: 2px; }
+.mapRoot :global(.rental-search-center) { width: 0.8rem; height: 0.8rem; border: 2px solid #fff; border-radius: 50%; background: #2563eb; box-shadow: 0 0 0 5px rgb(37 99 235 / 18%); }
 
 .searchAreaButton {
   position: absolute;
@@ -283,7 +324,7 @@
   color: var(--card-foreground);
   box-shadow: 0 8px 24px rgb(15 39 66 / 18%);
 }
-.markerChooser strong { display: block; padding: 0.375rem 0.5rem; font-size: 0.8125rem; color: #526378; }
+.markerChooser strong { display: block; padding: 0.375rem 0.5rem; font-size: 0.8125rem; color: var(--muted-foreground); }
 .chooserOption {
   display: grid;
   width: 100%;
@@ -299,11 +340,11 @@
   font: inherit;
   font-size: 0.875rem;
 }
-.chooserOption:hover, .chooserOption:focus-visible, .chooserOption[aria-selected="true"] { background: #eff6ff; outline: none; }
-.chooserMeta { color: #526378; font-size: 0.75rem; }
-.chooserBadge { justify-self: start; border-radius: 999px; padding: 0.1rem 0.45rem; background: #e7efe9; color: #1d5138; font-size: 0.6875rem; font-weight: 700; text-transform: capitalize; }
+.chooserOption:hover, .chooserOption:focus-visible, .chooserOption[aria-selected="true"] { background: var(--accent); outline: none; }
+.chooserMeta { color: var(--muted-foreground); font-size: 0.75rem; }
+.chooserBadge { justify-self: start; border-radius: 999px; padding: 0.1rem 0.45rem; background: color-mix(in srgb, var(--success) 16%, var(--card)); color: var(--success); font-size: 0.6875rem; font-weight: 700; text-transform: capitalize; }
 .chooserArrow { fill: #fff; }
-.radiusControl { position: absolute; z-index: 4; top: max(14.3rem, calc(env(safe-area-inset-top) + 13.8rem)); left: max(8rem, calc(env(safe-area-inset-left) + 7rem)); display: grid; width: 7rem; gap: 0.2rem; border: 1px solid rgb(15 39 66 / 14%); border-radius: 0.6rem; padding: 0.4rem 0.65rem; background: #fff; color: #0f2742; font-size: 0.75rem; box-shadow: 0 4px 14px rgb(15 39 66 / 14%); }
+.radiusControl { position: absolute; z-index: 4; top: max(14.3rem, calc(env(safe-area-inset-top) + 13.8rem)); left: max(8rem, calc(env(safe-area-inset-left) + 7rem)); display: grid; width: 7rem; gap: 0.2rem; border: 1px solid var(--border); border-radius: 0.6rem; padding: 0.4rem 0.65rem; background: var(--card); color: var(--card-foreground); font-size: 0.75rem; box-shadow: 0 4px 14px rgb(15 39 66 / 14%); }
 .radiusControl > label { font-size: inherit; }
 .radiusControl > :global([data-slot="select"]) { min-height: 2rem; border: 0; border-radius: 0; padding: 0; background: transparent; color: inherit; font-size: inherit; font-weight: 700; }
 
@@ -311,6 +352,13 @@
   .rentalSearch { top: max(10.4rem, calc(env(safe-area-inset-top) + 9.8rem)); }
   .filterTrigger { top: max(21rem, calc(env(safe-area-inset-top) + 20.4rem)); }
   .radiusControl { top: max(18rem, calc(env(safe-area-inset-top) + 17.4rem)); left: max(1rem, env(safe-area-inset-left)); }
-  .filterTrigger > :global(button) { min-height: 3rem; border: 1px solid rgb(15 39 66 / 14%); border-radius: 0.75rem; padding: 0.65rem 0.85rem; background: #fff; color: #0f2742; box-shadow: 0 4px 14px rgb(15 39 66 / 18%); }
+  .filterTrigger > :global(button) { min-height: 3rem; border: 1px solid var(--border); border-radius: 0.75rem; padding: 0.65rem 0.85rem; background: var(--card); color: var(--card-foreground); box-shadow: 0 4px 14px rgb(15 39 66 / 18%); }
   .rentalResults { top: max(25rem, calc(env(safe-area-inset-top) + 24.5rem)); max-height: 32dvh; }
 }
+
+.rentalPopup { display: grid; min-width: 11rem; gap: .3rem; color: var(--foreground); font-size: .8rem; }
+.rentalPopup strong { font-size: .9rem; }
+.rentalPopup span { color: var(--muted-foreground); }
+.rentalPopupSave { justify-self: start; min-height: 2.25rem; margin-top: .35rem; border: 1px solid var(--border); border-radius: .6rem; padding: .35rem .7rem; background: var(--card); color: var(--action); font: inherit; font-weight: 700; cursor: pointer; }
+.rentalPopupSave:hover { background: var(--accent); }
+.rentalPopupSave:focus-visible { outline: 3px solid var(--ring); outline-offset: 2px; }

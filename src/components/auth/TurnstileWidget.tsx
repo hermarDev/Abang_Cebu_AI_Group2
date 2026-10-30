@@ -8,7 +8,7 @@ type Turnstile = {
     size: "flexible";
     callback: (token: string) => void;
     "expired-callback": () => void;
-    "error-callback": () => void;
+    "error-callback": (errorCode: number) => void;
     "timeout-callback": () => void;
     "response-field": false;
   }) => string;
@@ -67,7 +67,22 @@ export function TurnstileWidget({ onTokenChange, resetKey = 0 }: {
       const id = api.render(container.current, {
         sitekey, size: "flexible", "response-field": false,
         "expired-callback": () => clear("Verification expired. Complete the security verification again."),
-        "error-callback": () => clear("Security verification failed. Please try again or reload."),
+        "error-callback": (errorCode) => {
+          const errorFamily = Math.floor(errorCode / 1000);
+          if (process.env.NODE_ENV === "development" && errorCode === 110200) {
+            clear("This Turnstile key does not allow localhost. Add localhost to this widget’s Hostname Management in Cloudflare.");
+            return;
+          }
+          if (process.env.NODE_ENV === "development" && (errorFamily === 300 || errorFamily === 600)) {
+            clear(`Cloudflare rejected this browser session (error ${errorCode}). Try a clean browser session or a real mobile device; DevTools emulation can trigger this challenge failure.`);
+            return;
+          }
+          if (process.env.NODE_ENV === "development") {
+            clear(`Cloudflare verification failed (error ${errorCode}). Check the widget key, network access to challenges.cloudflare.com, and allowed hostnames.`);
+            return;
+          }
+          clear("Security verification failed. Please try again or reload.");
+        },
         "timeout-callback": () => clear("Verification expired. Complete the security verification again."),
         callback: (token) => {
           if (!active) return;

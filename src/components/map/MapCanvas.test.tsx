@@ -5,9 +5,9 @@ const source = readFileSync("src/components/map/MapCanvas.tsx", "utf8");
 const styles = readFileSync("src/components/map/MapCanvas.module.css", "utf8");
 
 describe("MapCanvas controls", () => {
-  it("keeps provider attribution available with compact mobile presentation", () => {
-    expect(source).toContain("attributionControl: {");
-    expect(source).toContain("compact: container.clientWidth <= 640 ? true : undefined");
+  it("keeps provider attribution toggleable on every screen size", () => {
+    expect(source).toContain("attributionControl: showAttribution ? {");
+    expect(source).toContain("compact: true");
     expect(source).toContain('https://openfreemap.org');
     expect(source).toContain('https://www.openmaptiles.org/');
     expect(source).toContain('https://www.openstreetmap.org/copyright');
@@ -18,8 +18,9 @@ describe("MapCanvas controls", () => {
     expect(styles).toContain("right: 5rem");
     expect(styles).toContain("bottom: min(calc(var(--results-sheet-height, 42dvh) + 1rem), calc(100dvh - 10rem))");
     expect(styles).not.toContain("bottom: calc(max(42dvh, 18rem) + 5.5rem)");
-    expect(styles).toContain("right: calc(max(0.8rem, env(safe-area-inset-right)) + 5px)");
-    expect(styles).toContain("+ 50px)");
+    expect(styles).toContain("left: 50%");
+    expect(styles).toContain("translateX(-50%)");
+    expect(styles).toContain("+ 0.5rem)");
   });
 
   it("anchors mobile map controls above the active results-sheet position", () => {

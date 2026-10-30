@@ -2,10 +2,11 @@ import { createClient } from "@/lib/supabase/client";
 import { mapSupabaseAuthError } from "@/lib/auth/auth-error";
 import { isRegisterableRole, isSafeRedirectUrl } from "@/types/auth";
 
-export type SignInResult = { success: true } | { success: false; message: string };
+export type SignInResult = { success: true; role: "renter" | "landlord" } | { success: false; message: string };
 
-export function getPostLoginRedirect(destination: string | null): string {
-  return destination && isSafeRedirectUrl(destination) ? destination : "/";
+export function getPostLoginRedirect(destination: string | null, role: "renter" | "landlord" = "renter"): string {
+  if (destination && isSafeRedirectUrl(destination)) return destination;
+  return role === "landlord" ? "/landlord/dashboard" : "/";
 }
 
 export async function signInWithEmail(
@@ -70,7 +71,7 @@ export async function signInWithEmail(
       };
     }
 
-    return { success: true };
+    return { success: true, role: profile.role };
   } catch {
     try {
       await supabase.auth.signOut({ scope: "local" });
