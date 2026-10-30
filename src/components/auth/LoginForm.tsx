@@ -99,11 +99,11 @@ export function LoginForm({
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="name@example.com"
               autoComplete="email"
               required
             />
             </div>
+            {fieldErrors.email && <FieldError id={`${emailId}-error`} role="alert" className="mt-1">{fieldErrors.email}</FieldError>}
           </div>
 
           <div>
@@ -127,7 +127,6 @@ export function LoginForm({
                 type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
                 autoComplete="current-password"
                 required
               />
@@ -140,9 +139,8 @@ export function LoginForm({
                 {showPassword ? <EyeOff size={19} aria-hidden="true" /> : <Eye size={19} aria-hidden="true" />}
               </button>
             </div>
+            {fieldErrors.password && <FieldError id={`${passwordId}-error`} role="alert" className="mt-1">{fieldErrors.password}</FieldError>}
           </div>
-          {fieldErrors.email && <FieldError id={`${emailId}-error`} role="alert">{fieldErrors.email}</FieldError>}
-          {fieldErrors.password && <FieldError id={`${passwordId}-error`} role="alert">{fieldErrors.password}</FieldError>}
 
           {statusMessage && (
             <div

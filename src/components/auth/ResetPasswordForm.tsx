@@ -166,7 +166,6 @@ export function ResetPasswordForm({ isRecovery = false, onBackToLogin, embedded 
                 autoComplete="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="name@example.com"
                 required
               />
               </div>

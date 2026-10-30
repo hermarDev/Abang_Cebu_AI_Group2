@@ -72,6 +72,41 @@ export interface Database {
           }
         ];
       };
+      assistant_conversations: {
+        Row: {
+          id: string;
+          user_id: string;
+          title: string;
+          messages: Json;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id?: string;
+          title?: string;
+          messages?: Json;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          title?: string;
+          messages?: Json;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "assistant_conversations_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
       kyc_verifications: {
         Row: {
           id: string;
@@ -154,6 +189,10 @@ export interface Database {
 export type Profile = Database['public']['Tables']['profiles']['Row'];
 export type ProfileInsert = Database['public']['Tables']['profiles']['Insert'];
 export type ProfileUpdate = Database['public']['Tables']['profiles']['Update'];
+
+export type AssistantConversation = Database['public']['Tables']['assistant_conversations']['Row'];
+export type AssistantConversationInsert = Database['public']['Tables']['assistant_conversations']['Insert'];
+export type AssistantConversationUpdate = Database['public']['Tables']['assistant_conversations']['Update'];
 
 export type KycVerification = Database['public']['Tables']['kyc_verifications']['Row'];
 export type KycVerificationInsert = Database['public']['Tables']['kyc_verifications']['Insert'];

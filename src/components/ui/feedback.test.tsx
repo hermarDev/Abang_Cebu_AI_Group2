@@ -48,7 +48,7 @@ describe("shared feedback primitives", () => {
   });
 
   it("uses shared Empty and Alert for the offline assistant without duplicate live regions", () => {
-    const html = render(<FinderAssistant open onOpenChange={() => undefined} onSearch={() => undefined} onFilters={() => undefined} />);
+    const html = render(<FinderAssistant open onOpenChange={() => undefined} onSearch={() => undefined} onFilters={() => undefined} onControlsTargetChange={() => undefined} />);
 
     expect(html).toContain('data-slot="empty"');
     expect(html).toContain('data-slot="alert"');

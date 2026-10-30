@@ -156,7 +156,6 @@ export function RegisterForm({ onLogin }: { onLogin?: () => void } = {}) {
                 type="text"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                placeholder="Enter your full name"
                 autoComplete="name"
                 aria-invalid={Boolean(fieldErrors.fullName)}
                 aria-describedby={fieldErrors.fullName ? `${nameId}-error` : undefined}
@@ -179,7 +178,6 @@ export function RegisterForm({ onLogin }: { onLogin?: () => void } = {}) {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="name@example.com"
                 autoComplete="email"
                 aria-invalid={Boolean(fieldErrors.email)}
                 aria-describedby={fieldErrors.email ? `${emailId}-error` : undefined}
@@ -202,7 +200,6 @@ export function RegisterForm({ onLogin }: { onLogin?: () => void } = {}) {
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="8–72 characters"
                   autoComplete="new-password"
                   minLength={8}
                   maxLength={72}

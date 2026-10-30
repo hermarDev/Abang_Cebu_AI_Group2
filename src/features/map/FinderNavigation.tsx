@@ -104,7 +104,7 @@ export function FinderNavigation({ open, onClose, preference, resolvedTheme, onP
             {preference === "system" && <p className={styles.themeHint}>Matches your device appearance.</p>}
           </fieldset>
           {authenticated
-            ? <Link href="/auth/logout" className={styles.accountAction}><UserRound aria-hidden="true" /><span>Account / Sign out</span></Link>
+            ? <Link href="/account" className={styles.accountAction}><UserRound aria-hidden="true" /><span>Account settings</span></Link>
             : <button type="button" className={styles.accountAction} onClick={onAccount}><LogIn aria-hidden="true" /><span>Log in</span></button>}
         </footer>
       </div>
