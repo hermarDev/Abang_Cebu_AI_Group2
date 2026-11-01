@@ -236,4 +236,4 @@ Located in [`docs/templates/`](./templates/):
 
 1. **Sprint 1 Guardrail:** All deliverables in Sprint 1 are strictly architectural specifications, data dictionaries, schema migrations, and contracts. **Zero premature React/JSX UI components or demo cards**.
 2. **Attribution Policy:** All documents and compiled PDFs maintain authentic human engineering attribution by real team member name and role.
-3. **Traceability:** Link specifications to their relevant requirements and supporting evidence. Existing Jira references are historical; new work does not require Jira.
+3. **Traceability:** Link specifications to their relevant requirements, acceptance criteria, and supporting evidence. Existing Jira references are historical; new work does not require Jira.
