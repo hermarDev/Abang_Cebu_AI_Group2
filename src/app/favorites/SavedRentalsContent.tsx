@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { AccountMapBackground } from "@/app/account/AccountMapBackground";
@@ -40,6 +40,7 @@ export function SavedRentalsContent() {
   const [error, setError] = useState<string | null>(null);
   const [removingId, setRemovingId] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const retryController = useRef<AbortController | null>(null);
 
   const fetchRentals = useCallback(async (signal?: AbortSignal) => {
     try {
@@ -66,13 +67,21 @@ export function SavedRentalsContent() {
     const controller = new AbortController();
     // eslint-disable-next-line react-hooks/set-state-in-effect -- initial fetch triggers async state update with abort handling
     void fetchRentals(controller.signal);
-    return () => controller.abort();
+    return () => {
+      controller.abort();
+      retryController.current?.abort();
+    };
   }, [fetchRentals]);
 
   function retryLoad() {
+    retryController.current?.abort();
+    const controller = new AbortController();
+    retryController.current = controller;
     setLoading(true);
     setError(null);
-    void fetchRentals();
+    void fetchRentals(controller.signal).finally(() => {
+      if (retryController.current === controller) retryController.current = null;
+    });
   }
 
   async function removeRental(id: string) {
