@@ -21,12 +21,12 @@ Before starting work, inspect `git status`. Save or finish unrelated changes bef
 git switch main
 git fetch upstream
 git merge --ff-only upstream/main
-git switch -c feature/SCRUM-54-short-description
+git switch -c feature/short-description
 ```
 
 If `origin` points to the central repository rather than your fork, use `origin` instead of `upstream`. If the fast-forward fails, inspect the branch divergence with the maintainer; do not force-reset your work.
 
-Use `feature/`, `fix/`, `docs/` or `chore/` followed by the Jira key and a short description. See the [Git workflow](docs/architecture/git-workflow.md) for team conventions. Confirm ownership before editing files another contributor is changing.
+Use `feature/`, `fix/`, `docs/` or `chore/` followed by a short description. Jira is not required. See the [Git workflow](docs/architecture/git-workflow.md) for team conventions. Confirm ownership before editing files another contributor is changing.
 
 ## Keep the change focused
 
@@ -43,13 +43,13 @@ Run the checks supported by your branch:
 ```bash
 pnpm test
 pnpm exec tsc --noEmit
-pnpm lint
+pnpm lint --max-warnings=0
 pnpm build
 ```
 
 Run relevant browser tests when the branch includes them. For manual checks, record the route, viewport and observed result. Documentation-only changes need link and command checks; explain when an application build or browser run is not applicable.
 
-Report failed, blocked and unrun checks explicitly. A checked box means the check ran and passed. Do not describe mocked tests as live-service verification. CI currently checks types, lint and build, with a separate secret scan; its configuration does not yet run the unit suite. Contributors must still run `pnpm test` locally.
+Report failed, blocked and unrun checks explicitly. A checked box means the check ran and passed. Do not describe mocked tests as live-service verification. CI runs typecheck, strict lint, unit tests and build, with a separate secret scan. Contributors should run the applicable checks locally as well.
 
 ## Commit and submit
 
@@ -60,12 +60,12 @@ git status
 git diff
 git add path/to/changed-file path/to/regression-test
 git diff --staged
-git commit -m "fix(SCRUM-54): describe the change"
+git commit -m "fix: describe the change"
 git push -u origin HEAD
 ```
 
 Check that `origin` is the intended destination before pushing. Do not force-push shared history or include unrelated work.
 
-Open a pull request against `hermarDev/Abang_Cebu_AI_Group2:main`. Use the [PR template](.github/pull_request_template.md), link the Jira ticket, and explain the change, verification and remaining risks. Call out configuration changes and anything a reviewer must do to reproduce the result.
+Open a pull request against `hermarDev/Abang_Cebu_AI_Group2:main`. Use the [PR template](.github/pull_request_template.md), optionally link a related GitHub issue or pull request, and explain the change, verification and remaining risks. Call out configuration changes and anything a reviewer must do to reproduce the result.
 
-Request review from the relevant area owner and the team lead, @hermarDev. Address review comments with follow-up commits. The team lead handles approval and squash merging; publication to a topic branch does not mean the change is merged or deployed.
+Hermar Centillas and Edirch Bardilas are the current team. Request review from the other team member when available, and address feedback with follow-up commits. An authorized maintainer merges only after required checks and applicable reviews pass. Publication to a topic branch does not mean the change is merged or deployed.
