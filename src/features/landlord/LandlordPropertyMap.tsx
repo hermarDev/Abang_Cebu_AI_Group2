@@ -182,8 +182,8 @@ export function LandlordPropertyMap({ properties, loadError = false }: { propert
         mapRef.current = null;
       };
     } catch {
-      setMapError(true);
-      return;
+      const fallbackTimer = window.setTimeout(() => setMapError(true), 0);
+      return () => window.clearTimeout(fallbackTimer);
     }
   }, [properties]);
 

@@ -41,19 +41,19 @@ export function SavedRentalsContent() {
   const [removingId, setRemovingId] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
-  const loadRentals = useCallback(async (signal?: AbortSignal) => {
-    setLoading(true);
-    setError(null);
+  const fetchRentals = useCallback(async (signal?: AbortSignal) => {
     try {
       const response = await fetch("/api/favorites", { cache: "no-store", signal });
-      const payload: unknown = await response.json();
+      const payload: unknown = await response.json().catch(() => null);
       if (!response.ok || !payload || typeof payload !== "object" || !("favorites" in payload) || !Array.isArray(payload.favorites)) {
         const message = payload && typeof payload === "object" && "error" in payload && typeof payload.error === "string"
           ? payload.error
           : "Saved rentals could not be loaded. Please try again.";
         throw new Error(message);
       }
+      if (signal?.aborted) return;
       setRentals(payload.favorites as SavedRental[]);
+      setError(null);
     } catch (loadError) {
       if (signal?.aborted) return;
       setError(loadError instanceof Error ? loadError.message : "Saved rentals could not be loaded. Please try again.");
@@ -64,9 +64,16 @@ export function SavedRentalsContent() {
 
   useEffect(() => {
     const controller = new AbortController();
-    void loadRentals(controller.signal);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- initial fetch triggers async state update with abort handling
+    void fetchRentals(controller.signal);
     return () => controller.abort();
-  }, [loadRentals]);
+  }, [fetchRentals]);
+
+  function retryLoad() {
+    setLoading(true);
+    setError(null);
+    void fetchRentals();
+  }
 
   async function removeRental(id: string) {
     if (removingId) return;
@@ -123,7 +130,7 @@ export function SavedRentalsContent() {
           {notice && <p className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-200" role="status">{notice}</p>}
           {error && <div className="mt-4 rounded-xl border border-destructive/30 bg-card/95 p-4 text-sm text-destructive shadow-sm" role="alert">
             <p className="m-0">{error}</p>
-            <button type="button" className="mt-3 min-h-10 rounded-lg border border-border px-3 font-semibold text-foreground hover:bg-muted" onClick={() => { void loadRentals(); }}>Try again</button>
+            <button type="button" className="mt-3 min-h-10 rounded-lg border border-border px-3 font-semibold text-foreground hover:bg-muted" onClick={retryLoad}>Try again</button>
           </div>}
 
           {loading ? <div className="mt-5 rounded-2xl border border-border/70 bg-card/95 p-6 text-sm text-muted-foreground shadow-sm" role="status">Loading your saved rentals…</div>

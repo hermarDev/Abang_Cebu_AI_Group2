@@ -43,13 +43,16 @@ describe("registration route", () => {
     expect(signUp).toHaveBeenCalledWith(expect.objectContaining({ email: "mika@example.com", options: expect.objectContaining({ data: { role: "renter", full_name: "Mika Santos" }, emailRedirectTo: expect.stringContaining("/auth/callback") }) }));
     expect(await response.json()).toEqual({ success: true, message: "If registration can proceed, check your email for the next steps." });
   });
-  it.each(["renter", "landlord"])("returns %s email confirmation to the existing map route", async (role) => {
+  it.each([
+    ["renter", "/"],
+    ["landlord", "/landlord/dashboard"],
+  ])("returns %s email confirmation to its destination route", async (role, expectedNext) => {
     signUp.mockReset().mockResolvedValue({ data: { user: { id: "u1", email: "mika@example.com", created_at: "2026-10-15T00:00:00Z", email_confirmed_at: null } }, error: null });
     await POST(request({ ...goodPayload, role }));
     const options = signUp.mock.calls[0][0].options;
     const destination = new URL(options.emailRedirectTo);
     expect(destination.pathname).toBe("/auth/callback");
-    expect(destination.searchParams.get("next")).toBe("/");
+    expect(destination.searchParams.get("next")).toBe(expectedNext);
     expect(options.data.role).toBe(role);
   });
 

@@ -6,21 +6,23 @@ const styles = readFileSync("src/components/map/MapCanvas.module.css", "utf8");
 
 describe("MapCanvas controls", () => {
   it("keeps provider attribution toggleable on every screen size", () => {
-    expect(source).toContain("attributionControl: showAttribution ? {");
+    expect(source).toContain("if (showAttribution)");
+    expect(source).toContain("new AttributionControl({");
     expect(source).toContain("compact: true");
+    expect(source).toContain('}), "bottom-left"');
     expect(source).toContain('https://openfreemap.org');
     expect(source).toContain('https://www.openmaptiles.org/');
     expect(source).toContain('https://www.openstreetmap.org/copyright');
     expect(source).toContain('process.env.NEXT_PUBLIC_MAP_STYLE_URL !== "/styles/osm.json"');
   });
   it("positions map credits away from desktop chat and above the mobile results sheet", () => {
-    expect(styles).toContain(".mapRoot :global(.maplibregl-ctrl-bottom-right)");
-    expect(styles).toContain("right: 5rem");
+    expect(styles).toContain(".mapRoot :global(.maplibregl-ctrl-bottom-left)");
+    expect(styles).toContain("left: 0");
+    expect(styles).toContain("justify-content: center");
     expect(styles).toContain("bottom: min(calc(var(--results-sheet-height, 42dvh) + 1rem), calc(100dvh - 10rem))");
     expect(styles).not.toContain("bottom: calc(max(42dvh, 18rem) + 5.5rem)");
-    expect(styles).toContain("left: 50%");
-    expect(styles).toContain("translateX(-50%)");
-    expect(styles).toContain("+ 0.5rem)");
+    expect(styles).toContain("margin: 0 0 0.625rem");
+    expect(styles).toContain("+ 0.625rem)");
   });
 
   it("anchors mobile map controls above the active results-sheet position", () => {

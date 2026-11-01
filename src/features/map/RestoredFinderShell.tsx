@@ -60,6 +60,9 @@ export function RestoredFinderShell({ rentalStatus: statusOverride, initialAccou
     void loadRentals();
     return () => controller.abort();
   }, [statusOverride, request]);
+  const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
+  const [favoritesLoaded, setFavoritesLoaded] = useState(!(authenticated && userRole === "renter"));
+  const [favoriteFeedback, setFavoriteFeedback] = useState<string | null>(null);
   useEffect(() => {
     if (!authenticated || userRole !== "renter") return;
     const controller = new AbortController();
@@ -93,9 +96,6 @@ export function RestoredFinderShell({ rentalStatus: statusOverride, initialAccou
   const [accountOpen, setAccountOpen] = useState(initialAccountOpen);
   const [accountMode, setAccountMode] = useState<AccountMode>(initialAccountMode ?? "sign-in");
   const [accountPrompt, setAccountPrompt] = useState<string | null>(null);
-  const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
-  const [favoritesLoaded, setFavoritesLoaded] = useState(!(authenticated && userRole === "renter"));
-  const [favoriteFeedback, setFavoriteFeedback] = useState<string | null>(null);
   const favoriteRequests = useRef(new Set<string>());
   const [mapRadius, setMapRadius] = useState(2);
   const [locationQuery, setLocationQuery] = useState("");
