@@ -1,12 +1,13 @@
 # 📚 AbangCebu AI — Engineering Documentation Hub
 
 **Project:** AbangCebu AI (AI-Powered Map-Centric Rental Discovery Platform for Metro Cebu)  
-**Engineering Team:** Group 2  
-**Lead / Scrum Master:** Hermar Centillas  
+**Current team:** Hermar Centillas and Edirch Bardilas
 **Frontend Framework:** Next.js 16 (App Router, Turbopack) + React 19 + Tailwind CSS v4  
 **Backend & Database:** Supabase BaaS (PostgreSQL 15+ with PostGIS, GoTrue Auth, Row Level Security)  
 
 ---
+
+Current collaboration guidance is in [CONTRIBUTING.md](../CONTRIBUTING.md) and the [Git workflow](architecture/git-workflow.md). Older documents may retain historical Jira identifiers, contributors, and review records; they do not establish the current team or current project status.
 
 ## 1. Documentation Architecture
 
@@ -235,4 +236,4 @@ Located in [`docs/templates/`](./templates/):
 
 1. **Sprint 1 Guardrail:** All deliverables in Sprint 1 are strictly architectural specifications, data dictionaries, schema migrations, and contracts. **Zero premature React/JSX UI components or demo cards**.
 2. **Attribution Policy:** All documents and compiled PDFs maintain authentic human engineering attribution by real team member name and role.
-3. **Traceability:** Every architectural specification must trace directly to its corresponding Jira issue key and acceptance criteria.
+3. **Traceability:** Link specifications to their relevant requirements and supporting evidence. Existing Jira references are historical; new work does not require Jira.

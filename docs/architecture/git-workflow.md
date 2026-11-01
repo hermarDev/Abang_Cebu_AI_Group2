@@ -1,96 +1,32 @@
-# AbangCebuAI Git Branching & Collaboration Guidelines
+# Git and collaboration workflow
 
-## 1. Branch Naming Standards
-All team members must branch off an up-to-date `main` branch. Every branch must be prefixed with the change type and reference its corresponding Jira ticket key (`SCRUM-<id>`):
+Hermar Centillas and Edirch Bardilas are the current team. Coordinate ownership before changing shared files. Submit focused changes through a pull request to `main`; a related GitHub issue or pull request may be linked when useful. Jira is not required.
 
-| Branch Type | Prefix & Format | Example |
-| :--- | :--- | :--- |
-| **New Feature** | `feature/SCRUM-<id>-<short-description>` | `feature/SCRUM-54-users-profiles-schema` |
-| **Bug Fix** | `fix/SCRUM-<id>-<short-description>` | `fix/SCRUM-88-map-marker-offset` |
-| **Documentation** | `docs/SCRUM-<id>-<short-description>` | `docs/SCRUM-49-git-collaboration-guide` |
-| **Chores / Tooling** | `chore/SCRUM-<id>-<short-description>` | `chore/SCRUM-51-env-secrets-config` |
-| **Hotfix (Prod)** | `hotfix/SCRUM-<id>-<short-description>` | `hotfix/SCRUM-99-session-token-expiry` |
+## Start a branch
 
-> [!TIP]
-> Naming your branch with the Jira key (e.g., `feature/SCRUM-54-...`) ensures that **every commit pushed to that branch automatically links to the Jira ticket in real-time**!
+Follow [CONTRIBUTING.md](../../CONTRIBUTING.md) for setup and fork instructions. Check `git status` first and preserve unrelated work. From a clean, up-to-date `main`, create a branch with a short description:
 
----
-
-## 2. Commit Message Standards (Conventional Commits)
-Write concise, descriptive commit messages adhering to the Conventional Commits specification, tagged with your Jira ticket:
-
-### Format:
-```text
-<type>(<ticket-id>): <short imperative description>
-```
-
-### Examples:
 ```bash
-# Feature commit
-git commit -m "feat(SCRUM-54): define profiles table schema and migration"
-
-# Bug fix commit
-git commit -m "fix(SCRUM-88): resolve WebGL canvas resize on mobile viewports"
-
-# Documentation commit
-git commit -m "docs(SCRUM-49): establish PR template and peer review guidelines"
-
-# Chore commit
-git commit -m "chore(SCRUM-51): configure gitignore for local supabase env files"
+git switch -c feature/rental-search
 ```
 
----
+Use `feature/`, `fix/`, `docs/` or `chore/` as appropriate. Use concise conventional commit messages such as `fix: handle empty search results`. Confirm the destination remote before pushing and do not force-push shared history.
 
-## 3. Developer Workflow Lifecycle
+## Verify and submit
 
-```mermaid
-flowchart LR
-    A["1. Sync latest main<br/>git pull origin main"] --> B["2. Create Feature Branch<br/>git checkout -b feature/SCRUM-XX-..."]
-    B --> C["3. Develop & Commit<br/>git commit -m 'feat(SCRUM-XX): ...'"]
-    C --> D["4. Pre-PR Quality Verification<br/>tsc, lint, build"]
-    D --> E["5. Open GitHub PR<br/>Fill PR Template"]
-    E --> F["6. Peer Review & QA Sign-off"]
-    F --> G["7. Squash & Merge to main"]
-```
+Run the applicable checks described in [CONTRIBUTING.md](../../CONTRIBUTING.md). For application changes, the standard checks are:
 
-### Step 1: Start from Clean `main`
 ```bash
-git checkout main
-git pull origin main
+pnpm test
+pnpm exec tsc --noEmit
+pnpm lint --max-warnings=0
+pnpm build
 ```
 
-### Step 2: Create Your Feature Branch
-```bash
-git checkout -b feature/SCRUM-54-users-profiles-schema
-```
+CI runs these checks and a separate secret scan. Run relevant browser tests where available. For documentation-only changes, check links and examples and explain any checks not run. Report failures and blocked checks rather than checking them off as passed.
 
-### Step 3: Run Local Validation Before Creating a PR
-Never open a Pull Request with failing TypeScript or lint errors. Always run:
-```bash
-pnpm tsc --noEmit   # Must pass with 0 errors
-pnpm lint           # Must pass with 0 errors/warnings
-pnpm build          # Must pass clean production build
-```
+Open a pull request using the [template](../../.github/pull_request_template.md). Explain the change, verification, risks and any migration or rollback steps. Include screenshots for visual changes. Never include secrets, production credentials or real user records.
 
-### Step 4: Push Branch to GitHub
-```bash
-git push -u origin feature/SCRUM-54-users-profiles-schema
-```
+## Review and merge
 
----
-
-## 4. Cross-Functional Peer Review Guidelines
-
-To maintain production stability across our frontend, Supabase database, and QA tracks:
-
-### Mandatory PR Requirements:
-1. **GitHub PR Template**: Every PR must fill out the `.github/pull_request_template.md` checklist.
-2. **Reviewer Assignment**:
-   * **Database / Backend changes** (Supabase, RLS, migrations): Must be reviewed by the Database Lead (Dency / Michelle) or Team Lead (Hermar).
-   * **UI / Component changes** (Tailwind, MapLibre, React): Must be reviewed by the Frontend Lead (Angel / Neah) or Team Lead.
-   * **QA Review**: QA team members (Ryza, Karla, Anne, Jenny) should verify against sprint test scenarios before final sign-off.
-3. **No Secret Leaks**: Verify that no `.env.local` files, service role keys, or database passwords are ever included in the PR diff.
-
-### Merge Policy:
-- **Strategy**: **Squash and Merge** is used on all PRs to keep the `main` branch git history clean, readable, and linear.
-- **Branch Deletion**: Delete your remote feature branch after merging to keep the repository tidy.
+Request review from the other team member when available. Address feedback and ensure required checks and applicable reviews pass before an authorized maintainer merges. Use squash merging when appropriate. A pushed branch or approved pull request is not proof of deployment.

@@ -1,8 +1,8 @@
 ## Summary
 
-<!-- Explain what changed and why. Link the Jira ticket or related issue. -->
+<!-- Explain what changed and why. Optionally link a related GitHub issue or pull request. -->
 
-Ticket:
+Related issue or PR (optional):
 
 ## Verification
 
@@ -10,7 +10,7 @@ Ticket:
 
 - [ ] Unit tests: `pnpm test`
 - [ ] Typecheck: `pnpm exec tsc --noEmit`
-- [ ] Lint: `pnpm lint`
+- [ ] Lint: `pnpm lint --max-warnings=0`
 - [ ] Production build: `pnpm build`
 - [ ] Relevant regression coverage added or updated
 - [ ] Staged diff reviewed for secrets and unrelated changes
@@ -27,6 +27,6 @@ Not run, blocked or not applicable:
 
 ## Review
 
-<!-- Request the relevant area owner and team lead. -->
+<!-- Request review from the other team member when available. -->
 
 Reviewers:
