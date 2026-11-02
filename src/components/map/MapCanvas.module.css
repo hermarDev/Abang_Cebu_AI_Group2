@@ -356,7 +356,16 @@
   .rentalResults { top: max(25rem, calc(env(safe-area-inset-top) + 24.5rem)); max-height: 32dvh; }
 }
 
-.rentalPopup { display: grid; min-width: 11rem; gap: .3rem; color: var(--foreground); font-size: .8rem; }
+.mapRoot :global(.maplibregl-popup-content) { background: var(--card); color: var(--card-foreground); }
+.mapRoot :global(.maplibregl-popup-anchor-top .maplibregl-popup-tip),
+.mapRoot :global(.maplibregl-popup-anchor-top-left .maplibregl-popup-tip),
+.mapRoot :global(.maplibregl-popup-anchor-top-right .maplibregl-popup-tip) { border-bottom-color: var(--card); }
+.mapRoot :global(.maplibregl-popup-anchor-bottom .maplibregl-popup-tip),
+.mapRoot :global(.maplibregl-popup-anchor-bottom-left .maplibregl-popup-tip),
+.mapRoot :global(.maplibregl-popup-anchor-bottom-right .maplibregl-popup-tip) { border-top-color: var(--card); }
+.mapRoot :global(.maplibregl-popup-anchor-left .maplibregl-popup-tip) { border-right-color: var(--card); }
+.mapRoot :global(.maplibregl-popup-anchor-right .maplibregl-popup-tip) { border-left-color: var(--card); }
+.rentalPopup { display: grid; min-width: 11rem; gap: .3rem; color: var(--card-foreground); font-size: .8rem; }
 .rentalPopup strong { font-size: .9rem; }
 .rentalPopup span { color: var(--muted-foreground); }
 .rentalPopupSave { justify-self: start; min-height: 2.25rem; margin-top: .35rem; border: 1px solid var(--border); border-radius: .6rem; padding: .35rem .7rem; background: var(--card); color: var(--action); font: inherit; font-weight: 700; cursor: pointer; }

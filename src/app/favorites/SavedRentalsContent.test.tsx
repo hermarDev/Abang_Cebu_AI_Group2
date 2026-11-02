@@ -110,6 +110,15 @@ beforeEach(() => {
 });
 
 describe("SavedRentalsContent fetch lifecycle", () => {
+  it("does not display a zero price for an unavailable rental", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true, json: async () => ({ favorites: [{ ...rental, title: "Unavailable rental", price: 0, propertyType: "", address: "", city: "", description: "", isAvailable: false }] }) }));
+    const page = mounted();
+    await settle();
+    expect(text(page.tree())).toContain("Unavailable rental");
+    expect(text(page.tree())).not.toContain("₱0");
+    expect(text(page.tree())).not.toContain("/ month");
+    page.unmount();
+  });
   it("keeps the saved rental and its remove action available after a failed removal", async () => {
     const request = vi.fn()
       .mockResolvedValueOnce({ ok: true, json: async () => ({ favorites: [rental] }) })

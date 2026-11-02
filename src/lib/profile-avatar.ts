@@ -9,6 +9,10 @@ export async function signProfileAvatar(userId: string, avatarReference: string 
   if (/^https:\/\//i.test(avatarReference)) return avatarReference;
   if (!avatarReference.startsWith(`${userId}/`) || !/^[0-9a-f-]+\/[\w-]+\.(?:jpg|png|webp)$/i.test(avatarReference)) return null;
 
-  const { data, error } = await createAdminClient().storage.from(PROFILE_AVATAR_BUCKET).createSignedUrl(avatarReference, PROFILE_AVATAR_URL_TTL);
-  return error ? null : data.signedUrl;
+  try {
+    const { data, error } = await createAdminClient().storage.from(PROFILE_AVATAR_BUCKET).createSignedUrl(avatarReference, PROFILE_AVATAR_URL_TTL);
+    return error ? null : data.signedUrl;
+  } catch {
+    return null;
+  }
 }

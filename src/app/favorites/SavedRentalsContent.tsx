@@ -169,10 +169,10 @@ function SavedRentalsSession({ userId }: { userId: string }) {
                     </span>
                   </div>
                   <div className="grid gap-2 p-4">
-                    <p className="m-0 text-xs font-bold uppercase tracking-wide text-action">{propertyTypeLabel(rental.propertyType)}</p>
+                    {rental.isAvailable && rental.propertyType && <p className="m-0 text-xs font-bold uppercase tracking-wide text-action">{propertyTypeLabel(rental.propertyType)}</p>}
                     <h2 className="m-0 line-clamp-2 text-lg font-semibold leading-snug">{rental.title}</h2>
-                    <p className="m-0 text-xl font-bold text-action">{formatPrice(rental.price)}<span className="text-sm font-medium text-muted-foreground"> / month</span></p>
-                    <p className="flex items-start gap-2 text-sm text-muted-foreground"><MapPin size={17} className="mt-0.5 shrink-0" aria-hidden="true" /><span>{rental.address || rental.city}</span></p>
+                    {rental.isAvailable && <p className="m-0 text-xl font-bold text-action">{formatPrice(rental.price)}<span className="text-sm font-medium text-muted-foreground"> / month</span></p>}
+                    {rental.isAvailable && (rental.address || rental.city) && <p className="flex items-start gap-2 text-sm text-muted-foreground"><MapPin size={17} className="mt-0.5 shrink-0" aria-hidden="true" /><span>{rental.address || rental.city}</span></p>}
                     {rental.description && <p className="line-clamp-3 text-sm leading-relaxed text-muted-foreground">{rental.description}</p>}
                     <div className="mt-1 flex items-center justify-between gap-3 border-t border-border pt-3">
                       <span className={"text-sm font-semibold " + (rental.isAvailable ? "text-emerald-700 dark:text-emerald-300" : "text-muted-foreground")}>{rental.isAvailable ? "Currently available" : "No longer available"}</span>
