@@ -71,13 +71,18 @@ function mounted() {
   hooks.effects = [];
   hooks.refCursor = 0;
   hooks.refs = [];
-  SavedRentalsContent();
+  const renderSession = () => {
+    const element = SavedRentalsContent({ userId: "test-user" });
+    if (!isValidElement<{ userId: string }>(element) || typeof element.type !== "function") throw new Error("Expected saved-rentals session");
+    return (element.type as (props: { userId: string }) => ReactNode)(element.props);
+  };
+  renderSession();
   const cleanups = hooks.effects.map((effect) => effect());
   return {
     tree: () => {
       hooks.cursor = 0;
       hooks.refCursor = 0;
-      return SavedRentalsContent();
+      return renderSession();
     },
     unmount: () => cleanups.forEach((cleanup) => typeof cleanup === "function" && cleanup()),
   };
@@ -105,6 +110,28 @@ beforeEach(() => {
 });
 
 describe("SavedRentalsContent fetch lifecycle", () => {
+  it("keeps the saved rental and its remove action available after a failed removal", async () => {
+    const request = vi.fn()
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ favorites: [rental] }) })
+      .mockResolvedValueOnce({ ok: false, json: async () => ({ error: "Removal failed" }) });
+    vi.stubGlobal("fetch", request);
+    const page = mounted();
+    await settle();
+    let remove: (() => void) | undefined;
+    walk(page.tree(), (element) => {
+      if (element.props["aria-label"] === "Remove Lahug studio from saved rentals") remove = element.props.onClick as () => void;
+    });
+    expect(remove).toBeTypeOf("function");
+    remove?.();
+    await settle();
+    const tree = page.tree();
+    expect(text(tree)).toContain("Removal failed");
+    expect(text(tree)).toContain("Lahug studio");
+    let removeAvailable = false;
+    walk(tree, (element) => { if (element.props["aria-label"] === "Remove Lahug studio from saved rentals") removeAvailable = true; });
+    expect(removeAvailable).toBe(true);
+    page.unmount();
+  });
   it("renders fetched saved rentals on success", async () => {
     const request = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ favorites: [rental] }) });
     vi.stubGlobal("fetch", request);

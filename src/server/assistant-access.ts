@@ -1,3 +1,4 @@
+import { isAuthSessionMissingError } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 
 const responseHeaders = { "Cache-Control": "no-store" };
@@ -6,15 +7,14 @@ export async function getAssistantAccess(requireRenterAccount = false) {
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
 
+  if (authError && !isAuthSessionMissingError(authError)) {
+    return { response: Response.json({ error: "Your account could not be checked. Please try again." }, { status: 503, headers: responseHeaders }) } as const;
+  }
   if (!user) {
     if (requireRenterAccount) {
       return { response: Response.json({ error: "Sign in with a renter account to access chat history." }, { status: 401, headers: responseHeaders }) } as const;
     }
     return { supabase, user: null } as const;
-  }
-
-  if (authError) {
-    return { response: Response.json({ error: "Your account could not be checked. Please try again." }, { status: 503, headers: responseHeaders }) } as const;
   }
 
   const { data: profile, error: profileError } = await supabase

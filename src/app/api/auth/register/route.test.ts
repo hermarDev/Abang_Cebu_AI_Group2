@@ -45,7 +45,7 @@ describe("registration route", () => {
   });
   it.each([
     ["renter", "/"],
-    ["landlord", "/landlord/dashboard"],
+    ["landlord", "/"],
   ])("returns %s email confirmation to its destination route", async (role, expectedNext) => {
     signUp.mockReset().mockResolvedValue({ data: { user: { id: "u1", email: "mika@example.com", created_at: "2026-10-15T00:00:00Z", email_confirmed_at: null } }, error: null });
     await POST(request({ ...goodPayload, role }));

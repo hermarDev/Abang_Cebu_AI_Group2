@@ -46,7 +46,7 @@ export async function POST(request: Request) {
       email,
       password,
       options: {
-        emailRedirectTo: `${origin}/auth/callback?next=${role === "landlord" ? "/landlord/dashboard" : "/"}`,
+        emailRedirectTo: `${origin}/auth/callback?next=/`,
         data: { role, full_name: fullName, ...(phoneNumber ? { phone_number: phoneNumber } : {}), ...(preferredLandmark ? { preferred_landmark: preferredLandmark } : {}) },
       },
     });

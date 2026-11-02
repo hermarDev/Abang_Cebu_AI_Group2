@@ -38,7 +38,7 @@ it("uses verified authentication state for the drawer", async () => {
   expect((await FinderPage()).props.authenticated).toBe(false);
 });
 
-it("delegates to FinderPage with landlord redirect configured", () => {
+it("delegates to FinderPage without landlord redirect", () => {
   const element = Home();
-  expect(element.props.landlordRedirectTo).toBe("/landlord/dashboard");
+  expect(element.props).toEqual({});
 });

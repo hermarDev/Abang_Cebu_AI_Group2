@@ -30,5 +30,5 @@ export default async function SavedRentalsPage() {
   }
   if (profile?.role !== "renter" || profile.is_suspended) notFound();
 
-  return <SavedRentalsContent />;
+  return <SavedRentalsContent userId={user.id} />;
 }

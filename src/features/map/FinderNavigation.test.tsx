@@ -14,10 +14,17 @@ it("opens account settings instead of login when authenticated", () => {
   expect(html).toContain("lucide-message-circle");
 });
 
-it("shows landlord dashboard and listing links for landlord accounts", () => {
+it("shows no landlord links for landlord accounts since landlord routes removed", () => {
   const html = renderToStaticMarkup(<FinderNavigation open authenticated userRole="landlord" onClose={() => {}} preference="system" resolvedTheme="light" onPreferenceChange={() => {}} onAccount={() => {}} onHelp={() => {}} />);
   expect(html).toContain('href="/account"');
-  expect(html).toContain('href="/landlord/dashboard"');
-  expect(html).toContain('href="/list-property"');
-  expect(html).toContain("lucide-house-plus");
+  expect(html).not.toContain('href="/landlord/dashboard"');
+  expect(html).not.toContain('href="/list-property"');
+  expect(html).not.toContain("lucide-house-plus");
+  expect(html).not.toContain("lucide-layout-dashboard");
+});
+
+it("does not link administrators to the deferred review route", () => {
+  const html = renderToStaticMarkup(<FinderNavigation open authenticated userRole="admin" onClose={() => {}} preference="system" resolvedTheme="light" onPreferenceChange={() => {}} onAccount={() => {}} onHelp={() => {}} />);
+  expect(html).toContain('href="/account"');
+  expect(html).not.toContain('href="/admin/listings"');
 });

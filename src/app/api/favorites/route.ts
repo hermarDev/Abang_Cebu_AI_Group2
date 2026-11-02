@@ -1,14 +1,18 @@
-import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
 const noStoreHeaders = { "Cache-Control": "no-store" };
 const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
-async function requireRenter() {
+async function requireRenter(request: Request) {
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) {
     return { response: Response.json({ error: "Sign in to access saved rentals." }, { status: 401, headers: noStoreHeaders }) } as const;
+  }
+
+  const expectedUserId = request.headers.get("x-expected-user-id");
+  if (expectedUserId !== user.id) {
+    return { response: Response.json({ error: "Your account changed. Please refresh and try again." }, { status: 409, headers: noStoreHeaders }) } as const;
   }
 
   const { data: profile, error: profileError } = await supabase
@@ -37,14 +41,15 @@ async function readListingId(request: Request): Promise<string | null> {
   }
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    const session = await requireRenter();
+    const session = await requireRenter(request);
     if ("response" in session) return session.response;
 
     const { data: favorites, error: favoriteError } = await session.supabase
       .from("favorites")
       .select("listing_id,created_at")
+      .eq("user_id", session.user.id)
       .order("created_at", { ascending: false });
 
     if (favoriteError) {
@@ -53,7 +58,7 @@ export async function GET() {
     if (!favorites?.length) return Response.json({ favorites: [] }, { headers: noStoreHeaders });
 
     const listingIds = favorites.map((favorite) => favorite.listing_id);
-    const { data: listings, error: listingError } = await createAdminClient()
+    const { data: listings, error: listingError } = await session.supabase
       .from("listings")
       .select("id,title,description,price,property_type,address,city,image_urls,is_available,status")
       .in("id", listingIds);
@@ -65,7 +70,9 @@ export async function GET() {
     const byId = new Map(listings.map((listing) => [listing.id, listing]));
     const savedRentals = favorites.flatMap((favorite) => {
       const listing = byId.get(favorite.listing_id);
-      if (!listing || typeof listing.title !== "string" || !Number.isFinite(Number(listing.price))) return [];
+      if (!listing || listing.status !== "published" || listing.is_available !== true || typeof listing.title !== "string" || !Number.isFinite(Number(listing.price))) {
+        return [{ id: favorite.listing_id, savedAt: favorite.created_at, title: "Unavailable rental", description: "", price: 0, propertyType: "", address: "", city: "", imageUrls: [], isAvailable: false }];
+      }
       return [{
         id: listing.id,
         savedAt: favorite.created_at,
@@ -90,7 +97,7 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const session = await requireRenter();
+    const session = await requireRenter(request);
     if ("response" in session) return session.response;
     const listingId = await readListingId(request);
     if (!listingId) return Response.json({ error: "Choose a valid rental to save." }, { status: 400, headers: noStoreHeaders });
@@ -121,7 +128,7 @@ export async function POST(request: Request) {
 
 export async function DELETE(request: Request) {
   try {
-    const session = await requireRenter();
+    const session = await requireRenter(request);
     if ("response" in session) return session.response;
     const listingId = await readListingId(request);
     if (!listingId) return Response.json({ error: "Choose a valid rental to remove." }, { status: 400, headers: noStoreHeaders });

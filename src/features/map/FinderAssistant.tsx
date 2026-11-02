@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useCallback, useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
+import { Fragment, useCallback, useEffect, useLayoutEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import Image from "next/image";
 import { History, LoaderCircle, Plus, Send, Trash2, X } from "lucide-react";
 import styles from "./RestoredFinderShell.module.css";
@@ -210,7 +210,7 @@ function ProfileAvatar({ url, name, className }: { url: string | null; name: str
 
 export function FinderAssistant({ open, onOpenChange: setOpen, onSearch, onFilters, onControlsTargetChange, onSignIn = () => {}, authenticated = false, userId = null, displayName = null, profilePhotoUrl = null }: { open: boolean; onOpenChange: (open: boolean) => void; onSearch: () => void; onFilters: () => void; onControlsTargetChange: (target: HTMLDivElement | null) => void; onSignIn?: () => void; authenticated?: boolean; userId?: string | null; displayName?: string | null; profilePhotoUrl?: string | null }) {
   const [messages, setMessages] = useState<ChatMessage[]>([welcomeMessage]);
-  const [draft, setDraft] = useState("");
+  const [drafts, setDrafts] = useState<Record<string, string>>({});
   const [isSending, setIsSending] = useState(false);
   const [isLoadingHistory, setIsLoadingHistory] = useState(true);
   const [historyOpen, setHistoryOpen] = useState(false);
@@ -228,9 +228,19 @@ export function FinderAssistant({ open, onOpenChange: setOpen, onSearch, onFilte
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
   const messageEndRef = useRef<HTMLDivElement>(null);
   const localHistoryKey = userId ? `${LOCAL_HISTORY_KEY}:account:${userId}` : `${LOCAL_HISTORY_KEY}:guest`;
-  const historyOwner = authenticated ? userId ?? "signed-in" : "guest";
+  const historyOwner = authenticated ? userId ? `account:${userId}` : "unknown" : "guest";
+  const draft = drafts[historyOwner] ?? "";
+  function setDraft(value: string) {
+    setDrafts((current) => ({ ...current, [historyOwner]: value }));
+  }
   const currentUserName = authenticated ? displayName || "You" : "Guest";
   const currentUserPhoto = authenticated ? profilePhotoUrl : null;
+  const ownerGenerationRef = useRef(0);
+  useLayoutEffect(() => {
+    ownerGenerationRef.current += 1;
+    return () => { ownerGenerationRef.current += 1; };
+  }, [historyOwner]);
+  const accountHeaders = { "X-Assistant-Owner": authenticated ? userId ?? "unknown" : "guest" };
 
   const updateConversations = useCallback((next: SavedConversation[] | ((current: SavedConversation[]) => SavedConversation[])) => {
     const value = typeof next === "function" ? next(conversationsRef.current) : next;
@@ -279,7 +289,7 @@ export function FinderAssistant({ open, onOpenChange: setOpen, onSearch, onFilte
       }
 
       try {
-        const response = await fetch("/api/assistant/conversations", { cache: "no-store" });
+        const response = await fetch("/api/assistant/conversations", { cache: "no-store", headers: userId ? { "X-Assistant-Owner": userId } : undefined });
         const result = await response.json() as ConversationResponse;
         if (!response.ok) throw new Error(errorFrom(result, "Saved chats are unavailable right now."));
         const summaries = Array.isArray(result.conversations) ? result.conversations.flatMap((item): SavedConversation[] => {
@@ -306,7 +316,7 @@ export function FinderAssistant({ open, onOpenChange: setOpen, onSearch, onFilte
           return;
         }
 
-        const conversationResponse = await fetch(`/api/assistant/conversations?id=${encodeURIComponent(latest.id)}`, { cache: "no-store" });
+        const conversationResponse = await fetch(`/api/assistant/conversations?id=${encodeURIComponent(latest.id)}`, { cache: "no-store", headers: userId ? { "X-Assistant-Owner": userId } : undefined });
         const conversationResult = await conversationResponse.json() as ConversationResponse;
         if (!conversationResponse.ok || !conversationResult.conversation || typeof conversationResult.conversation !== "object") {
           throw new Error(errorFrom(conversationResult, "Your latest chat could not be opened."));
@@ -376,6 +386,7 @@ export function FinderAssistant({ open, onOpenChange: setOpen, onSearch, onFilte
   }
 
   async function saveConversation(nextMessages: ChatMessage[]) {
+    const generation = ownerGenerationRef.current;
     const validatedMessages = validateMessages(nextMessages);
     if (!validatedMessages) return;
 
@@ -390,10 +401,11 @@ export function FinderAssistant({ open, onOpenChange: setOpen, onSearch, onFilte
     try {
       const response = await fetch("/api/assistant/conversations", {
         method: isNew ? "POST" : "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...accountHeaders },
         body: JSON.stringify(isNew ? { messages: validatedMessages } : { id: activeId, messages: validatedMessages }),
       });
       const result = await response.json() as ConversationResponse;
+      if (ownerGenerationRef.current !== generation) return;
       if (!response.ok || !result.conversation || typeof result.conversation !== "object") {
         throw new Error(errorFrom(result, "Your chat could not be saved."));
       }
@@ -415,6 +427,7 @@ export function FinderAssistant({ open, onOpenChange: setOpen, onSearch, onFilte
       if (userId) persistLocalHistory(localHistoryKey, conversationsRef.current.filter((item) => item.localOnly).slice(0, MAX_LOCAL_CONVERSATIONS));
       setHistoryError(null);
     } catch {
+      if (ownerGenerationRef.current !== generation) return;
       if (authenticated && userId) {
         accountSyncUnavailable.current = true;
         setIsAccountFallback(true);
@@ -426,6 +439,7 @@ export function FinderAssistant({ open, onOpenChange: setOpen, onSearch, onFilte
   }
 
   async function selectConversation(conversation: SavedConversation) {
+    const generation = ownerGenerationRef.current;
     setError(null);
     setHistoryError(null);
     setPendingDeleteId(null);
@@ -440,8 +454,9 @@ export function FinderAssistant({ open, onOpenChange: setOpen, onSearch, onFilte
     }
 
     try {
-      const response = await fetch(`/api/assistant/conversations?id=${encodeURIComponent(conversation.id)}`, { cache: "no-store" });
+      const response = await fetch(`/api/assistant/conversations?id=${encodeURIComponent(conversation.id)}`, { cache: "no-store", headers: accountHeaders });
       const result = await response.json() as ConversationResponse;
+      if (ownerGenerationRef.current !== generation) return;
       if (!response.ok || !result.conversation || typeof result.conversation !== "object") throw new Error(errorFrom(result, "This chat could not be opened."));
       const saved = result.conversation as Partial<SavedConversation>;
       const savedMessages = validateMessages(saved.messages);
@@ -452,8 +467,7 @@ export function FinderAssistant({ open, onOpenChange: setOpen, onSearch, onFilte
       updateConversations((current) => current.map((item) => item.id === saved.id ? { ...item, messages: savedMessages } : item));
       setHistoryOpen(false);
     } catch {
-      accountSyncUnavailable.current = true;
-      setIsAccountFallback(true);
+      if (ownerGenerationRef.current !== generation) return;
       setHistoryError("Couldn't open this account chat right now. Your current chat is unchanged.");
     } finally {
       setHistoryLoading(false);
@@ -472,17 +486,20 @@ export function FinderAssistant({ open, onOpenChange: setOpen, onSearch, onFilte
   }
 
   async function deleteConversation(conversation: SavedConversation) {
+    const generation = ownerGenerationRef.current;
     setHistoryError(null);
     if (authenticated && !conversation.localOnly) {
       try {
         const response = await fetch("/api/assistant/conversations", {
           method: "DELETE",
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json", ...accountHeaders },
           body: JSON.stringify({ id: conversation.id }),
         });
         const result = await response.json() as ConversationResponse;
+        if (ownerGenerationRef.current !== generation) return;
         if (!response.ok) throw new Error(errorFrom(result, "This chat could not be deleted."));
       } catch (cause) {
+        if (ownerGenerationRef.current !== generation) return;
         setHistoryError(cause instanceof Error ? cause.message : "This chat could not be deleted.");
         return;
       }
@@ -501,6 +518,7 @@ export function FinderAssistant({ open, onOpenChange: setOpen, onSearch, onFilte
 
   async function sendMessage(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const generation = ownerGenerationRef.current;
     const content = draft.trim();
     if (!content || isSending || isLoadingHistory) return;
 
@@ -512,12 +530,14 @@ export function FinderAssistant({ open, onOpenChange: setOpen, onSearch, onFilte
 
     try {
       await saveConversation(nextMessages);
+      if (ownerGenerationRef.current !== generation) return;
       const response = await fetch("/api/assistant", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...accountHeaders },
         body: JSON.stringify({ messages: assistantContext(nextMessages) }),
       });
       const result = await response.json() as AssistantResponse;
+      if (ownerGenerationRef.current !== generation) return;
       if (!response.ok) {
         setError(typeof result.error === "string" ? result.error : "The assistant could not reply just now. Please try again.");
         return;
@@ -530,7 +550,7 @@ export function FinderAssistant({ open, onOpenChange: setOpen, onSearch, onFilte
       setMessages(repliedMessages);
       await saveConversation(repliedMessages);
     } catch {
-      setError("The assistant could not connect just now. Check your connection and try again.");
+      if (ownerGenerationRef.current === generation) setError("The assistant could not connect just now. Check your connection and try again.");
     } finally {
       setIsSending(false);
     }

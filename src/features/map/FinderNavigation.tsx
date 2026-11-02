@@ -4,7 +4,7 @@ import { useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import Image from "next/image";
 import Link from "next/link";
-import { Search, Bookmark, MessageCircle, HousePlus, CircleHelp, Headset, Map, UserRound, LogIn, Sun, Moon, Monitor, ClipboardCheck, LayoutDashboard } from "lucide-react";
+import { Search, Bookmark, MessageCircle, CircleHelp, Headset, Map, UserRound, LogIn, Sun, Moon, Monitor } from "lucide-react";
 import { Modal } from "@/components/ui/Modal";
 import type { UserRole } from "@/types/database";
 import styles from "./FinderNavigation.module.css";
@@ -73,13 +73,16 @@ export function FinderNavigation({ open, onClose, preference, resolvedTheme, onP
           <p>Find your next home in Cebu</p>
         </div>
         <nav aria-label="Main menu" className={styles.mainNavigation}>
-          <Link href={userRole === "landlord" ? "/landlord/map" : "/"} aria-current="page" className={`${styles.navItem} ${styles.currentPage}`} onClick={(event) => { if (userRole === "landlord") { onClose(); return; } if (!event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey) { event.preventDefault(); onClose(); } }}>
-            <Search aria-hidden="true" /><span>{userRole === "landlord" ? "Your property map" : "Find rentals"}</span>
+          <Link href="/" aria-current="page" className={`${styles.navItem} ${styles.currentPage}`} onClick={(event) => {
+            if (!event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey) {
+              event.preventDefault();
+              onClose();
+            }
+          }}>
+            <Search aria-hidden="true" /><span>Find rentals</span>
           </Link>
-          {userRole === "landlord" && <Link href="/landlord/dashboard" className={styles.navItem} onClick={onClose}><LayoutDashboard aria-hidden="true" /><span>Landlord dashboard</span></Link>}
           {(userRole === "renter" || !authenticated) && <Link href="/favorites" className={styles.navItem} onClick={onClose}><Bookmark aria-hidden="true" /><span>Saved rentals</span></Link>}
           {(userRole === "renter" || !authenticated) && <button type="button" className={styles.navItem} onClick={() => { onClose(); onHelp(); }}><MessageCircle aria-hidden="true" /><span>Help finding a rental</span></button>}
-          {userRole === "landlord" && <Link href="/list-property" className={styles.navItem} onClick={onClose}><HousePlus aria-hidden="true" /><span>List your property</span></Link>}{userRole === "admin" && <Link href="/admin/listings" className={styles.navItem} onClick={onClose}><ClipboardCheck aria-hidden="true" /><span>Review property listings</span></Link>}
         </nav>
         <section className={styles.support} aria-labelledby="finder-support-heading">
           <h2 id="finder-support-heading">Support</h2>

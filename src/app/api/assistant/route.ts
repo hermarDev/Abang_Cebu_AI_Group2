@@ -81,6 +81,10 @@ async function loadRelevantRentals(query: string) {
 export async function POST(request: Request) {
   const access = await getAssistantAccess();
   if ("response" in access) return access.response;
+  const expectedOwner = request.headers.get("X-Assistant-Owner");
+  if (expectedOwner !== (access.user?.id ?? "guest")) {
+    return Response.json({ error: "Your account changed. Reload before sending a message." }, { status: 409, headers: responseHeaders });
+  }
 
   let body: unknown;
   try {

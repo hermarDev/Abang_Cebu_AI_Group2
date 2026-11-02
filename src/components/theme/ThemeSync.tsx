@@ -1,16 +1,17 @@
 "use client";
 
 import { useEffect } from "react";
-import { useFinderTheme } from "@/features/map/useFinderTheme";
+import { getResolvedTheme, useFinderTheme } from "@/features/map/useFinderTheme";
 
 export function ThemeSync() {
   const { resolvedTheme } = useFinderTheme();
 
   useEffect(() => {
     const root = document.documentElement;
-    root.classList.toggle("dark", resolvedTheme === "dark");
-    root.classList.toggle("light", resolvedTheme === "light");
-    root.style.colorScheme = resolvedTheme;
+    const currentTheme = getResolvedTheme();
+    root.classList.toggle("dark", currentTheme === "dark");
+    root.classList.toggle("light", currentTheme === "light");
+    root.style.colorScheme = currentTheme;
   }, [resolvedTheme]);
 
   return null;

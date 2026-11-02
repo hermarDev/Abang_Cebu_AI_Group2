@@ -9,11 +9,13 @@ const maxUserMessageLength = 2_000;
 const maxAssistantMessageLength = 8_000;
 const maxConversationBytes = 60_000;
 
-async function getAuthenticatedClient() {
+async function getAuthenticatedClient(request: Request) {
   const access = await getAssistantAccess(true);
-  if ("response" in access) return { response: access.response } as const;
+  if ("response" in access && access.response) return { response: access.response } as const;
   const user = access.user;
   if (!user) return { response: Response.json({ error: "Sign in with a renter account to access chat history." }, { status: 401, headers: responseHeaders }) } as const;
+  const expectedOwner = request.headers.get("X-Assistant-Owner");
+  if (expectedOwner !== user.id) return { response: Response.json({ error: "Your account changed. Reload before accessing chats." }, { status: 409, headers: responseHeaders }) } as const;
   return { supabase: access.supabase, user };
 }
 
@@ -59,7 +61,7 @@ function serializeConversation(row: { id: string; title: string; messages: Json;
 }
 
 export async function GET(request: Request) {
-  const authenticated = await getAuthenticatedClient();
+  const authenticated = await getAuthenticatedClient(request);
   if ("response" in authenticated) return authenticated.response;
 
   const id = new URL(request.url).searchParams.get("id");
@@ -90,7 +92,7 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const authenticated = await getAuthenticatedClient();
+  const authenticated = await getAuthenticatedClient(request);
   if ("response" in authenticated) return authenticated.response;
 
   let body: unknown;
@@ -107,7 +109,7 @@ export async function POST(request: Request) {
 }
 
 export async function PATCH(request: Request) {
-  const authenticated = await getAuthenticatedClient();
+  const authenticated = await getAuthenticatedClient(request);
   if ("response" in authenticated) return authenticated.response;
 
   let body: unknown;
@@ -130,7 +132,7 @@ export async function PATCH(request: Request) {
 }
 
 export async function DELETE(request: Request) {
-  const authenticated = await getAuthenticatedClient();
+  const authenticated = await getAuthenticatedClient(request);
   if ("response" in authenticated) return authenticated.response;
 
   let body: unknown;

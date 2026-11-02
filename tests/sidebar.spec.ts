@@ -94,15 +94,12 @@ for (const { width, height } of [{ width: 320, height: 568 }, { width: 375, heig
     }
     if (width <= 1023) {
       const assistantPosition = await assistant.boundingBox();
-      const filtersPosition = await page.getByRole("group", { name: "Rental search filters" }).boundingBox();
-      const listingsPosition = await page.getByRole("complementary", { name: "Rental listings" }).boundingBox();
       expect(assistantPosition).not.toBeNull();
-      expect(filtersPosition).not.toBeNull();
-      expect(listingsPosition).not.toBeNull();
+      expect(assistantPosition!.x).toBeGreaterThanOrEqual(0);
       expect(assistantPosition!.y).toBeGreaterThanOrEqual(0);
+      expect(assistantPosition!.x + assistantPosition!.width).toBeLessThanOrEqual(width);
+      expect(assistantPosition!.y + assistantPosition!.height).toBeLessThanOrEqual(height);
       expect(Math.abs(assistantPosition!.x + assistantPosition!.width / 2 - width / 2)).toBeLessThanOrEqual(1);
-      expect(assistantPosition!.y).toBeGreaterThanOrEqual(filtersPosition!.y + filtersPosition!.height);
-      expect(assistantPosition!.y + assistantPosition!.height).toBeLessThanOrEqual(listingsPosition!.y);
     }
 
     await assistant.getByRole("button", { name: "Close chat" }).click();
@@ -126,14 +123,19 @@ test("short drawer scroll keeps account and appearance reachable", async ({ page
   await page.goto("/");
   await page.getByRole("button", { name: "Open menu" }).click();
   const drawer = page.getByRole("dialog");
-  for (const name of ["Saved rentals", "List your property", "Log in"]) {
-    const action = drawer.getByRole("button", { name, exact: true });
-    await action.scrollIntoViewIfNeeded();
-    await action.click();
-    await expect(page.getByRole("dialog", { name: "Account access" })).toBeVisible();
-    await page.keyboard.press("Escape");
-    await page.getByRole("button", { name: "Open menu" }).click();
-  }
+  const saved = drawer.getByRole("link", { name: "Saved rentals", exact: true });
+  await saved.scrollIntoViewIfNeeded();
+  await expect(saved).toHaveAttribute("href", "/favorites");
+  await saved.click();
+  await expect(page).toHaveURL(/\/favorites/);
+  await page.goto("/");
+  await page.getByRole("button", { name: "Open menu" }).click();
+  const login = drawer.getByRole("button", { name: "Log in", exact: true });
+  await login.scrollIntoViewIfNeeded();
+  await login.click();
+  await expect(page.getByRole("dialog", { name: "Account access" })).toBeVisible();
+  await page.keyboard.press("Escape");
+  await page.getByRole("button", { name: "Open menu" }).click();
   await drawer.getByRole("button", { name: "Switch to dark mode", exact: true }).click();
   await expect(page.locator("main")).toHaveAttribute("data-theme", "dark");
   await expect(drawer.getByRole("link", { name: "Contact support" })).toHaveAttribute("href", "mailto:support@abangcebu.ai");

@@ -169,7 +169,8 @@ CREATE POLICY finder_profile_update ON public.profiles FOR UPDATE TO authenticat
 
 GRANT SELECT ON public.kyc_verifications TO authenticated;
 GRANT INSERT (landlord_id, id_type, id_document_url, proof_of_ownership_url) ON public.kyc_verifications TO authenticated;
-CREATE POLICY finder_kyc_read ON public.kyc_verifications FOR SELECT TO authenticated USING (landlord_id = auth.uid());
+CREATE POLICY finder_kyc_read ON public.kyc_verifications FOR SELECT TO authenticated
+  USING (landlord_id = auth.uid() OR public.is_admin());
 CREATE POLICY finder_kyc_submit ON public.kyc_verifications FOR INSERT TO authenticated
   WITH CHECK (landlord_id = auth.uid() AND public.get_current_user_role() = 'landlord' AND status = 'pending');
 

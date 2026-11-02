@@ -7,5 +7,5 @@ export const metadata: Metadata = {
 };
 
 export default function BrowseRentalsPage() {
-  return <FinderPage landlordRedirectTo="/landlord/map" />;
+  return <FinderPage />;
 }

@@ -34,17 +34,23 @@ function propertyTypeLabel(value: string) {
   return labels[value] ?? value.replaceAll(/[-_]/g, " ");
 }
 
-export function SavedRentalsContent() {
+export function SavedRentalsContent({ userId }: { userId: string | null }) {
+  if (!userId) return <p role="alert">Sign in to view saved rentals.</p>;
+  return <SavedRentalsSession key={userId} userId={userId} />;
+}
+
+function SavedRentalsSession({ userId }: { userId: string }) {
   const [rentals, setRentals] = useState<SavedRental[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [removingId, setRemovingId] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [removeError, setRemoveError] = useState<string | null>(null);
   const retryController = useRef<AbortController | null>(null);
 
   const fetchRentals = useCallback(async (signal?: AbortSignal) => {
     try {
-      const response = await fetch("/api/favorites", { cache: "no-store", signal });
+      const response = await fetch("/api/favorites", { cache: "no-store", signal, headers: { "x-expected-user-id": userId } });
       const payload: unknown = await response.json().catch(() => null);
       if (!response.ok || !payload || typeof payload !== "object" || !("favorites" in payload) || !Array.isArray(payload.favorites)) {
         const message = payload && typeof payload === "object" && "error" in payload && typeof payload.error === "string"
@@ -61,7 +67,7 @@ export function SavedRentalsContent() {
     } finally {
       if (!signal?.aborted) setLoading(false);
     }
-  }, []);
+  }, [userId]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -87,12 +93,12 @@ export function SavedRentalsContent() {
   async function removeRental(id: string) {
     if (removingId) return;
     setRemovingId(id);
-    setError(null);
+    setRemoveError(null);
     setNotice(null);
     try {
       const response = await fetch("/api/favorites", {
         method: "DELETE",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "x-expected-user-id": userId },
         body: JSON.stringify({ listingId: id }),
       });
       if (!response.ok) {
@@ -105,7 +111,7 @@ export function SavedRentalsContent() {
       setRentals((current) => current.filter((rental) => rental.id !== id));
       setNotice("Rental removed from your saved list.");
     } catch (removeError) {
-      setError(removeError instanceof Error ? removeError.message : "This rental could not be removed. Please try again.");
+      setRemoveError(removeError instanceof Error ? removeError.message : "This rental could not be removed. Please try again.");
     } finally {
       setRemovingId(null);
     }
@@ -137,6 +143,7 @@ export function SavedRentalsContent() {
           </div>
 
           {notice && <p className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-200" role="status">{notice}</p>}
+          {removeError && <p className="mt-4 rounded-xl border border-destructive/30 bg-card/95 p-4 text-sm text-destructive shadow-sm" role="alert">{removeError}</p>}
           {error && <div className="mt-4 rounded-xl border border-destructive/30 bg-card/95 p-4 text-sm text-destructive shadow-sm" role="alert">
             <p className="m-0">{error}</p>
             <button type="button" className="mt-3 min-h-10 rounded-lg border border-border px-3 font-semibold text-foreground hover:bg-muted" onClick={retryLoad}>Try again</button>

@@ -60,15 +60,20 @@ export function RestoredFinderShell({ rentalStatus: statusOverride, initialAccou
     void loadRentals();
     return () => controller.abort();
   }, [statusOverride, request]);
-  const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
-  const [favoritesLoaded, setFavoritesLoaded] = useState(!(authenticated && userRole === "renter"));
-  const [favoriteFeedback, setFavoriteFeedback] = useState<string | null>(null);
+  const favoriteOwner = authenticated && userRole === "renter" ? userId : null;
+  const [favoriteState, setFavoriteState] = useState<{ owner: string | null; generation: number; ids: string[]; loaded: boolean; feedback: string | null }>({ owner: favoriteOwner, generation: 0, ids: [], loaded: false, feedback: null });
+  if (favoriteState.owner !== favoriteOwner) setFavoriteState({ owner: favoriteOwner, generation: favoriteState.generation + 1, ids: [], loaded: false, feedback: null });
+  const currentFavorites = favoriteOwner && favoriteState.owner === favoriteOwner ? favoriteState : null;
+  const favoriteIds = currentFavorites?.ids ?? [];
+  const favoritesLoaded = currentFavorites?.loaded ?? false;
+  const favoriteFeedback = currentFavorites?.feedback ?? null;
   useEffect(() => {
-    if (!authenticated || userRole !== "renter") return;
+    if (!favoriteOwner) return;
     const controller = new AbortController();
+    const generation = favoriteState.generation;
     async function loadFavorites() {
       try {
-        const response = await fetch("/api/favorites", { cache: "no-store", signal: controller.signal });
+        const response = await fetch("/api/favorites", { cache: "no-store", signal: controller.signal, headers: { "x-expected-user-id": favoriteOwner! } });
         const payload: unknown = await response.json();
         if (!response.ok || !payload || typeof payload !== "object" || !("favorites" in payload) || !Array.isArray(payload.favorites)) {
           throw new Error("Saved rentals could not be loaded.");
@@ -76,16 +81,16 @@ export function RestoredFinderShell({ rentalStatus: statusOverride, initialAccou
         const ids = payload.favorites.flatMap((favorite) =>
           favorite && typeof favorite === "object" && "id" in favorite && typeof favorite.id === "string" ? [favorite.id] : []
         );
-        if (!controller.signal.aborted) setFavoriteIds(ids);
+        if (!controller.signal.aborted) {
+          setFavoriteState(current => current.owner === favoriteOwner && current.generation === generation ? { ...current, ids, loaded: true, feedback: null } : current);
+        }
       } catch {
-        if (!controller.signal.aborted) setFavoriteFeedback("Saved rental status could not be loaded. Reload the page and try again.");
-      } finally {
-        if (!controller.signal.aborted) setFavoritesLoaded(true);
+        if (!controller.signal.aborted) setFavoriteState(current => current.owner === favoriteOwner && current.generation === generation ? { ...current, ids: [], loaded: false, feedback: "Saved rental status could not be loaded. Reload the page and try again." } : current);
       }
     }
     void loadFavorites();
     return () => controller.abort();
-  }, [authenticated, userRole]);
+  }, [favoriteOwner, favoriteState.generation]);
   const usingSamples = sampleMode;
   const rentalStatus = usingSamples ? "ready" : statusOverride ?? inventory.status;
   const rentals = usingSamples ? sampleRentals : statusOverride === undefined ? inventory.rentals : [];
@@ -164,27 +169,36 @@ export function RestoredFinderShell({ rentalStatus: statusOverride, initialAccou
       setAccountOpen(true);
       return;
     }
-    if (userRole !== "renter" || favoriteRequests.current.has(listingId)) return;
-
-    favoriteRequests.current.add(listingId);
-    setFavoriteFeedback(null);
+    if (!favoriteOwner || !favoritesLoaded) return;
+    const generation = favoriteState.generation;
+    const requestKey = `${generation}:${listingId}`;
+    if (favoriteRequests.current.has(requestKey)) return;
+    favoriteRequests.current.add(requestKey);
+    const update = (change: (state: typeof favoriteState) => typeof favoriteState) => {
+      setFavoriteState(current => current.owner === favoriteOwner && current.generation === generation ? change(current) : current);
+    };
     const wasSaved = favoriteIds.includes(listingId);
-    setFavoriteIds((current) => wasSaved ? current.filter((id) => id !== listingId) : [...current, listingId]);
+    update(current => ({ ...current, feedback: null, ids: wasSaved ? current.ids.filter(id => id !== listingId) : [...current.ids, listingId] }));
     try {
       const response = await fetch("/api/favorites", {
         method: wasSaved ? "DELETE" : "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "x-expected-user-id": favoriteOwner },
         body: JSON.stringify({ listingId }),
       });
-      if (!response.ok) throw new Error("The saved rental could not be updated.");
-      setFavoriteFeedback(wasSaved ? "Rental removed from your saved list." : "Rental saved to your list.");
-    } catch {
-      setFavoriteIds((current) => wasSaved
-        ? current.includes(listingId) ? current : [...current, listingId]
-        : current.filter((id) => id !== listingId));
-      setFavoriteFeedback("The saved rental could not be updated. Please try again.");
+      if (!response.ok) {
+        const payload = await response.json().catch(() => null);
+        const accountChanged = response.status === 409 && payload?.error === "Your account changed. Please refresh and try again.";
+        throw new Error(accountChanged ? "Your account changed. Please refresh and try again." : "The saved rental could not be updated. Please try again.");
+      }
+      update(current => ({ ...current, feedback: wasSaved ? "Rental removed from your saved list." : "Rental saved to your list." }));
+    } catch (error) {
+      const feedback = error instanceof Error && error.message === "Your account changed. Please refresh and try again."
+        ? error.message : "The saved rental could not be updated. Please try again.";
+      update(current => ({ ...current, ids: wasSaved
+        ? current.ids.includes(listingId) ? current.ids : [...current.ids, listingId]
+        : current.ids.filter(id => id !== listingId), feedback }));
     } finally {
-      favoriteRequests.current.delete(listingId);
+      favoriteRequests.current.delete(requestKey);
     }
   };
   const canSaveRentals = !usingSamples && (!authenticated || userRole === "renter") && (!authenticated || favoritesLoaded);

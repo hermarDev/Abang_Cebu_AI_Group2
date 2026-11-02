@@ -1,0 +1,92 @@
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+const mocks = vi.hoisted(() => ({ getUser: vi.fn(), profile: vi.fn(), favorites: vi.fn(), listing: vi.fn(), insert: vi.fn(), remove: vi.fn(), ownerFilter: vi.fn(), adminRows: vi.fn(), sessionRows: vi.fn() }));
+vi.mock("@/lib/supabase/admin", () => ({ createAdminClient: () => ({ from: () => ({ select: () => ({ in: mocks.adminRows }) }) }) }));
+vi.mock("@/lib/supabase/server", () => ({ createClient: async () => ({
+  auth: { getUser: mocks.getUser },
+  from: (table: string) => {
+    if (table === "profiles") return { select: () => ({ eq: () => ({ maybeSingle: mocks.profile }) }) };
+    if (table === "favorites") return { select: () => ({ eq: mocks.ownerFilter }), insert: mocks.insert, delete: () => ({ eq: () => ({ eq: mocks.remove }) }) };
+    if (table === "listings") return { select: () => ({ in: mocks.sessionRows, eq: () => ({ eq: () => ({ eq: () => ({ maybeSingle: mocks.listing }) }) }) }) };
+    throw new Error(`Unexpected table ${table}`);
+  },
+}) }));
+import { DELETE, GET, POST } from "./route";
+
+const listingId = "12345678-1234-4234-8234-123456789abc";
+function request(method: string, expectedUser?: string) {
+  return new Request("http://localhost/api/favorites", {
+    method,
+    headers: { "content-type": "application/json", ...(expectedUser === undefined ? {} : { "x-expected-user-id": expectedUser }) },
+    ...(method === "GET" ? {} : { body: JSON.stringify({ listingId }) }),
+  });
+}
+
+beforeEach(() => {
+  vi.resetAllMocks();
+  mocks.getUser.mockResolvedValue({ data: { user: { id: "account-b" } }, error: null });
+  mocks.profile.mockResolvedValue({ data: { role: "renter", is_suspended: false }, error: null });
+  mocks.ownerFilter.mockReturnValue({ order: mocks.favorites });
+  mocks.favorites.mockResolvedValue({ data: [], error: null });
+  mocks.listing.mockResolvedValue({ data: { id: listingId }, error: null });
+  mocks.insert.mockResolvedValue({ error: null });
+  mocks.remove.mockResolvedValue({ error: null });
+});
+
+describe("favorites account consistency", () => {
+  it.each([["GET", GET], ["POST", POST], ["DELETE", DELETE]] as const)("rejects stale %s before any data query", async (method, handler) => {
+    const response = await handler(request(method, "account-a"));
+    expect(response?.status).toBe(409);
+    expect(response?.headers.get("Cache-Control")).toBe("no-store");
+    expect(mocks.profile).not.toHaveBeenCalled();
+    expect(mocks.favorites).not.toHaveBeenCalled();
+    expect(mocks.listing).not.toHaveBeenCalled();
+    expect(mocks.insert).not.toHaveBeenCalled();
+    expect(mocks.remove).not.toHaveBeenCalled();
+  });
+  it.each([["GET", GET, 200], ["POST", POST, 201], ["DELETE", DELETE, 200]] as const)("accepts matching %s", async (method, handler, status) => {
+    expect((await handler(request(method, "account-b")))?.status).toBe(status);
+  });
+  it.each([["GET", GET], ["POST", POST], ["DELETE", DELETE]] as const)("rejects unbound legacy %s and asks for refresh", async (method, handler) => {
+    const response = await handler(request(method));
+    expect(response?.status).toBe(409);
+    expect(await response?.json()).toEqual({ error: "Your account changed. Please refresh and try again." });
+    expect(mocks.profile).not.toHaveBeenCalled();
+  });
+  it("limits favorites reads to the authenticated owner", async () => {
+    expect((await GET(request("GET", "account-b")))?.status).toBe(200);
+    expect(mocks.ownerFilter).toHaveBeenCalledWith("user_id", "account-b");
+  });
+  it.each([["draft", true], ["archived", true], ["published", false]] as const)("redacts %s listing with available=%s", async (status, isAvailable) => {
+    mocks.favorites.mockResolvedValue({ data: [{ listing_id: listingId, created_at: "2026-01-01" }], error: null });
+    mocks.sessionRows.mockResolvedValue({ data: [{ id: listingId, title: "Private draft", description: "Private details", price: 1, status, is_available: isAvailable, image_urls: [] }], error: null });
+    const response = await GET(request("GET", "account-b"));
+    expect(response?.status).toBe(200);
+    expect(await response?.json()).toEqual({ favorites: [{ id: listingId, savedAt: "2026-01-01", title: "Unavailable rental", description: "", price: 0, propertyType: "", address: "", city: "", imageUrls: [], isAvailable: false }] });
+  });
+  it("retains an unavailable placeholder when the referenced listing is missing", async () => {
+    mocks.favorites.mockResolvedValue({ data: [{ listing_id: listingId, created_at: "2026-01-01" }], error: null });
+    mocks.sessionRows.mockResolvedValue({ data: [], error: null });
+    const response = await GET(request("GET", "account-b"));
+    expect(await response?.json()).toEqual({ favorites: [expect.objectContaining({ id: listingId, title: "Unavailable rental", isAvailable: false })] });
+  });
+  it("keeps the favorite when public listing data is malformed", async () => {
+    mocks.favorites.mockResolvedValue({ data: [{ listing_id: listingId, created_at: "2026-01-01" }], error: null });
+    mocks.sessionRows.mockResolvedValue({ data: [{ id: listingId, title: null, price: "not-a-price", status: "published", is_available: true }], error: null });
+    const response = await GET(request("GET", "account-b"));
+    expect(await response?.json()).toEqual({ favorites: [expect.objectContaining({ id: listingId, title: "Unavailable rental", isAvailable: false })] });
+  });
+  it("returns published and available listing details", async () => {
+    mocks.favorites.mockResolvedValue({ data: [{ listing_id: listingId, created_at: "2026-01-01" }], error: null });
+    mocks.sessionRows.mockResolvedValue({ data: [{ id: listingId, title: "Public rental", description: "Public details", price: 100, status: "published", is_available: true, image_urls: [] }], error: null });
+    const response = await GET(request("GET", "account-b"));
+    expect(mocks.sessionRows).toHaveBeenCalledWith("id", [listingId]);
+    expect(mocks.adminRows).not.toHaveBeenCalled();
+    expect(await response?.json()).toEqual({ favorites: [expect.objectContaining({ id: listingId, title: "Public rental", description: "Public details", isAvailable: true })] });
+  });
+  it("rejects a signed-out request before inspecting owner state", async () => {
+    mocks.getUser.mockResolvedValue({ data: { user: null }, error: null });
+    expect((await GET(request("GET", "account-a")))?.status).toBe(401);
+    expect(mocks.profile).not.toHaveBeenCalled();
+  });
+});
