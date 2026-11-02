@@ -46,3 +46,84 @@ for (const width of [320, 430, 1280]) {
     });
   }
 }
+
+const challengeKeys = (value: unknown): string[] =>
+  value && typeof value === "object"
+    ? Object.entries(value).flatMap(([key, nested]) => [
+        ...( /captcha|turnstile|verification/i.test(key) ? [key] : []),
+        ...challengeKeys(nested),
+      ])
+    : [];
+
+for (const width of [430, 1280]) {
+  test(`auth submits and retries without verification at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 800 });
+    const loginPayloads: Record<string, unknown>[] = [];
+    const registrationPayloads: Record<string, unknown>[] = [];
+    const recoveryPayloads: Record<string, unknown>[] = [];
+
+    await page.route(url => url.pathname === "/auth/v1/token", async route => {
+      if (new URL(route.request().url()).searchParams.get("grant_type") !== "password") return route.continue();
+      loginPayloads.push(route.request().postDataJSON());
+      await route.fulfill({ status: 400, json: { code: "invalid_credentials", msg: "Invalid login credentials" } });
+    });
+    await page.route(url => url.pathname === "/api/auth/register", async route => {
+      registrationPayloads.push(route.request().postDataJSON());
+      await route.fulfill({ status: 503, json: { success: false, error: { message: "Controlled registration failure." } } });
+    });
+    await page.route(url => url.pathname === "/api/auth/reset-password/request", async route => {
+      recoveryPayloads.push(route.request().postDataJSON());
+      await route.fulfill({ status: 503, json: { success: false, error: { message: "Controlled recovery failure." } } });
+    });
+
+    await page.goto("/");
+    await page.getByRole("button", { name: "Open account dialog" }).click();
+    const dialog = page.getByRole("dialog");
+    const challengeWidgets = dialog.locator('iframe[src*="captcha" i], iframe[src*="turnstile" i], [data-sitekey], input[name*="captcha" i], input[name*="turnstile" i]');
+    await expect(challengeWidgets).toHaveCount(0);
+
+    await dialog.getByLabel("Email Address", { exact: true }).fill("browser-test@example.invalid");
+    await dialog.getByLabel("Password", { exact: true }).fill("Test-password1!");
+    const loginForm = dialog.locator("form");
+    await loginForm.getByRole("button", { name: "Log In", exact: true }).click();
+    await expect(dialog.getByRole("alert")).toContainText("Invalid email or password.");
+    await loginForm.getByRole("button", { name: "Log In", exact: true }).click();
+    await expect(dialog.getByRole("alert")).toContainText("Invalid email or password.");
+    expect(loginPayloads).toHaveLength(2);
+    for (const payload of loginPayloads) {
+      expect(payload).toMatchObject({ email: "browser-test@example.invalid", password: "Test-password1!" });
+      expect(challengeKeys(payload)).toEqual([]);
+    }
+
+    await dialog.getByRole("group", { name: "Account access" }).getByRole("button", { name: "Register", exact: true }).click();
+    await expect(challengeWidgets).toHaveCount(0);
+    await dialog.getByLabel("Full Name", { exact: true }).fill("Browser Test");
+    await dialog.getByLabel("Email Address", { exact: true }).fill("browser-register@example.invalid");
+    await dialog.getByLabel("Password", { exact: true }).fill("Test-password1!");
+    const registrationForm = dialog.locator("form");
+    await registrationForm.getByRole("button", { name: "Register as Renter", exact: true }).click();
+    await expect(dialog.getByRole("alert")).toContainText("Controlled registration failure.");
+    await registrationForm.getByRole("button", { name: "Register as Renter", exact: true }).click();
+    await expect(dialog.getByRole("alert")).toContainText("Controlled registration failure.");
+    expect(registrationPayloads).toHaveLength(2);
+    for (const payload of registrationPayloads) {
+      expect(payload).toMatchObject({ fullName: "Browser Test", email: "browser-register@example.invalid", password: "Test-password1!", role: "renter" });
+      expect(challengeKeys(payload)).toEqual([]);
+    }
+
+    await dialog.getByRole("group", { name: "Account access" }).getByRole("button", { name: "Log In", exact: true }).click();
+    await dialog.getByRole("button", { name: "Forgot password?" }).click();
+    await expect(challengeWidgets).toHaveCount(0);
+    await dialog.getByLabel("Email Address", { exact: true }).fill("browser-recovery@example.invalid");
+    const recoveryForm = dialog.locator("form");
+    await recoveryForm.getByRole("button", { name: "Send reset link", exact: true }).click();
+    await expect(dialog.getByRole("alert")).toContainText("Controlled recovery failure.");
+    await recoveryForm.getByRole("button", { name: "Send reset link", exact: true }).click();
+    await expect(dialog.getByRole("alert")).toContainText("Controlled recovery failure.");
+    expect(recoveryPayloads).toHaveLength(2);
+    for (const payload of recoveryPayloads) {
+      expect(payload).toEqual({ email: "browser-recovery@example.invalid" });
+      expect(challengeKeys(payload)).toEqual([]);
+    }
+  });
+}

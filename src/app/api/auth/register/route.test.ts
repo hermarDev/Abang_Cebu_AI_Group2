@@ -13,22 +13,12 @@ const goodPayload = { email: "Mika@Example.com", password: "Password1!", fullNam
 afterEach(() => { vi.unstubAllEnvs(); vi.unstubAllGlobals(); });
 
 describe("registration route", () => {
-  it("rejects production requests without verification before contacting Supabase", async () => {
+  it("accepts production registration without verification", async () => {
     vi.stubEnv("NODE_ENV", "production");
-    signUp.mockReset();
+    signUp.mockReset().mockResolvedValue({ data: { user: { id: "u1" } }, error: null });
     const response = await POST(request(goodPayload));
-    expect(response.status).toBe(403);
-    expect(signUp).not.toHaveBeenCalled();
-  });
-
-  it("rejects failed production verification without contacting Supabase", async () => {
-    vi.stubEnv("NODE_ENV", "production");
-    vi.stubEnv("TURNSTILE_SECRET_KEY", "synthetic-test-secret");
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true, json: async () => ({ success: false }) }));
-    signUp.mockReset();
-    const response = await POST(request({ ...goodPayload, turnstileToken: "synthetic-test-token" }));
-    expect(response.status).toBe(403);
-    expect(signUp).not.toHaveBeenCalled();
+    expect(response.status).toBe(201);
+    expect(signUp).toHaveBeenCalledOnce();
   });
   it("rejects admin role before contacting Supabase", async () => {
     signUp.mockClear();
@@ -54,6 +44,15 @@ describe("registration route", () => {
     expect(destination.pathname).toBe("/auth/callback");
     expect(destination.searchParams.get("next")).toBe(expectedNext);
     expect(options.data.role).toBe(role);
+  });
+
+  it("shows actionable feedback when confirmation email is rate limited", async () => {
+    signUp.mockReset().mockResolvedValue({ data: { user: null }, error: { code: "over_email_send_rate_limit", message: "private provider detail" } });
+    const response = await POST(request(goodPayload));
+    expect(response.status).toBe(429);
+    const body = await response.json();
+    expect(body.error.message).toBe("Too many confirmation emails requested. Please try again later.");
+    expect(JSON.stringify(body)).not.toContain("private provider detail");
   });
 
   it("returns a sanitized failure when Supabase rejects registration", async () => {

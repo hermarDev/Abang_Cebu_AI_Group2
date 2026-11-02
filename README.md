@@ -37,10 +37,8 @@ Do not overwrite an existing environment file. Set these values for your develop
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Public anonymous key; access still depends on RLS |
 | `NEXT_PUBLIC_MAP_STYLE_URL` | Map style path; use `/styles/osm.json` for the included style |
 | `NEXT_PUBLIC_SITE_URL` | Canonical application origin used by password recovery; use HTTPS in production |
-| `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | Public Cloudflare Turnstile site key for verification widgets |
-| `TURNSTILE_SECRET_KEY` | Server-only Turnstile verification secret |
 
-The environment template may not list every authentication variable above. Add the values needed for the flow you are testing. Production registration and recovery verify Turnstile tokens; local development does not establish that hosted bot protection works. Configure allowed hostnames, Supabase Site URL and redirect allowlists for the environment. See the [password recovery implementation guide](docs/specifications/auth/password-reset-implementation.md).
+The application no longer submits CAPTCHA tokens. Before deployment, verify hosted Supabase CAPTCHA settings, effective Auth and email rate limits, trusted ingress and the recovery redirect allowlist. Application and hosted configuration changes must be coordinated; a mismatched CAPTCHA setting can block authentication. See the [password recovery implementation guide](docs/specifications/auth/password-reset-implementation.md).
 
 Never put a service-role key in a `NEXT_PUBLIC_*` variable or browser code. Normal browser access uses the anonymous key with RLS. Do not commit environment files or copy production credentials into test fixtures.
 

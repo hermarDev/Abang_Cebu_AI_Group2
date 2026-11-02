@@ -59,9 +59,9 @@ reg_cases = [
     },
     {
         "id": "TC-REG-07",
-        "title": "Registration - Turnstile Bot Verification Failure",
-        "steps": "1. Submit registration request with missing or invalid turnstileToken.",
-        "expected": "1. Request immediately rejected with HTTP 400 CAPTCHA_VERIFICATION_FAILED.\n2. Zero database queries executed.",
+        "title": "Registration - Token-free request and abuse controls",
+        "steps": "1. Submit a valid registration request without a CAPTCHA token in a controlled environment.\n2. Verify configured provider rate limits separately.",
+        "expected": "1. Valid request reaches the signup provider without CAPTCHA verification.\n2. Effective provider rate limits are verified separately before release.",
         "status": "Pending Dev",
         "priority": "P1 (High)"
     },

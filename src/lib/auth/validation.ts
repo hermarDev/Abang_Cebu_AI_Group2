@@ -48,7 +48,6 @@ export function validateRegistration(payload: unknown): RegistrationValidation {
       if (preferredLandmark.length < 1 || preferredLandmark.length > 100 || !landmarkPattern.test(preferredLandmark)) errors.preferredLandmark = "Landmark must be 1–100 valid characters.";
     }
   }
-  if (input.turnstileToken !== undefined && typeof input.turnstileToken !== "string") errors.turnstileToken = "Invalid verification token.";
   if (Object.keys(errors).length) return { ok: false, errors };
-  return { ok: true, value: { email, password, role: role as RegisterableRole, fullName, ...(phoneNumber ? { phoneNumber } : {}), ...(preferredLandmark ? { preferredLandmark } : {}), ...(typeof input.turnstileToken === "string" ? { turnstileToken: input.turnstileToken } : {}) } };
+  return { ok: true, value: { email, password, role: role as RegisterableRole, fullName, ...(phoneNumber ? { phoneNumber } : {}), ...(preferredLandmark ? { preferredLandmark } : {}) } };
 }

@@ -27,4 +27,4 @@ Chromium is the default to minimize runtime. Mobile coverage changes viewport wi
 
 Built-in list, HTML and JUnit reporters require no dependencies. Traces and screenshots are retained on failures. Reports live in ignored `playwright-report/` and `test-results/`. Treat artifacts as sensitive if future tests add credentials. Use `pnpm exec playwright test --repeat-each=3` for stability checks. Run `pnpm run lint` and `pnpm exec tsc --noEmit --incremental false` alongside both suites.
 
-The default server is development-mode for fast, isolated feedback; it does not validate production compilation, deployed headers, Turnstile, real map tiles, hosted schema or RLS. Run the separate production build gate and approved staging checks before release. Do not rebuild `.next` while another session owns an active preview.
+The default server is development-mode for fast, isolated feedback; it does not validate production compilation, deployed headers, hosted authentication controls, real map tiles, hosted schema or RLS. Run the separate production build gate and approved staging checks before release. Do not rebuild `.next` while another session owns an active preview.

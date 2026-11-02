@@ -103,9 +103,7 @@ describe("password reset request route", () => {
 
   it("rejects requests when no trusted proxy IP is present", async () => {
     vi.stubEnv("NODE_ENV", "production");
-    vi.stubEnv("TURNSTILE_SECRET_KEY", "test-secret");
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(JSON.stringify({ success: true }), { status: 200 })));
-    const response = await POST(request({ email: "person@example.com", turnstileToken: "test-token" }, "", false));
+    const response = await POST(request({ email: "person@example.com" }, "", false));
     expect(response.status).toBe(429);
     expect(resetPasswordForEmail).not.toHaveBeenCalled();
   });
@@ -135,22 +133,13 @@ describe("password reset request route", () => {
     expect(redirectTo.origin).not.toBe("https://attacker.example");
   });
 
-  it("fails closed when Turnstile is unavailable or rejects the token", async () => {
+  it("accepts production recovery without verification", async () => {
     vi.stubEnv("NODE_ENV", "production");
-    vi.stubEnv("TURNSTILE_SECRET_KEY", "test-secret");
-    const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({ success: false }), { status: 200 }));
-    vi.stubGlobal("fetch", fetchMock);
-    const response = await POST(request({ email: "turnstile@example.com", turnstileToken: "bad-token" }));
-    expect(response.status).toBe(403);
-    expect(fetchMock).toHaveBeenCalledOnce();
-    expect(resetPasswordForEmail).not.toHaveBeenCalled();
-  });
-
-  it("fails closed when Turnstile is not configured in production", async () => {
-    vi.stubEnv("NODE_ENV", "production");
-    vi.stubEnv("TURNSTILE_SECRET_KEY", "");
-    const response = await POST(request({ email: "person@example.com" }));
-    expect(response.status).toBe(403);
-    expect(resetPasswordForEmail).not.toHaveBeenCalled();
+    vi.stubEnv("NEXT_PUBLIC_SITE_URL", "https://recovery.example");
+    const response = await POST(request({ email: " Person@Example.com " }));
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual(genericSuccess);
+    expect(resetPasswordForEmail).toHaveBeenCalledOnce();
+    expect(resetPasswordForEmail).toHaveBeenCalledWith("person@example.com", expect.anything());
   });
 });

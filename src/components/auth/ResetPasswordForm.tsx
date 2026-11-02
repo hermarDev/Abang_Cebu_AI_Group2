@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { TurnstileWidget } from "./TurnstileWidget";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
 import { KeyRound, Mail, LockKeyhole, Eye, EyeOff } from "lucide-react";
 
@@ -25,9 +24,6 @@ export function ResetPasswordForm({ isRecovery = false, onBackToLogin, embedded 
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [isError, setIsError] = useState(false);
-  const [turnstileToken, setTurnstileToken] = useState("");
-  const [resetKey, setResetKey] = useState(0);
-  const verificationRequired = !isRecovery && process.env.NODE_ENV === "production";
   const requestSent = !isRecovery && !!message && !isError;
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -41,18 +37,13 @@ export function ResetPasswordForm({ isRecovery = false, onBackToLogin, embedded 
       (e.currentTarget as HTMLFormElement).querySelector<HTMLInputElement>('[name="confirmPassword"]')?.focus();
       return;
     }
-    if (verificationRequired && !turnstileToken) {
-      setIsError(true);
-      setMessage("Complete the security verification before requesting a recovery link. If it is unavailable, reload and try again.");
-      return;
-    }
     setLoading(true);
 
     try {
       const res = await fetch(isRecovery ? "/api/auth/reset-password/confirm" : "/api/auth/reset-password/request", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(isRecovery ? { newPassword, confirmPassword } : { email, turnstileToken: turnstileToken || undefined }),
+        body: JSON.stringify(isRecovery ? { newPassword, confirmPassword } : { email }),
       });
       const data = await res.json();
 
@@ -72,10 +63,6 @@ export function ResetPasswordForm({ isRecovery = false, onBackToLogin, embedded 
       setIsError(true);
       setMessage("Password recovery is temporarily unavailable. Try again.");
     } finally {
-      if (!isRecovery) {
-        setTurnstileToken("");
-        setResetKey((key) => key + 1);
-      }
       setLoading(false);
     }
   };
@@ -171,11 +158,8 @@ export function ResetPasswordForm({ isRecovery = false, onBackToLogin, embedded 
               </div>
             </div>
           )}
-          {!isRecovery && <TurnstileWidget onTokenChange={setTurnstileToken} resetKey={resetKey} />}
-          {verificationRequired && !turnstileToken && (
-            <p role="status" className="text-sm text-muted-foreground">Complete the security verification to request a recovery link. If unavailable, reload and try again.</p>
-          )}
-          <Button type="submit" variant="primary" fullWidth size="lg" disabled={loading || (verificationRequired && !turnstileToken)} className="bg-action text-action-foreground hover:bg-action-hover">
+
+          <Button type="submit" variant="primary" fullWidth size="lg" disabled={loading} className="bg-action text-action-foreground hover:bg-action-hover">
             {loading ? (isRecovery ? "Updating password..." : "Sending link...") : (isRecovery ? "Update Password" : "Send reset link")}
           </Button>
         </form>}

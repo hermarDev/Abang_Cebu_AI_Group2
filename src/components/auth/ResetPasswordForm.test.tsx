@@ -1,5 +1,4 @@
 import { Children, isValidElement, type ReactElement, type ReactNode } from "react";
-import { TurnstileWidget } from "./TurnstileWidget";
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { ResetPasswordForm } from "@/components/auth/ResetPasswordForm";
@@ -44,7 +43,6 @@ afterEach(() => {
 const { replace, refresh } = vi.hoisted(() => ({ replace: vi.fn(), refresh: vi.fn() }));
 vi.mock("next/navigation", () => ({ useRouter: () => ({ replace, refresh }) }));
 
-vi.mock("./TurnstileWidget", () => ({ TurnstileWidget: () => null }));
 
 describe("ResetPasswordForm", () => {
   it("blocks mismatched recovery passwords, focuses confirmation and links its error", async () => {
@@ -164,27 +162,24 @@ describe("ResetPasswordForm", () => {
   });
 });
 
-function verification() {
-  return findElement(renderForm(), (el) => el.type === TurnstileWidget)!;
-}
 async function submit() {
   const form = findElement(renderForm(), (el) => el.type === "form")!;
   await (form.props.onSubmit as (event: { preventDefault: () => void }) => Promise<void>)({ preventDefault: vi.fn() });
 }
 
-describe("recovery request verification", () => {
-
-  it("blocks production submission without verification even through the handler", async () => {
+describe("production submission", () => {
+  it("sends a request without verification", async () => {
     state.active = true;
     vi.stubEnv("NODE_ENV", "production");
-    const request = vi.fn();
+    const request = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ success: true }) });
     vi.stubGlobal("fetch", request);
-    expect(findElement(renderForm(), (el) => el.props.type === "submit")!.props.disabled).toBe(true);
+    const input = findElement(renderForm(), (el) => el.props.type === "email")!;
+    (input.props.onChange as (event: unknown) => void)({ target: { value: "renter@example.com" } });
     await submit();
-    expect(request).not.toHaveBeenCalled();
-    expect(renderToStaticMarkup(renderForm())).toContain("Complete the security verification");
+    expect(request).toHaveBeenCalledOnce();
+    expect(JSON.parse(request.mock.calls[0][1].body)).toEqual({ email: "renter@example.com" });
   });
-  it.each(["server", "network", "invalid JSON"])("consumes verification after %s failure and requires a fresh token", async (failure) => {
+  it.each(["server", "network", "invalid JSON"])("allows retry after %s failure", async (failure) => {
     state.active = true;
     vi.stubEnv("NODE_ENV", "production");
     const request = failure === "network" ? vi.fn().mockRejectedValue(new Error("offline"))
@@ -192,54 +187,10 @@ describe("recovery request verification", () => {
         ? async () => { throw new Error("invalid JSON"); }
         : async () => ({ success: false, error: { message: "Try again." } }) });
     vi.stubGlobal("fetch", request);
-    const first = verification();
-    (first.props.onTokenChange as (token: string) => void)("synthetic-first");
+    await submit();
     expect(findElement(renderForm(), (el) => el.props.type === "submit")!.props.disabled).toBe(false);
     await submit();
-    expect(JSON.parse(request.mock.calls[0][1].body).turnstileToken).toBe("synthetic-first");
-    expect(verification().props.resetKey).toBe(Number(first.props.resetKey) + 1);
-    expect(findElement(renderForm(), (el) => el.props.type === "submit")!.props.disabled).toBe(true);
-    await submit();
-    expect(request).toHaveBeenCalledTimes(1);
-    (verification().props.onTokenChange as (token: string) => void)("synthetic-fresh");
-    await submit();
-    expect(JSON.parse(request.mock.calls[1][1].body).turnstileToken).toBe("synthetic-fresh");
-  });
-  it("sends production verification and retains the successful email confirmation", async () => {
-    state.active = true;
-    vi.stubEnv("NODE_ENV", "production");
-    const request = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ success: true, message: "private account details" }) });
-    vi.stubGlobal("fetch", request);
-    (verification().props.onTokenChange as (token: string) => void)("synthetic-success");
-    await submit();
-    expect(JSON.parse(request.mock.calls[0][1].body).turnstileToken).toBe("synthetic-success");
-    const html = renderToStaticMarkup(renderForm());
-    expect(html).toContain("Check your email");
-    expect(html).not.toContain("private account details");
-    expect(html).not.toContain("<form");
+    expect(request).toHaveBeenCalledTimes(2);
   });
 
-  it("blocks production requests after widget expiry clears a token", async () => {
-    state.active = true;
-    vi.stubEnv("NODE_ENV", "production");
-    const request = vi.fn();
-    vi.stubGlobal("fetch", request);
-    (verification().props.onTokenChange as (token: string) => void)("synthetic-expired");
-    (verification().props.onTokenChange as (token: string) => void)("");
-    await submit();
-    expect(request).not.toHaveBeenCalled();
-  });
-  it("does not gate verified password updates in production or mount verification", async () => {
-    state.active = true;
-    vi.stubEnv("NODE_ENV", "production");
-    const request = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ success: true }) });
-    vi.stubGlobal("fetch", request);
-    const tree = renderForm(true);
-    expect(findElement(tree, (el) => el.type === TurnstileWidget)).toBeUndefined();
-    expect(findElement(tree, (el) => el.props.type === "submit")!.props.disabled).toBe(false);
-    const form = findElement(tree, (el) => el.type === "form")!;
-    await (form.props.onSubmit as (event: { preventDefault: () => void }) => Promise<void>)({ preventDefault: vi.fn() });
-    expect(JSON.parse(request.mock.calls[0][1].body)).toEqual({ newPassword: "", confirmPassword: "" });
-    expect(replace).toHaveBeenCalledWith("/login?message=password_reset_success");
-  });
 });

@@ -27,8 +27,6 @@ export default defineConfig({
     env: {
       NEXT_PUBLIC_SUPABASE_URL: "http://127.0.0.1:9",
       NEXT_PUBLIC_SUPABASE_ANON_KEY: "playwright-local-placeholder",
-      NEXT_PUBLIC_TURNSTILE_SITE_KEY: "",
-      TURNSTILE_SECRET_KEY: "",
       NEXT_PUBLIC_MAP_STYLE_URL: "/styles/osm.json",
     },
   },

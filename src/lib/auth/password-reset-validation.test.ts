@@ -5,7 +5,7 @@ describe("password reset request validation", () => {
   it("normalizes a valid email", () => {
     expect(validateResetRequest({ email: " Person@Example.com " })).toEqual({ ok: true, email: "person@example.com" });
   });
-  it.each([null, [], "email", { email: "bad" }, { email: "a@b.com", turnstileToken: 3 }])("rejects invalid request payload %#", (value) => {
+  it.each([null, [], "email", { email: "bad" }])("rejects invalid request payload %#", (value) => {
     expect(validateResetRequest(value).ok).toBe(false);
   });
 });
