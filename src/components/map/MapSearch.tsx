@@ -10,9 +10,10 @@ type MapSearchProps = {
   onSelect: (place: PlaceResult) => void;
   disabled: boolean;
   className?: string;
+  embedded?: boolean;
 };
 
-export default function MapSearch({ onSelect, disabled, className }: MapSearchProps) {
+export default function MapSearch({ onSelect, disabled, className, embedded = false }: MapSearchProps) {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
@@ -29,12 +30,16 @@ export default function MapSearch({ onSelect, disabled, className }: MapSearchPr
   };
   const showOptions = open && query.trim().length >= 3 && status !== "idle";
 
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const runSearch = () => {
     cancelPending();
     if (disabled) return;
     setOpen(true);
     if (!composingRef.current) void search(query);
+  };
+
+  const handleSearchSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    runSearch();
   };
 
   const select = (place: PlaceResult) => {
@@ -79,48 +84,65 @@ export default function MapSearch({ onSelect, disabled, className }: MapSearchPr
     if (event.key === "Enter" && activeIndex >= 0 && places[activeIndex]) {
       event.preventDefault();
       select(places[activeIndex]);
+      return;
+    }
+    if (event.key === "Enter" && embedded) {
+      event.preventDefault();
+      runSearch();
     }
   };
 
+  const searchControl = (
+    <>
+      <input
+        ref={inputRef}
+        className={styles.searchInput}
+        type="text"
+        enterKeyHint="search"
+        autoComplete="off"
+        role="combobox"
+        aria-label="Search places"
+        aria-autocomplete="list"
+        aria-expanded={showOptions}
+        aria-controls="place-search-results"
+        aria-activedescendant={activeIndex >= 0 ? `place-option-${activeIndex}` : undefined}
+        placeholder="Search places or an address"
+        value={query}
+        disabled={disabled}
+        onCompositionStart={() => { composingRef.current = true; cancelPending(); reset(); }}
+        onCompositionEnd={(event) => { composingRef.current = false; scheduleSearch(event.currentTarget.value); }}
+        onChange={(event) => {
+          setQuery(event.target.value);
+          setOpen(false);
+          setActiveIndex(-1);
+          reset();
+          scheduleSearch(event.target.value);
+        }}
+        onFocus={() => setOpen(true)}
+        onKeyDown={onKeyDown}
+      />
+      {query.length > 0 && (
+        <button className={styles.clearButton} type="button" aria-label="Clear search" onClick={clearInput}>
+          <X size={16} aria-hidden="true" />
+        </button>
+      )}
+      <button
+        className={styles.searchButton}
+        type={embedded ? "button" : "submit"}
+        aria-label="Search"
+        disabled={disabled || query.trim().length < 3}
+        onClick={embedded ? runSearch : undefined}
+      >
+        <Search size={20} aria-hidden="true" />
+      </button>
+    </>
+  );
+
   return (
     <div className={className ?? styles.searchRoot}>
-      <form className={styles.searchForm} role="search" onSubmit={handleSearchSubmit}>
-        <input
-          ref={inputRef}
-          className={styles.searchInput}
-          type="text"
-          enterKeyHint="search"
-          autoComplete="off"
-          role="combobox"
-          aria-label="Search places"
-          aria-autocomplete="list"
-          aria-expanded={showOptions}
-          aria-controls="place-search-results"
-          aria-activedescendant={activeIndex >= 0 ? `place-option-${activeIndex}` : undefined}
-          placeholder="Search places or an address"
-          value={query}
-          disabled={disabled}
-          onCompositionStart={() => { composingRef.current = true; cancelPending(); reset(); }}
-          onCompositionEnd={(event) => { composingRef.current = false; scheduleSearch(event.currentTarget.value); }}
-          onChange={(event) => {
-            setQuery(event.target.value);
-            setOpen(false);
-            setActiveIndex(-1);
-            reset();
-            scheduleSearch(event.target.value);
-          }}
-          onFocus={() => setOpen(true)}
-          onKeyDown={onKeyDown}
-        />
-        {query.length > 0 && (
-          <button className={styles.clearButton} type="button" aria-label="Clear search" onClick={clearInput}>
-            <X size={16} aria-hidden="true" />
-          </button>
-        )}
-        <button className={styles.searchButton} type="submit" aria-label="Search" disabled={disabled || query.trim().length < 3}>
-          <Search size={20} aria-hidden="true" />
-        </button>
-      </form>
+      {embedded
+        ? <div className={styles.searchForm} role="search">{searchControl}</div>
+        : <form className={styles.searchForm} role="search" onSubmit={handleSearchSubmit}>{searchControl}</form>}
 
       {showOptions && (
         <div className={styles.resultPanel} aria-live="polite">

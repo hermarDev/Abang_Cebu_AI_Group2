@@ -41,7 +41,7 @@ describe("signInWithEmail", () => {
   it("signs in with Supabase and accepts the canonical matching profile role", async () => {
     await expect(
       signInWithEmail(" renter@example.com ", "Password1!"),
-    ).resolves.toEqual({ success: true });
+    ).resolves.toEqual({ success: true, role: "renter" });
     expect(signInWithPassword).toHaveBeenCalledWith({
       email: "renter@example.com",
       password: "Password1!",
@@ -54,7 +54,7 @@ describe("signInWithEmail", () => {
     maybeSingle.mockResolvedValue({ data: { role: "landlord", is_suspended: false }, error: null });
     await expect(
       signInWithEmail("renter@example.com", "Password1!"),
-    ).resolves.toEqual({ success: true });
+    ).resolves.toEqual({ success: true, role: "landlord" });
     expect(signOut).not.toHaveBeenCalled();
   });
 

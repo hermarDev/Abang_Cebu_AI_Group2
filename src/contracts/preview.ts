@@ -18,6 +18,8 @@ export type RentalType = "room" | "bedspace" | "boarding-house" | PropertyType;
 export type Rental = {
   id: string;
   title: string;
+  address?: string;
+  imageUrls?: string[];
   locality: string;
   coordinates: Coordinate;
   price: number;

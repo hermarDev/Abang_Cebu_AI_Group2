@@ -16,6 +16,9 @@ const MapCanvas = dynamic(() => import("./MapCanvas").then((module) => module.Ma
 type MapCanvasLoaderProps = {
   selectedRentalId?: string | null;
   onSelectRental?: (id: string) => void;
+  savedRentalIds?: string[];
+  canSaveRentals?: boolean;
+  onToggleFavorite?: (id: string) => void;
   selectedPlace?: PlaceResult | null;
   rentals?: RentalResult[];
   dataStatus?: "loading" | "ready" | "error";
@@ -27,9 +30,12 @@ type MapCanvasLoaderProps = {
   onSearchRadiusKmChange?: (radius: number) => void;
   onSearchCenterChange?: (center: [number, number]) => void;
   resolvedTheme?: "light" | "dark";
+  assistantControlsTarget?: HTMLDivElement | null;
+  decorative?: boolean;
+  showAttribution?: boolean;
 };
 
 export default function MapCanvasLoader(props: MapCanvasLoaderProps) {
-  const { rentals = [], dataStatus = "error", filters, onFiltersChange, locationQuery, onLocationQueryChange, searchRadiusKm, onSearchRadiusKmChange, onSearchCenterChange, resolvedTheme } = props;
-  return <MapCanvas selectedRentalId={props.selectedRentalId} onSelectRental={props.onSelectRental} selectedPlace={props.selectedPlace} rentals={rentals} dataStatus={dataStatus} filters={filters} onFiltersChange={onFiltersChange} locationQuery={locationQuery} onLocationQueryChange={onLocationQueryChange} searchRadiusKm={searchRadiusKm} onSearchRadiusKmChange={onSearchRadiusKmChange} onSearchCenterChange={onSearchCenterChange} resolvedTheme={resolvedTheme} />;
+  const { rentals = [], dataStatus = "error", filters, onFiltersChange, locationQuery, onLocationQueryChange, searchRadiusKm, onSearchRadiusKmChange, onSearchCenterChange, resolvedTheme, decorative, showAttribution } = props;
+  return <MapCanvas selectedRentalId={props.selectedRentalId} onSelectRental={props.onSelectRental} selectedPlace={props.selectedPlace} rentals={rentals} dataStatus={dataStatus} filters={filters} onFiltersChange={onFiltersChange} locationQuery={locationQuery} onLocationQueryChange={onLocationQueryChange} searchRadiusKm={searchRadiusKm} onSearchRadiusKmChange={onSearchRadiusKmChange} onSearchCenterChange={onSearchCenterChange} resolvedTheme={resolvedTheme} assistantControlsTarget={props.assistantControlsTarget} savedRentalIds={props.savedRentalIds} canSaveRentals={props.canSaveRentals} onToggleFavorite={props.onToggleFavorite} decorative={decorative} showAttribution={showAttribution} />;
 }

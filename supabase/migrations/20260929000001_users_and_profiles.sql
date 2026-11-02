@@ -55,6 +55,24 @@ BEGIN
 END;
 $$;
 
+-- 3. Profiles Table (Extends Supabase auth.users)
+-- ------------------------------------------------------------------------------
+
+CREATE TABLE IF NOT EXISTS public.profiles (
+    id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+    role public.user_role NOT NULL DEFAULT 'renter'::public.user_role,
+    full_name TEXT NOT NULL,
+    phone_number TEXT,
+    avatar_url TEXT,
+    bio TEXT,
+    is_suspended BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    CONSTRAINT phone_format_check CHECK (
+        phone_number IS NULL OR phone_number ~ '^\+?[0-9]{10,15}$'
+    )
+);
+
 -- Secure helper: Retrieve role of current authenticated user
 CREATE OR REPLACE FUNCTION public.get_current_user_role()
 RETURNS public.user_role
@@ -79,24 +97,6 @@ AS $$
     WHERE id = auth.uid() AND role = 'admin'::public.user_role
   );
 $$;
-
--- 3. Profiles Table (Extends Supabase auth.users)
--- ------------------------------------------------------------------------------
-
-CREATE TABLE IF NOT EXISTS public.profiles (
-    id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
-    role public.user_role NOT NULL DEFAULT 'renter'::public.user_role,
-    full_name TEXT NOT NULL,
-    phone_number TEXT,
-    avatar_url TEXT,
-    bio TEXT,
-    is_suspended BOOLEAN NOT NULL DEFAULT FALSE,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-    CONSTRAINT phone_format_check CHECK (
-        phone_number IS NULL OR phone_number ~ '^\+?[0-9]{10,15}$'
-    )
-);
 
 -- Performance & filtering indexes
 CREATE INDEX IF NOT EXISTS idx_profiles_role ON public.profiles(role);

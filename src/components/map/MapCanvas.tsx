@@ -3,7 +3,8 @@
 import { Plus, Minus, LocateFixed, Search } from "lucide-react";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Map as MapLibreMap, Marker, Popup, setWorkerUrl } from "maplibre-gl";
+import { createPortal } from "react-dom";
+import { AttributionControl, Map as MapLibreMap, Marker, Popup, setWorkerUrl } from "maplibre-gl";
 import type { GeoJSONSource } from "maplibre-gl";
 import * as RadixPopover from "@radix-ui/react-popover";
 import type { PlaceResult } from "@/lib/search/places";
@@ -15,10 +16,6 @@ import { Select } from "@/components/ui/Select";
 import MapSearch from "./MapSearch";
 import styles from "./MapCanvas.module.css";
 import { groupRentalsByCoordinates, makeRadiusPolygon, METRO_CEBU_CENTER } from "./map-geometry";
-
-function escapeHtml(value: string) {
-  return value.replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char]!);
-}
 
 function verificationLabel(status: RentalResult["verificationStatus"]): string {
   if (!status) return "Verification status unknown";
@@ -68,9 +65,15 @@ type MapCanvasProps = {
   onSearchRadiusKmChange?: (radius: number) => void;
   onSearchCenterChange?: (center: [number, number]) => void;
   resolvedTheme?: ResolvedTheme;
+  assistantControlsTarget?: HTMLDivElement | null;
+  decorative?: boolean;
+  showAttribution?: boolean;
+  savedRentalIds?: string[];
+  canSaveRentals?: boolean;
+  onToggleFavorite?: (id: string) => void;
 };
 
-export function MapCanvas({ selectedPlace, selectedRentalId, onSelectRental, rentals = [], dataStatus = "error", filters: externalFilters, onFiltersChange, locationQuery: externalLocationQuery, onLocationQueryChange, searchRadiusKm: externalSearchRadiusKm, onSearchRadiusKmChange, onSearchCenterChange, resolvedTheme = "light" }: MapCanvasProps) {
+export function MapCanvas({ selectedPlace, selectedRentalId, onSelectRental, rentals = [], dataStatus = "error", filters: externalFilters, onFiltersChange, locationQuery: externalLocationQuery, onLocationQueryChange, searchRadiusKm: externalSearchRadiusKm, onSearchRadiusKmChange, onSearchCenterChange, resolvedTheme = "light", assistantControlsTarget, savedRentalIds, canSaveRentals = false, onToggleFavorite, decorative = false, showAttribution = true }: MapCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [selectedRental, setSelectedRental] = useState<string | null>(null);
   const activeSelectedRental = selectedRentalId !== undefined ? selectedRentalId : selectedRental;
@@ -109,7 +112,43 @@ export function MapCanvas({ selectedPlace, selectedRentalId, onSelectRental, ren
   const markerRef = useRef<Marker | null>(null);
   const rentalMarkersRef = useRef<Marker[]>([]);
   const rentalPopupRef = useRef<Popup | null>(null);
+  const savedRentalIdsRef = useRef(new Set(savedRentalIds ?? []));
+  const onToggleFavoriteRef = useRef(onToggleFavorite);
   const locationRequestRef = useRef(0);
+  useEffect(() => { savedRentalIdsRef.current = new Set(savedRentalIds ?? []); }, [savedRentalIds]);
+  useEffect(() => { onToggleFavoriteRef.current = onToggleFavorite; }, [onToggleFavorite]);
+  const openRentalPopup = useCallback((rental: RentalResult, map: MapLibreMap) => {
+    rentalPopupRef.current?.remove();
+    const content = document.createElement("div");
+    content.className = styles.rentalPopup;
+    const title = document.createElement("strong");
+    title.textContent = rental.title;
+    const locality = document.createElement("span");
+    locality.textContent = rental.locality;
+    const price = document.createElement("span");
+    price.textContent = formatPrice(rental.price) + " / month";
+    content.append(title, locality, price);
+    if (canSaveRentals) {
+      const saveButton = document.createElement("button");
+      saveButton.type = "button";
+      saveButton.className = styles.rentalPopupSave;
+      saveButton.dataset.favoriteId = rental.id;
+      const saved = savedRentalIdsRef.current.has(rental.id);
+      saveButton.setAttribute("aria-pressed", String(saved));
+      saveButton.setAttribute("aria-label", saved ? "Remove " + rental.title + " from saved rentals" : "Save " + rental.title);
+      saveButton.textContent = saved ? "Saved" : "Save rental";
+      saveButton.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        onToggleFavoriteRef.current?.(rental.id);
+      });
+      content.append(saveButton);
+    }
+    rentalPopupRef.current = new Popup({ offset: 18, closeButton: true, closeOnClick: false })
+      .setLngLat(rental.coordinates)
+      .setDOMContent(content)
+      .addTo(map);
+  }, [canSaveRentals]);
   const [mapStatus, setMapStatus] = useState<MapStatus>("loading");
   const [locationStatus, setLocationStatus] = useState<LocationStatus>("idle");
   const [statusMessage, setStatusMessage] = useState(
@@ -135,12 +174,8 @@ export function MapCanvas({ selectedPlace, selectedRentalId, onSelectRental, ren
       map = new MapLibreMap({
         container,
         style: initialStyleUrl,
-        attributionControl: {
-          compact: container.clientWidth <= 640 ? true : undefined,
-          customAttribution: process.env.NEXT_PUBLIC_MAP_STYLE_URL && process.env.NEXT_PUBLIC_MAP_STYLE_URL !== "/styles/osm.json"
-            ? undefined
-            : '<a href="https://openfreemap.org">OpenFreeMap</a> <a href="https://www.openmaptiles.org/">© OpenMapTiles</a> Data from <a href="https://www.openstreetmap.org/copyright">© OpenStreetMap contributors</a>',
-        },
+        interactive: !decorative,
+        attributionControl: false,
         center: METRO_CEBU_CENTER,
         zoom: DEFAULT_ZOOM,
         bearing: 0,
@@ -158,12 +193,25 @@ export function MapCanvas({ selectedPlace, selectedRentalId, onSelectRental, ren
 
     mapRef.current = map;
 
+    if (showAttribution) {
+      map.addControl(new AttributionControl({
+        compact: true,
+        customAttribution: process.env.NEXT_PUBLIC_MAP_STYLE_URL && process.env.NEXT_PUBLIC_MAP_STYLE_URL !== "/styles/osm.json"
+          ? undefined
+          : '<a href="https://openfreemap.org">OpenFreeMap</a> <a href="https://www.openmaptiles.org/">© OpenMapTiles</a> Data from <a href="https://www.openstreetmap.org/copyright">© OpenStreetMap contributors</a>',
+      }), "bottom-left");
+    }
+
+    const hideDecorativeLabels = () => {
+      if (!decorative || !map.isStyleLoaded()) return;
+      for (const layer of map.getStyle().layers) {
+        if (layer.type !== "symbol" || !("text-field" in (layer.layout ?? {}))) continue;
+        map.setPaintProperty(layer.id, "text-opacity", 0);
+      }
+    };
     const onLoad = () => {
       mapLoaded = true;
-      if (container.clientWidth <= 640) {
-        const credits = container.querySelector<HTMLDetailsElement>("details.maplibregl-ctrl-attrib");
-        if (credits?.open) credits.querySelector<HTMLElement>("summary")?.click();
-      }
+      hideDecorativeLabels();
       mapLoadedRef.current = true;
       const center = map.getCenter();
       searchCenterRef.current = [center.lng, center.lat];
@@ -191,6 +239,7 @@ export function MapCanvas({ selectedPlace, selectedRentalId, onSelectRental, ren
     const onDragEnd = () => setIsDragging(false);
     map.on("dragstart", onDragStart);
     map.on("dragend", onDragEnd);
+    map.on("style.load", hideDecorativeLabels);
     map.once("load", onLoad);
     map.on("error", onMapError);
     map.on("moveend", onMoveEnd);
@@ -220,10 +269,11 @@ export function MapCanvas({ selectedPlace, selectedRentalId, onSelectRental, ren
       map.off("moveend", onMoveEnd);
       map.off("dragstart", onDragStart);
       map.off("dragend", onDragEnd);
+      map.off("style.load", hideDecorativeLabels);
       map.remove();
       mapRef.current = null;
     };
-  }, []);
+  }, [decorative, showAttribution]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -332,12 +382,14 @@ export function MapCanvas({ selectedPlace, selectedRentalId, onSelectRental, ren
     rentalMarkersRef.current = [];
     rentalPopupRef.current?.remove();
     rentalPopupRef.current = null;
+    if (decorative) return;
     for (const group of markerGroups) {
       const element = document.createElement("button");
       const titles = group.rentals.map((rental) => rental.title);
       element.type = "button";
       element.className = "rental-map-marker";
-      element.setAttribute("aria-pressed", String(group.rentals.some((rental) => rental.id === activeSelectedRental)));
+      element.dataset.rentalIds = group.rentals.map((rental) => rental.id).join(",");
+      element.setAttribute("aria-pressed", "false");
       element.setAttribute("aria-label", group.rentals.length === 1
         ? `${group.rentals[0].title}, ${formatPrice(group.rentals[0].price)} per month`
         : `${group.rentals.length} rentals at this location: ${titles.join(", ")}`);
@@ -351,11 +403,7 @@ export function MapCanvas({ selectedPlace, selectedRentalId, onSelectRental, ren
         const rental = group.rentals[0];
         onSelectRentalRef.current?.(rental.id);
         setSelectedRental(rental.id);
-        rentalPopupRef.current?.remove();
-        rentalPopupRef.current = new Popup({ offset: 18, closeButton: true })
-          .setLngLat(rental.coordinates)
-          .setHTML(`<strong>${escapeHtml(rental.title)}</strong><br>${escapeHtml(rental.locality)}<br>${escapeHtml(formatPrice(rental.price))} / month`)
-          .addTo(map);
+        openRentalPopup(rental, map);
       });
       rentalMarkersRef.current.push(new Marker({ element, anchor: "bottom" }).setLngLat(group.coordinates).addTo(map));
     }
@@ -381,14 +429,34 @@ export function MapCanvas({ selectedPlace, selectedRentalId, onSelectRental, ren
     updateArea();
     const onStyleLoad = () => updateArea();
     map.on("style.load", onStyleLoad);
-    const selected = visibleRentals.find((rental) => rental.id === activeSelectedRental);
-    if (selected) map.flyTo({ center: selected.coordinates, zoom: Math.max(map.getZoom(), 14), duration: 350 });
     return () => { map.off("style.load", onStyleLoad); };
-  }, [markerGroups, visibleRentals, searchCenter, searchRadiusMeters, activeSelectedRental, mapStatus]);
+  }, [decorative, markerGroups, visibleRentals, searchCenter, searchRadiusMeters, mapStatus, openRentalPopup]);
 
   useEffect(() => {
     const map = mapRef.current;
-    if (!map || mapStatus !== "ready") return;
+    if (!map || mapStatus !== "ready" || decorative) return;
+    for (const marker of rentalMarkersRef.current) {
+      const rentalIds = marker.getElement().dataset.rentalIds?.split(",") ?? [];
+      marker.getElement().setAttribute("aria-pressed", String(Boolean(activeSelectedRental && rentalIds.includes(activeSelectedRental))));
+    }
+    const selected = visibleRentals.find((rental) => rental.id === activeSelectedRental);
+    if (selected) map.flyTo({ center: selected.coordinates, zoom: Math.max(map.getZoom(), 14), duration: 350 });
+  }, [activeSelectedRental, visibleRentals, mapStatus, decorative]);
+
+  useEffect(() => {
+    if (mapStatus !== "ready" || decorative) return;
+    const favoriteButton = rentalPopupRef.current?.getElement().querySelector<HTMLButtonElement>("[data-favorite-id]");
+    if (!favoriteButton) return;
+    const saved = savedRentalIdsRef.current.has(favoriteButton.dataset.favoriteId ?? "");
+    const rental = visibleRentals.find((item) => item.id === favoriteButton.dataset.favoriteId);
+    favoriteButton.setAttribute("aria-pressed", String(saved));
+    favoriteButton.setAttribute("aria-label", saved && rental ? "Remove " + rental.title + " from saved rentals" : "Save " + (rental?.title ?? "rental"));
+    favoriteButton.textContent = saved ? "Saved" : "Save rental";
+  }, [savedRentalIds, mapStatus, decorative, visibleRentals]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || mapStatus !== "ready" || decorative) return;
     const updatePreview = () => {
       if (!map.isStyleLoaded()) return;
       const center = map.getCenter();
@@ -408,32 +476,54 @@ export function MapCanvas({ selectedPlace, selectedRentalId, onSelectRental, ren
       map.off("move", updatePreview);
       map.off("style.load", updatePreview);
     };
-  }, [mapStatus, isDragging, areaDirty, searchRadiusMeters]);
+  }, [mapStatus, isDragging, areaDirty, searchRadiusMeters, decorative]);
+
+  const mapControls = (
+    <div className={[styles.mapControls, externallyControlled && styles.controlledControls, assistantControlsTarget && styles.assistantControls].filter(Boolean).join(" ")} role="group" aria-label="Map controls">
+      <div className={styles.zoomControls}>
+        <button className={styles.secondaryButton} type="button" aria-label="Zoom in" disabled={mapStatus !== "ready"} onClick={() => mapRef.current?.zoomIn()}><Plus size={20} aria-hidden="true" /></button>
+        <button className={styles.secondaryButton} type="button" aria-label="Zoom out" disabled={mapStatus !== "ready"} onClick={() => mapRef.current?.zoomOut()}><Minus size={20} aria-hidden="true" /></button>
+      </div>
+      <button
+        className={styles.controlButton}
+        type="button"
+        onClick={locateMe}
+        disabled={mapStatus !== "ready" || locationStatus === "locating"}
+        aria-label={
+          locationStatus === "locating"
+            ? "Finding your location"
+            : "Locate me"
+        }
+      >
+        <LocateFixed size={20} aria-hidden="true" />
+      </button>
+    </div>
+  );
 
   return (
-    <section className={styles.mapRoot} aria-label="Rental map">
+    <section className={styles.mapRoot} aria-label={decorative ? "Cebu map background" : "Rental map"}>
       <div
         ref={containerRef}
         className={styles.mapCanvas}
-        role="region"
-        aria-label="Interactive rental map"
+        role={decorative ? undefined : "region"}
+        aria-label={decorative ? "Map of Cebu" : "Interactive rental map"}
         aria-busy={mapStatus === "loading"}
       />
 
-      {mapStatus === "unavailable" && (
+      {!decorative && mapStatus === "unavailable" && (
         <div className={styles.mapFallback} role="status">
           <strong>Map unavailable</strong>
           <span>The default search area remains selected.</span>
         </div>
       )}
 
-      {isDragging && mapStatus === "ready" && (
+      {!decorative && isDragging && mapStatus === "ready" && (
         <>
           <span data-map-drag-target aria-hidden="true" className={styles.dragTarget} />
           <div role="status" className={`${styles.searchAreaButton} ${styles.dragFeedback}`}>Move map to choose an area</div>
         </>
       )}
-      {areaDirty && !isDragging && mapStatus === "ready" && (
+      {!decorative && areaDirty && !isDragging && mapStatus === "ready" && (
         <button type="button" aria-label="Search this area" className={styles.searchAreaButton} onClick={() => {
           const map = mapRef.current;
           map?.stop();
@@ -447,7 +537,7 @@ export function MapCanvas({ selectedPlace, selectedRentalId, onSelectRental, ren
         </button>
       )}
 
-      {chooserGroup && (
+      {!decorative && chooserGroup && (
         <RadixPopover.Root open onOpenChange={(next) => { if (!next) setChooserGroup(null); }}>
           <RadixPopover.Anchor virtualRef={{ current: chooserGroup.anchor }} />
           <RadixPopover.Portal>
@@ -461,7 +551,7 @@ export function MapCanvas({ selectedPlace, selectedRentalId, onSelectRental, ren
               <strong id="marker-chooser-label">Choose a rental</strong>
               <div role="listbox" aria-labelledby="marker-chooser-label">
                 {chooserGroup.rentals.map((rental) => (
-                  <button key={rental.id} role="option" type="button" aria-selected={activeSelectedRental === rental.id} className={styles.chooserOption} onClick={() => { setSelectedRental(rental.id); onSelectRentalRef.current?.(rental.id); setChooserGroup(null); }}>
+                  <button key={rental.id} role="option" type="button" aria-selected={activeSelectedRental === rental.id} className={styles.chooserOption} onClick={() => { setSelectedRental(rental.id); onSelectRentalRef.current?.(rental.id); setChooserGroup(null); const map = mapRef.current; if (map) openRentalPopup(rental, map); }}>
                     <span>{rental.title}</span>
                     <span className={styles.chooserMeta}>{formatPrice(rental.price)} / month · {(rental.propertyType ?? rental.type).replaceAll(/[-_]/g, " ")}</span>
                     <span className={styles.chooserBadge}>{verificationLabel(rental.verificationStatus)}</span>
@@ -474,22 +564,22 @@ export function MapCanvas({ selectedPlace, selectedRentalId, onSelectRental, ren
         </RadixPopover.Root>
       )}
 
-      {!externallyControlled && <MapSearch onSelect={selectPlace} disabled={mapStatus !== "ready"} />}
-      {!externallyControlled && <div className={styles.rentalSearch} role="search" aria-label="Rental search">
+      {!decorative && !externallyControlled && <MapSearch onSelect={selectPlace} disabled={mapStatus !== "ready"} />}
+      {!decorative && !externallyControlled && <div className={styles.rentalSearch} role="search" aria-label="Rental search">
         <label htmlFor="rental-location">Find rentals</label>
         <input id="rental-location" value={locationQuery} onChange={(event) => setLocationQuery(event.target.value)} placeholder="Area or landmark" />
         <span>{visibleRentals.length} rentals within {searchRadiusKm} km</span>
       </div>}
-      {!externallyControlled && <div className={styles.radiusControl}>
+      {!decorative && !externallyControlled && <div className={styles.radiusControl}>
         <span id="search-radius-label">Search radius</span>
         <Select aria-label="Search radius" aria-labelledby="search-radius-label" value={String(searchRadiusKm)} onValueChange={(value) => setSearchRadiusKm(Number(value))} options={[{ value: "1", label: "1 km" }, { value: "2", label: "2 km" }, { value: "5", label: "5 km" }]} />
       </div>}
-      {!externallyControlled && <div className={styles.filterTrigger}>
+      {!decorative && !externallyControlled && <div className={styles.filterTrigger}>
         <button type="button" aria-haspopup="dialog" aria-expanded={filterOpen} onClick={() => setFilterOpen(true)}>
           Refine rental search
         </button>
       </div>}
-      {!externallyControlled && visibleRentals.length > 0 ? (
+      {!decorative && !externallyControlled && visibleRentals.length > 0 ? (
         <aside className={styles.rentalResults} aria-label="Rental listings">
           <strong>Available rentals</strong>
           {visibleRentals.slice(0, 5).map((rental) => (
@@ -498,38 +588,19 @@ export function MapCanvas({ selectedPlace, selectedRentalId, onSelectRental, ren
             </button>
           ))}
         </aside>
-      ) : !externallyControlled ? (
+      ) : !decorative && !externallyControlled ? (
         <aside className={styles.rentalResults} aria-label="Rental listings">
           <strong>{dataStatus === "loading" ? "Loading rentals…" : dataStatus === "error" ? "Rental data unavailable" : "No rentals available"}</strong>
           <span>{dataStatus === "error" ? "Rental records could not be loaded. No sample listings are shown." : dataStatus === "loading" ? "Checking the configured rental data service…" : "No verified rental records were returned for this search area."}</span>
           <button type="button" onClick={() => { setLocationQuery(""); setFilters(DEFAULT_RENTAL_FILTERS); }}>Clear search and filters</button>
         </aside>
       ) : null}
-      {!externallyControlled && filterOpen && <RentalFilterDialog filters={filters} open onOpenChange={setFilterOpen} onApply={setFilters} matchCount={visibleRentals.length} />}
-      <div className={externallyControlled ? styles.srOnly : styles.mapStatus} aria-live="polite" aria-atomic="true">
+      {!decorative && !externallyControlled && filterOpen && <RentalFilterDialog filters={filters} open onOpenChange={setFilterOpen} onApply={setFilters} matchCount={visibleRentals.length} />}
+      {!decorative && <div className={externallyControlled ? styles.srOnly : styles.mapStatus} aria-live="polite" aria-atomic="true">
         {statusMessage}
-      </div>
+      </div>}
 
-      <div className={`${styles.mapControls} ${externallyControlled ? styles.controlledControls : ""}`} role="group" aria-label="Map controls">
-        <div className={styles.zoomControls}>
-          <button className={styles.secondaryButton} type="button" aria-label="Zoom in" disabled={mapStatus !== "ready"} onClick={() => mapRef.current?.zoomIn()}><Plus size={20} aria-hidden="true" /></button>
-          <button className={styles.secondaryButton} type="button" aria-label="Zoom out" disabled={mapStatus !== "ready"} onClick={() => mapRef.current?.zoomOut()}><Minus size={20} aria-hidden="true" /></button>
-        </div>
-        <button
-          className={styles.controlButton}
-          type="button"
-          onClick={locateMe}
-          disabled={mapStatus !== "ready" || locationStatus === "locating"}
-          aria-label={
-            locationStatus === "locating"
-              ? "Finding your location"
-              : "Locate me"
-          }
-        >
-          <LocateFixed size={20} aria-hidden="true" />
-        </button>
-
-      </div>
+      {!decorative && (assistantControlsTarget ? createPortal(mapControls, assistantControlsTarget) : mapControls)}
     </section>
   );
 }

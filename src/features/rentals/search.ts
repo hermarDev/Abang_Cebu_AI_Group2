@@ -12,7 +12,7 @@ export function searchPreviewRentals(
   const query = location.trim().toLocaleLowerCase();
   return rentals.flatMap((rental) => {
     if (!rental.available) return [];
-    if (query && !`${rental.title} ${rental.locality}`.toLocaleLowerCase().includes(query)) return [];
+    if (query && ![rental.title, rental.locality, rental.address ?? ""].join(" ").toLocaleLowerCase().includes(query)) return [];
     if (filters.minPrice != null && rental.price < filters.minPrice) return [];
     if (filters.maxPrice != null && rental.price > filters.maxPrice) return [];
     if (filters.type && filters.type !== "all" && rental.type !== filters.type) return [];

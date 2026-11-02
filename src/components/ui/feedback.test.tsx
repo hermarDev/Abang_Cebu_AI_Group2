@@ -6,11 +6,20 @@ import { Empty } from "./Empty";
 import { Field, FieldError } from "./Field";
 import { FinderAssistant } from "@/features/map/FinderAssistant";
 
-const assistantState = vi.hoisted(() => ({ open: true }));
-vi.mock("react", async (importOriginal) => ({
-  ...await importOriginal<typeof import("react")>(),
-  useState: () => [assistantState.open, vi.fn()],
-}));
+const assistantTestState = vi.hoisted(() => ({ enabled: false, hookIndex: 0, error: null as string | null }));
+vi.mock("react", async (importOriginal) => {
+  const react = await importOriginal<typeof import("react")>();
+  return {
+    ...react,
+    useState: (initial: unknown) => {
+      const hookIndex = assistantTestState.hookIndex++;
+      const [value, setValue] = react.useState(initial);
+      return assistantTestState.enabled && hookIndex === 7
+        ? [assistantTestState.error, setValue]
+        : [value, setValue];
+    },
+  };
+});
 
 const render = (node: ReactNode) => renderToStaticMarkup(node);
 
@@ -47,15 +56,23 @@ describe("shared feedback primitives", () => {
     expect(html).toContain("No saved rentals");
   });
 
-  it("uses shared Empty and Alert for the offline assistant without duplicate live regions", () => {
-    const html = render(<FinderAssistant open onOpenChange={() => undefined} onSearch={() => undefined} onFilters={() => undefined} />);
+  it("shows the connection-failure alert in the real assistant without duplicate live regions", () => {
+    assistantTestState.enabled = true;
+    assistantTestState.hookIndex = 0;
+    assistantTestState.error = "The assistant could not connect just now. Check your connection and try again.";
+    let html: string;
+    try {
+      html = render(<FinderAssistant open onOpenChange={() => undefined} onSearch={() => undefined} onFilters={() => undefined} onControlsTargetChange={() => undefined} />);
+    } finally {
+      assistantTestState.enabled = false;
+      assistantTestState.error = null;
+    }
 
-    expect(html).toContain('data-slot="empty"');
-    expect(html).toContain('data-slot="alert"');
-    expect(html).toContain('role="alert"');
+    expect(html).toContain('aria-label="AbangCebu assistant"');
+    expect(html).toContain("The assistant could not connect just now. Check your connection and try again.");
     expect(html.match(/role="alert"/g)).toHaveLength(1);
+    expect(html).toContain('role="log" aria-live="polite"');
     expect(html).not.toContain('role="status"');
-    expect(html).toContain("AI Assistant Not Connected");
-    expect(html).toContain("Live recommendations are unavailable.");
+    expect(html).not.toContain("AI Assistant Not Connected");
   });
 });

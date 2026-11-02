@@ -72,6 +72,41 @@ export interface Database {
           }
         ];
       };
+      assistant_conversations: {
+        Row: {
+          id: string;
+          user_id: string;
+          title: string;
+          messages: Json;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id?: string;
+          title?: string;
+          messages?: Json;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          title?: string;
+          messages?: Json;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "assistant_conversations_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
       kyc_verifications: {
         Row: {
           id: string;
@@ -129,6 +164,39 @@ export interface Database {
           }
         ];
       };
+      favorites: {
+        Row: {
+          user_id: string;
+          listing_id: string;
+          created_at: string;
+        };
+        Insert: {
+          user_id?: string;
+          listing_id: string;
+          created_at?: string;
+        };
+        Update: {
+          user_id?: string;
+          listing_id?: string;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "favorites_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "favorites_listing_id_fkey";
+            columns: ["listing_id"];
+            isOneToOne: false;
+            referencedRelation: "listings";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
     };
     Views: Record<string, never>;
     Functions: {
@@ -140,6 +208,8 @@ export interface Database {
         Args: Record<PropertyKey, never>;
         Returns: boolean;
       };
+      submit_landlord_listing: { Args: { listing_id: string }; Returns: boolean; };
+      review_landlord_listing: { Args: { listing_id: string; decision: string; reason?: string | null }; Returns: boolean; };
     };
     Enums: {
       user_role: UserRole;
@@ -154,6 +224,10 @@ export interface Database {
 export type Profile = Database['public']['Tables']['profiles']['Row'];
 export type ProfileInsert = Database['public']['Tables']['profiles']['Insert'];
 export type ProfileUpdate = Database['public']['Tables']['profiles']['Update'];
+
+export type AssistantConversation = Database['public']['Tables']['assistant_conversations']['Row'];
+export type AssistantConversationInsert = Database['public']['Tables']['assistant_conversations']['Insert'];
+export type AssistantConversationUpdate = Database['public']['Tables']['assistant_conversations']['Update'];
 
 export type KycVerification = Database['public']['Tables']['kyc_verifications']['Row'];
 export type KycVerificationInsert = Database['public']['Tables']['kyc_verifications']['Insert'];

@@ -6,8 +6,10 @@ import { Check, ChevronDown } from "lucide-react";
 import { cn } from "./cn";
 import styles from "./Select.module.css";
 
-export type SelectOption = { value: string; label: string; disabled?: boolean };
+export type SelectOption = { value: string; label: string; shortLabel?: string; disabled?: boolean };
+export type SelectAppearance = "default" | "embedded";
 export type SelectProps = Omit<ButtonHTMLAttributes<HTMLButtonElement>, "value" | "defaultValue" | "name" | "form" | "type" | "onChange" | "required"> & {
+  appearance?: SelectAppearance;
   options?: SelectOption[];
   value?: string;
   defaultValue?: string;
@@ -22,14 +24,15 @@ const toRadixValue = (value: string) => value === "" ? EMPTY_VALUE : `option:${v
 const fromRadixValue = (value: string) => value === EMPTY_VALUE ? "" : value.slice("option:".length);
 
 export function Select(props: SelectProps) {
-  const { options: providedOptions, children, value, defaultValue, onValueChange, name, form, required, disabled, className, "aria-invalid": ariaInvalid, ...triggerProps } = props;
-  const options = providedOptions ?? Children.toArray(children).flatMap((child) => {
+  const { appearance = "default", options: providedOptions, children, value, defaultValue, onValueChange, name, form, required, disabled, className, "aria-invalid": ariaInvalid, ...triggerProps } = props;
+  const options: SelectOption[] = providedOptions ?? Children.toArray(children).flatMap((child) => {
     if (!isValidElement<{ value?: string; disabled?: boolean; children?: ReactNode }>(child) || child.type !== "option") return [];
     return [{ value: child.props.value ?? "", label: String(child.props.children ?? ""), disabled: child.props.disabled }];
   });
   const isControlled = value !== undefined;
   const [uncontrolledValue, setUncontrolledValue] = useState(defaultValue ?? "");
   const selectedValue = isControlled ? value : uncontrolledValue;
+  const selectedOption = options.find((option) => option.value === selectedValue);
   const initialValue = useRef(defaultValue ?? "");
   const nativeSelect = useRef<HTMLSelectElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -68,9 +71,9 @@ export function Select(props: SelectProps) {
           aria-labelledby={triggerProps["aria-labelledby"]}
           aria-label={triggerProps["aria-label"]}
           data-slot="select"
-          className={cn(styles.trigger, className)}
+          className={cn(styles.trigger, appearance === "embedded" && styles.embedded, className)}
         >
-          <RadixSelect.Value className={styles.value}>{options.find((option) => option.value === selectedValue)?.label}</RadixSelect.Value>
+          <RadixSelect.Value className={styles.value}>{selectedOption?.shortLabel ?? selectedOption?.label}</RadixSelect.Value>
           <ChevronDown className={styles.chevron} size={16} aria-hidden="true" />
         </RadixSelect.Trigger>
         <RadixSelect.Portal>

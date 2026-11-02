@@ -3,6 +3,7 @@ import localFont from "next/font/local";
 import "maplibre-gl/dist/maplibre-gl.css";
 import "./globals.css";
 import { LogoutSyncListener } from "@/components/auth/LogoutSyncListener";
+import { ThemeSync } from "@/components/theme/ThemeSync";
 
 const manrope = localFont({ src: "../../public/fonts/manrope-latin-wght-normal.woff2", variable: "--font-manrope", weight: "200 800" });
 
@@ -33,6 +34,7 @@ export default function RootLayout({
       <body
         className={`${manrope.variable} antialiased`}
       >
+        <ThemeSync />
         <LogoutSyncListener />
         {children}
       </body>

@@ -23,6 +23,20 @@
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--destructive) 18%, transparent);
 }
 
+.control.embedded {
+  min-height: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.control.embedded:focus-visible,
+.control.embedded[aria-invalid="true"]:focus-visible {
+  border: 0;
+  outline: 0;
+  box-shadow: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .button:active:not(:disabled) {
     transform: none;
