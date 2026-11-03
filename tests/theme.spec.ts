@@ -72,6 +72,27 @@ for (const mode of ["animated", "reduced", "unsupported"] as const) {
   });
 }
 
+for (const mode of ["animated", "reduced", "unsupported"] as const) {
+  test(`System selection uses the theme transition: ${mode}`, async ({ page }) => {
+    await page.emulateMedia({ colorScheme: "light", reducedMotion: mode === "reduced" ? "reduce" : "no-preference" });
+    await page.addInitScript(() => localStorage.setItem("abangcebu-theme", "dark"));
+    if (mode === "unsupported") await page.addInitScript(() => Object.defineProperty(document, "startViewTransition", { value: undefined }));
+    await page.goto("/");
+    await page.getByRole("button", { name: "Open menu" }).click();
+    await page.getByRole("button", { name: "System", exact: true }).click();
+    await expect(page.locator("main")).toHaveAttribute("data-theme", "light");
+    await expect(page.getByRole("button", { name: "System", exact: true })).toHaveAttribute("aria-pressed", "true");
+    expect(await page.evaluate(() => localStorage.getItem("abangcebu-theme"))).toBe("system");
+    if (mode === "animated") {
+      await expect.poll(() => page.evaluate(() => document.getAnimations().some(animation =>
+        animation.effect instanceof KeyframeEffect && animation.effect.getKeyframes().some(frame => String(frame.clipPath).includes("circle("))
+      ))).toBe(true);
+    } else {
+      expect(await page.evaluate(() => document.getAnimations().some(animation => animation.effect instanceof KeyframeEffect && animation.effect.getKeyframes().some(frame => String(frame.clipPath).includes("circle("))))).toBe(false);
+    }
+  });
+}
+
 test("explicit dark preference applies dark tokens when the operating system is light", async ({ page }) => {
   await page.emulateMedia({ colorScheme: "light" });
   await page.addInitScript(() => localStorage.setItem("abangcebu-theme", "dark"));

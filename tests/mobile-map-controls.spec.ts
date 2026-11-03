@@ -20,3 +20,31 @@ test("mobile map controls stay compact and attribution can expand", async ({ pag
   await page.getByRole("slider", { name: "Adjust results sheet" }).press("End");
   await expect(locate).toBeHidden();
 });
+
+test("desktop attribution sits below the assistant and remains clickable", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/");
+  const chat = page.getByRole("button", { name: "Open rental assistant" });
+  const attribution = page.locator(".maplibregl-ctrl-attrib");
+  await expect(attribution).toBeVisible();
+  const chatBox = await chat.boundingBox();
+  const creditBox = await attribution.boundingBox();
+  const toggle = page.locator(".maplibregl-ctrl-attrib-button");
+  const credits = page.locator(".maplibregl-ctrl-attrib-inner");
+  const toggleBox = await toggle.boundingBox();
+  const textBox = await credits.boundingBox();
+  expect(chatBox).not.toBeNull();
+  expect(creditBox).not.toBeNull();
+  expect(toggleBox).not.toBeNull();
+  expect(textBox).not.toBeNull();
+  expect(Math.abs(toggleBox!.x + toggleBox!.width / 2 - chatBox!.x - chatBox!.width / 2)).toBeLessThanOrEqual(2);
+  expect(creditBox!.y - (chatBox!.y + chatBox!.height)).toBeGreaterThanOrEqual(4);
+  expect(toggleBox!.x).toBeGreaterThanOrEqual(textBox!.x + textBox!.width);
+  await chat.click({ trial: true });
+  await toggle.click();
+  const collapsed = await attribution.boundingBox();
+  expect(collapsed).not.toBeNull();
+  expect(Math.abs(collapsed!.width - collapsed!.height)).toBeLessThanOrEqual(1);
+  await toggle.click();
+  await expect(page.getByRole("link", { name: "OpenFreeMap", exact: true })).toBeVisible();
+});

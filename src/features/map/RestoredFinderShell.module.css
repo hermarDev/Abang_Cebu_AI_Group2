@@ -296,7 +296,7 @@
 .chatAssistantMessage { display: flex; max-width: 100%; align-items: flex-end; gap: .4rem; align-self: flex-start; }
 .chatAssistantMessage > img { width: 1.5rem; height: 1.5rem; flex: 0 0 auto; border-radius: 50%; object-fit: cover; }
 .chatAssistantReply { display: grid; width: fit-content; gap: .55rem; max-width: min(88%, 23rem); border: 1px solid color-mix(in srgb, var(--border) 70%, var(--card)); border-radius: 1.05rem 1.05rem 1.05rem .25rem; padding: .7rem .9rem; background: var(--card); color: var(--foreground); font-size: .83rem; line-height: 1.5; overflow-wrap: anywhere; box-shadow: 0 1px 2px rgb(13 46 70 / 7%); }
-.chatAssistantReply p { margin: 0; }
+.chatMessages .chatAssistantReply p { width: auto; max-width: none; margin: 0; border-radius: 0; padding: 0; background: transparent; }
 .chatAssistantReply :is(ol, ul) { display: grid; gap: .35rem; margin: 0; padding-inline-start: 1.25rem; }
 .chatAssistantReply li { padding-inline-start: .1rem; }
 .chatMessages .chatThinking { display: flex; min-height: 2.4rem; align-self: flex-start; align-items: center; justify-content: center; padding: .55rem .8rem; border-radius: 1rem 1rem 1rem .25rem; background: var(--muted); }

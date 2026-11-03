@@ -8,7 +8,7 @@ type MapStyle = {
   sources: Record<string, { type: string; url?: string; tiles?: string[]; attribution?: string }>;
   sprite?: string;
   glyphs?: string;
-  layers: Array<{ id: string; type: string; source?: string; "source-layer"?: string }>;
+  layers: Array<{ id: string; type: string; source?: string; "source-layer"?: string; paint?: Record<string, unknown> }>;
 };
 
 const readStyle = (path: string) => JSON.parse(readFileSync(resolve(process.cwd(), path), "utf8")) as MapStyle;
@@ -27,6 +27,14 @@ describe("map style", () => {
     const customStyle = "https://maps.example.test/custom-style.json";
     expect(resolveMapStyleUrl("light", customStyle)).toBe(customStyle);
     expect(resolveMapStyleUrl("dark", customStyle)).toBe(customStyle);
+  });
+
+  it("uses a readable charcoal palette for dark map features", () => {
+    const paint = (id: string) => darkStyle.layers.find((layer) => layer.id === id)?.paint;
+    expect(paint("background")?.["background-color"]).toBe("#202733");
+    expect(paint("water")?.["fill-color"]).toBe("#182d3a");
+    expect(paint("highway_minor")?.["line-color"]).toBe("#4a5564");
+    expect(paint("place_city")?.["text-color"]).toBe("#c5cdd7");
   });
 
   it("uses a compatible OpenFreeMap dark style with matching sources, sprites, glyphs and attribution", () => {

@@ -211,6 +211,10 @@ export function MapCanvas({ selectedPlace, selectedRentalId, onSelectRental, ren
     };
     const onLoad = () => {
       mapLoaded = true;
+      const attribution = container.querySelector<HTMLDetailsElement>("details.maplibregl-ctrl-attrib");
+      if (window.matchMedia("(max-width: 1023px)").matches && attribution?.open) {
+        attribution.querySelector<HTMLElement>(".maplibregl-ctrl-attrib-button")?.click();
+      }
       hideDecorativeLabels();
       mapLoadedRef.current = true;
       const center = map.getCenter();
