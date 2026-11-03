@@ -1,5 +1,7 @@
 # AbangCebu AI — Password Reset & Recovery Workflow Specification
 
+> Historical specification: the current branch removes Turnstile. References to CAPTCHA below describe the earlier design, not current behavior. See [password reset implementation](password-reset-implementation.md); hosted rollout is not verified.
+
 **Document Version:** 1.0.0  
 **Status:** Approved Architecture Specification  
 **Jira Ticket Reference:** [SCRUM-59](https://abangcebuai.atlassian.net/browse/SCRUM-59) — *Specify Password Reset & Recovery Workflow*  

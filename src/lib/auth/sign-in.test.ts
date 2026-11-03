@@ -31,10 +31,10 @@ beforeEach(() => {
 });
 
 describe("signInWithEmail", () => {
-  it("passes the verification token to Supabase Auth", async () => {
-    await signInWithEmail("renter@example.com", "Password1!", "verified-token");
+  it("passes only email and password to Supabase Auth", async () => {
+    await signInWithEmail("renter@example.com", "Password1!");
     expect(signInWithPassword).toHaveBeenCalledWith({
-      email: "renter@example.com", password: "Password1!", options: { captchaToken: "verified-token" },
+      email: "renter@example.com", password: "Password1!",
     });
   });
 

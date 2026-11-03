@@ -1,5 +1,7 @@
 # AbangCebu AI — User Registration Workflow & Data Contract Specification
 
+> Historical specification: the current branch removes Turnstile. References to CAPTCHA below describe the earlier design, not current behavior. See [authentication protection and deployment gate](../../login-turnstile.md); hosted rollout is not verified.
+
 **Document Version:** 1.0.0  
 **Status:** Approved Architecture Specification  
 **Jira Ticket Reference:** [SCRUM-56](https://abangcebuai.atlassian.net/browse/SCRUM-56) — *Specify User Registration Workflow & Data Contract*  

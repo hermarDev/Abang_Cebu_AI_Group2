@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import * as RadioGroup from "@radix-ui/react-radio-group";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { TurnstileWidget } from "./TurnstileWidget";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
 import { validateRegistration } from "@/lib/auth/validation";
 import type { RegisterPayload } from "@/types/auth";
@@ -28,9 +27,6 @@ export function RegisterForm({ onLogin }: { onLogin?: () => void } = {}) {
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<keyof RegisterPayload, string>>>({});
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [registered, setRegistered] = useState(false);
-  const [turnstileToken, setTurnstileToken] = useState("");
-  const [resetKey, setResetKey] = useState(0);
-  const verificationRequired = process.env.NODE_ENV === "production";
 
   // Live password strength calculation
   const strengthScore = useMemo(() => {
@@ -63,10 +59,6 @@ export function RegisterForm({ onLogin }: { onLogin?: () => void } = {}) {
       if (firstInvalid) (e.currentTarget as HTMLFormElement).querySelector<HTMLInputElement>(`[name="${firstInvalid}"]`)?.focus();
       return;
     }
-    if (verificationRequired && !turnstileToken) {
-      setErrorMessage("Complete the security verification before registering. If it is unavailable, reload and try again.");
-      return;
-    }
     setLoading(true);
 
     try {
@@ -78,7 +70,6 @@ export function RegisterForm({ onLogin }: { onLogin?: () => void } = {}) {
           email,
           password,
           role,
-          turnstileToken: turnstileToken || undefined,
         }),
       });
 
@@ -97,8 +88,6 @@ export function RegisterForm({ onLogin }: { onLogin?: () => void } = {}) {
     } catch {
       setErrorMessage("Network error. Please try again later.");
     } finally {
-      setTurnstileToken("");
-      setResetKey((key) => key + 1);
       setLoading(false);
     }
   };
@@ -247,12 +236,8 @@ export function RegisterForm({ onLogin }: { onLogin?: () => void } = {}) {
               </div>
             )}
 
-            <TurnstileWidget onTokenChange={setTurnstileToken} resetKey={resetKey} />
-            {verificationRequired && !turnstileToken && (
-              <p role="status" className="text-sm text-muted-foreground">Complete the security verification to register. If unavailable, reload and try again.</p>
-            )}
 
-            <Button type="submit" variant="primary" fullWidth size="lg" disabled={loading || (verificationRequired && !turnstileToken)}>
+            <Button type="submit" variant="primary" fullWidth size="lg" disabled={loading}>
               {loading ? "Registering..." : `Register as ${role === "renter" ? "Renter" : "Landlord"}`}
             </Button>
 

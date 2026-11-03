@@ -56,28 +56,7 @@ async function addTimingJitter(startedAt: number) {
   }
 }
 
-async function verifyTurnstile(token: string | undefined, request: Request) {
-  if (process.env.NODE_ENV !== "production") return true;
-  const secret = process.env.TURNSTILE_SECRET_KEY;
-  if (!token || !secret) return false;
 
-  try {
-    const form = new URLSearchParams({ secret, response: token });
-    const ip = request.headers.get("cf-connecting-ip");
-    if (ip) form.set("remoteip", ip);
-    const response = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
-      method: "POST",
-      headers: { "content-type": "application/x-www-form-urlencoded" },
-      body: form,
-      signal: AbortSignal.timeout(5000),
-    });
-    if (!response.ok) return false;
-    const result: unknown = await response.json();
-    return typeof result === "object" && result !== null && "success" in result && result.success === true;
-  } catch {
-    return false;
-  }
-}
 
 export async function POST(request: Request) {
   const startedAt = Date.now();
@@ -99,13 +78,6 @@ export async function POST(request: Request) {
     );
   }
 
-  const token = (payload as Record<string, unknown>).turnstileToken;
-  if (!(await verifyTurnstile(typeof token === "string" ? token : undefined, request))) {
-    return NextResponse.json(
-      { success: false, error: { code: "CAPTCHA_VERIFICATION_FAILED", message: "Complete the security verification and try again." } },
-      { status: 403, headers: { "Cache-Control": "no-store" } },
-    );
-  }
 
   let rateLimited = false;
   try {

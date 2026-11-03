@@ -1,5 +1,7 @@
 # AbangCebu AI — Authentication Error Handling & Edge Cases Specification
 
+> Historical specification: the current branch removes Turnstile and its application-specific CAPTCHA error. References below describe the earlier design. Hosted provider errors and rollout remain unverified.
+
 **Document Version:** 1.0.0  
 **Status:** Approved Architecture Specification  
 **Jira Ticket Reference:** [SCRUM-60](https://abangcebuai.atlassian.net/browse/SCRUM-60) — *Document Authentication Error Handling & Edge Cases*  

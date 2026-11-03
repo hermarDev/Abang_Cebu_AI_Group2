@@ -1,5 +1,7 @@
 # AbangCebu AI — Authentication Test Plan & Test Scenarios
 
+> Historical test specification: TC-REG-07 describes the previous Turnstile requirement and is retired for the token-free branch. Verify provider abuse controls separately before release; this note does not alter the companion workbook or imply test execution.
+
 **Document Version:** 1.0.0  
 **Document Status:** Approved Test Specification (Pre-Implementation)  
 **Execution Phase:** Pending Feature Development (Sprint 2 Execution)  
