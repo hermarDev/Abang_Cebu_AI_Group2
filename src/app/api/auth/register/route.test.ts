@@ -1,11 +1,14 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
-import { POST } from "./route";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+let POST: typeof import("./route").POST;
 
 const signUp = vi.fn();
 vi.mock("@/lib/supabase/server", () => ({ createClient: async () => ({ auth: { signUp } }) }));
 
-function request(body: unknown) {
-  return new Request("http://localhost/api/auth/register", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
+function request(body: unknown, ip: string | null = "198.51.100.1") {
+  const headers = new Headers({ "content-type": "application/json" });
+  if (ip !== null) headers.set("cf-connecting-ip", ip);
+  return new Request("http://localhost/api/auth/register", { method: "POST", headers, body: JSON.stringify(body) });
 }
 
 const goodPayload = { email: "Mika@Example.com", password: "Password1!", fullName: "Mika Santos", role: "renter" };
@@ -13,6 +16,46 @@ const goodPayload = { email: "Mika@Example.com", password: "Password1!", fullNam
 afterEach(() => { vi.unstubAllEnvs(); vi.unstubAllGlobals(); });
 
 describe("registration route", () => {
+  beforeEach(async () => {
+    vi.resetModules();
+    ({ POST } = await import("./route"));
+  });
+
+  it("limits normalized email across IPs before contacting Supabase and resets after the window", async () => {
+    vi.useFakeTimers();
+    try {
+      signUp.mockReset().mockResolvedValue({ data: { user: { id: "u1" } }, error: null });
+      for (let i = 0; i < 3; i++) {
+        const response = await POST(request({ ...goodPayload, email: i % 2 ? " mika@example.com " : "MIKA@example.com" }, `198.51.100.${i + 1}`));
+        expect(response.status).toBe(201);
+      }
+      vi.advanceTimersByTime(15 * 60 * 1000 - 1);
+      const limited = await POST(request(goodPayload, "198.51.100.4"));
+      expect(limited.status).toBe(429);
+      expect(limited.headers.get("retry-after")).toBe("900");
+      expect(signUp).toHaveBeenCalledTimes(3);
+      vi.advanceTimersByTime(1);
+      expect((await POST(request(goodPayload, "198.51.100.5"))).status).toBe(201);
+      expect(signUp).toHaveBeenCalledTimes(4);
+    } finally { vi.useRealTimers(); }
+  });
+
+  it("limits one IP across different emails before contacting Supabase", async () => {
+    signUp.mockReset().mockResolvedValue({ data: { user: { id: "u1" } }, error: null });
+    for (let i = 0; i < 5; i++) {
+      expect((await POST(request({ ...goodPayload, email: `person${i}@example.com` }))).status).toBe(201);
+    }
+    expect((await POST(request({ ...goodPayload, email: "other@example.com" }))).status).toBe(429);
+    expect(signUp).toHaveBeenCalledTimes(5);
+  });
+
+  it("fails closed in production without a trusted proxy IP", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    signUp.mockClear();
+    const response = await POST(request(goodPayload, null));
+    expect(response.status).toBe(429);
+    expect(signUp).not.toHaveBeenCalled();
+  });
   it("accepts production registration without verification", async () => {
     vi.stubEnv("NODE_ENV", "production");
     signUp.mockReset().mockResolvedValue({ data: { user: { id: "u1" } }, error: null });
