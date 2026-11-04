@@ -4,9 +4,9 @@ import { isRegisterableRole, isSafeRedirectUrl } from "@/types/auth";
 
 export type SignInResult = { success: true; role: "renter" | "landlord" } | { success: false; message: string };
 
-export function getPostLoginRedirect(destination: string | null): string {
+export function getPostLoginRedirect(destination: string | null, role?: SignInResult["role"]): string {
   if (destination && isSafeRedirectUrl(destination)) return destination;
-  return "/";
+  return role === "landlord" ? "/landlord/dashboard" : "/";
 }
 
 export async function signInWithEmail(
