@@ -24,6 +24,7 @@ export default async function AccountPage() {
     .eq("id", user.id)
     .maybeSingle();
   const avatarUrl = profile ? await signProfileAvatar(user.id, profile.avatar_url) : null;
+  const isLandlord = profile?.role === "landlord";
   const hasCustomMapStyle = Boolean(process.env.NEXT_PUBLIC_MAP_STYLE_URL && process.env.NEXT_PUBLIC_MAP_STYLE_URL !== "/styles/osm.json");
 
   return <>
@@ -33,8 +34,8 @@ export default async function AccountPage() {
     <div className="absolute inset-0 z-10 overflow-y-auto overscroll-contain">
     <div className="mx-auto w-full max-w-6xl px-4 pt-5 pb-20 sm:px-6 sm:pt-8 sm:pb-20 lg:px-8">
       <header className="sticky top-3 z-20 flex items-center justify-between gap-4 rounded-2xl border border-border/70 bg-white/90 p-3 shadow-sm backdrop-blur-sm dark:bg-slate-950/90 sm:px-5">
-        <Link href="/" className="inline-flex min-h-11 items-center gap-2 rounded-lg px-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
-          <ArrowLeft size={18} aria-hidden="true" /> Back to map
+        <Link href={isLandlord ? "/landlord/dashboard" : "/"} className="inline-flex min-h-11 items-center gap-2 rounded-lg px-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
+          <ArrowLeft size={18} aria-hidden="true" /> {isLandlord ? "Back to dashboard" : "Back to map"}
         </Link>
         <Image src="/icons/main_Logo.png" alt="AbangCebu" width={299} height={100} className="h-auto w-32 dark:hidden" loading="eager" />
         <Image src="/icons/main_Logo_Light.png" alt="" width={299} height={100} className="hidden h-auto w-32 dark:block" loading="eager" />
