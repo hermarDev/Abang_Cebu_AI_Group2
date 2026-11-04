@@ -46,7 +46,7 @@
 @media (max-width: 1023px) {
   .mapRoot :global(.maplibregl-ctrl-bottom-left) {
     right: calc(max(0.8rem, env(safe-area-inset-right)) + 0.9375rem);
-    bottom: calc(min(calc(var(--results-sheet-height, 42dvh) + 1rem), calc(100dvh - 10rem)) + 7.375rem);
+    bottom: calc(min(calc(var(--results-sheet-height, 42dvh) + 1rem), calc(100dvh - 10rem)) + 10.375rem);
     left: auto;
     width: auto;
     justify-content: flex-end;
@@ -162,7 +162,6 @@
 
 @media (max-width: 1023px) {
   .mapControls.assistantControls { display: none; }
-  .zoomControls button:first-child { display: none; }
   :global(main[data-sheet-position="expanded"]) .controlledControls { display: none; }
   .controlledControls {
     align-items: flex-end;

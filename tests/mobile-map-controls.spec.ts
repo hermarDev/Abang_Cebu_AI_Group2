@@ -4,7 +4,9 @@ test("mobile map controls stay compact and attribution can expand", async ({ pag
   await page.setViewportSize({ width: 430, height: 800 });
   await page.goto("/");
   await expect(page.locator("canvas.maplibregl-canvas")).toBeVisible();
-  await expect(page.getByRole("button", { name: "Zoom in", exact: true })).toBeHidden();
+  const zoomIn = page.getByRole("button", { name: "Zoom in", exact: true });
+  await expect(zoomIn).toBeVisible();
+  await zoomIn.click();
   const zoomOut = page.getByRole("button", { name: "Zoom out", exact: true });
   await expect(zoomOut).toBeVisible();
   await zoomOut.click();
@@ -34,6 +36,14 @@ test("map attribution remains clickable on a short landscape viewport", async ({
   await expect(toggle).toBeVisible();
   await page.getByRole("slider", { name: "Adjust results sheet" }).press("ArrowUp");
   await toggle.click({ trial: true });
+  const attribution = page.locator(".maplibregl-ctrl-attrib");
+  const launcher = page.getByRole("button", { name: "Open rental assistant" });
+  const creditBox = await attribution.boundingBox();
+  const launcherBox = await launcher.boundingBox();
+  expect(creditBox).not.toBeNull();
+  expect(launcherBox).not.toBeNull();
+  expect(creditBox!.x >= launcherBox!.x + launcherBox!.width || launcherBox!.x >= creditBox!.x + creditBox!.width || creditBox!.y >= launcherBox!.y + launcherBox!.height || launcherBox!.y >= creditBox!.y + creditBox!.height).toBe(true);
+  await launcher.click({ trial: true });
 });
 
 test("desktop attribution sits below the assistant and remains clickable", async ({ page }) => {

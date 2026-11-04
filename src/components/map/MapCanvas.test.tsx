@@ -19,7 +19,7 @@ describe("MapCanvas controls", () => {
     expect(styles).toContain(".mapRoot :global(.maplibregl-ctrl-bottom-left)");
     expect(styles).toContain("left: auto");
     expect(styles).toContain("justify-content: flex-end");
-    expect(styles).toContain("bottom: calc(min(calc(var(--results-sheet-height, 42dvh) + 1rem), calc(100dvh - 10rem)) + 7.375rem)");
+    expect(styles).toContain("bottom: calc(min(calc(var(--results-sheet-height, 42dvh) + 1rem), calc(100dvh - 10rem)) + 10.375rem)");
     expect(styles).not.toContain("bottom: calc(max(42dvh, 18rem) + 5.5rem)");
     expect(styles).toContain("margin: 0 0 0.625rem");
     expect(styles).toContain("+ 0.625rem)");

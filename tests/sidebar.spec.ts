@@ -49,7 +49,7 @@ for (const { width, height } of [{ width: 320, height: 568 }, { width: 375, heig
     const zoomControls = controls.locator(":scope > div").first();
     if (width <= 1023) {
       await expect(zoomControls).toBeVisible();
-      await expect(controls.getByRole("button", { name: "Zoom in" })).toBeHidden();
+      await expect(controls.getByRole("button", { name: "Zoom in" })).toBeVisible();
       await expect(controls.getByRole("button", { name: "Zoom out" })).toBeVisible();
     } else {
       await expect(zoomControls).toBeVisible();
@@ -116,7 +116,7 @@ for (const { width, height } of [{ width: 320, height: 568 }, { width: 375, heig
     await expect(controls).toHaveCSS("position", "absolute");
     if (width <= 1023) {
       await expect(zoomControls).toBeVisible();
-      await expect(controls.getByRole("button", { name: "Zoom in" })).toBeHidden();
+      await expect(controls.getByRole("button", { name: "Zoom in" })).toBeVisible();
       await expect(controls.getByRole("button", { name: "Zoom out" })).toBeVisible();
       await expect(controls.getByRole("button", { name: "Locate me" })).toBeVisible();
     } else {
