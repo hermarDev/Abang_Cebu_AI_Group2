@@ -60,7 +60,7 @@ export default async function AccountPage() {
   </div>
   </main>
   {!hasCustomMapStyle && <footer className="pointer-events-none fixed right-4 bottom-2 z-20">
-    <details className="pointer-events-auto rounded-xl border border-border/70 bg-white/90 px-3 py-2 text-xs text-muted-foreground shadow-sm dark:bg-slate-950/90">
+    <details open className="pointer-events-auto rounded-xl border border-border/70 bg-white/90 px-3 py-2 text-xs text-muted-foreground shadow-sm dark:bg-slate-950/90">
       <summary className="cursor-pointer">Map data</summary>
       <p className="mt-2"><a className="underline underline-offset-2" href="https://openfreemap.org" target="_blank" rel="noreferrer">OpenFreeMap</a>, <a className="underline underline-offset-2" href="https://www.openmaptiles.org/" target="_blank" rel="noreferrer">© OpenMapTiles</a>, and <a className="underline underline-offset-2" href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">© OpenStreetMap contributors</a>.</p>
     </details>

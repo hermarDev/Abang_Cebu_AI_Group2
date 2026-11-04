@@ -5,6 +5,9 @@ test("mobile map controls stay compact and attribution can expand", async ({ pag
   await page.goto("/");
   await expect(page.locator("canvas.maplibregl-canvas")).toBeVisible();
   await expect(page.getByRole("button", { name: "Zoom in", exact: true })).toBeHidden();
+  const zoomOut = page.getByRole("button", { name: "Zoom out", exact: true });
+  await expect(zoomOut).toBeVisible();
+  await zoomOut.click();
   const locate = page.getByRole("button", { name: "Locate me", exact: true });
   await expect(locate).toBeVisible();
   const attribution = page.locator(".maplibregl-ctrl-attrib");
@@ -15,10 +18,22 @@ test("mobile map controls stay compact and attribution can expand", async ({ pag
   const location = await locate.boundingBox();
   expect(Math.abs(location!.x + location!.width / 2 - info!.x - info!.width / 2)).toBeLessThanOrEqual(2);
   expect(location!.y - info!.y - info!.height).toBeGreaterThanOrEqual(12);
+  await expect(page.getByRole("link", { name: "OpenFreeMap", exact: true })).toBeVisible();
+  await page.locator(".maplibregl-ctrl-attrib-button").click();
+  await expect(page.getByRole("link", { name: "OpenFreeMap", exact: true })).toBeHidden();
   await page.locator(".maplibregl-ctrl-attrib-button").click();
   await expect(page.getByRole("link", { name: "OpenFreeMap", exact: true })).toBeVisible();
   await page.getByRole("slider", { name: "Adjust results sheet" }).press("End");
   await expect(locate).toBeHidden();
+});
+
+test("map attribution remains clickable on a short landscape viewport", async ({ page }) => {
+  await page.setViewportSize({ width: 844, height: 390 });
+  await page.goto("/");
+  const toggle = page.locator(".maplibregl-ctrl-attrib-button");
+  await expect(toggle).toBeVisible();
+  await page.getByRole("slider", { name: "Adjust results sheet" }).press("ArrowUp");
+  await toggle.click({ trial: true });
 });
 
 test("desktop attribution sits below the assistant and remains clickable", async ({ page }) => {

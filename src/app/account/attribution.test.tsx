@@ -1,5 +1,5 @@
 import { renderToStaticMarkup } from "react-dom/server";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import AccountPage from "./page";
 
 vi.mock("@/lib/supabase/server", () => ({ createClient: async () => ({ auth: { getUser: async () => ({ data: { user: { id: "fixture", email: "fixture@example.test" } }, error: null }) }, from: () => ({ select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: null, error: null }) }) }) }) }) }));
@@ -8,9 +8,12 @@ vi.mock("./AccountSettingsForm", () => ({ AccountSettingsForm: () => null }));
 vi.mock("@/lib/profile-avatar", () => ({ signProfileAvatar: async () => null }));
 
 describe("account map attribution", () => {
-  it("keeps provider credits available in a compact disclosure", async () => {
+  afterEach(() => vi.unstubAllEnvs());
+
+  it("keeps provider credits visible in a compact disclosure", async () => {
+    vi.stubEnv("NEXT_PUBLIC_MAP_STYLE_URL", "/styles/osm.json");
     const html = renderToStaticMarkup(await AccountPage());
-    expect(html).toContain("<details");
+    expect(html).toMatch(/<details[^>]*\sopen=""/);
     expect(html).toContain("<summary");
     expect(html).toContain("OpenFreeMap");
     expect(html).toContain("© OpenMapTiles");
