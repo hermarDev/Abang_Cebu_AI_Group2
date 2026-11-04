@@ -14,11 +14,11 @@
 }
 
 .mapRoot :global(.maplibregl-ctrl-bottom-left) {
-  right: 0;
-  left: 0;
+  right: calc(max(1rem, env(safe-area-inset-right)) + 1rem);
+  left: auto;
   display: flex;
-  width: 100%;
-  justify-content: center;
+  width: auto;
+  justify-content: flex-end;
   pointer-events: none;
 }
 
@@ -28,20 +28,41 @@
   pointer-events: auto;
 }
 
+@media (min-width: 1024px) {
+  .mapRoot :global(.maplibregl-ctrl-bottom-left .maplibregl-ctrl) {
+    margin-bottom: 0;
+  }
+
+  .mapRoot :global(.maplibregl-ctrl-attrib.maplibregl-compact[open]) {
+    padding: 2px 28px 2px 8px;
+  }
+
+  .mapRoot :global(.maplibregl-ctrl-attrib.maplibregl-compact .maplibregl-ctrl-attrib-button) {
+    right: 0;
+    left: auto;
+  }
+}
+
 @media (max-width: 1023px) {
   .mapRoot :global(.maplibregl-ctrl-bottom-left) {
-    right: 0;
-    bottom: min(calc(var(--results-sheet-height, 42dvh) + 1rem), calc(100dvh - 10rem));
-    left: 0;
-    width: 100%;
-    justify-content: center;
-    padding-left: calc(4rem + max(1rem, env(safe-area-inset-left)));
-    padding-right: calc(4rem + max(1rem, env(safe-area-inset-right)));
-    box-sizing: border-box;
+    right: calc(max(0.8rem, env(safe-area-inset-right)) + 0.9375rem);
+    bottom: calc(min(calc(var(--results-sheet-height, 42dvh) + 1rem), calc(100dvh - 10rem)) + 10.375rem);
+    left: auto;
+    width: auto;
+    justify-content: flex-end;
   }
 
   .mapRoot :global(.maplibregl-ctrl-bottom-left .maplibregl-ctrl) {
     margin-bottom: 0;
+  }
+
+  .mapRoot :global(.maplibregl-ctrl-attrib.maplibregl-compact[open]) {
+    padding: 2px 28px 2px 8px;
+  }
+
+  .mapRoot :global(.maplibregl-ctrl-attrib.maplibregl-compact .maplibregl-ctrl-attrib-button) {
+    right: 0;
+    left: auto;
   }
 
   .mapRoot :global(.maplibregl-ctrl-bottom-left .maplibregl-ctrl-attrib) {
@@ -55,6 +76,14 @@
 
   :global(main[data-sheet-position="expanded"]) .mapRoot :global(.maplibregl-ctrl-bottom-left) {
     bottom: calc(min(calc(var(--results-sheet-height, 42dvh) + 1rem), calc(100dvh - 10rem)) + 0.625rem);
+  }
+}
+
+@media (max-width: 1023px) and (max-height: 500px) {
+  .mapRoot :global(.maplibregl-ctrl-bottom-left) {
+    right: auto;
+    left: .5rem;
+    bottom: calc(min(calc(var(--results-sheet-height, 42dvh) + 1rem), calc(100dvh - 10rem)) - 1rem);
   }
 }
 

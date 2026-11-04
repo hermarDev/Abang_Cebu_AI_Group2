@@ -47,9 +47,16 @@ for (const { width, height } of [{ width: 320, height: 568 }, { width: 375, heig
     expect(originalPosition).not.toBeNull();
     await expect(controls).toHaveCSS("position", "absolute");
     const zoomControls = controls.locator(":scope > div").first();
-    await expect(zoomControls).toBeVisible();
-    await expect(controls.getByRole("button", { name: "Zoom in" })).toBeVisible();
-    await expect(controls.getByRole("button", { name: "Zoom out" })).toBeVisible();
+    if (width <= 1023) {
+      await expect(zoomControls).toBeVisible();
+      await expect(controls.getByRole("button", { name: "Zoom in" })).toBeVisible();
+      await expect(controls.getByRole("button", { name: "Zoom out" })).toBeVisible();
+    } else {
+      await expect(zoomControls).toBeVisible();
+      await expect(controls.getByRole("button", { name: "Zoom in" })).toBeVisible();
+      await expect(controls.getByRole("button", { name: "Zoom out" })).toBeVisible();
+    }
+    await expect(controls.getByRole("button", { name: "Locate me" })).toBeVisible();
 
     await page.getByRole("button", { name: "Open rental assistant" }).click();
     const assistant = page.getByRole("region", { name: "AbangCebu assistant" });
@@ -107,8 +114,15 @@ for (const { width, height } of [{ width: 320, height: 568 }, { width: 375, heig
     await expect(launcher).toBeVisible();
     await expect(controls).toBeVisible();
     await expect(controls).toHaveCSS("position", "absolute");
-    await expect(controls.getByRole("button", { name: "Zoom in" })).toBeVisible();
-    await expect(controls.getByRole("button", { name: "Zoom out" })).toBeVisible();
+    if (width <= 1023) {
+      await expect(zoomControls).toBeVisible();
+      await expect(controls.getByRole("button", { name: "Zoom in" })).toBeVisible();
+      await expect(controls.getByRole("button", { name: "Zoom out" })).toBeVisible();
+      await expect(controls.getByRole("button", { name: "Locate me" })).toBeVisible();
+    } else {
+      await expect(controls.getByRole("button", { name: "Zoom in" })).toBeVisible();
+      await expect(controls.getByRole("button", { name: "Zoom out" })).toBeVisible();
+    }
     const restoredPosition = await controls.boundingBox();
     expect(restoredPosition).not.toBeNull();
     expect(Math.abs(restoredPosition!.x - originalPosition!.x)).toBeLessThanOrEqual(1);

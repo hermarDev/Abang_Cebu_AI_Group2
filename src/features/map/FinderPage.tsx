@@ -2,10 +2,11 @@ import { RestoredFinderShell } from "@/features/map/RestoredFinderShell";
 import { createClient } from "@/lib/supabase/server";
 import { signProfileAvatar } from "@/lib/profile-avatar";
 import type { UserRole } from "@/types/database";
+import type { User } from "@supabase/supabase-js";
 
-export async function FinderPage() {
-  const supabase = await createClient();
-  const { data: { user }, error } = await supabase.auth.getUser();
+export async function FinderPage({ initialErrorMessage, verifiedSession }: { initialErrorMessage?: string; verifiedSession?: { user: User; supabase: Awaited<ReturnType<typeof createClient>> } } = {}) {
+  const supabase = verifiedSession?.supabase ?? await createClient();
+  const { data: { user }, error } = verifiedSession ? { data: { user: verifiedSession.user }, error: null } : await supabase.auth.getUser();
   const authenticated = !error && Boolean(user);
   let displayName: string | null = null;
   let avatarUrl: string | null = null;
@@ -20,5 +21,5 @@ export async function FinderPage() {
     if (profile?.role === "renter" || profile?.role === "landlord" || profile?.role === "admin") userRole = profile.role;
   }
 
-  return <RestoredFinderShell authenticated={authenticated} userRole={userRole} userId={authenticated ? user?.id ?? null : null} displayName={displayName} avatarUrl={avatarUrl} />;
+  return <RestoredFinderShell authenticated={authenticated} userRole={userRole} userId={authenticated ? user?.id ?? null : null} displayName={displayName} avatarUrl={avatarUrl} initialAccountOpen={Boolean(initialErrorMessage)} initialErrorMessage={initialErrorMessage} />;
 }

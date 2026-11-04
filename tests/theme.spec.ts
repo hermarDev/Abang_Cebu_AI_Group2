@@ -72,6 +72,35 @@ for (const mode of ["animated", "reduced", "unsupported"] as const) {
   });
 }
 
+for (const mode of ["animated", "reduced", "unsupported"] as const) {
+  test(`System selection uses the theme transition: ${mode}`, async ({ page }) => {
+    await page.emulateMedia({ colorScheme: "light", reducedMotion: mode === "reduced" ? "reduce" : "no-preference" });
+    await page.addInitScript(() => localStorage.setItem("abangcebu-theme", "dark"));
+    if (mode === "animated") await page.addInitScript(() => {
+      const animate = Element.prototype.animate;
+      Element.prototype.animate = function (...args: Parameters<typeof animate>) {
+        const animation = animate.apply(this, args);
+        if (animation.effect instanceof KeyframeEffect && animation.effect.getKeyframes().some(frame => String(frame.clipPath).includes("circle("))) {
+          document.documentElement.dataset.circularThemeTransition = "true";
+        }
+        return animation;
+      };
+    });
+    if (mode === "unsupported") await page.addInitScript(() => Object.defineProperty(document, "startViewTransition", { value: undefined }));
+    await page.goto("/");
+    await page.getByRole("button", { name: "Open menu" }).click();
+    await page.getByRole("button", { name: "System", exact: true }).click();
+    await expect(page.locator("main")).toHaveAttribute("data-theme", "light");
+    await expect(page.getByRole("button", { name: "System", exact: true })).toHaveAttribute("aria-pressed", "true");
+    expect(await page.evaluate(() => localStorage.getItem("abangcebu-theme"))).toBe("system");
+    if (mode === "animated") {
+      await expect(page.locator("html")).toHaveAttribute("data-circular-theme-transition", "true");
+    } else {
+      expect(await page.evaluate(() => document.getAnimations().some(animation => animation.effect instanceof KeyframeEffect && animation.effect.getKeyframes().some(frame => String(frame.clipPath).includes("circle("))))).toBe(false);
+    }
+  });
+}
+
 test("explicit dark preference applies dark tokens when the operating system is light", async ({ page }) => {
   await page.emulateMedia({ colorScheme: "light" });
   await page.addInitScript(() => localStorage.setItem("abangcebu-theme", "dark"));

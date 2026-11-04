@@ -59,10 +59,11 @@ export default async function AccountPage() {
     </div>
   </div>
   </main>
-  {!hasCustomMapStyle && <footer className="pointer-events-none fixed inset-x-0 bottom-0 z-20 flex justify-center px-3 pt-2" style={{ paddingBottom: "max(.5rem, env(safe-area-inset-bottom))" }}>
-    <p className="pointer-events-auto flex max-w-full flex-wrap items-center justify-center gap-x-1 rounded-full border border-border/70 bg-white/85 px-3 py-1.5 text-center text-[0.65rem] leading-relaxed text-muted-foreground shadow-sm backdrop-blur-sm dark:bg-slate-950/85">
-      <span>Map data:</span> <a className="underline underline-offset-2 hover:text-foreground" href="https://openfreemap.org" target="_blank" rel="noreferrer">OpenFreeMap</a>, <a className="underline underline-offset-2 hover:text-foreground" href="https://www.openmaptiles.org/" target="_blank" rel="noreferrer">© OpenMapTiles</a>, and <a className="underline underline-offset-2 hover:text-foreground" href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">© OpenStreetMap contributors</a>.
-    </p>
+  {!hasCustomMapStyle && <footer className="pointer-events-none fixed right-4 bottom-2 z-20">
+    <details open className="pointer-events-auto rounded-xl border border-border/70 bg-white/90 px-3 py-2 text-xs text-muted-foreground shadow-sm dark:bg-slate-950/90">
+      <summary className="cursor-pointer">Map data</summary>
+      <p className="mt-2"><a className="underline underline-offset-2" href="https://openfreemap.org" target="_blank" rel="noreferrer">OpenFreeMap</a>, <a className="underline underline-offset-2" href="https://www.openmaptiles.org/" target="_blank" rel="noreferrer">© OpenMapTiles</a>, and <a className="underline underline-offset-2" href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">© OpenStreetMap contributors</a>.</p>
+    </details>
   </footer>}
   </>;
 }

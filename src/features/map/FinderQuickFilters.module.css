@@ -85,7 +85,7 @@
   .quickFilters {
     top: calc(max(.5rem, env(safe-area-inset-top)) + 7.75rem);
     left: .5rem;
-    width: calc(100% - 1rem);
+    width: max-content;
     max-width: 31.25rem;
     max-inline-size: calc(100% - 1rem);
     gap: .375rem;

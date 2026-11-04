@@ -25,12 +25,11 @@ export function FinderNavigation({ open, onClose, preference, resolvedTheme, onP
   const [faqOpen, setFaqOpen] = useState(false);
   const transitionRunning = useRef(false);
 
-  async function toggleTheme(button: HTMLButtonElement) {
+  async function changeTheme(button: HTMLButtonElement, nextTheme: "light" | "dark" | "system") {
     if (transitionRunning.current) {
-      onPreferenceChange(resolvedTheme === "dark" ? "light" : "dark");
+      onPreferenceChange(nextTheme);
       return;
     }
-    const nextTheme = resolvedTheme === "dark" ? "light" : "dark";
     if (!document.startViewTransition || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       onPreferenceChange(nextTheme);
       return;
@@ -99,11 +98,11 @@ export function FinderNavigation({ open, onClose, preference, resolvedTheme, onP
             <div className={styles.appearanceOptions}>
               <button type="button" className={styles.manualTheme} aria-pressed={preference !== "system"}
                 aria-label={`Switch to ${resolvedTheme === "dark" ? "light" : "dark"} mode`}
-                onClick={(event) => { void toggleTheme(event.currentTarget); }}>
+                onClick={(event) => { void changeTheme(event.currentTarget, resolvedTheme === "dark" ? "light" : "dark"); }}>
                 {resolvedTheme === "dark" ? <Moon aria-hidden="true" /> : <Sun aria-hidden="true" />}
                 <span>{resolvedTheme === "dark" ? "Dark" : "Light"}</span>
               </button>
-              <button type="button" className={styles.systemTheme} aria-pressed={preference === "system"} onClick={() => onPreferenceChange("system")}>
+              <button type="button" className={styles.systemTheme} aria-pressed={preference === "system"} onClick={(event) => { void changeTheme(event.currentTarget, "system"); }}>
                 <Monitor aria-hidden="true" /><span>System</span>
               </button>
             </div>
