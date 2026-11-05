@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useMemo, useState } from "react";
+import { useId, useState } from "react";
 import { Eye, EyeOff, Mail, LockKeyhole, UserRound, Search, HousePlus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import * as RadioGroup from "@radix-ui/react-radio-group";
@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
 import { validateRegistration } from "@/lib/auth/validation";
-import type { RegisterPayload } from "@/types/auth";
+import { REGISTRATION_VALIDATION_RULES, validatePasswordStrength, type RegisterPayload } from "@/types/auth";
 
 export function RegisterForm({ onLogin }: { onLogin?: () => void } = {}) {
   const router = useRouter();
@@ -34,22 +34,15 @@ export function RegisterForm({ onLogin }: { onLogin?: () => void } = {}) {
   };
   const [registered, setRegistered] = useState(false);
 
-  // Live password strength calculation
-  const strengthScore = useMemo(() => {
-    let score = 0;
-    if (password.length >= 8) score++;
-    if (/[a-z]/.test(password) && /[A-Z]/.test(password)) score++;
-    if (/\d/.test(password)) score++;
-    if (/[^a-zA-Z0-9]/.test(password)) score++;
-    return score;
-  }, [password]);
-
-  const strengthLabel = useMemo(() => {
-    if (!password) return "";
-    if (strengthScore <= 1) return "Weak";
-    if (strengthScore <= 3) return "Moderate";
-    return "Strong";
-  }, [password, strengthScore]);
+  const policy = REGISTRATION_VALIDATION_RULES.password;
+  const passwordStatus = validatePasswordStrength(password);
+  const requirements = [
+    { label: `${policy.minLength}–${policy.maxLength} characters`, met: password.length >= policy.minLength && password.length <= policy.maxLength },
+    { label: "Uppercase letter", met: policy.classes.uppercase.test(password) },
+    { label: "Lowercase letter", met: policy.classes.lowercase.test(password) },
+    { label: "Number", met: policy.classes.digit.test(password) },
+    { label: "Symbol", met: policy.classes.symbol.test(password) },
+  ];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -220,28 +213,18 @@ export function RegisterForm({ onLogin }: { onLogin?: () => void } = {}) {
                 </button>
               </div>
 
-              <p id={`${passwordId}-policy`} className="mt-2 text-xs text-muted-foreground">Use 8–72 characters and at least 3 of: uppercase, lowercase, numbers, and symbols.</p>
-              {password && (
-                <div className="mt-2 text-xs flex items-center justify-between">
-                  <span className="text-muted-foreground">Strength: {strengthLabel}</span>
-                  <div className="flex gap-1">
-                    {[1, 2, 3, 4].map((step) => (
-                      <div
-                        key={step}
-                        className={`h-1.5 w-6 rounded-full ${
-                          strengthScore >= step
-                            ? strengthScore <= 1
-                              ? "bg-destructive"
-                              : strengthScore <= 3
-                              ? "bg-warning"
-                              : "bg-action"
-                            : "bg-muted"
-                        }`}
-                      />
-                    ))}
-                  </div>
-                </div>
-              )}
+              <div id={`${passwordId}-policy`} className="mt-2 text-xs text-muted-foreground">
+                <p className="font-medium text-foreground">Password requirements</p>
+                <ul className="mt-1 space-y-1">
+                  {requirements.map(({ label, met }) => (
+                    <li key={label} className={met ? "text-emerald-700 dark:text-emerald-400" : "text-muted-foreground"}>
+                      <span aria-hidden="true">{met ? "✓" : "○"}</span>{" "}
+                      <span className="sr-only">{met ? "Met: " : "Not met: "}</span>{label}
+                    </li>
+                  ))}
+                </ul>
+                <p className="mt-1">{passwordStatus.score} of 4 types met (3 required){passwordStatus.isValid && " · Requirements met"}</p>
+              </div>
             </div>
             {errorMessage && (
               <div className="p-3 text-sm rounded bg-destructive/10 text-destructive border border-destructive/20" role="alert">
