@@ -4,8 +4,8 @@ Snapshot and scope: [audit](validation-feedback-audit.md). This is a source-back
 
 | ID | Current copy | Trigger / source | Proposed copy and channel | Priority / reasoning |
 |---|---|---|---|---|
-| M01 | “Enter a valid email address.” | Invalid login email, `src/components/auth/LoginForm.tsx:39-41` | Keep below email, associated via ID. | P2: clear on valid correction (VF-01). |
-| M02 | “Enter your password.” | Empty login password, `LoginForm.tsx:39-41` | Keep beneath password. | P2: update after correction (VF-01). |
+| M01 | “Enter a valid email address.” | Invalid login email, `src/components/auth/LoginForm.tsx` | Keep below email, associated via ID. | VF-01 was addressed after this audit; see the implementation report. |
+| M02 | “Enter your password.” | Empty login password, `LoginForm.tsx` | Keep beneath password. | VF-01 was addressed after this audit; see the implementation report. |
 | M03 | “Log in is temporarily unavailable. Please try again.” | Exception, `LoginForm.tsx:62-65` | Keep form-level error with retry. | Good contextual fallback; do not assert invalid credentials. |
 | M04 | “Use 8–72 characters with at least 3 of: uppercase, lowercase, number, symbol.” | Registration validation `src/lib/auth/validation.ts:29-32` | Preserve policy wording until coordinated policy review; beneath password and link policy description. | P2; avoid changing server policy by copy alone (R-09). |
 | M05 | “Enter a name of 2–100 letters, spaces, hyphens, or periods.” | Name validation `validation.ts:32` | “Enter 2–100 letters, spaces, apostrophes, periods, or hyphens.” | P3: regex also permits straight apostrophes. |

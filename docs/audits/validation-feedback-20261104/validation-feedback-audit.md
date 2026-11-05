@@ -12,7 +12,9 @@ The application already has composable UI primitives, field associations in logi
 
 Severity reflects user impact, not demonstrated production incidence. Every interactive reproduction below is a proposed verification procedure, NOT an executed test.
 
-### VF-01 — P2 — Login and registration errors do not update on correction
+### VF-01 — P2 — Login and registration errors did not update on correction
+
+This finding describes the audit snapshot, not the current PR. The later implementation revalidates previously invalid login and registration fields on change; see `tests/validation-correction.spec.ts` and the [implementation report](../validation-feedback-implementation-20261105.md). Historical reproduction and proposal follow.
 
 - Evidence: `src/components/auth/LoginForm.tsx:33-45,89-99,115-136` and `src/components/auth/RegisterForm.tsx:27,48-60,148-155,171-178,194-202`. Invalid submit sets `fieldErrors`; the cited change handlers update only values, not errors. The next submit clears or replaces errors. Existing registration test `src/components/auth/RegisterForm.test.tsx:80-100` asserts associations and retained values after invalid submit, not correction.
 - Reproduction to run: enter invalid email, submit, correct the email without resubmitting. Expected: after meaningful interaction the relevant error and invalid state reflect the corrected value; current source leaves previous state until next submission. User impact: contradictory feedback and inaccurate programmatic invalid state. Browser behavior NOT RUN.

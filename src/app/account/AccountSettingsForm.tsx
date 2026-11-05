@@ -129,7 +129,7 @@ export function AccountSettingsForm({ profile }: { profile: AccountProfile }) {
   const [avatarPending, startAvatarTransition] = useTransition();
   const avatarInput = useRef<HTMLInputElement>(null);
   const normalizedFullName = fullName.trim().replace(/\s+/g, " ");
-  const phoneIsValid = !phoneNumber.trim() || (/^09\d{9}$/.test(phoneNumber) && normalizePhilippineAccountMobile(phoneNumber) !== null);
+  const phoneIsValid = !phoneNumber.trim() || phoneNumber === savedProfile.phoneNumber || (/^09\d{9}$/.test(phoneNumber) && normalizePhilippineAccountMobile(phoneNumber) !== null);
   const hasProfileChanges = normalizedFullName !== savedProfile.fullName || phoneNumber !== savedProfile.phoneNumber;
 
   useEffect(() => () => {

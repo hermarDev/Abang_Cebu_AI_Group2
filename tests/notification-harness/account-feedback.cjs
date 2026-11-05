@@ -26,6 +26,11 @@ async function main() {
   let browser;
   try {
     browser = await chromium.launch({ headless: true });
+    const legacyPage = await browser.newPage();
+    await legacyPage.goto(`http://127.0.0.1:${server.address().port}/?phone=%2B14155552671`);
+    await legacyPage.getByLabel("Full name").fill("Updated User");
+    assert.equal(await legacyPage.getByRole("button", { name: "Save changes" }).isEnabled(), true, "An unchanged international phone permits name updates");
+    await legacyPage.close();
     const page = await browser.newPage({ viewport: { width: 320, height: 720 } });
     await page.addInitScript(() => {
       window.calls = [];

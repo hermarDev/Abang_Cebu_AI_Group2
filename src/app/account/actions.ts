@@ -38,11 +38,6 @@ export async function updateAccountProfile(formData: FormData): Promise<AccountA
     return { success: false, message: "Enter a name between 2 and 100 characters using letters, spaces, apostrophes, periods, or hyphens." };
   }
 
-  const phoneNumber = phoneInput ? normalizePhilippineAccountMobile(phoneInput) : null;
-  if (phoneInput && !phoneNumber) {
-    return { success: false, message: "Enter a Philippine mobile number, such as 0912 345 6789." };
-  }
-
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) return { success: false, message: "Your session expired. Please sign in again." };
@@ -54,6 +49,10 @@ export async function updateAccountProfile(formData: FormData): Promise<AccountA
     .maybeSingle();
 
   if (profileReadError || !currentProfile) return { success: false, message: "We couldn’t load your profile. Please try again." };
+  const phoneNumber = phoneInput === currentProfile.phone_number
+    ? currentProfile.phone_number
+    : phoneInput ? normalizePhilippineAccountMobile(phoneInput) : null;
+  if (phoneInput && !phoneNumber) return { success: false, message: "Enter a Philippine mobile number, such as 0912 345 6789." };
   if (currentProfile.full_name === fullName && (currentProfile.phone_number ?? null) === phoneNumber) {
     return { success: true, message: "No changes to save.", profile: { fullName: currentProfile.full_name, phoneNumber: currentProfile.phone_number } };
   }

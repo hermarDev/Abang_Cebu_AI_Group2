@@ -141,6 +141,15 @@ describe("account Philippine mobile number", () => {
     expect(fixture.profile.phone_number).toBe("+639123456789");
   });
 
+  it("preserves an unchanged international number when updating the name", async () => {
+    fixture.profile.phone_number = "+14155552671";
+    const data = form("+14155552671");
+    data.set("fullName", "Updated User");
+    const result = await updateAccountProfile(data);
+    expect(result.success).toBe(true);
+    expect(fixture.profile).toEqual({ full_name: "Updated User", phone_number: "+14155552671" });
+  });
+
   it("edits and clears the saved number", async () => {
     await updateAccountProfile(form("09123456789"));
     await updateAccountProfile(form("09171234567"));

@@ -52,8 +52,12 @@ describe("ResetPasswordForm", () => {
       const input = findElement(renderForm(true), (element) => element.props.name === name)!;
       (input.props.onChange as (event: { target: { value: string } }) => void)({ target: { value: "weakpassword" } });
     }
+    const focus = vi.fn();
+    const querySelector = vi.fn(() => ({ focus }));
     const form = findElement(renderForm(true), (element) => element.type === "form")!;
-    await (form.props.onSubmit as (event: unknown) => Promise<void>)({ preventDefault: vi.fn() });
+    await (form.props.onSubmit as (event: unknown) => Promise<void>)({ preventDefault: vi.fn(), currentTarget: { querySelector } });
+    expect(querySelector).toHaveBeenCalledWith('[name="newPassword"]');
+    expect(focus).toHaveBeenCalledOnce();
     const input = findElement(renderForm(true), (element) => element.props.name === "newPassword")!;
     expect(input.props["aria-invalid"]).toBe(true);
     expect(input.props["aria-describedby"]).toContain(`${input.props.id}-policy`);
@@ -61,6 +65,7 @@ describe("ResetPasswordForm", () => {
     const html = renderToStaticMarkup(renderForm(true));
     expect(html).toContain(`id="${input.props.id}-policy"`);
     expect(html).toContain(`id="${input.props.id}-error"`);
+    expect(html).not.toContain("temporarily unavailable");
     expect(input.props.value).toBe("weakpassword");
   });
   it("blocks mismatched recovery passwords, focuses confirmation and links its error", async () => {
