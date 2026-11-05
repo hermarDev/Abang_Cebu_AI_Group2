@@ -8,7 +8,8 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
 import { validateRegistration } from "@/lib/auth/validation";
-import { REGISTRATION_VALIDATION_RULES, type RegisterPayload } from "@/types/auth";
+import type { RegisterPayload } from "@/types/auth";
+import { PasswordRequirements } from "./PasswordRequirements";
 
 export function RegisterForm({ onLogin }: { onLogin?: () => void } = {}) {
   const router = useRouter();
@@ -33,15 +34,6 @@ export function RegisterForm({ onLogin }: { onLogin?: () => void } = {}) {
     setFieldErrors(errors => ({ ...errors, [field]: validation.ok ? undefined : validation.errors[field] }));
   };
   const [registered, setRegistered] = useState(false);
-
-  const policy = REGISTRATION_VALIDATION_RULES.password;
-  const requirements = [
-    { label: `${policy.minLength}–${policy.maxLength} characters`, met: password.length >= policy.minLength && password.length <= policy.maxLength },
-    { label: "Uppercase letter", met: policy.classes.uppercase.test(password) },
-    { label: "Lowercase letter", met: policy.classes.lowercase.test(password) },
-    { label: "Number", met: policy.classes.digit.test(password) },
-    { label: "Symbol", met: policy.classes.symbol.test(password) },
-  ];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -212,17 +204,7 @@ export function RegisterForm({ onLogin }: { onLogin?: () => void } = {}) {
                 </button>
               </div>
 
-              <div id={`${passwordId}-policy`} className="mt-2 text-xs text-muted-foreground">
-                <p className="font-medium text-foreground">Password requirements</p>
-                <ul className="mt-1 space-y-1">
-                  {requirements.map(({ label, met }) => (
-                    <li key={label} className={met ? "text-emerald-700 dark:text-emerald-400" : "text-muted-foreground"}>
-                      <span aria-hidden="true">{met ? "✓" : "○"}</span>{" "}
-                      <span className="sr-only">{met ? "Met: " : "Not met: "}</span>{label}
-                    </li>
-                  ))}
-                </ul>
-              </div>
+              <PasswordRequirements id={`${passwordId}-policy`} password={password} />
             </div>
             {errorMessage && (
               <div className="p-3 text-sm rounded bg-destructive/10 text-destructive border border-destructive/20" role="alert">

@@ -6,8 +6,14 @@ test("recovery mismatch stays visible until either value matches", async ({ page
   const dialog = page.getByRole("dialog");
   const password = dialog.getByLabel("New password", { exact: true });
   const confirm = dialog.getByLabel("Confirm new password", { exact: true });
+  await expect(dialog.getByText("Passwords match.")).toHaveCount(0);
   await password.fill("FirstPass1!");
+  await confirm.fill("FirstPass1!");
+  await expect(dialog.getByText("Passwords match.")).toBeVisible();
   await confirm.fill("OtherPass1!");
+  await expect(dialog.getByText("Passwords match.")).toHaveCount(0);
+  await confirm.blur();
+  await expect(dialog.getByText("Passwords do not match.")).toBeVisible();
   await dialog.getByRole("button", { name: "Update Password" }).click();
   await expect(confirm).toBeFocused();
   await expect(confirm).toHaveAttribute("aria-invalid", "true");

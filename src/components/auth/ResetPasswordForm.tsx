@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
 import { KeyRound, Mail, LockKeyhole, Eye, EyeOff } from "lucide-react";
+import { PasswordRequirements } from "./PasswordRequirements";
 
 const genericSuccess = "If an account is associated with this email, a password recovery link has been dispatched.";
 
@@ -27,6 +28,7 @@ export function ResetPasswordForm({ isRecovery = false, onBackToLogin, embedded 
   const [message, setMessage] = useState<string | null>(null);
   const [isError, setIsError] = useState(false);
   const requestSent = !isRecovery && !!message && !isError;
+  const passwordsMatch = !!newPassword && !!confirmPassword && newPassword === confirmPassword;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -127,12 +129,12 @@ export function ResetPasswordForm({ isRecovery = false, onBackToLogin, embedded 
                     {showNewPassword ? <EyeOff size={19} aria-hidden="true" /> : <Eye size={19} aria-hidden="true" />}
                   </button>
                 </div>
-                <p id={`${newPasswordId}-policy`} className="mt-2 text-xs text-muted-foreground">Use 8–72 characters, including uppercase, lowercase, a number, and a symbol.</p>
+                <PasswordRequirements id={`${newPasswordId}-policy`} password={newPassword} />
                 {passwordError && <p id={`${newPasswordId}-error`} role="alert" className="text-sm text-destructive">{passwordError}</p>}
               </div>
               <div>
                 <label htmlFor={confirmPasswordId} className="mb-1 block text-sm font-medium">Confirm new password</label>
-                <div className="relative">
+                <div className="relative" onBlur={(event) => { if (!event.currentTarget.contains(event.relatedTarget as Node | null) && confirmPassword) { setMismatchChecked(true); setPasswordMismatch(confirmPassword !== newPassword); } }}>
                   <LockKeyhole aria-hidden="true" className="pointer-events-none absolute left-3 top-3 size-[18px] text-muted-foreground" />
                 <Input
                   className="pl-10 pr-12 border-input bg-card text-foreground focus-visible:outline-ring"
@@ -145,7 +147,7 @@ export function ResetPasswordForm({ isRecovery = false, onBackToLogin, embedded 
                   value={confirmPassword}
                   readOnly={loading}
                   aria-invalid={passwordMismatch}
-                  aria-describedby={passwordMismatch ? `${confirmPasswordId}-error` : undefined}
+                  aria-describedby={passwordMismatch || passwordsMatch ? `${confirmPasswordId}-error` : undefined}
                   onChange={(e) => { const value = e.target.value; setConfirmPassword(value); if (mismatchChecked) setPasswordMismatch(value !== newPassword); }}
                   required
                 />
@@ -154,6 +156,7 @@ export function ResetPasswordForm({ isRecovery = false, onBackToLogin, embedded 
                   </button>
                 </div>
                 {passwordMismatch && <p id={`${confirmPasswordId}-error`} role="alert" className="text-sm text-destructive">Passwords do not match.</p>}
+                {!passwordMismatch && passwordsMatch && <p id={`${confirmPasswordId}-error`} className="text-sm text-emerald-700 dark:text-emerald-400"><span aria-hidden="true">✓ </span>Passwords match.</p>}
               </div>
             </>
           ) : (
