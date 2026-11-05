@@ -33,6 +33,18 @@ END $$;
 DO $$ BEGIN
  PERFORM public.save_property_draft('bbbbbbbb-0000-0000-0000-000000000005','{"property":{},"unit":{},"amenities":["wifi"]}');
 END $$;
+DO $$ DECLARE bad jsonb; BEGIN
+ FOR bad IN SELECT * FROM jsonb_array_elements('[{"property":{},"unit":{},"extra":1},{"property":{"bogus":1},"unit":{}},{"property":{},"unit":{"bogus":1}},{"property":{"title":{}},"unit":{}},{"property":{},"unit":{},"amenities":["invalid"]},{"property":{}},{"unit":{}}]'::jsonb) LOOP
+  BEGIN
+   PERFORM public.save_property_draft('bbbbbbbb-0000-4000-8000-000000000009', bad);
+   RAISE EXCEPTION 'invalid create payload accepted';
+  EXCEPTION WHEN invalid_parameter_value THEN NULL; END;
+  BEGIN
+   PERFORM public.update_property_draft('bbbbbbbb-0000-4000-8000-000000000010', 'bbbbbbbb-0000-4000-8000-000000000011', 1, bad);
+   RAISE EXCEPTION 'invalid update payload accepted';
+  EXCEPTION WHEN invalid_parameter_value THEN NULL; END;
+ END LOOP;
+END $$;
 DO $$ DECLARE a uuid; b uuid; rev bigint; BEGIN
  a:=public.save_property_draft('bbbbbbbb-0000-0000-0000-000000000001','{"property":{"title":"First"},"unit":{"monthly_rent":5000}}');
  INSERT INTO fixture_ids VALUES (a);
@@ -55,6 +67,27 @@ DO $$ DECLARE a uuid; b uuid; rev bigint; BEGIN
  IF a IS DISTINCT FROM public.save_property_draft('bbbbbbbb-0000-0000-0000-000000000001','{"property":{"title":"First"},"unit":{"monthly_rent":5000}}') THEN RAISE EXCEPTION 'original create retry failed after update'; END IF;
  IF (SELECT payload->'property'->>'title' FROM public.property_drafts WHERE id=a) <> 'Second' THEN RAISE EXCEPTION 'stale update changed draft'; END IF;
  IF (SELECT count(*) FROM public.property_drafts) <> 3 THEN RAISE EXCEPTION 'must retain the three distinct owner drafts'; END IF;
+END $$;
+-- Caps must preserve exact replay, even after the owner reaches the limit.
+DO $$ DECLARE i integer; id uuid; op uuid; rev bigint; BEGIN
+ FOR i IN 1..47 LOOP
+  op := ('dddddddd-0000-4000-8000-' || lpad(i::text, 12, '0'))::uuid;
+  id := public.save_property_draft(op, '{"property":{},"unit":{}}');
+ END LOOP;
+ IF id IS DISTINCT FROM public.save_property_draft(op, '{"property":{},"unit":{}}') THEN RAISE EXCEPTION 'replay at cap failed'; END IF;
+ BEGIN
+  PERFORM public.save_property_draft('eeeeeeee-0000-4000-8000-000000000001', '{"property":{},"unit":{}}');
+  RAISE EXCEPTION 'draft cap not enforced';
+ EXCEPTION WHEN program_limit_exceeded THEN NULL; END;
+ FOR i IN 1..999 LOOP
+  op := ('ffffffff-0000-4000-8000-' || lpad(i::text, 12, '0'))::uuid;
+  rev := public.update_property_draft(id, op, i, '{"property":{},"unit":{}}');
+ END LOOP;
+ IF public.update_property_draft(id, op, 999, '{"property":{},"unit":{}}') <> rev THEN RAISE EXCEPTION 'update replay at cap failed'; END IF;
+ BEGIN
+  PERFORM public.update_property_draft(id, 'eeeeeeee-0000-4000-8000-000000000002', 1001, '{"property":{},"unit":{}}');
+  RAISE EXCEPTION 'update history cap not enforced';
+ EXCEPTION WHEN program_limit_exceeded THEN NULL; END;
 END $$;
 SELECT set_config('request.jwt.claim.sub','aaaaaaaa-0000-0000-0000-000000000002',true);
 DO $$ BEGIN

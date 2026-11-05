@@ -43,6 +43,7 @@ export async function POST(request: Request) {
   const body = await readBody(request);
   if (!body || typeof body.operationId !== "string" || !uuid.test(body.operationId) || !validPayload(body.payload)) return reply("Invalid draft request.", 400);
   const { data, error } = await session.supabase.rpc("save_property_draft", { p_operation_id: body.operationId, p_payload: body.payload });
+  if (error?.code === "54000") return reply("Draft storage limit reached. Contact support for assistance.", 409);
   if (error?.code === "22023") return reply("The draft contains invalid or unsupported information.", 400);
   if (error) return reply(error.code === "23505" ? "This save operation conflicts with an earlier attempt." : "Draft could not be saved. Please retry.", error.code === "23505" ? 409 : 503);
   if (typeof data !== "string" || !uuid.test(data)) return reply("Draft save could not be confirmed. Please retry.", 503);
@@ -55,6 +56,7 @@ export async function PATCH(request: Request) {
   const body = await readBody(request);
   if (!body || typeof body.draftId !== "string" || !uuid.test(body.draftId) || typeof body.operationId !== "string" || !uuid.test(body.operationId) || !Number.isSafeInteger(body.revision) || (body.revision as number) < 1 || !validPayload(body.payload)) return reply("Invalid draft request.", 400);
   const { data, error } = await session.supabase.rpc("update_property_draft", { p_draft_id: body.draftId, p_operation_id: body.operationId, p_expected_revision: body.revision as number, p_payload: body.payload });
+  if (error?.code === "54000") return reply("Draft storage limit reached. Contact support for assistance.", 409);
   if (error?.code === "22023") return reply("The draft contains invalid or unsupported information.", 400);
   if (error) return reply(error.code === "40001" || error.code === "23505" ? "This draft changed or the operation conflicts. Reload the saved draft before retrying." : "Draft could not be saved. Please retry.", error.code === "40001" || error.code === "23505" ? 409 : 503);
   if (!Number.isSafeInteger(data) || (data as number) < 1) return reply("Draft save could not be confirmed. Please retry.", 503);

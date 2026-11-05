@@ -64,6 +64,13 @@ describe("property draft account binding", () => {
     const response = await PATCH(request("PATCH", "owner-b", { draftId, operationId, revision: 1, payload }));
     expect(response.status).toBe(409);
   });
+  it.each([POST, PATCH])("reports draft storage limits without suggesting blind retry", async (handler) => {
+    mocks.rpc.mockResolvedValue({ data: null, error: { code: "54000" } });
+    const body = { draftId, operationId, revision: 1, payload };
+    const response = await handler(request(handler === POST ? "POST" : "PATCH", "owner-b", body));
+    expect(response.status).toBe(409);
+    expect(await response.json()).toEqual({ error: "Draft storage limit reached. Contact support for assistance." });
+  });
   it("reports database payload validation errors without calling them outages", async () => {
     mocks.rpc.mockResolvedValue({ data: null, error: { code: "22023" } });
     expect((await POST(request("POST", "owner-b", { operationId, payload }))).status).toBe(400);

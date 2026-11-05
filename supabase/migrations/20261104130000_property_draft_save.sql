@@ -42,16 +42,20 @@ BEGIN
     OR EXISTS (SELECT 1 FROM pg_catalog.jsonb_each(p_payload->'unit') e WHERE pg_catalog.jsonb_typeof(e.value) NOT IN ('string','number','null')) THEN
     RAISE EXCEPTION 'invalid draft payload' USING ERRCODE = '22023';
   END IF;
-  INSERT INTO public.property_drafts(owner_id,operation_id,payload,original_payload)
-    VALUES (v_owner,p_operation_id,p_payload,p_payload) ON CONFLICT (owner_id,operation_id) DO NOTHING
-    RETURNING id INTO v_id;
-  IF v_id IS NULL THEN
-    SELECT id,original_payload INTO v_id,v_payload FROM public.property_drafts
-      WHERE owner_id=v_owner AND operation_id=p_operation_id;
-    IF v_id IS NULL OR v_payload IS DISTINCT FROM p_payload THEN
+  PERFORM pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended('property-draft-owner:' || v_owner::text, 0));
+  SELECT id,original_payload INTO v_id,v_payload FROM public.property_drafts
+    WHERE owner_id=v_owner AND operation_id=p_operation_id;
+  IF v_id IS NOT NULL THEN
+    IF v_payload IS DISTINCT FROM p_payload THEN
       RAISE EXCEPTION 'operation already used for different draft' USING ERRCODE = '23505';
     END IF;
+    RETURN v_id;
   END IF;
+  IF (SELECT count(*) FROM public.property_drafts WHERE owner_id = v_owner) >= 50 THEN
+    RAISE EXCEPTION 'property draft limit reached' USING ERRCODE = '54000';
+  END IF;
+  INSERT INTO public.property_drafts(owner_id,operation_id,payload,original_payload)
+    VALUES (v_owner,p_operation_id,p_payload,p_payload) RETURNING id INTO v_id;
   RETURN v_id;
 END;
 $$;
@@ -63,7 +67,7 @@ CREATE TABLE public.property_draft_updates (
   operation_id uuid NOT NULL,
   draft_id uuid NOT NULL REFERENCES public.property_drafts(id) ON DELETE CASCADE,
   expected_revision bigint NOT NULL,
-  payload jsonb NOT NULL,
+  payload_sha256 bytea NOT NULL,
   result_revision bigint NOT NULL,
   PRIMARY KEY(owner_id, operation_id)
 );
@@ -96,13 +100,16 @@ BEGIN
     OR EXISTS (SELECT 1 FROM pg_catalog.jsonb_each(p_payload->'unit') e WHERE pg_catalog.jsonb_typeof(e.value) NOT IN ('string','number','null')) THEN
     RAISE EXCEPTION 'invalid draft payload' USING ERRCODE = '22023';
   END IF;
-  PERFORM pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended(v_owner::text || ':' || p_operation_id::text, 0));
+  PERFORM pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended('property-draft-update-owner:' || v_owner::text, 0));
   SELECT * INTO v_previous FROM public.property_draft_updates WHERE owner_id = v_owner AND operation_id = p_operation_id;
   IF FOUND THEN
-    IF v_previous.draft_id IS DISTINCT FROM p_draft_id OR v_previous.expected_revision IS DISTINCT FROM p_expected_revision OR v_previous.payload IS DISTINCT FROM p_payload THEN
+    IF v_previous.draft_id IS DISTINCT FROM p_draft_id OR v_previous.expected_revision IS DISTINCT FROM p_expected_revision OR v_previous.payload_sha256 IS DISTINCT FROM pg_catalog.sha256(pg_catalog.convert_to(p_payload::text, 'UTF8')) THEN
       RAISE EXCEPTION 'operation already used for different draft update' USING ERRCODE = '23505';
     END IF;
     RETURN v_previous.result_revision;
+  END IF;
+  IF (SELECT count(*) FROM public.property_draft_updates WHERE owner_id = v_owner) >= 1000 THEN
+    RAISE EXCEPTION 'property draft update limit reached' USING ERRCODE = '54000';
   END IF;
   UPDATE public.property_drafts SET payload = p_payload, revision = revision + 1
     WHERE id = p_draft_id AND owner_id = v_owner AND revision = p_expected_revision AND revision < 9223372036854775807
@@ -110,8 +117,8 @@ BEGIN
   IF v_revision IS NULL THEN
     RAISE EXCEPTION 'draft changed or unavailable' USING ERRCODE = '40001';
   END IF;
-  INSERT INTO public.property_draft_updates(owner_id, operation_id, draft_id, expected_revision, payload, result_revision)
-    VALUES (v_owner, p_operation_id, p_draft_id, p_expected_revision, p_payload, v_revision);
+  INSERT INTO public.property_draft_updates(owner_id, operation_id, draft_id, expected_revision, payload_sha256, result_revision)
+    VALUES (v_owner, p_operation_id, p_draft_id, p_expected_revision, pg_catalog.sha256(pg_catalog.convert_to(p_payload::text, 'UTF8')), v_revision);
   RETURN v_revision;
 END;
 $$;
