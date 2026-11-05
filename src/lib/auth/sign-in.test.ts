@@ -89,6 +89,37 @@ describe("signInWithEmail", () => {
     expect(from).not.toHaveBeenCalled();
   });
 
+  it.each([
+    [{ code: "invalid_credentials", status: 400 }, "Invalid email or password."],
+    [{ code: "over_request_rate_limit", status: 429 }, "Too many login attempts. Please try again later."],
+    [{ status: 429 }, "Too many login attempts. Please try again later."],
+    [{ code: "email_not_confirmed", status: 403 }, "Sign in is temporarily unavailable. Please try again."],
+    [{ code: "unexpected_failure", status: 503 }, "Sign in is temporarily unavailable. Please try again."],
+  ])("sanitizes returned login error %#", async (providerError, message) => {
+    signInWithPassword.mockResolvedValue({
+      data: { user: null, session: null },
+      error: { ...providerError, message: "private provider detail" },
+    });
+    const result = await signInWithEmail("renter@example.com", "wrong");
+    expect(result).toEqual({ success: false, message });
+    expect(JSON.stringify(result)).not.toContain("private provider detail");
+    expect(from).not.toHaveBeenCalled();
+  });
+
+  it("sanitizes a thrown authentication failure", async () => {
+    signInWithPassword.mockRejectedValue(new Error("private provider detail"));
+    const result = await signInWithEmail("renter@example.com", "wrong");
+    expect(result).toEqual({ success: false, message: "Sign in is temporarily unavailable. Please try again." });
+    expect(JSON.stringify(result)).not.toContain("private provider detail");
+  });
+
+  it("returns an unavailable message when the provider returns no user or error", async () => {
+    signInWithPassword.mockResolvedValue({ data: { user: null, session: null }, error: null });
+    await expect(signInWithEmail("renter@example.com", "wrong")).resolves.toEqual({
+      success: false, message: "Sign in is temporarily unavailable. Please try again.",
+    });
+  });
+
   it("fails closed and clears the session if reading the canonical profile throws", async () => {
     maybeSingle.mockRejectedValue(new Error("connection failed"));
     await expect(
@@ -102,6 +133,19 @@ describe("signInWithEmail", () => {
 });
 
 describe("getPostLoginRedirect", () => {
+  it("keeps landlords in the workspace for map destinations", () => {
+    expect(getPostLoginRedirect("/", "landlord")).toBe("/landlord/dashboard");
+    expect(getPostLoginRedirect("/map?view=all", "landlord")).toBe("/landlord/dashboard");
+    expect(getPostLoginRedirect("/landlord/map", "landlord")).toBe("/landlord/map");
+  });
+
+  it("defaults landlords to their dashboard while honoring safe destinations", () => {
+    expect(getPostLoginRedirect(null, "landlord")).toBe("/landlord/dashboard");
+    expect(getPostLoginRedirect(null, "renter")).toBe("/");
+    expect(getPostLoginRedirect("/favorites", "landlord")).toBe("/favorites");
+    expect(getPostLoginRedirect("//attacker.example", "landlord")).toBe("/landlord/dashboard");
+  });
+
   it("returns only a safe local destination", () => {
     expect(getPostLoginRedirect("/favorites?tab=saved")).toBe("/favorites?tab=saved");
     expect(getPostLoginRedirect("//attacker.example")).toBe("/");

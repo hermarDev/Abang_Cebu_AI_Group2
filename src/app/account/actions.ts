@@ -1,11 +1,12 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { normalizeInternationalPhoneNumber } from "@/lib/phone-number";
+import { createClient as createSupabaseClient } from "@supabase/supabase-js";
+import { normalizePhilippineAccountMobile } from "@/lib/phone-number";
 import { createClient } from "@/lib/supabase/server";
-import { validatePasswordStrength } from "@/types/auth";
 import { PROFILE_AVATAR_BUCKET, signProfileAvatar } from "@/lib/profile-avatar";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { validatePasswordStrength } from "@/types/auth";
 
 const MAX_AVATAR_BYTES = 2 * 1024 * 1024;
 const AVATAR_TYPES = {
@@ -20,6 +21,7 @@ export type AccountActionResult = {
   success: boolean;
   message: string;
   profile?: { fullName: string; phoneNumber: string | null };
+  field?: "currentPassword";
 };
 
 function readText(formData: FormData, key: string) {
@@ -27,24 +29,13 @@ function readText(formData: FormData, key: string) {
   return typeof value === "string" ? value.trim() : "";
 }
 
-function readPassword(formData: FormData, key: string) {
-  const value = formData.get(key);
-  return typeof value === "string" ? value : "";
-}
-
 export async function updateAccountProfile(formData: FormData): Promise<AccountActionResult> {
   const fullName = readText(formData, "fullName").replace(/\s+/g, " ");
   const phoneInput = readText(formData, "phoneNumber");
-  const phoneCountry = readText(formData, "phoneCountry");
   const fullNamePattern = /^[\p{L}\p{M} .'-]+$/u;
 
   if (fullName.length < 2 || fullName.length > 100 || !fullNamePattern.test(fullName)) {
     return { success: false, message: "Enter a name between 2 and 100 characters using letters, spaces, apostrophes, periods, or hyphens." };
-  }
-
-  const phoneNumber = phoneInput ? normalizeInternationalPhoneNumber(phoneInput, phoneCountry) : null;
-  if (phoneInput && !phoneNumber) {
-    return { success: false, message: "Enter a valid phone number for the selected country using digits only." };
   }
 
   const supabase = await createClient();
@@ -58,6 +49,10 @@ export async function updateAccountProfile(formData: FormData): Promise<AccountA
     .maybeSingle();
 
   if (profileReadError || !currentProfile) return { success: false, message: "We couldn’t load your profile. Please try again." };
+  const phoneNumber = phoneInput === currentProfile.phone_number
+    ? currentProfile.phone_number
+    : phoneInput ? normalizePhilippineAccountMobile(phoneInput) : null;
+  if (phoneInput && !phoneNumber) return { success: false, message: "Enter a Philippine mobile number, such as 0912 345 6789." };
   if (currentProfile.full_name === fullName && (currentProfile.phone_number ?? null) === phoneNumber) {
     return { success: true, message: "No changes to save.", profile: { fullName: currentProfile.full_name, phoneNumber: currentProfile.phone_number } };
   }
@@ -133,21 +128,33 @@ export async function removeAccountAvatar(): Promise<AvatarActionResult> {
 }
 
 export async function updateAccountPassword(formData: FormData): Promise<AccountActionResult> {
-  const password = readPassword(formData, "password");
-  const confirmation = readPassword(formData, "confirmPassword");
+  const currentPassword = formData.get("currentPassword");
+  const password = formData.get("password");
+  const confirmPassword = formData.get("confirmPassword");
+  if (typeof currentPassword !== "string" || !currentPassword) return { success: false, message: "Enter your current password." };
+  if (typeof password !== "string" || !validatePasswordStrength(password).isValid) return { success: false, message: "Use 8–72 characters, including uppercase, lowercase, a number, and a symbol." };
+  if (password !== confirmPassword) return { success: false, message: "Passwords do not match." };
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !anonKey) return { success: false, message: "Password changes are temporarily unavailable. Please try again later." };
 
-  if (!validatePasswordStrength(password).isValid) {
-    return { success: false, message: "Use 8–72 characters and include at least 3 of: uppercase, lowercase, number, and symbol." };
+  try {
+    const supabase = await createClient();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) return { success: false, message: "Your session expired. Please sign in again." };
+    if (!user.identities || !user.email) return { success: false, message: "We couldn’t verify your sign-in method. Please try again." };
+    if (!user.identities.some((identity) => identity.provider === "email")) return { success: false, message: "This account uses an external sign-in provider. Manage your password with that provider." };
+
+    const verifier = createSupabaseClient(url, anonKey, { auth: { autoRefreshToken: false, persistSession: false, detectSessionInUrl: false } });
+    const { data, error } = await verifier.auth.signInWithPassword({ email: user.email, password: currentPassword });
+    if (error?.code === "invalid_credentials") return { success: false, field: "currentPassword", message: "We couldn’t verify your current password. Please check it and try again." };
+    if (error || data.user?.id !== user.id) return { success: false, message: "Password verification is temporarily unavailable. Please try again later." };
+    const { data: { user: currentUser }, error: currentError } = await supabase.auth.getUser();
+    if (currentError || currentUser?.id !== user.id) return { success: false, message: "Your session expired. Please sign in again." };
+    const { error: updateError } = await supabase.auth.updateUser({ password, current_password: currentPassword });
+    if (updateError) return { success: false, message: "We couldn’t update your password. Please try again." };
+    return { success: true, message: "Your password was updated." };
+  } catch {
+    return { success: false, message: "We couldn’t update your password. Please try again." };
   }
-  if (password !== confirmation) return { success: false, message: "The new passwords do not match." };
-
-  const supabase = await createClient();
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
-  if (authError || !user) return { success: false, message: "Your session expired. Please sign in again." };
-
-  const { error } = await supabase.auth.updateUser({ password });
-  if (error) return { success: false, message: "We couldn’t update your password. Check the password requirements and try again." };
-
-  revalidatePath("/account");
-  return { success: true, message: "Your password was updated." };
 }

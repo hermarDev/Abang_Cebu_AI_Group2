@@ -63,8 +63,28 @@ afterEach(() => {
 
 
 describe("RegisterForm", () => {
+  it("updates the password checklist using the registration policy", () => {
+    state.active = true;
+    let html = renderToStaticMarkup(renderForm());
+    expect(html).toContain("Password requirements");
+    expect(html).not.toContain("Choose at least 3 character types");
+    expect(html).not.toContain("types met");
+    changeInput("password", "abcdefghA1!");
+    html = renderToStaticMarkup(renderForm());
+    expect((html.match(/Met: /g) ?? [])).toHaveLength(5);
+    expect(html).not.toContain("Requirements met");
+    expect(html).not.toContain("Strength:");
+    changeInput("password", "abcdefghA ");
+    html = renderToStaticMarkup(renderForm());
+    expect((html.match(/Not met: /g) ?? [])).toHaveLength(2);
+    expect(html).not.toContain("types met");
+  });
+
   it("shows registration intent descriptions and canonical Log In labels", () => {
     const html = renderToStaticMarkup(<RegisterForm onLogin={() => {}} />);
+    expect(html).toContain('placeholder="Enter your full name"');
+    expect(html).toContain('placeholder="Enter your email address"');
+    expect(html).toContain('placeholder="Create a password"');
     expect(html).toContain("Find rentals");
     expect(html).toContain("List properties");
     expect(html).not.toContain("Already have an account?");
@@ -172,7 +192,7 @@ describe("RegisterForm", () => {
     expect(html).toContain('minLength="8"');
     expect(html).toContain('maxLength="72"');
     expect(html).toContain("8–72 characters");
-    expect(html).toContain("at least 3 of: uppercase, lowercase, numbers, and symbols");
+    expect(html).not.toContain("Choose at least 3 character types");
     expect(html).toContain('aria-describedby=');
   });
   it("does not render a public signup phone field", () => {

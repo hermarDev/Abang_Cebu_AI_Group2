@@ -23,13 +23,13 @@ export default function LogoutPage() {
         }
       });
       if (!completed) {
-        setError("Unable to sign out. Please try again.");
+        setError("Unable to log out. Please try again.");
         return;
       }
       router.replace("/login?message=logged_out");
       router.refresh();
     } catch {
-      setError("Unable to sign out because the request failed. Check your connection and retry.");
+      setError("Unable to log out because the request failed. Check your connection and retry.");
     } finally {
       setLoading(false);
     }
@@ -38,12 +38,12 @@ export default function LogoutPage() {
   return (
     <main className="flex min-h-[100dvh] items-center justify-center p-6">
       <section className="w-full max-w-md rounded-2xl border border-border bg-card p-6 text-card-foreground shadow-lg" aria-labelledby="logout-title">
-        <h1 id="logout-title" className="text-xl font-semibold">Sign out of AbangCebu?</h1>
+        <h1 id="logout-title" className="text-xl font-semibold">Log out of AbangCebu?</h1>
         <p className="mt-2 text-sm text-muted-foreground">Your current session will be closed on this device.</p>
         {error && <p className="mt-4 text-sm text-destructive" role="alert">{error}</p>}
         <div className="mt-6 flex flex-wrap justify-end gap-3">
           <Button variant="outline" onClick={() => router.back()} disabled={loading}>Cancel</Button>
-          <Button onClick={handleLogout} disabled={loading}>{loading ? "Signing out…" : "Sign out"}</Button>
+          <Button onClick={handleLogout} disabled={loading}>{loading ? "Logging out…" : "Log out"}</Button>
         </div>
       </section>
     </main>

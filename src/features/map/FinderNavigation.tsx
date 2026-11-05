@@ -1,10 +1,10 @@
 "use client";
 
-import { useRef, useState } from "react";
-import { flushSync } from "react-dom";
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Search, Bookmark, MessageCircle, CircleHelp, Headset, Map, UserRound, LogIn, Sun, Moon, Monitor } from "lucide-react";
+import { Search, Bookmark, MessageCircle, CircleHelp, Headset, Map, UserRound, LogIn, LayoutDashboard } from "lucide-react";
+import { AppearanceControls } from "./AppearanceControls";
 import { Modal } from "@/components/ui/Modal";
 import type { UserRole } from "@/types/database";
 import styles from "./FinderNavigation.module.css";
@@ -23,39 +23,6 @@ export interface FinderNavigationProps {
 
 export function FinderNavigation({ open, onClose, preference, resolvedTheme, onPreferenceChange, onAccount, onHelp, authenticated = false, userRole = null }: FinderNavigationProps) {
   const [faqOpen, setFaqOpen] = useState(false);
-  const transitionRunning = useRef(false);
-
-  async function changeTheme(button: HTMLButtonElement, nextTheme: "light" | "dark" | "system") {
-    if (transitionRunning.current) {
-      onPreferenceChange(nextTheme);
-      return;
-    }
-    if (!document.startViewTransition || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      onPreferenceChange(nextTheme);
-      return;
-    }
-    const { left, top, width, height } = button.getBoundingClientRect();
-    const x = left + width / 2;
-    const y = top + height / 2;
-    const radius = Math.hypot(Math.max(x, window.innerWidth - x), Math.max(y, window.innerHeight - y));
-    transitionRunning.current = true;
-    document.documentElement.classList.add(styles.themeTransition);
-    try {
-      const transition = document.startViewTransition(() => flushSync(() => onPreferenceChange(nextTheme)));
-      await transition.ready;
-      await document.documentElement.animate(
-        { clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${radius}px at ${x}px ${y}px)`] },
-        { duration: 450, easing: "ease-out", pseudoElement: "::view-transition-new(root)" },
-      ).finished;
-      await transition.finished;
-    } catch {
-      // A skipped transition must never prevent the requested theme from applying.
-      onPreferenceChange(nextTheme);
-    } finally {
-      document.documentElement.classList.remove(styles.themeTransition);
-      transitionRunning.current = false;
-    }
-  }
   return (
     <Modal id="finder-navigation" open={open} onClose={onClose} title="AbangCebu Menu" hideTitle surface="finder" className={styles.dialog}
       restoreTriggerFocus={false}
@@ -80,6 +47,7 @@ export function FinderNavigation({ open, onClose, preference, resolvedTheme, onP
           }}>
             <Search aria-hidden="true" /><span>Find rentals</span>
           </Link>
+          {authenticated && userRole === "landlord" && <Link href="/landlord/dashboard" className={styles.navItem} onClick={onClose}><LayoutDashboard aria-hidden="true" /><span>Landlord workspace</span></Link>}
           {(userRole === "renter" || !authenticated) && <Link href="/favorites" className={styles.navItem} onClick={onClose}><Bookmark aria-hidden="true" /><span>Saved rentals</span></Link>}
           {(userRole === "renter" || !authenticated) && <button type="button" className={styles.navItem} onClick={() => { onClose(); onHelp(); }}><MessageCircle aria-hidden="true" /><span>Help finding a rental</span></button>}
         </nav>
@@ -93,21 +61,7 @@ export function FinderNavigation({ open, onClose, preference, resolvedTheme, onP
           <a href="mailto:support@abangcebu.ai" className={styles.navItem}><Headset aria-hidden="true" /><span>Contact support</span></a>
         </section>
         <footer className={styles.footer}>
-          <fieldset className={styles.appearance}>
-            <legend>Appearance</legend>
-            <div className={styles.appearanceOptions}>
-              <button type="button" className={styles.manualTheme} aria-pressed={preference !== "system"}
-                aria-label={`Switch to ${resolvedTheme === "dark" ? "light" : "dark"} mode`}
-                onClick={(event) => { void changeTheme(event.currentTarget, resolvedTheme === "dark" ? "light" : "dark"); }}>
-                {resolvedTheme === "dark" ? <Moon aria-hidden="true" /> : <Sun aria-hidden="true" />}
-                <span>{resolvedTheme === "dark" ? "Dark" : "Light"}</span>
-              </button>
-              <button type="button" className={styles.systemTheme} aria-pressed={preference === "system"} onClick={(event) => { void changeTheme(event.currentTarget, "system"); }}>
-                <Monitor aria-hidden="true" /><span>System</span>
-              </button>
-            </div>
-            {preference === "system" && <p className={styles.themeHint}>Matches your device appearance.</p>}
-          </fieldset>
+          <AppearanceControls preference={preference} resolvedTheme={resolvedTheme} onPreferenceChange={onPreferenceChange} />
           {authenticated
             ? <Link href="/account" className={styles.accountAction}><UserRound aria-hidden="true" /><span>Account settings</span></Link>
             : <button type="button" className={styles.accountAction} onClick={onAccount}><LogIn aria-hidden="true" /><span>Log in</span></button>}

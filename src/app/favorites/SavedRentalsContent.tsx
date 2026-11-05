@@ -6,6 +6,7 @@ import Link from "next/link";
 import { AccountMapBackground } from "@/app/account/AccountMapBackground";
 import { formatPrice } from "@/features/rentals/search";
 import { ArrowLeft, Bookmark, Building2, MapPin, Trash2 } from "lucide-react";
+import { notify } from "@/components/ui/AppToaster";
 
 type SavedRental = {
   id: string;
@@ -44,7 +45,6 @@ function SavedRentalsSession({ userId }: { userId: string }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [removingId, setRemovingId] = useState<string | null>(null);
-  const [notice, setNotice] = useState<string | null>(null);
   const [removeError, setRemoveError] = useState<string | null>(null);
   const retryController = useRef<AbortController | null>(null);
 
@@ -94,7 +94,6 @@ function SavedRentalsSession({ userId }: { userId: string }) {
     if (removingId) return;
     setRemovingId(id);
     setRemoveError(null);
-    setNotice(null);
     try {
       const response = await fetch("/api/favorites", {
         method: "DELETE",
@@ -109,7 +108,7 @@ function SavedRentalsSession({ userId }: { userId: string }) {
         throw new Error(message);
       }
       setRentals((current) => current.filter((rental) => rental.id !== id));
-      setNotice("Rental removed from your saved list.");
+      notify("success", "saved-rental-removed", "Rental removed from your saved list.");
     } catch (removeError) {
       setRemoveError(removeError instanceof Error ? removeError.message : "This rental could not be removed. Please try again.");
     } finally {
@@ -142,7 +141,6 @@ function SavedRentalsSession({ userId }: { userId: string }) {
             </div>
           </div>
 
-          {notice && <p className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-200" role="status">{notice}</p>}
           {removeError && <p className="mt-4 rounded-xl border border-destructive/30 bg-card/95 p-4 text-sm text-destructive shadow-sm" role="alert">{removeError}</p>}
           {error && <div className="mt-4 rounded-xl border border-destructive/30 bg-card/95 p-4 text-sm text-destructive shadow-sm" role="alert">
             <p className="m-0">{error}</p>

@@ -47,6 +47,37 @@ for (const width of [320, 430, 1280]) {
   }
 }
 
+test("login fields remain unchanged while authentication is pending", async ({ page }) => {
+  let release!: () => void;
+  const held = new Promise<void>(resolve => { release = resolve; });
+  let requests = 0;
+  await page.route(url => url.pathname === "/auth/v1/token", async route => {
+    requests += 1;
+    await held;
+    await route.fulfill({ status: 400, json: { code: "invalid_credentials", msg: "Invalid login credentials" } });
+  });
+  try {
+    await page.goto("/");
+    await page.getByRole("button", { name: "Open account dialog" }).click();
+    const dialog = page.getByRole("dialog");
+    const email = dialog.getByLabel("Email Address", { exact: true });
+    const password = dialog.getByLabel("Password", { exact: true });
+    await email.fill("pending@example.invalid");
+    await password.fill("Test-password1!");
+    await dialog.getByRole("button", { name: "Log In", exact: true }).click();
+    await expect(dialog.getByRole("button", { name: "Logging in…" })).toBeDisabled();
+    await expect(email).toHaveAttribute("readonly", "");
+    await expect(password).toHaveAttribute("readonly", "");
+    expect(requests).toBe(1);
+    release();
+    await expect(dialog.getByRole("alert")).toContainText("Invalid email or password.");
+    await expect(email).not.toHaveAttribute("readonly", "");
+    await expect(password).not.toHaveAttribute("readonly", "");
+  } finally {
+    release();
+  }
+});
+
 const challengeKeys = (value: unknown): string[] =>
   value && typeof value === "object"
     ? Object.entries(value).flatMap(([key, nested]) => [
@@ -87,6 +118,9 @@ for (const width of [430, 1280]) {
     const loginForm = dialog.locator("form");
     await loginForm.getByRole("button", { name: "Log In", exact: true }).click();
     await expect(dialog.getByRole("alert")).toContainText("Invalid email or password.");
+    await expect(dialog.getByRole("alert").locator("svg.lucide-circle-alert[aria-hidden=true]")).toHaveCount(1);
+    await expect(dialog.getByRole("alert")).toHaveClass(/border-destructive/);
+    await expect(dialog.getByRole("alert")).toHaveClass(/bg-destructive/);
     await loginForm.getByRole("button", { name: "Log In", exact: true }).click();
     await expect(dialog.getByRole("alert")).toContainText("Invalid email or password.");
     expect(loginPayloads).toHaveLength(2);
@@ -95,7 +129,7 @@ for (const width of [430, 1280]) {
       expect(challengeKeys(payload)).toEqual([]);
     }
 
-    await dialog.getByRole("group", { name: "Account access" }).getByRole("button", { name: "Register", exact: true }).click();
+    await dialog.getByRole("button", { name: "Register", exact: true }).click();
     await expect(challengeWidgets).toHaveCount(0);
     await dialog.getByLabel("Full Name", { exact: true }).fill("Browser Test");
     await dialog.getByLabel("Email Address", { exact: true }).fill("browser-register@example.invalid");
@@ -111,7 +145,7 @@ for (const width of [430, 1280]) {
       expect(challengeKeys(payload)).toEqual([]);
     }
 
-    await dialog.getByRole("group", { name: "Account access" }).getByRole("button", { name: "Log In", exact: true }).click();
+    await dialog.getByRole("button", { name: "Log in", exact: true }).click();
     await dialog.getByRole("button", { name: "Forgot password?" }).click();
     await expect(challengeWidgets).toHaveCount(0);
     await dialog.getByLabel("Email Address", { exact: true }).fill("browser-recovery@example.invalid");

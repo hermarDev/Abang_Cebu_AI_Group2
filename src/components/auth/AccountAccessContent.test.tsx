@@ -15,9 +15,7 @@ describe("AccountAccessContent", () => {
 
     expect(html).toContain('class="_accountHeading_');
     expect(html).toContain("Welcome back");
-    expect(html).toContain('role="group" aria-label="Account access"');
-    expect(html).toContain('aria-pressed="true">Log In</button>');
-    expect(html).toContain('aria-pressed="false">Register</button>');
+    expect(html).not.toContain('role="group" aria-label="Account access"');
     expect(html).not.toContain("Welcome Back");
     expect(html).not.toContain('class="w-full max-w-md mx-auto shadow-md"');
     expect(html).toContain(">Log In</button>");
@@ -41,7 +39,7 @@ describe("AccountAccessContent", () => {
     const tree = <AccountAccessContent mode="sign-in" onModeChange={(value) => modes.push(typeof value === "function" ? value("sign-in") : value)} />;
     const html = renderToStaticMarkup(tree);
     expect(html).toContain("Welcome back");
-    expect(html).toContain(">Register</button>");
+    expect(html).not.toContain('role="group" aria-label="Account access"');
     expect(modes).toEqual([]);
   });
 
@@ -54,7 +52,7 @@ describe("AccountAccessContent", () => {
   it("does not link to separate login or registration routes", () => {
     const html = renderToStaticMarkup(<AccountAccessContent mode="sign-in" onModeChange={vi.fn()} />);
 
-    expect(html).toContain('aria-pressed="false">Register</button>');
+    expect(html).not.toContain('role="group" aria-label="Account access"');
     expect(html).not.toContain("Register here");
     expect(html).not.toContain('href="/register"');
     expect(html).not.toContain('href="/login"');
@@ -63,9 +61,7 @@ describe("AccountAccessContent", () => {
   it("shows account creation inside the same account switcher", () => {
     const html = renderToStaticMarkup(<AccountAccessContent mode="sign-up" onModeChange={vi.fn()} />);
 
-    expect(html).toContain('aria-pressed="false">Log In</button>');
-    expect(html).toContain('aria-pressed="true">Register</button>');
-    expect(html).toMatch(/class="[^"]*accountModeTabActive/);
+    expect(html).not.toContain('role="group" aria-label="Account access"');
     expect(html).toContain("Create your account");
     expect(html).not.toContain("Create an Account");
     expect(html).not.toContain("shadow-md");

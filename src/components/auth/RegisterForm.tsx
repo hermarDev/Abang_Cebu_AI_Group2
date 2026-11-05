@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useMemo, useState } from "react";
+import { useId, useState } from "react";
 import { Eye, EyeOff, Mail, LockKeyhole, UserRound, Search, HousePlus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import * as RadioGroup from "@radix-ui/react-radio-group";
@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/Input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
 import { validateRegistration } from "@/lib/auth/validation";
 import type { RegisterPayload } from "@/types/auth";
+import { PasswordRequirements } from "./PasswordRequirements";
 
 export function RegisterForm({ onLogin }: { onLogin?: () => void } = {}) {
   const router = useRouter();
@@ -26,32 +27,23 @@ export function RegisterForm({ onLogin }: { onLogin?: () => void } = {}) {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<keyof RegisterPayload, string>>>({});
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [submitted, setSubmitted] = useState(false);
+  const updateFieldError = (field: "fullName" | "email" | "password", value: string) => {
+    if (!submitted) return;
+    const validation = validateRegistration({ fullName, email, password, role, [field]: value });
+    setFieldErrors(errors => ({ ...errors, [field]: validation.ok ? undefined : validation.errors[field] }));
+  };
   const [registered, setRegistered] = useState(false);
-
-  // Live password strength calculation
-  const strengthScore = useMemo(() => {
-    let score = 0;
-    if (password.length >= 8) score++;
-    if (/[a-z]/.test(password) && /[A-Z]/.test(password)) score++;
-    if (/\d/.test(password)) score++;
-    if (/[^a-zA-Z0-9]/.test(password)) score++;
-    return score;
-  }, [password]);
-
-  const strengthLabel = useMemo(() => {
-    if (!password) return "";
-    if (strengthScore <= 1) return "Weak";
-    if (strengthScore <= 3) return "Moderate";
-    return "Strong";
-  }, [password, strengthScore]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const form = e.currentTarget as HTMLFormElement;
     setErrorMessage(null);
     setFieldErrors({});
     setSuccessMessage(null);
     setRegistered(false);
     if (loading) return;
+    setSubmitted(true);
     const validation = validateRegistration({ fullName, email, password, role });
     if (!validation.ok) {
       setFieldErrors(validation.errors);
@@ -79,6 +71,8 @@ export function RegisterForm({ onLogin }: { onLogin?: () => void } = {}) {
         if (typeof details === "object" && details !== null) {
           const errors = details as Partial<Record<keyof RegisterPayload, unknown>>;
           setFieldErrors(Object.fromEntries(Object.entries(errors).filter((entry): entry is [string, string] => typeof entry[1] === "string")) as Partial<Record<keyof RegisterPayload, string>>);
+          const firstInvalid = (["fullName", "email", "password"] as const).find(field => typeof errors[field] === "string" && errors[field]);
+          if (firstInvalid) form.querySelector<HTMLInputElement>(`[name="${firstInvalid}"]`)?.focus();
         }
         setErrorMessage(data?.error?.message || "Registration failed. Please check your inputs.");
       } else {
@@ -109,12 +103,12 @@ export function RegisterForm({ onLogin }: { onLogin?: () => void } = {}) {
           aria-label="Account type"
         >
           <RadioGroup.Item value="renter" className={`min-h-11 flex-1 rounded text-center text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring ${
-            role === "renter" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+            role === "renter" ? "bg-accent text-accent-foreground ring-1 ring-inset ring-ring" : "text-muted-foreground hover:text-foreground"
           }`}>
             <span className="inline-flex items-center justify-center gap-2"><Search size={18} aria-hidden="true" />Renter</span> <span className="block text-xs font-normal">Find rentals</span>
           </RadioGroup.Item>
           <RadioGroup.Item value="landlord" className={`min-h-11 flex-1 rounded text-center text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring ${
-            role === "landlord" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+            role === "landlord" ? "bg-accent text-accent-foreground ring-1 ring-inset ring-ring" : "text-muted-foreground hover:text-foreground"
           }`}>
             <span className="inline-flex items-center justify-center gap-2"><HousePlus size={18} aria-hidden="true" />Landlord</span> <span className="block text-xs font-normal">List properties</span>
           </RadioGroup.Item>
@@ -124,11 +118,11 @@ export function RegisterForm({ onLogin }: { onLogin?: () => void } = {}) {
           <div className="p-4 text-center rounded bg-accent text-accent-foreground border border-border" role="status">
             <h4 className="font-semibold mb-1">Check Your Email</h4>
             <p className="text-sm">{successMessage}</p>
-            <div className="mt-4">
-              <button type="button" className="text-sm font-medium text-action hover:underline" onClick={onLogin ?? (() => router.push("/login"))}>
-                {onLogin ? "Log In" : "Return to Login"}
+            {!onLogin && <div className="mt-4">
+              <button type="button" className="text-sm font-medium text-action hover:underline" onClick={() => router.push("/login")}>
+                Return to Login
               </button>
-            </div>
+            </div>}
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4" noValidate>
@@ -143,8 +137,9 @@ export function RegisterForm({ onLogin }: { onLogin?: () => void } = {}) {
                 id={nameId}
                 name="fullName"
                 type="text"
+                placeholder="Enter your full name"
                 value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
+                onChange={(e) => { setFullName(e.target.value); updateFieldError("fullName", e.target.value); }}
                 autoComplete="name"
                 aria-invalid={Boolean(fieldErrors.fullName)}
                 aria-describedby={fieldErrors.fullName ? `${nameId}-error` : undefined}
@@ -165,8 +160,9 @@ export function RegisterForm({ onLogin }: { onLogin?: () => void } = {}) {
                 id={emailId}
                 name="email"
                 type="email"
+                placeholder="Enter your email address"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => { setEmail(e.target.value); updateFieldError("email", e.target.value); }}
                 autoComplete="email"
                 aria-invalid={Boolean(fieldErrors.email)}
                 aria-describedby={fieldErrors.email ? `${emailId}-error` : undefined}
@@ -187,8 +183,9 @@ export function RegisterForm({ onLogin }: { onLogin?: () => void } = {}) {
                   name="password"
                   className="pl-10 pr-12"
                   type={showPassword ? "text" : "password"}
+                  placeholder="Create a password"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => { setPassword(e.target.value); updateFieldError("password", e.target.value); }}
                   autoComplete="new-password"
                   minLength={8}
                   maxLength={72}
@@ -207,28 +204,7 @@ export function RegisterForm({ onLogin }: { onLogin?: () => void } = {}) {
                 </button>
               </div>
 
-              <p id={`${passwordId}-policy`} className="mt-2 text-xs text-muted-foreground">Use 8–72 characters and at least 3 of: uppercase, lowercase, numbers, and symbols.</p>
-              {password && (
-                <div className="mt-2 text-xs flex items-center justify-between">
-                  <span className="text-muted-foreground">Strength: {strengthLabel}</span>
-                  <div className="flex gap-1">
-                    {[1, 2, 3, 4].map((step) => (
-                      <div
-                        key={step}
-                        className={`h-1.5 w-6 rounded-full ${
-                          strengthScore >= step
-                            ? strengthScore <= 1
-                              ? "bg-destructive"
-                              : strengthScore <= 3
-                              ? "bg-warning"
-                              : "bg-action"
-                            : "bg-muted"
-                        }`}
-                      />
-                    ))}
-                  </div>
-                </div>
-              )}
+              <PasswordRequirements id={`${passwordId}-policy`} password={password} />
             </div>
             {errorMessage && (
               <div className="p-3 text-sm rounded bg-destructive/10 text-destructive border border-destructive/20" role="alert">

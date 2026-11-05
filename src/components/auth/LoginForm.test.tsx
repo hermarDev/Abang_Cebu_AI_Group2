@@ -12,6 +12,8 @@ describe("LoginForm", () => {
     expect(html).toContain("Welcome Back");
     expect(html).toContain('type="email"');
     expect(html).toContain('type="password"');
+    expect(html).toContain('placeholder="Enter your email address"');
+    expect(html).toContain('placeholder="Enter your password"');
     expect(html).toContain("Log in to your AbangCebu account");
     expect(html).not.toContain("Sign In");
     expect(html).not.toContain("Register here");

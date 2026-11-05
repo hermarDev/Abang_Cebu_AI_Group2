@@ -23,7 +23,7 @@ export type RegisterableRole = Exclude<UserRole, 'admin'>; // 'renter' | 'landlo
 export interface RegisterPayload {
   /** User primary email address (RFC 5322 compliant) */
   email: string;
-  /** Password satisfying complexity policy (8-72 characters, 3 of 4 classes) */
+  /** Password satisfying complexity policy (8-72 characters, all 4 classes) */
   password: string;
   /** Publicly self-assignable role ('renter' or 'landlord') */
   role: RegisterableRole;
@@ -500,7 +500,7 @@ export const REGISTRATION_VALIDATION_RULES = {
   password: {
     minLength: 8,
     maxLength: 72,
-    minCharacterClasses: 3,
+    minCharacterClasses: 4,
     classes: {
       uppercase: /[A-Z]/,
       lowercase: /[a-z]/,
@@ -508,7 +508,7 @@ export const REGISTRATION_VALIDATION_RULES = {
       symbol: /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?~`]/,
     },
     description:
-      '8 to 72 characters, satisfying at least 3 of 4 classes: uppercase, lowercase, numbers, special characters',
+      '8 to 72 characters, including uppercase, lowercase, numbers, and special characters',
   },
   phoneNumber: {
     /** Philippine mobile number pattern matching +639XXXXXXXXX or 09XXXXXXXXX */
@@ -566,7 +566,7 @@ export interface PasswordStrengthResult {
 }
 
 /**
- * Validates password against the AbangCebuAI security policy (8-72 chars, min 3 of 4 classes).
+ * Validates password against the AbangCebuAI security policy (8-72 chars, all 4 classes).
  */
 export function validatePasswordStrength(password: string): PasswordStrengthResult {
   const unmetCriteria: string[] = [];

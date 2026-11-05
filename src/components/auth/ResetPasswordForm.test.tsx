@@ -45,6 +45,29 @@ vi.mock("next/navigation", () => ({ useRouter: () => ({ replace, refresh }) }));
 
 
 describe("ResetPasswordForm", () => {
+  it("associates weak-password server feedback and requirements with the new password", async () => {
+    state.active = true;
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: false, json: async () => ({ success: false, error: { code: "WEAK_PASSWORD", message: "Choose a stronger password." } }) }));
+    for (const name of ["newPassword", "confirmPassword"]) {
+      const input = findElement(renderForm(true), (element) => element.props.name === name)!;
+      (input.props.onChange as (event: { target: { value: string } }) => void)({ target: { value: "weakpassword" } });
+    }
+    const focus = vi.fn();
+    const querySelector = vi.fn(() => ({ focus }));
+    const form = findElement(renderForm(true), (element) => element.type === "form")!;
+    await (form.props.onSubmit as (event: unknown) => Promise<void>)({ preventDefault: vi.fn(), currentTarget: { querySelector } });
+    expect(querySelector).toHaveBeenCalledWith('[name="newPassword"]');
+    expect(focus).toHaveBeenCalledOnce();
+    const input = findElement(renderForm(true), (element) => element.props.name === "newPassword")!;
+    expect(input.props["aria-invalid"]).toBe(true);
+    expect(input.props["aria-describedby"]).toContain(`${input.props.id}-policy`);
+    expect(input.props["aria-describedby"]).toContain(`${input.props.id}-error`);
+    const html = renderToStaticMarkup(renderForm(true));
+    expect(html).toContain(`id="${input.props.id}-policy"`);
+    expect(html).toContain(`id="${input.props.id}-error"`);
+    expect(html).not.toContain("temporarily unavailable");
+    expect(input.props.value).toBe("weakpassword");
+  });
   it("blocks mismatched recovery passwords, focuses confirmation and links its error", async () => {
     state.active = true;
     const request = vi.fn();
@@ -76,7 +99,8 @@ describe("ResetPasswordForm", () => {
     const html = renderToStaticMarkup(<ResetPasswordForm isRecovery />);
 
     expect(html).toContain("Choose a new password");
-    expect(html).toContain("Use 8–72 characters and include at least three");
+    expect(html).toContain("Password requirements");
+    for (const label of ["8–72 characters", "Uppercase letter", "Lowercase letter", "Number", "Symbol"]) expect(html).toContain(label);
     expect(html).toContain('name="newPassword"');
     expect(html).toContain('name="confirmPassword"');
     expect(html).toContain('autoComplete="new-password"');

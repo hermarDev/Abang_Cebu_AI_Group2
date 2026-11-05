@@ -125,7 +125,8 @@ export async function POST(request: Request) {
 
   const apiKey = process.env.GROQ_API_KEY?.trim();
   if (!apiKey) {
-    return Response.json({ error: "The assistant needs a Groq API key. Add GROQ_API_KEY to .env.local, then restart the development server." }, { status: 503, headers: responseHeaders });
+    console.error("Assistant unavailable: provider configuration missing.");
+    return Response.json({ error: "The assistant is temporarily unavailable. Please try again later." }, { status: 503, headers: responseHeaders });
   }
 
   try {
@@ -156,14 +157,10 @@ export async function POST(request: Request) {
     });
 
     if (!upstream.ok) {
-      const providerErrors: Record<number, string> = {
-        400: "Groq rejected the model or request. Check GROQ_MODEL and use a currently supported model.",
-        401: "Groq rejected the API key. Replace it with a valid key in .env.local, then restart the development server.",
-        403: "Groq denied access to this model. Check the key's project and model access in Groq.",
-        404: "The selected Groq model was not found. Set GROQ_MODEL to a currently supported model.",
-        429: "Groq's usage limit was reached. Check your Groq account limits, then try again later.",
-      };
-      const error = providerErrors[upstream.status] ?? "Groq could not process the request just now. Please try again shortly.";
+      console.error("Assistant provider request failed with status", upstream.status);
+      const error = upstream.status === 429
+        ? "The assistant is busy. Please try again later."
+        : "The assistant is temporarily unavailable. Please try again later.";
       const status = upstream.status === 429 ? 429 : 502;
       return Response.json({ error }, { status, headers: responseHeaders });
     }

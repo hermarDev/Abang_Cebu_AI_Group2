@@ -14,9 +14,10 @@ describe("LogoutPage", () => {
   it("renders a confirmation screen instead of redirecting GET to a POST-only API", () => {
     const html = renderToStaticMarkup(<LogoutPage />);
 
-    expect(html).toContain("Sign out of AbangCebu?");
+    expect(html).toContain("Log out of AbangCebu?");
     expect(html).toContain("Cancel");
-    expect(html).toContain("Sign out");
+    expect(html).toContain("Log out");
+    expect(html).not.toContain("Sign out");
     expect(html).not.toContain("LogoutSyncListener");
   });
 });

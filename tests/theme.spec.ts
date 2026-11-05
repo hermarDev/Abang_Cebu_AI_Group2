@@ -12,6 +12,8 @@ for (const width of [430, 1440]) {
     await expect(appearance.getByRole("button")).toHaveCount(2);
     await expect(appearance.getByRole("combobox")).toHaveCount(0);
     await expect(system).toHaveAttribute("aria-pressed", "true");
+    await expect(appearance.getByText("Matches your device appearance.")).toHaveCount(0);
+    await expect(appearance.locator("legend")).toHaveCSS("text-transform", "none");
     await expect(toggle).toHaveText("Light");
     await toggle.click();
     await expect(toggle).toHaveText("Dark");

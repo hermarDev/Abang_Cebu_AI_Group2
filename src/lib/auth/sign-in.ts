@@ -1,12 +1,15 @@
 import { createClient } from "@/lib/supabase/client";
-import { mapSupabaseAuthError } from "@/lib/auth/auth-error";
 import { isRegisterableRole, isSafeRedirectUrl } from "@/types/auth";
 
 export type SignInResult = { success: true; role: "renter" | "landlord" } | { success: false; message: string };
 
-export function getPostLoginRedirect(destination: string | null): string {
-  if (destination && isSafeRedirectUrl(destination)) return destination;
-  return "/";
+export function getPostLoginRedirect(destination: string | null, role?: "renter" | "landlord"): string {
+  if (destination && isSafeRedirectUrl(destination)) {
+    const pathname = new URL(destination, "http://localhost").pathname;
+    if (role === "landlord" && (pathname === "/" || pathname === "/map")) return "/landlord/dashboard";
+    return destination;
+  }
+  return role === "landlord" ? "/landlord/dashboard" : "/";
 }
 
 export async function signInWithEmail(
@@ -31,10 +34,11 @@ export async function signInWithEmail(
   if (error || !data.user) {
     return {
       success: false,
-      message: mapSupabaseAuthError(error, {
-        fallbackMessage: "Invalid email or password.",
-        fallbackStatus: 401,
-      }).body.error.message,
+      message: error?.status === 429 || error?.code === "over_request_rate_limit"
+        ? "Too many login attempts. Please try again later."
+        : error?.code === "invalid_credentials"
+          ? "Invalid email or password."
+          : "Sign in is temporarily unavailable. Please try again.",
     };
   }
 
