@@ -1,0 +1,15 @@
+.themeTransition::view-transition-old(root),
+.themeTransition::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
+.themeTransition::view-transition-old(root) { z-index: 1; }
+.themeTransition::view-transition-new(root) { z-index: 2; }
+
+.appearance { --appearance-blue: #1d4ed8; --appearance-selected: #eff6ff; min-width: 0; margin: 0; border: 0; padding: 0; }
+:global(.dark) .appearance { --appearance-blue: #93c5fd; --appearance-selected: #172f50; }
+.appearance legend { margin-bottom: 8px; color: var(--muted-foreground); font-size: 13px; font-weight: 700; }
+.appearanceOptions { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 4px; border-radius: 8px; padding: 4px; background: var(--muted); }
+.collapsed { grid-template-columns: minmax(0, 1fr); }
+.themeButton { display: flex; min-width: 0; min-height: 44px; align-items: center; justify-content: center; gap: 6px; border: 1px solid transparent; border-radius: 6px; padding: 8px; background: transparent; color: var(--muted-foreground); cursor: pointer; font: inherit; font-size: 13px; font-weight: 600; }
+.themeButton[aria-pressed="true"] { border-color: var(--appearance-blue); background: var(--appearance-selected); color: var(--appearance-blue); }
+.themeButton:hover { background: var(--accent); }
+.themeButton:focus-visible { outline: 3px solid var(--ring); outline-offset: 2px; }
+.themeButton svg { width: 20px; height: 20px; flex-shrink: 0; stroke-width: 1.75; }

@@ -14,7 +14,9 @@ export function LoginForm({
   onRegister,
   onForgotPassword,
   statusMessage: initialStatusMessage,
+  onSuccess,
 }: {
+  onSuccess?: () => void;
   onRegister?: () => void;
   onForgotPassword?: () => void;
   statusMessage?: string;
@@ -29,13 +31,16 @@ export function LoginForm({
   const [statusIsError, setStatusIsError] = useState(!initialStatusMessage);
   const [loading, setLoading] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string }>({});
+  const [submitted, setSubmitted] = useState(false);
+  const emailError = (value: string) => !value.trim() ? "Enter your email address." : !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim()) ? "Enter a valid email address." : undefined;
   const Surface = onRegister ? "div" : Card;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (loading) return;
+    setSubmitted(true);
     const errors = {
-      email: !email.trim() ? "Enter your email address." : !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()) ? "Enter a valid email address." : undefined,
+      email: emailError(email),
       password: !password ? "Enter your password." : undefined,
     };
     setFieldErrors(errors);
@@ -53,8 +58,9 @@ export function LoginForm({
         return;
       }
       setStatusIsError(false);
+      onSuccess?.();
       const next = new URLSearchParams(window.location.search).get("next");
-      router.replace(getPostLoginRedirect(next));
+      router.replace(getPostLoginRedirect(next, result.role));
       router.refresh();
     } catch {
       setStatusIsError(true);
@@ -86,8 +92,9 @@ export function LoginForm({
               aria-invalid={Boolean(fieldErrors.email)}
               aria-describedby={fieldErrors.email ? `${emailId}-error` : undefined}
               type="email"
+              placeholder="Enter your email address"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => { const value = e.target.value; setEmail(value); if (submitted) setFieldErrors(errors => ({ ...errors, email: emailError(value) })); }}
               autoComplete="email"
               required
             />
@@ -114,8 +121,9 @@ export function LoginForm({
                 aria-describedby={fieldErrors.password ? `${passwordId}-error` : undefined}
                 className="pl-10 pr-12"
                 type={showPassword ? "text" : "password"}
+                placeholder="Enter your password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => { const value = e.target.value; setPassword(value); if (submitted) setFieldErrors(errors => ({ ...errors, password: value ? undefined : "Enter your password." })); }}
                 autoComplete="current-password"
                 required
               />

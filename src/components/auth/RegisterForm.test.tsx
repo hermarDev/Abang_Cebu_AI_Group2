@@ -65,6 +65,9 @@ afterEach(() => {
 describe("RegisterForm", () => {
   it("shows registration intent descriptions and canonical Log In labels", () => {
     const html = renderToStaticMarkup(<RegisterForm onLogin={() => {}} />);
+    expect(html).toContain('placeholder="Enter your full name"');
+    expect(html).toContain('placeholder="Enter your email address"');
+    expect(html).toContain('placeholder="Create a password"');
     expect(html).toContain("Find rentals");
     expect(html).toContain("List properties");
     expect(html).not.toContain("Already have an account?");

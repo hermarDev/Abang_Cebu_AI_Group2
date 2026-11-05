@@ -34,6 +34,12 @@ function render(rentalStatus?: "loading" | "error" | "ready") {
   return renderToStaticMarkup(<RestoredFinderShell rentalStatus={rentalStatus} />);
 }
 
+it("uses destructive colors for chat deletion actions", () => {
+  const css = readFileSync("src/features/map/RestoredFinderShell.module.css", "utf8");
+  expect(css).toMatch(/\.chatDeleteButton:hover\s*\{[^}]*color:\s*var\(--destructive\)/);
+  expect(css).toMatch(/\.chatDeleteConfirm button:first-of-type\s*\{[^}]*background:\s*var\(--destructive\);\s*color:\s*var\(--destructive-foreground\)/);
+});
+
 it("renders decorative skeleton cards only while inventory loads", () => {
   expect(render("loading")).toContain('data-testid="rental-loading-skeletons"');
   expect(render("ready")).not.toContain('data-testid="rental-loading-skeletons"');

@@ -102,6 +102,19 @@ describe("signInWithEmail", () => {
 });
 
 describe("getPostLoginRedirect", () => {
+  it("keeps landlords in the workspace for map destinations", () => {
+    expect(getPostLoginRedirect("/", "landlord")).toBe("/landlord/dashboard");
+    expect(getPostLoginRedirect("/map?view=all", "landlord")).toBe("/landlord/dashboard");
+    expect(getPostLoginRedirect("/landlord/map", "landlord")).toBe("/landlord/map");
+  });
+
+  it("defaults landlords to their dashboard while honoring safe destinations", () => {
+    expect(getPostLoginRedirect(null, "landlord")).toBe("/landlord/dashboard");
+    expect(getPostLoginRedirect(null, "renter")).toBe("/");
+    expect(getPostLoginRedirect("/favorites", "landlord")).toBe("/favorites");
+    expect(getPostLoginRedirect("//attacker.example", "landlord")).toBe("/landlord/dashboard");
+  });
+
   it("returns only a safe local destination", () => {
     expect(getPostLoginRedirect("/favorites?tab=saved")).toBe("/favorites?tab=saved");
     expect(getPostLoginRedirect("//attacker.example")).toBe("/");

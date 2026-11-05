@@ -11,6 +11,34 @@ afterEach(() => {
   vi.clearAllMocks();
 });
 
+function assistantRequest() {
+  return new Request("http://localhost/api/assistant", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "X-Assistant-Owner": "guest" },
+    body: JSON.stringify({ messages: [{ role: "user", content: "Hello" }] }),
+  });
+}
+
+it("returns safe feedback when assistant configuration is missing", async () => {
+  mocks.access.mockResolvedValue({ user: null, supabase: {} });
+  vi.stubEnv("GROQ_API_KEY", "");
+  const response = await POST(assistantRequest());
+  expect(response?.status).toBe(503);
+  expect(await response?.json()).toEqual({ error: "The assistant is temporarily unavailable. Please try again later." });
+});
+
+it.each([400, 401, 403, 404, 429, 500])("sanitizes upstream %s errors", async (upstreamStatus) => {
+  mocks.access.mockResolvedValue({ user: null, supabase: {} });
+  vi.stubEnv("GROQ_API_KEY", "fixture-secret");
+  mocks.provider.mockResolvedValue(new Response("fixture-secret private provider details", { status: upstreamStatus }));
+  vi.stubGlobal("fetch", mocks.provider);
+  const response = await POST(assistantRequest());
+  expect(response?.status).toBe(upstreamStatus === 429 ? 429 : 502);
+  expect(await response?.json()).toEqual({ error: upstreamStatus === 429
+    ? "The assistant is busy. Please try again later."
+    : "The assistant is temporarily unavailable. Please try again later." });
+});
+
 it("sends a rental-focused scope and off-topic redirection policy to the provider", async () => {
   mocks.access.mockResolvedValue({ user: null, supabase: {} });
   mocks.provider.mockResolvedValue(Response.json({ choices: [{ message: { content: "I can help with Cebu rentals." } }] }));

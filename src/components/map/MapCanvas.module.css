@@ -33,7 +33,7 @@
     margin-bottom: 0;
   }
 
-  .mapRoot :global(.maplibregl-ctrl-attrib.maplibregl-compact[open]) {
+  .mapRoot :global(.maplibregl-ctrl-attrib.maplibregl-compact.maplibregl-compact-show) {
     padding: 2px 28px 2px 8px;
   }
 
@@ -56,7 +56,7 @@
     margin-bottom: 0;
   }
 
-  .mapRoot :global(.maplibregl-ctrl-attrib.maplibregl-compact[open]) {
+  .mapRoot :global(.maplibregl-ctrl-attrib.maplibregl-compact.maplibregl-compact-show) {
     padding: 2px 28px 2px 8px;
   }
 
