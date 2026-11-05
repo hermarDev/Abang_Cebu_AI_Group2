@@ -5,8 +5,8 @@ import { ArrowLeft } from "lucide-react";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { signProfileAvatar } from "@/lib/profile-avatar";
-import { AccountMapBackground } from "./AccountMapBackground";
 import { AccountSettingsForm } from "./AccountSettingsForm";
+import { LandlordMobileNav } from "@/features/landlord/LandlordMobileNav";
 
 export const metadata: Metadata = {
   title: "Account settings — AbangCebu",
@@ -24,17 +24,13 @@ export default async function AccountPage() {
     .eq("id", user.id)
     .maybeSingle();
   const avatarUrl = profile ? await signProfileAvatar(user.id, profile.avatar_url) : null;
-  const hasCustomMapStyle = Boolean(process.env.NEXT_PUBLIC_MAP_STYLE_URL && process.env.NEXT_PUBLIC_MAP_STYLE_URL !== "/styles/osm.json");
 
-  return <>
-  <main className="relative isolate h-[100dvh] overflow-hidden bg-transparent text-foreground">
-    <AccountMapBackground />
-    <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-[1]" style={{ backgroundColor: "color-mix(in srgb, var(--background) 36%, transparent)", backdropFilter: "blur(1.5px)" }} />
+  return <main className="relative isolate h-[100dvh] overflow-hidden bg-background text-foreground">
     <div className="absolute inset-0 z-10 overflow-y-auto overscroll-contain">
-    <div className="mx-auto w-full max-w-6xl px-4 pt-5 pb-20 sm:px-6 sm:pt-8 sm:pb-20 lg:px-8">
+    <div className="mx-auto w-full max-w-6xl px-4 pt-5 pb-[calc(5rem+env(safe-area-inset-bottom))] sm:px-6 sm:pt-8 lg:px-8 lg:pb-20">
       <header className="sticky top-3 z-20 flex items-center justify-between gap-4 rounded-2xl border border-border/70 bg-white/90 p-3 shadow-sm backdrop-blur-sm dark:bg-slate-950/90 sm:px-5">
-        <Link href="/" className="inline-flex min-h-11 items-center gap-2 rounded-lg px-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
-          <ArrowLeft size={18} aria-hidden="true" /> Back to map
+        <Link href={profile?.role === "landlord" ? "/landlord/dashboard" : "/"} className="inline-flex min-h-11 items-center gap-2 rounded-lg px-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
+          <ArrowLeft size={18} aria-hidden="true" /> {profile?.role === "landlord" ? "Back to workspace" : "Back to map"}
         </Link>
         <Image src="/icons/main_Logo.png" alt="AbangCebu" width={299} height={100} className="h-auto w-32 dark:hidden" loading="eager" />
         <Image src="/icons/main_Logo_Light.png" alt="" width={299} height={100} className="hidden h-auto w-32 dark:block" loading="eager" />
@@ -58,12 +54,6 @@ export default async function AccountPage() {
       </div>
     </div>
   </div>
-  </main>
-  {!hasCustomMapStyle && <footer className="pointer-events-none fixed right-4 bottom-2 z-20">
-    <details open className="pointer-events-auto rounded-xl border border-border/70 bg-white/90 px-3 py-2 text-xs text-muted-foreground shadow-sm dark:bg-slate-950/90">
-      <summary className="cursor-pointer">Map data</summary>
-      <p className="mt-2"><a className="underline underline-offset-2" href="https://openfreemap.org" target="_blank" rel="noreferrer">OpenFreeMap</a>, <a className="underline underline-offset-2" href="https://www.openmaptiles.org/" target="_blank" rel="noreferrer">© OpenMapTiles</a>, and <a className="underline underline-offset-2" href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">© OpenStreetMap contributors</a>.</p>
-    </details>
-  </footer>}
-  </>;
+  {profile?.role === "landlord" && <LandlordMobileNav />}
+  </main>;
 }

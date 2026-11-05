@@ -29,6 +29,34 @@ test("mobile map controls stay compact and attribution can expand", async ({ pag
   await expect(locate).toBeHidden();
 });
 
+for (const viewport of [{ width: 430, height: 800 }, { width: 1440, height: 900 }]) {
+  test(`attribution becomes circular after dragging the map at ${viewport.width}px`, async ({ page }) => {
+    await page.setViewportSize(viewport);
+    await page.goto("/");
+    const attribution = page.locator(".maplibregl-ctrl-attrib");
+    const toggle = page.locator(".maplibregl-ctrl-attrib-button");
+    const credits = page.getByRole("link", { name: "OpenFreeMap", exact: true });
+    await expect(toggle).toBeVisible();
+    if (!(await credits.isVisible())) await toggle.click();
+    await expect(credits).toBeVisible();
+    const canvas = await page.locator("canvas.maplibregl-canvas").boundingBox();
+    expect(canvas).not.toBeNull();
+    const x = canvas!.x + canvas!.width * 0.65;
+    const y = canvas!.y + canvas!.height * 0.45;
+    await page.mouse.move(x, y);
+    await page.mouse.down();
+    await page.mouse.move(x + 80, y + 20, { steps: 5 });
+    await page.mouse.up();
+    await expect(attribution).not.toHaveClass(/maplibregl-compact-show/);
+    await expect(credits).toBeHidden();
+    const collapsed = await attribution.boundingBox();
+    expect(collapsed).not.toBeNull();
+    expect(Math.abs(collapsed!.width - collapsed!.height)).toBeLessThanOrEqual(1);
+    await toggle.click();
+    await expect(credits).toBeVisible();
+  });
+}
+
 test("map attribution remains clickable on a short landscape viewport", async ({ page }) => {
   await page.setViewportSize({ width: 844, height: 390 });
   await page.goto("/");

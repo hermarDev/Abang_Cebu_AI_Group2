@@ -56,7 +56,8 @@ test("login route opens without a renter or landlord role selector", async ({ pa
   await page.goto("/login");
   const dialog = page.getByRole("dialog");
   await expect(dialog).toBeVisible();
-  await expect(dialog.getByRole("group", { name: "Account access" })).toBeVisible();
+  await expect(dialog.getByRole("group", { name: "Account access" })).toHaveCount(0);
+  await expect(dialog.getByRole("button", { name: "Register", exact: true })).toBeVisible();
   await expect(dialog.getByRole("radiogroup", { name: "Account type" })).toHaveCount(0);
   await expect(dialog.getByRole("radio", { name: /Renter/ })).toHaveCount(0);
   await expect(dialog.getByRole("radio", { name: /Landlord/ })).toHaveCount(0);
@@ -76,7 +77,7 @@ test("guest can open account access, switch modes and dismiss with Escape", asyn
   await expect(dialog.getByRole("radio", { name: /Renter Find rentals/ })).toBeVisible();
   await expect(dialog.getByRole("radio", { name: /Landlord List properties/ })).toBeVisible();
   await expect(dialog.getByRole("button", { name: "Register as Renter", exact: true })).toBeVisible();
-  await dialog.getByRole("group", { name: "Account access" }).getByRole("button", { name: "Log In", exact: true }).click();
+  await dialog.getByRole("button", { name: "Log in", exact: true }).click();
   await expect(dialog.getByRole("textbox", { name: "Email Address", exact: true })).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(dialog).not.toBeVisible();

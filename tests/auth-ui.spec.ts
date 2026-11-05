@@ -95,7 +95,7 @@ for (const width of [430, 1280]) {
       expect(challengeKeys(payload)).toEqual([]);
     }
 
-    await dialog.getByRole("group", { name: "Account access" }).getByRole("button", { name: "Register", exact: true }).click();
+    await dialog.getByRole("button", { name: "Register", exact: true }).click();
     await expect(challengeWidgets).toHaveCount(0);
     await dialog.getByLabel("Full Name", { exact: true }).fill("Browser Test");
     await dialog.getByLabel("Email Address", { exact: true }).fill("browser-register@example.invalid");
@@ -111,7 +111,7 @@ for (const width of [430, 1280]) {
       expect(challengeKeys(payload)).toEqual([]);
     }
 
-    await dialog.getByRole("group", { name: "Account access" }).getByRole("button", { name: "Log In", exact: true }).click();
+    await dialog.getByRole("button", { name: "Log in", exact: true }).click();
     await dialog.getByRole("button", { name: "Forgot password?" }).click();
     await expect(challengeWidgets).toHaveCount(0);
     await dialog.getByLabel("Email Address", { exact: true }).fill("browser-recovery@example.invalid");

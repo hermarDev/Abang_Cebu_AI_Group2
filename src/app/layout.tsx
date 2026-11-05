@@ -4,6 +4,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import "./globals.css";
 import { LogoutSyncListener } from "@/components/auth/LogoutSyncListener";
 import { ThemeSync } from "@/components/theme/ThemeSync";
+import { AppToaster } from "@/components/ui/AppToaster";
 
 const manrope = localFont({ src: "../../public/fonts/manrope-latin-wght-normal.woff2", variable: "--font-manrope", weight: "200 800" });
 
@@ -36,6 +37,7 @@ export default function RootLayout({
       >
         <ThemeSync />
         <LogoutSyncListener />
+        <AppToaster />
         {children}
       </body>
     </html>

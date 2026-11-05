@@ -21,6 +21,8 @@ export function ResetPasswordForm({ isRecovery = false, onBackToLogin, embedded 
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [passwordMismatch, setPasswordMismatch] = useState(false);
+  const [mismatchChecked, setMismatchChecked] = useState(false);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [isError, setIsError] = useState(false);
@@ -28,11 +30,14 @@ export function ResetPasswordForm({ isRecovery = false, onBackToLogin, embedded 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const form = e.currentTarget as HTMLFormElement;
     if (loading) return;
     setMessage(null);
     setIsError(false);
     setPasswordMismatch(false);
+    setPasswordError(null);
     if (isRecovery && newPassword !== confirmPassword) {
+      setMismatchChecked(true);
       setPasswordMismatch(true);
       (e.currentTarget as HTMLFormElement).querySelector<HTMLInputElement>('[name="confirmPassword"]')?.focus();
       return;
@@ -48,6 +53,11 @@ export function ResetPasswordForm({ isRecovery = false, onBackToLogin, embedded 
       const data = await res.json();
 
       if (!res.ok || !data?.success) {
+        if (isRecovery && data?.error?.code === "WEAK_PASSWORD") {
+          setPasswordError("Choose a stronger password.");
+          form.querySelector<HTMLInputElement>('[name="newPassword"]')?.focus();
+          return;
+        }
         setIsError(true);
         setMessage(data?.error?.message || "Password recovery is temporarily unavailable. Try again.");
         return;
@@ -107,14 +117,18 @@ export function ResetPasswordForm({ isRecovery = false, onBackToLogin, embedded 
                   minLength={8}
                   maxLength={72}
                   value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
+                  readOnly={loading}
+                  aria-invalid={Boolean(passwordError)}
+                  aria-describedby={`${newPasswordId}-policy${passwordError ? ` ${newPasswordId}-error` : ""}`}
+                  onChange={(e) => { const value = e.target.value; setNewPassword(value); setPasswordError(null); if (mismatchChecked) setPasswordMismatch(value !== confirmPassword); }}
                   required
                 />
                   <button type="button" className="absolute right-0 top-0 grid min-h-11 min-w-11 place-items-center rounded-md text-muted-foreground hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring" onClick={() => setShowNewPassword(value => !value)} aria-label={showNewPassword ? "Hide new password" : "Show new password"} aria-pressed={showNewPassword}>
                     {showNewPassword ? <EyeOff size={19} aria-hidden="true" /> : <Eye size={19} aria-hidden="true" />}
                   </button>
                 </div>
-                <p className="mt-2 text-xs text-muted-foreground">Use 8–72 characters and include at least three: uppercase, lowercase, number, or symbol.</p>
+                <p id={`${newPasswordId}-policy`} className="mt-2 text-xs text-muted-foreground">Use 8–72 characters and include at least three: uppercase, lowercase, number, or symbol.</p>
+                {passwordError && <p id={`${newPasswordId}-error`} role="alert" className="text-sm text-destructive">{passwordError}</p>}
               </div>
               <div>
                 <label htmlFor={confirmPasswordId} className="mb-1 block text-sm font-medium">Confirm new password</label>
@@ -129,9 +143,10 @@ export function ResetPasswordForm({ isRecovery = false, onBackToLogin, embedded 
                   minLength={8}
                   maxLength={72}
                   value={confirmPassword}
+                  readOnly={loading}
                   aria-invalid={passwordMismatch}
                   aria-describedby={passwordMismatch ? `${confirmPasswordId}-error` : undefined}
-                  onChange={(e) => { setConfirmPassword(e.target.value); setPasswordMismatch(false); }}
+                  onChange={(e) => { const value = e.target.value; setConfirmPassword(value); if (mismatchChecked) setPasswordMismatch(value !== newPassword); }}
                   required
                 />
                   <button type="button" className="absolute right-0 top-0 grid min-h-11 min-w-11 place-items-center rounded-md text-muted-foreground hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring" onClick={() => setShowConfirmPassword(value => !value)} aria-label={showConfirmPassword ? "Hide confirmed password" : "Show confirmed password"} aria-pressed={showConfirmPassword}>

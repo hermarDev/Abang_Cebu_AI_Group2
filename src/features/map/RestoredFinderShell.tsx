@@ -100,6 +100,14 @@ export function RestoredFinderShell({ rentalStatus: statusOverride, initialAccou
   const [helpOpen, setHelpOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(initialAccountOpen);
   const [accountMode, setAccountMode] = useState<AccountMode>(initialAccountMode ?? "sign-in");
+  const accountBodyRef = useRef<HTMLDivElement>(null);
+  const focusAccountHeading = useRef(false);
+  useEffect(() => {
+    if (focusAccountHeading.current) {
+      focusAccountHeading.current = false;
+      accountBodyRef.current?.querySelector<HTMLElement>("#account-heading")?.focus();
+    }
+  }, [accountMode]);
   const [accountPrompt, setAccountPrompt] = useState<string | null>(null);
   const favoriteRequests = useRef(new Set<string>());
   const [mapRadius, setMapRadius] = useState(2);
@@ -233,7 +241,7 @@ export function RestoredFinderShell({ rentalStatus: statusOverride, initialAccou
     </summary>
     <div className={styles.accountMenuPopover}>
       <Link href="/account"><User size={17} aria-hidden="true" /><span>Manage account</span></Link>
-      <Link href="/auth/logout"><LogOut size={17} aria-hidden="true" /><span>Sign out</span></Link>
+      <Link href="/auth/logout"><LogOut size={17} aria-hidden="true" /><span>Log out</span></Link>
     </div>
   </details> : <button className={styles.signIn} aria-label="Open account dialog" onClick={() => setAccountOpen(true)}><LogIn size={19} aria-hidden="true" /><span>Log in</span></button>}
   <QuickFilters filters={filters} onChange={setFilters} onOpenFilters={() => setAdvancedOpen(true)} mapRadius={mapRadius} onRadiusChange={setMapRadius} />
@@ -291,12 +299,13 @@ export function RestoredFinderShell({ rentalStatus: statusOverride, initialAccou
     <div className={styles.accountHeader}>
       <Image src={activeTheme === "dark" ? "/icons/main_Logo_Light.png" : "/icons/main_Logo.png"} unoptimized alt="AbangCebu" width={299} height={100} loading="eager" />
     </div>
-    <div className={styles.accountBody}>
+    <div ref={accountBodyRef} className={styles.accountBody}>
       {(initialErrorMessage || accountPrompt) && <p role={initialErrorMessage ? "alert" : "status"}>{initialErrorMessage ?? accountPrompt}</p>}
-      {authenticated ? <section className={styles.accountContent}><h2 className={styles.accountHeading}>Your account</h2><p>Manage your profile and security.</p><div className="mt-5 grid gap-3"><Link href="/account" className="inline-flex min-h-11 items-center justify-center rounded-lg bg-action px-4 text-sm font-semibold text-action-foreground hover:bg-action-hover">Manage account</Link><Link href="/auth/logout" className="inline-flex min-h-11 items-center justify-center rounded-lg border border-border bg-card px-4 text-sm font-semibold text-card-foreground hover:bg-muted">Sign out</Link></div></section> : <AccountAccessContent mode={accountMode} onModeChange={setAccountMode} isRecovery={isRecovery} statusMessage={initialStatusMessage} />}
+      {authenticated ? <section className={styles.accountContent}><h2 className={styles.accountHeading}>Your account</h2><p>Manage your profile and security.</p><div className="mt-5 grid gap-3"><Link href="/account" className="inline-flex min-h-11 items-center justify-center rounded-lg bg-action px-4 text-sm font-semibold text-action-foreground hover:bg-action-hover">Manage account</Link><Link href="/auth/logout" className="inline-flex min-h-11 items-center justify-center rounded-lg border border-border bg-card px-4 text-sm font-semibold text-card-foreground hover:bg-muted">Log out</Link></div></section> : <AccountAccessContent mode={accountMode} onModeChange={setAccountMode} isRecovery={isRecovery} statusMessage={initialStatusMessage} onLoginSuccess={() => { setAccountOpen(false); setAccountPrompt(null); }} />}
     </div>
     <div className={styles.accountFooter}>
-      {accountMode === "sign-up" && !authenticated && <span>Already have an account? <button type="button" onClick={() => setAccountMode("sign-in")}>Log in</button></span>}
+      {accountMode === "sign-in" && !authenticated && <span>Don’t have an account? <button type="button" onClick={() => { focusAccountHeading.current = true; setAccountMode("sign-up"); }}>Register</button></span>}
+      {accountMode === "sign-up" && !authenticated && <span>Already have an account? <button type="button" onClick={() => { focusAccountHeading.current = true; setAccountMode("sign-in"); }}>Log in</button></span>}
       <Button type="button" variant="ghost" className={styles.accountBack} onClick={() => setAccountOpen(false)}>Continue browsing map</Button>
     </div>
   </Modal>

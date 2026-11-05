@@ -1,6 +1,9 @@
 import { isValidElement, type ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { SavedRentalsContent } from "./SavedRentalsContent";
+import { notify } from "@/components/ui/AppToaster";
+
+vi.mock("@/components/ui/AppToaster", () => ({ notify: vi.fn() }));
 
 const hooks = vi.hoisted(() => ({
   cursor: 0,
@@ -110,6 +113,25 @@ beforeEach(() => {
 });
 
 describe("SavedRentalsContent fetch lifecycle", () => {
+  it("only announces a successful removal after the server confirms it", async () => {
+    let resolveRemoval!: (value: { ok: boolean }) => void;
+    vi.stubGlobal("fetch", vi.fn()
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ favorites: [rental] }) })
+      .mockImplementationOnce(() => new Promise(resolve => { resolveRemoval = resolve; })));
+    const page = mounted();
+    await settle();
+    let remove: (() => void) | undefined;
+    walk(page.tree(), element => { if (element.props["aria-label"] === "Remove Lahug studio from saved rentals") remove = element.props.onClick as () => void; });
+    expect(remove).toBeTypeOf("function");
+    remove?.();
+    expect(notify).not.toHaveBeenCalled();
+    resolveRemoval({ ok: true });
+    await settle();
+    expect(notify).toHaveBeenCalledWith("success", "saved-rental-removed", "Rental removed from your saved list.");
+    expect(text(page.tree())).not.toContain("Lahug studio");
+    expect(text(page.tree())).not.toContain("Rental removed from your saved list.");
+    page.unmount();
+  });
   it("does not display a zero price for an unavailable rental", async () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true, json: async () => ({ favorites: [{ ...rental, title: "Unavailable rental", price: 0, propertyType: "", address: "", city: "", description: "", isAvailable: false }] }) }));
     const page = mounted();

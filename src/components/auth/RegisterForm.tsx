@@ -26,6 +26,12 @@ export function RegisterForm({ onLogin }: { onLogin?: () => void } = {}) {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<keyof RegisterPayload, string>>>({});
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [submitted, setSubmitted] = useState(false);
+  const updateFieldError = (field: "fullName" | "email" | "password", value: string) => {
+    if (!submitted) return;
+    const validation = validateRegistration({ fullName, email, password, role, [field]: value });
+    setFieldErrors(errors => ({ ...errors, [field]: validation.ok ? undefined : validation.errors[field] }));
+  };
   const [registered, setRegistered] = useState(false);
 
   // Live password strength calculation
@@ -47,11 +53,13 @@ export function RegisterForm({ onLogin }: { onLogin?: () => void } = {}) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const form = e.currentTarget as HTMLFormElement;
     setErrorMessage(null);
     setFieldErrors({});
     setSuccessMessage(null);
     setRegistered(false);
     if (loading) return;
+    setSubmitted(true);
     const validation = validateRegistration({ fullName, email, password, role });
     if (!validation.ok) {
       setFieldErrors(validation.errors);
@@ -79,6 +87,8 @@ export function RegisterForm({ onLogin }: { onLogin?: () => void } = {}) {
         if (typeof details === "object" && details !== null) {
           const errors = details as Partial<Record<keyof RegisterPayload, unknown>>;
           setFieldErrors(Object.fromEntries(Object.entries(errors).filter((entry): entry is [string, string] => typeof entry[1] === "string")) as Partial<Record<keyof RegisterPayload, string>>);
+          const firstInvalid = (["fullName", "email", "password"] as const).find(field => typeof errors[field] === "string" && errors[field]);
+          if (firstInvalid) form.querySelector<HTMLInputElement>(`[name="${firstInvalid}"]`)?.focus();
         }
         setErrorMessage(data?.error?.message || "Registration failed. Please check your inputs.");
       } else {
@@ -109,12 +119,12 @@ export function RegisterForm({ onLogin }: { onLogin?: () => void } = {}) {
           aria-label="Account type"
         >
           <RadioGroup.Item value="renter" className={`min-h-11 flex-1 rounded text-center text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring ${
-            role === "renter" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+            role === "renter" ? "bg-accent text-accent-foreground ring-1 ring-inset ring-ring" : "text-muted-foreground hover:text-foreground"
           }`}>
             <span className="inline-flex items-center justify-center gap-2"><Search size={18} aria-hidden="true" />Renter</span> <span className="block text-xs font-normal">Find rentals</span>
           </RadioGroup.Item>
           <RadioGroup.Item value="landlord" className={`min-h-11 flex-1 rounded text-center text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring ${
-            role === "landlord" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+            role === "landlord" ? "bg-accent text-accent-foreground ring-1 ring-inset ring-ring" : "text-muted-foreground hover:text-foreground"
           }`}>
             <span className="inline-flex items-center justify-center gap-2"><HousePlus size={18} aria-hidden="true" />Landlord</span> <span className="block text-xs font-normal">List properties</span>
           </RadioGroup.Item>
@@ -143,8 +153,9 @@ export function RegisterForm({ onLogin }: { onLogin?: () => void } = {}) {
                 id={nameId}
                 name="fullName"
                 type="text"
+                placeholder="Enter your full name"
                 value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
+                onChange={(e) => { setFullName(e.target.value); updateFieldError("fullName", e.target.value); }}
                 autoComplete="name"
                 aria-invalid={Boolean(fieldErrors.fullName)}
                 aria-describedby={fieldErrors.fullName ? `${nameId}-error` : undefined}
@@ -165,8 +176,9 @@ export function RegisterForm({ onLogin }: { onLogin?: () => void } = {}) {
                 id={emailId}
                 name="email"
                 type="email"
+                placeholder="Enter your email address"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => { setEmail(e.target.value); updateFieldError("email", e.target.value); }}
                 autoComplete="email"
                 aria-invalid={Boolean(fieldErrors.email)}
                 aria-describedby={fieldErrors.email ? `${emailId}-error` : undefined}
@@ -187,8 +199,9 @@ export function RegisterForm({ onLogin }: { onLogin?: () => void } = {}) {
                   name="password"
                   className="pl-10 pr-12"
                   type={showPassword ? "text" : "password"}
+                  placeholder="Create a password"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => { setPassword(e.target.value); updateFieldError("password", e.target.value); }}
                   autoComplete="new-password"
                   minLength={8}
                   maxLength={72}

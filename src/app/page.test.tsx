@@ -4,11 +4,12 @@ import { expect, it, vi } from "vitest";
 vi.mock("server-only", () => ({}));
 vi.mock("@/lib/profile-avatar", () => ({ signProfileAvatar: vi.fn().mockResolvedValue(null) }));
 
-const auth = vi.hoisted(() => ({ getUser: vi.fn().mockResolvedValue({ data: { user: null }, error: null }) }));
+const auth = vi.hoisted(() => ({ getUser: vi.fn().mockResolvedValue({ data: { user: null }, error: null }), profile: vi.fn().mockResolvedValue({ data: null, error: null }), redirect: vi.fn((path: string) => { throw new Error(`redirect:${path}`); }) }));
+vi.mock("next/navigation", () => ({ redirect: auth.redirect, useRouter: () => ({ replace: vi.fn(), refresh: vi.fn(), push: vi.fn() }), usePathname: () => "/" }));
 vi.mock("@/lib/supabase/server", () => ({
   createClient: async () => ({
     auth,
-    from: () => ({ select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: null, error: null }) }) }) }),
+    from: () => ({ select: () => ({ eq: () => ({ maybeSingle: auth.profile }) }) }),
   }),
 }));
 
@@ -38,7 +39,13 @@ it("uses verified authentication state for the drawer", async () => {
   expect((await FinderPage()).props.authenticated).toBe(false);
 });
 
-it("delegates to FinderPage without landlord redirect", () => {
+it("redirects a verified landlord from the renter map to the workspace", async () => {
+  auth.getUser.mockResolvedValueOnce({ data: { user: { id: "landlord", user_metadata: {} } }, error: null });
+  auth.profile.mockResolvedValueOnce({ data: { role: "landlord", is_suspended: false }, error: null });
+  await expect(FinderPage()).rejects.toThrow("redirect:/landlord/dashboard");
+});
+
+it("delegates to FinderPage", () => {
   const element = Home();
   expect(element.props).toEqual({});
 });
