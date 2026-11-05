@@ -69,6 +69,7 @@ CREATE TABLE public.property_draft_updates (
   expected_revision bigint NOT NULL,
   payload_sha256 bytea NOT NULL,
   result_revision bigint NOT NULL,
+  created_at timestamptz NOT NULL DEFAULT pg_catalog.clock_timestamp(),
   PRIMARY KEY(owner_id, operation_id)
 );
 ALTER TABLE public.property_draft_updates ENABLE ROW LEVEL SECURITY;
@@ -114,6 +115,8 @@ BEGIN
     RAISE EXCEPTION 'invalid draft payload' USING ERRCODE = '22023';
   END IF;
   PERFORM pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended('property-draft-update-owner:' || v_owner::text, 0));
+  DELETE FROM public.property_draft_updates
+    WHERE owner_id = v_owner AND created_at < pg_catalog.clock_timestamp() - interval '30 days';
   SELECT * INTO v_previous FROM public.property_draft_updates WHERE owner_id = v_owner AND operation_id = p_operation_id;
   IF FOUND THEN
     IF v_previous.draft_id IS DISTINCT FROM p_draft_id OR v_previous.expected_revision IS DISTINCT FROM p_expected_revision OR v_previous.payload_sha256 IS DISTINCT FROM public.property_draft_payload_digest(p_payload) THEN

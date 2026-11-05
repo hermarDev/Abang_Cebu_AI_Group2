@@ -79,6 +79,28 @@ DO $$ DECLARE a uuid; b uuid; rev bigint; BEGIN
  IF (SELECT payload->'property'->>'title' FROM public.property_drafts WHERE id=a) <> 'Second' THEN RAISE EXCEPTION 'stale update changed draft'; END IF;
  IF (SELECT count(*) FROM public.property_drafts) <> 3 THEN RAISE EXCEPTION 'must retain the three distinct owner drafts'; END IF;
 END $$;
+-- Expired history can be reclaimed without applying an old retry again.
+DO $$ DECLARE id uuid; rev bigint; BEGIN
+ SELECT draft_id INTO id FROM fixture_ids;
+ RESET ROLE;
+ UPDATE public.property_draft_updates SET created_at = now() - interval '29 days'
+   WHERE operation_id = 'cccccccc-0000-0000-0000-000000000001';
+ SET LOCAL ROLE authenticated;
+ IF public.update_property_draft(id,'cccccccc-0000-0000-0000-000000000001',1,'{"property":{"title":"Second"},"unit":{"monthly_rent":5000}}') <> 2 THEN
+  RAISE EXCEPTION 'unexpired retry did not return original revision';
+ END IF;
+ RESET ROLE;
+ UPDATE public.property_draft_updates SET created_at = now() - interval '31 days'
+   WHERE operation_id = 'cccccccc-0000-0000-0000-000000000001';
+ SET LOCAL ROLE authenticated;
+ rev := public.update_property_draft(id,'cccccccc-0000-0000-0000-000000000003',2,'{"property":{"title":"Third"},"unit":{}}');
+ IF rev <> 3 THEN RAISE EXCEPTION 'new update failed after expiration'; END IF;
+ BEGIN
+  PERFORM public.update_property_draft(id,'cccccccc-0000-0000-0000-000000000001',1,'{"property":{"title":"Second"},"unit":{"monthly_rent":5000}}');
+  RAISE EXCEPTION 'expired retry applied as a new update';
+ EXCEPTION WHEN serialization_failure THEN NULL; END;
+ IF (SELECT payload->'property'->>'title' FROM public.property_drafts WHERE property_drafts.id = (SELECT draft_id FROM fixture_ids)) <> 'Third' THEN RAISE EXCEPTION 'expired retry changed draft'; END IF;
+END $$;
 -- Caps must preserve exact replay, even after the owner reaches the limit.
 DO $$ DECLARE i integer; id uuid; op uuid; rev bigint; BEGIN
  FOR i IN 1..47 LOOP
@@ -99,6 +121,23 @@ DO $$ DECLARE i integer; id uuid; op uuid; rev bigint; BEGIN
   PERFORM public.update_property_draft(id, 'eeeeeeee-0000-4000-8000-000000000002', 1001, '{"property":{},"unit":{}}');
   RAISE EXCEPTION 'update history cap not enforced';
  EXCEPTION WHEN program_limit_exceeded THEN NULL; END;
+ RESET ROLE;
+ UPDATE public.property_draft_updates SET created_at = now() - interval '31 days'
+   WHERE owner_id = 'aaaaaaaa-0000-0000-0000-000000000001';
+ SET LOCAL ROLE authenticated;
+ IF public.update_property_draft(id, 'eeeeeeee-0000-4000-8000-000000000002', 1000, '{"property":{"title":"Recovered"},"unit":{}}') <> 1001 THEN
+  RAISE EXCEPTION 'expired history did not free capacity';
+ END IF;
+ BEGIN
+  PERFORM public.update_property_draft(id, op, 999, '{"property":{},"unit":{}}');
+  RAISE EXCEPTION 'expired retry was applied again';
+ EXCEPTION WHEN serialization_failure THEN NULL; END;
+ IF (SELECT payload->'property'->>'title' FROM public.property_drafts WHERE property_drafts.id = (SELECT draft_id FROM fixture_ids)) IS DISTINCT FROM 'Third' THEN
+  RAISE EXCEPTION 'expired retry changed another draft';
+ END IF;
+ IF (SELECT payload->'property'->>'title' FROM public.property_drafts WHERE operation_id = 'dddddddd-0000-4000-8000-000000000047') IS DISTINCT FROM 'Recovered' THEN
+  RAISE EXCEPTION 'expired retry overwrote newer data';
+ END IF;
 END $$;
 SELECT set_config('request.jwt.claim.sub','aaaaaaaa-0000-0000-0000-000000000002',true);
 DO $$ BEGIN
