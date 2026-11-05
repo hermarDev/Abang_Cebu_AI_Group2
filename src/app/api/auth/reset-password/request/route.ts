@@ -93,17 +93,25 @@ export async function POST(request: Request) {
     );
   }
 
+  let configuredSite: URL;
   try {
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
     if (!siteUrl) throw new Error("NEXT_PUBLIC_SITE_URL is required");
-    const configuredSite = new URL(siteUrl);
+    configuredSite = new URL(siteUrl);
     if (configuredSite.username || configuredSite.password || configuredSite.search || configuredSite.hash || configuredSite.pathname !== "/") {
       throw new Error("NEXT_PUBLIC_SITE_URL must be an origin only");
     }
     if (configuredSite.protocol !== "https:" && process.env.NODE_ENV === "production") {
       throw new Error("Production site URL must use HTTPS");
     }
+  } catch {
+    return NextResponse.json(
+      { success: false, error: { code: "AUTH_PASSWORD_RESET_UNAVAILABLE", message: "Password recovery is temporarily unavailable." } },
+      { status: 503, headers: { "Cache-Control": "no-store" } },
+    );
+  }
 
+  try {
     const recoveryUrl = new URL(PASSWORD_RESET_CALLBACK_PATH, configuredSite.origin);
     recoveryUrl.searchParams.set("type", "recovery");
     recoveryUrl.searchParams.set("next", "/reset-password");
@@ -111,13 +119,7 @@ export async function POST(request: Request) {
     const supabase = await createClient();
     // Suppress provider-specific account existence and failure details.
     await supabase.auth.resetPasswordForEmail(validation.email, { redirectTo: recoveryUrl.toString() });
-  } catch (error) {
-    if (error instanceof Error && error.message.startsWith("NEXT_PUBLIC_SITE_URL")) {
-      return NextResponse.json(
-        { success: false, error: { code: "AUTH_PASSWORD_RESET_UNAVAILABLE", message: "Password recovery is temporarily unavailable." } },
-        { status: 503, headers: { "Cache-Control": "no-store" } },
-      );
-    }
+  } catch {
     // Keep provider failures indistinguishable from successful dispatch.
   }
 
