@@ -126,11 +126,11 @@ export function RegisterForm({ onLogin }: { onLogin?: () => void } = {}) {
           <div className="p-4 text-center rounded bg-accent text-accent-foreground border border-border" role="status">
             <h4 className="font-semibold mb-1">Check Your Email</h4>
             <p className="text-sm">{successMessage}</p>
-            <div className="mt-4">
-              <button type="button" className="text-sm font-medium text-action hover:underline" onClick={onLogin ?? (() => router.push("/login"))}>
-                {onLogin ? "Log In" : "Return to Login"}
+            {!onLogin && <div className="mt-4">
+              <button type="button" className="text-sm font-medium text-action hover:underline" onClick={() => router.push("/login")}>
+                Return to Login
               </button>
-            </div>
+            </div>}
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4" noValidate>
@@ -215,9 +215,8 @@ export function RegisterForm({ onLogin }: { onLogin?: () => void } = {}) {
               <div id={`${passwordId}-policy`} className="mt-2 text-xs text-muted-foreground">
                 <p className="font-medium text-foreground">Password requirements</p>
                 <ul className="mt-1 space-y-1">
-                  {requirements.map(({ label, met }, index) => (
+                  {requirements.map(({ label, met }) => (
                     <li key={label} className={met ? "text-emerald-700 dark:text-emerald-400" : "text-muted-foreground"}>
-                      {index === 1 && <span className="block text-muted-foreground">Choose at least 3 character types</span>}
                       <span aria-hidden="true">{met ? "✓" : "○"}</span>{" "}
                       <span className="sr-only">{met ? "Met: " : "Not met: "}</span>{label}
                     </li>

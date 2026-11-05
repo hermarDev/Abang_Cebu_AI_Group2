@@ -99,7 +99,7 @@ describe("ResetPasswordForm", () => {
     const html = renderToStaticMarkup(<ResetPasswordForm isRecovery />);
 
     expect(html).toContain("Choose a new password");
-    expect(html).toContain("Use 8–72 characters and include at least three");
+    expect(html).toContain("Use 8–72 characters, including uppercase, lowercase, a number, and a symbol.");
     expect(html).toContain('name="newPassword"');
     expect(html).toContain('name="confirmPassword"');
     expect(html).toContain('autoComplete="new-password"');

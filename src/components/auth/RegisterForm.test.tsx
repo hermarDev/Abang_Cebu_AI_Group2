@@ -67,7 +67,7 @@ describe("RegisterForm", () => {
     state.active = true;
     let html = renderToStaticMarkup(renderForm());
     expect(html).toContain("Password requirements");
-    expect(html).toContain("Choose at least 3 character types");
+    expect(html).not.toContain("Choose at least 3 character types");
     expect(html).not.toContain("types met");
     changeInput("password", "abcdefghA1!");
     html = renderToStaticMarkup(renderForm());
@@ -192,7 +192,7 @@ describe("RegisterForm", () => {
     expect(html).toContain('minLength="8"');
     expect(html).toContain('maxLength="72"');
     expect(html).toContain("8–72 characters");
-    expect(html).toContain("Choose at least 3 character types");
+    expect(html).not.toContain("Choose at least 3 character types");
     expect(html).toContain('aria-describedby=');
   });
   it("does not render a public signup phone field", () => {

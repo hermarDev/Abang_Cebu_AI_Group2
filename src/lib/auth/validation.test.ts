@@ -40,11 +40,14 @@ describe("validateRegistration", () => {
   });
 
   it.each([
-    "Abcdef12",
     "Abcdef1!",
     `A1!${"a".repeat(69)}`,
   ])("accepts a password at a server policy length boundary", (password) => {
     expect(validateRegistration({ ...validPayload, password }).ok).toBe(true);
+  });
+
+  it.each(["abcdef1!", "ABCDEF1!", "Abcdefg!", "Abcdef12"]) ("rejects passwords missing a required character type", (password) => {
+    expect(validateRegistration({ ...validPayload, password }).ok).toBe(false);
   });
 
   it("rejects a Unicode character as a substitute for the password symbol class", () => {
@@ -61,7 +64,7 @@ describe("validateRegistration", () => {
         errors: {
           role: "Choose renter or landlord.",
           email: "Enter a valid email address.",
-          password: "Use 8–72 characters with at least 3 of: uppercase, lowercase, number, symbol.",
+          password: "Use 8–72 characters, including uppercase, lowercase, a number, and a symbol.",
           fullName: "Enter a name of 2–100 letters, spaces, hyphens, or periods.",
         },
       });
@@ -86,7 +89,7 @@ describe("validateRegistration", () => {
       expect(result.errors).toMatchObject({
         role: "Choose renter or landlord.",
         email: "Enter a valid email address.",
-        password: "Use 8–72 characters with at least 3 of: uppercase, lowercase, number, symbol.",
+        password: "Use 8–72 characters, including uppercase, lowercase, a number, and a symbol.",
         fullName: "Enter a name of 2–100 letters, spaces, hyphens, or periods.",
         phoneNumber: "Enter a valid Philippine mobile number.",
       });

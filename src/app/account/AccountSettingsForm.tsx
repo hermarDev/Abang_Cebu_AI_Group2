@@ -102,7 +102,7 @@ function PasswordDialog({ open, onClose, onSuccess }: { open: boolean; onClose: 
           <button type="button" aria-label={`${visible[key] ? "Hide" : "Show"} ${label.toLowerCase()}`} onClick={() => setVisible({ ...visible, [key]: !visible[key] })} className="absolute right-0 top-0 grid size-11 place-items-center rounded-lg text-muted-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">{visible[key] ? <EyeOff size={18} aria-hidden="true" /> : <Eye size={18} aria-hidden="true" />}</button>
         </div>
         {key === "current" && currentError && <p id="account-current-error" role={error?.field === "currentPassword" ? "alert" : undefined} className="text-xs text-destructive">{currentError}</p>}
-        {key === "password" && <p id="password-requirements" className="text-xs text-muted-foreground">8–72 characters and at least 3 of: uppercase, lowercase, number and symbol. {values.password ? (strength.isValid ? "Requirements met." : "Requirements not met.") : passwordTouched ? "Enter a new password." : null}</p>}
+        {key === "password" && <p id="password-requirements" className="text-xs text-muted-foreground">8–72 characters, including uppercase, lowercase, a number, and a symbol. {values.password ? (strength.isValid ? "Requirements met." : "Requirements not met.") : passwordTouched ? "Enter a new password." : null}</p>}
         {key === "confirm" && mismatch && <p id="password-mismatch" className="text-xs text-destructive">{values.confirm ? "Passwords do not match." : "Confirm your new password."}</p>}
       </div>)}
       {error?.field !== "currentPassword" && <ActionMessage result={error} />}

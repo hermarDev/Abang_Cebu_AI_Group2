@@ -127,7 +127,7 @@ export function ResetPasswordForm({ isRecovery = false, onBackToLogin, embedded 
                     {showNewPassword ? <EyeOff size={19} aria-hidden="true" /> : <Eye size={19} aria-hidden="true" />}
                   </button>
                 </div>
-                <p id={`${newPasswordId}-policy`} className="mt-2 text-xs text-muted-foreground">Use 8–72 characters and include at least three: uppercase, lowercase, number, or symbol.</p>
+                <p id={`${newPasswordId}-policy`} className="mt-2 text-xs text-muted-foreground">Use 8–72 characters, including uppercase, lowercase, a number, and a symbol.</p>
                 {passwordError && <p id={`${newPasswordId}-error`} role="alert" className="text-sm text-destructive">{passwordError}</p>}
               </div>
               <div>
