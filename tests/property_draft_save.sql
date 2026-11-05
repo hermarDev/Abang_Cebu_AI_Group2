@@ -16,6 +16,17 @@ DO $$ BEGIN
    RAISE EXCEPTION 'revision-checked draft update RPC is required';
  END IF;
 END $$;
+-- Equal JSONB values must retain equal digests across numeric spellings and key order.
+DO $$ BEGIN
+ IF public.property_draft_payload_digest('{"property":{"latitude":-0.00,"longitude":1e2},"unit":{"monthly_rent":5000.000},"amenities":["wifi"]}') IS DISTINCT FROM
+    public.property_draft_payload_digest('{"amenities":["wifi"],"unit":{"monthly_rent":5000},"property":{"longitude":100.0,"latitude":0}}') THEN
+   RAISE EXCEPTION 'equal numeric representations must share a digest';
+ END IF;
+ IF public.property_draft_payload_digest('{"property":{"title":"5000"},"unit":{}}') IS NOT DISTINCT FROM
+    public.property_draft_payload_digest('{"property":{"title":5000},"unit":{}}') THEN
+   RAISE EXCEPTION 'distinct JSON types must not share a digest';
+ END IF;
+END $$;
 SET LOCAL ROLE authenticated;
 SELECT set_config('request.jwt.claim.sub','aaaaaaaa-0000-0000-0000-000000000001',true);
 CREATE TEMP TABLE fixture_ids (draft_id uuid);
@@ -54,8 +65,8 @@ DO $$ DECLARE a uuid; b uuid; rev bigint; BEGIN
   PERFORM public.save_property_draft('bbbbbbbb-0000-0000-0000-000000000001','{"property":{"title":"Changed"},"unit":{"monthly_rent":5000}}');
   RAISE EXCEPTION 'changed payload must conflict';
  EXCEPTION WHEN unique_violation THEN NULL; END;
- rev:=public.update_property_draft(a,'cccccccc-0000-0000-0000-000000000001',1,'{"property":{"title":"Second"},"unit":{}}');
- IF rev <> 2 OR public.update_property_draft(a,'cccccccc-0000-0000-0000-000000000001',1,'{"property":{"title":"Second"},"unit":{}}') <> 2 THEN RAISE EXCEPTION 'update retry must return prior revision'; END IF;
+ rev:=public.update_property_draft(a,'cccccccc-0000-0000-0000-000000000001',1,'{"property":{"title":"Second"},"unit":{"monthly_rent":5000}}');
+ IF rev <> 2 OR public.update_property_draft(a,'cccccccc-0000-0000-0000-000000000001',1,'{"property":{"title":"Second"},"unit":{"monthly_rent":5000.0}}') <> 2 THEN RAISE EXCEPTION 'semantically identical update retry must return prior revision'; END IF;
  BEGIN
   PERFORM public.update_property_draft(a,'cccccccc-0000-0000-0000-000000000001',1,'{"property":{"title":"Other"},"unit":{}}');
   RAISE EXCEPTION 'operation reuse accepted different content';

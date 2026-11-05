@@ -74,6 +74,19 @@ CREATE TABLE public.property_draft_updates (
 ALTER TABLE public.property_draft_updates ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON public.property_draft_updates FROM PUBLIC, anon, authenticated;
 
+CREATE FUNCTION public.property_draft_payload_digest(p_payload jsonb)
+RETURNS bytea LANGUAGE sql IMMUTABLE SET search_path = '' AS $$
+  SELECT pg_catalog.sha256(pg_catalog.convert_to(
+    pg_catalog.jsonb_set(pg_catalog.jsonb_set(p_payload, '{property}',
+      COALESCE((SELECT pg_catalog.jsonb_object_agg(e.key, CASE WHEN pg_catalog.jsonb_typeof(e.value) = 'number'
+        THEN pg_catalog.to_jsonb(pg_catalog.trim_scale((e.value #>> '{}')::numeric)) ELSE e.value END)
+        FROM pg_catalog.jsonb_each(p_payload->'property') e), '{}'::jsonb)), '{unit}',
+      COALESCE((SELECT pg_catalog.jsonb_object_agg(e.key, CASE WHEN pg_catalog.jsonb_typeof(e.value) = 'number'
+        THEN pg_catalog.to_jsonb(pg_catalog.trim_scale((e.value #>> '{}')::numeric)) ELSE e.value END)
+        FROM pg_catalog.jsonb_each(p_payload->'unit') e), '{}'::jsonb))::text, 'UTF8'));
+$$;
+REVOKE ALL ON FUNCTION public.property_draft_payload_digest(jsonb) FROM PUBLIC, anon, authenticated;
+
 CREATE FUNCTION public.update_property_draft(p_draft_id uuid, p_operation_id uuid, p_expected_revision bigint, p_payload jsonb)
 RETURNS bigint LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
 DECLARE
@@ -103,7 +116,7 @@ BEGIN
   PERFORM pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended('property-draft-update-owner:' || v_owner::text, 0));
   SELECT * INTO v_previous FROM public.property_draft_updates WHERE owner_id = v_owner AND operation_id = p_operation_id;
   IF FOUND THEN
-    IF v_previous.draft_id IS DISTINCT FROM p_draft_id OR v_previous.expected_revision IS DISTINCT FROM p_expected_revision OR v_previous.payload_sha256 IS DISTINCT FROM pg_catalog.sha256(pg_catalog.convert_to(p_payload::text, 'UTF8')) THEN
+    IF v_previous.draft_id IS DISTINCT FROM p_draft_id OR v_previous.expected_revision IS DISTINCT FROM p_expected_revision OR v_previous.payload_sha256 IS DISTINCT FROM public.property_draft_payload_digest(p_payload) THEN
       RAISE EXCEPTION 'operation already used for different draft update' USING ERRCODE = '23505';
     END IF;
     RETURN v_previous.result_revision;
@@ -118,7 +131,7 @@ BEGIN
     RAISE EXCEPTION 'draft changed or unavailable' USING ERRCODE = '40001';
   END IF;
   INSERT INTO public.property_draft_updates(owner_id, operation_id, draft_id, expected_revision, payload_sha256, result_revision)
-    VALUES (v_owner, p_operation_id, p_draft_id, p_expected_revision, pg_catalog.sha256(pg_catalog.convert_to(p_payload::text, 'UTF8')), v_revision);
+    VALUES (v_owner, p_operation_id, p_draft_id, p_expected_revision, public.property_draft_payload_digest(p_payload), v_revision);
   RETURN v_revision;
 END;
 $$;
