@@ -1,7 +1,7 @@
 "use client";
 
 import { useId, useState } from "react";
-import { Eye, EyeOff, Mail, LockKeyhole } from "lucide-react";
+import { CircleAlert, Eye, EyeOff, Mail, LockKeyhole } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { FieldError } from "@/components/ui/Field";
@@ -94,6 +94,7 @@ export function LoginForm({
               type="email"
               placeholder="Enter your email address"
               value={email}
+              readOnly={loading}
               onChange={(e) => { const value = e.target.value; setEmail(value); if (submitted) setFieldErrors(errors => ({ ...errors, email: emailError(value) })); }}
               autoComplete="email"
               required
@@ -123,6 +124,7 @@ export function LoginForm({
                 type={showPassword ? "text" : "password"}
                 placeholder="Enter your password"
                 value={password}
+                readOnly={loading}
                 onChange={(e) => { const value = e.target.value; setPassword(value); if (submitted) setFieldErrors(errors => ({ ...errors, password: value ? undefined : "Enter your password." })); }}
                 autoComplete="current-password"
                 required
@@ -141,9 +143,10 @@ export function LoginForm({
 
           {statusMessage && (
             <div
-              className="p-3 text-sm rounded bg-muted text-foreground border border-border"
+              className={statusIsError ? "flex items-start gap-2 p-3 text-sm rounded bg-destructive/10 text-foreground border border-destructive/40" : "p-3 text-sm rounded bg-muted text-foreground border border-border"}
               role={statusIsError ? "alert" : "status"}
             >
+              {statusIsError && <CircleAlert size={18} aria-hidden="true" className="shrink-0 text-destructive" />}
               {statusMessage}
             </div>
           )}
