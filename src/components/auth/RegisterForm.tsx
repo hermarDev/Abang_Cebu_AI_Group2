@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
 import { validateRegistration } from "@/lib/auth/validation";
-import { REGISTRATION_VALIDATION_RULES, validatePasswordStrength, type RegisterPayload } from "@/types/auth";
+import { REGISTRATION_VALIDATION_RULES, type RegisterPayload } from "@/types/auth";
 
 export function RegisterForm({ onLogin }: { onLogin?: () => void } = {}) {
   const router = useRouter();
@@ -35,7 +35,6 @@ export function RegisterForm({ onLogin }: { onLogin?: () => void } = {}) {
   const [registered, setRegistered] = useState(false);
 
   const policy = REGISTRATION_VALIDATION_RULES.password;
-  const passwordStatus = validatePasswordStrength(password);
   const requirements = [
     { label: `${policy.minLength}–${policy.maxLength} characters`, met: password.length >= policy.minLength && password.length <= policy.maxLength },
     { label: "Uppercase letter", met: policy.classes.uppercase.test(password) },
@@ -216,14 +215,14 @@ export function RegisterForm({ onLogin }: { onLogin?: () => void } = {}) {
               <div id={`${passwordId}-policy`} className="mt-2 text-xs text-muted-foreground">
                 <p className="font-medium text-foreground">Password requirements</p>
                 <ul className="mt-1 space-y-1">
-                  {requirements.map(({ label, met }) => (
+                  {requirements.map(({ label, met }, index) => (
                     <li key={label} className={met ? "text-emerald-700 dark:text-emerald-400" : "text-muted-foreground"}>
+                      {index === 1 && <span className="block text-muted-foreground">Choose at least 3 character types</span>}
                       <span aria-hidden="true">{met ? "✓" : "○"}</span>{" "}
                       <span className="sr-only">{met ? "Met: " : "Not met: "}</span>{label}
                     </li>
                   ))}
                 </ul>
-                <p className="mt-1">{passwordStatus.score} of 4 types met (3 required){passwordStatus.isValid && " · Requirements met"}</p>
               </div>
             </div>
             {errorMessage && (
