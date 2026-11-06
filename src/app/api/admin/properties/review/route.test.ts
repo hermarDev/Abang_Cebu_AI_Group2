@@ -26,6 +26,12 @@ describe("admin property review", () => {
   it("requires a rejection reason", async () => {
     expect((await POST(request({ ...approve(), decision: "rejected" }))).status).toBe(400);
   });
+  it("rejects non-string rejection reasons without calling the review RPC", async () => {
+    for (const note of [{ text: "invalid" }, 123, true]) {
+      expect((await POST(request({ ...approve(), decision: "rejected", note }))).status).toBe(400);
+    }
+    expect(mocks.rpc).not.toHaveBeenCalled();
+  });
   it("approves a pending property", async () => {
     const response = await POST(request(approve()));
     expect(response.status).toBe(200);

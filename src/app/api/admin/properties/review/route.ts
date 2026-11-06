@@ -23,7 +23,7 @@ export async function POST(request: Request) {
   if (!body || typeof body !== "object" || Array.isArray(body)) return reply("Invalid review.", 400);
   const input = body as Record<string, unknown>;
   if (typeof input.propertyId !== "string" || !uuid.test(input.propertyId) || typeof input.operationId !== "string" || !uuid.test(input.operationId) || (input.decision !== "approved" && input.decision !== "rejected")) return reply("Invalid review.", 400);
-  const note = input.decision === "rejected" ? String(input.note ?? "") : null;
+  const note = input.decision === "rejected" && typeof input.note === "string" ? input.note : null;
   if (input.decision === "rejected" && (!note || !note.trim() || note.length > 1000)) return reply("A rejection reason is required.", 400);
   const draftId = typeof input.submissionDraftId === "string" && uuid.test(input.submissionDraftId) ? input.submissionDraftId : null;
   const expectedRevision = Number.isSafeInteger(input.submissionExpectedRevision) && (input.submissionExpectedRevision as number) >= 1 ? input.submissionExpectedRevision as number : null;

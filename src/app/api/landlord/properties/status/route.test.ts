@@ -19,6 +19,11 @@ describe("landlord property status", () => {
     expect(await r.json()).toMatchObject({ status: "rejected", moderationNote: "Fix permit" });
     expect(mocks.rpc).toHaveBeenCalledWith("landlord_property_status", { p_operation_id: "11111111-1111-4111-8111-111111111111" });
   });
+  it.each([6, 7, 8])("accepts a version %i operation id", async (version) => {
+    const id = `11111111-1111-${version}111-8111-111111111111`;
+    expect((await GET(req(`?operationId=${id}`))).status).toBe(200);
+    expect(mocks.rpc).toHaveBeenCalledWith("landlord_property_status", { p_operation_id: id });
+  });
   it("rejects account mismatch before any query", async () => {
     const r = await GET(req("", "someone-else"));
     expect(r.status).toBe(409);
