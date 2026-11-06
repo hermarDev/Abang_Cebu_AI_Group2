@@ -8,12 +8,18 @@ import { LandlordMobileNav } from "@/features/landlord/LandlordMobileNav";
 
 export const metadata: Metadata = { title: "List your property — AbangCebu" };
 
-export default async function ListPropertyPage() {
+export default async function ListPropertyPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) redirect("/login?next=%2Flist-property");
   const { data: profile, error } = await supabase.from("profiles").select("role,is_suspended").eq("id", user.id).maybeSingle();
   if (error || profile?.role !== "landlord" || profile.is_suspended) notFound();
+  const params = await searchParams;
+  const draftIdParam = Array.isArray(params.draftId) ? params.draftId[0] : params.draftId;
+  const revisionParam = Array.isArray(params.revision) ? params.revision[0] : params.revision;
+  const restoreTarget = typeof draftIdParam === "string" && draftIdParam && typeof revisionParam === "string" && revisionParam
+    ? { draftId: draftIdParam, revision: revisionParam }
+    : null;
 
   return <main className="min-h-[100dvh] bg-background px-4 pt-5 pb-[calc(5rem+env(safe-area-inset-bottom))] text-foreground lg:pb-5">
     <div className="mx-auto grid max-w-5xl gap-4">
@@ -21,9 +27,9 @@ export default async function ListPropertyPage() {
       <section className="rounded-2xl border border-border bg-card p-5 sm:p-6">
         <p className="m-0 text-xs font-bold uppercase tracking-wide text-action">Landlord workspace</p>
         <h1 className="mb-0 mt-2 text-3xl font-bold">List your property</h1>
-        <p role="status" className="mb-0 mt-3 text-sm">Preview only. Submission is unavailable, and entered information and files are not saved.</p>
+        <p role="status" className="mb-0 mt-3 text-sm">Listing form preview. Draft saving and submission are not available yet. Do not rely on this form to retain your entries or files.</p>
       </section>
-      <ListPropertyForm />
+      <ListPropertyForm userId={user.id} restoreTarget={restoreTarget} />
     </div>
     <LandlordMobileNav />
   </main>;

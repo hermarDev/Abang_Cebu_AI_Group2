@@ -5,6 +5,8 @@ import "./globals.css";
 import { LogoutSyncListener } from "@/components/auth/LogoutSyncListener";
 import { ThemeSync } from "@/components/theme/ThemeSync";
 import { AppToaster } from "@/components/ui/AppToaster";
+import StartupReady from "@/components/startup/StartupReady";
+import StartupSplash from "@/components/startup/StartupSplash";
 
 const manrope = localFont({ src: "../../public/fonts/manrope-latin-wght-normal.woff2", variable: "--font-manrope", weight: "200 800" });
 
@@ -30,6 +32,7 @@ export default function RootLayout({
           }
           document.documentElement.classList.add(theme);
           document.documentElement.style.colorScheme = theme;
+          document.documentElement.dataset.startup = "pending";
         })();` }} />
       </head>
       <body
@@ -38,6 +41,8 @@ export default function RootLayout({
         <ThemeSync />
         <LogoutSyncListener />
         <AppToaster />
+        <StartupSplash />
+        <StartupReady />
         {children}
       </body>
     </html>

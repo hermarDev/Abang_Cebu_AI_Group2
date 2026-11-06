@@ -1,7 +1,7 @@
 "use client";
 
 import { useId, useState } from "react";
-import { Eye, EyeOff, Mail, LockKeyhole, UserRound, Search, HousePlus } from "lucide-react";
+import { CircleAlert, Eye, EyeOff, HousePlus, LockKeyhole, Mail, Search, UserRound } from "lucide-react";
 import { useRouter } from "next/navigation";
 import * as RadioGroup from "@radix-ui/react-radio-group";
 import { Button } from "@/components/ui/Button";
@@ -115,9 +115,12 @@ export function RegisterForm({ onLogin }: { onLogin?: () => void } = {}) {
         </RadioGroup.Root>
 
         {successMessage && registered ? (
-          <div className="p-4 text-center rounded bg-accent text-accent-foreground border border-border" role="status">
-            <h4 className="font-semibold mb-1">Check Your Email</h4>
-            <p className="text-sm">{successMessage}</p>
+          <div className="flex flex-col items-center p-6 text-center rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-foreground" role="status">
+            <span className="grid size-12 place-items-center rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 mb-3" aria-hidden="true">
+              <Mail size={22} />
+            </span>
+            <h4 className="text-base font-semibold mb-1">Check Your Email</h4>
+            <p className="text-sm text-muted-foreground">{successMessage}</p>
             {!onLogin && <div className="mt-4">
               <button type="button" className="text-sm font-medium text-action hover:underline" onClick={() => router.push("/login")}>
                 Return to Login
@@ -207,8 +210,9 @@ export function RegisterForm({ onLogin }: { onLogin?: () => void } = {}) {
               <PasswordRequirements id={`${passwordId}-policy`} password={password} />
             </div>
             {errorMessage && (
-              <div className="p-3 text-sm rounded bg-destructive/10 text-destructive border border-destructive/20" role="alert">
-                {errorMessage}
+              <div className="flex items-start gap-2.5 p-3 text-sm rounded-lg bg-destructive/10 text-foreground border border-destructive/40" role="alert">
+                <CircleAlert size={18} aria-hidden="true" className="shrink-0 text-destructive mt-0.5" />
+                <span className="flex-1">{errorMessage}</span>
               </div>
             )}
 

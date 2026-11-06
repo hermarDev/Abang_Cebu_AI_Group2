@@ -1,0 +1,13 @@
+BEGIN;
+INSERT INTO auth.users(id, raw_user_meta_data) VALUES ('aaaaaaaa-0000-4000-8000-000000000001', '{"role":"landlord"}');
+INSERT INTO public.property_drafts(id, owner_id, operation_id, payload, original_payload) VALUES ('bbbbbbbb-0000-4000-8000-000000000001', 'aaaaaaaa-0000-4000-8000-000000000001', 'cccccccc-0000-4000-8000-000000000001', '{"property":{},"unit":{}}', '{"property":{},"unit":{}}');
+INSERT INTO public.properties(id, landlord_id, title, description, property_type, street_address, barangay, city, coordinates) VALUES ('dddddddd-0000-4000-8000-000000000001', 'aaaaaaaa-0000-4000-8000-000000000001', 'Property', 'Description', 'house', 'Street', 'Barangay', 'City', extensions.ST_SetSRID(extensions.ST_MakePoint(123,10),4326));
+INSERT INTO public.property_submissions(owner_id, operation_id, draft_id, expected_revision, property_id) VALUES ('aaaaaaaa-0000-4000-8000-000000000001', 'eeeeeeee-0000-4000-8000-000000000001', 'bbbbbbbb-0000-4000-8000-000000000001', 1, 'dddddddd-0000-4000-8000-000000000001');
+SET LOCAL ROLE authenticated;
+SELECT set_config('request.jwt.claim.sub','aaaaaaaa-0000-4000-8000-000000000001',true);
+DO $$ BEGIN IF (SELECT count(*) FROM public.property_submissions) <> 1 THEN RAISE EXCEPTION 'active owner cannot read submission'; END IF; END $$;
+RESET ROLE;
+UPDATE public.profiles SET is_suspended = true WHERE id = 'aaaaaaaa-0000-4000-8000-000000000001';
+SET LOCAL ROLE authenticated;
+DO $$ BEGIN IF (SELECT count(*) FROM public.property_submissions) <> 0 THEN RAISE EXCEPTION 'suspended owner can read submission'; END IF; END $$;
+ROLLBACK;

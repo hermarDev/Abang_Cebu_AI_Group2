@@ -11,7 +11,7 @@ import { useFinderTheme } from "@/features/map/useFinderTheme";
 const links = [
   { href: "/landlord/dashboard", label: "Dashboard", Icon: LayoutDashboard },
   { href: "/landlord/map", label: "Map", Icon: MapPinned },
-  { href: "/list-property", label: "Add listing", accessible: "Listing form preview", Icon: HousePlus },
+  { href: "/list-property", label: "Add listing", accessible: "Add listing preview", Icon: HousePlus },
   { href: "/account", label: "Account", Icon: UserRound },
 ];
 
@@ -24,7 +24,7 @@ export function LandlordMobileNav() {
   return <>
     <nav aria-label="Landlord mobile navigation" className="fixed inset-x-0 bottom-0 z-40 flex items-center border-t border-border bg-card px-1 pb-[env(safe-area-inset-bottom)] text-card-foreground lg:hidden">
       {links.map(({ href, label, accessible, Icon }) => <Link key={href} href={href} aria-label={accessible ?? label} aria-current={pathname === href ? "page" : undefined} className={`${itemClass} ${pathname === href ? "text-action" : "text-muted-foreground hover:text-foreground"}`}>
-        <Icon size={20} aria-hidden="true" /><span>{label}</span>
+        <Icon size={20} aria-hidden="true" /><span>{label}{href === "/list-property" && <> <span className="text-[.58rem]">(preview)</span></>}</span>
       </Link>)}
       <button type="button" aria-label="More landlord options" aria-expanded={open} onClick={() => setOpen(true)} className={`${itemClass} text-muted-foreground hover:text-foreground`}><Ellipsis size={20} aria-hidden="true" /><span>More</span></button>
     </nav>

@@ -90,12 +90,12 @@ describe("signInWithEmail", () => {
   });
 
   it.each([
-    [{ code: "invalid_credentials", status: 400 }, "Invalid email or password."],
-    [{ code: "over_request_rate_limit", status: 429 }, "Too many login attempts. Please try again later."],
-    [{ status: 429 }, "Too many login attempts. Please try again later."],
-    [{ code: "email_not_confirmed", status: 403 }, "Sign in is temporarily unavailable. Please try again."],
-    [{ code: "unexpected_failure", status: 503 }, "Sign in is temporarily unavailable. Please try again."],
-  ])("sanitizes returned login error %#", async (providerError, message) => {
+    ["invalid credentials (HTTP 400)", { code: "invalid_credentials", status: 400 }, "Invalid email or password."],
+    ["rate limit exceeded (HTTP 429 / over_request_rate_limit)", { code: "over_request_rate_limit", status: 429 }, "Too many login attempts. Please try again later."],
+    ["rate limit exceeded (HTTP 429 status code)", { status: 429 }, "Too many login attempts. Please try again later."],
+    ["email not confirmed (HTTP 403)", { code: "email_not_confirmed", status: 403 }, "Sign in is temporarily unavailable. Please try again."],
+    ["server failure (HTTP 503)", { code: "unexpected_failure", status: 503 }, "Sign in is temporarily unavailable. Please try again."],
+  ])("sanitizes returned login error: %s", async (_condition, providerError, message) => {
     signInWithPassword.mockResolvedValue({
       data: { user: null, session: null },
       error: { ...providerError, message: "private provider detail" },

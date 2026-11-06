@@ -1,7 +1,7 @@
 "use client";
 
 import { useId, useState } from "react";
-import { CircleAlert, Eye, EyeOff, Mail, LockKeyhole } from "lucide-react";
+import { CheckCircle2, CircleAlert, Eye, EyeOff, LockKeyhole, Mail } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { FieldError } from "@/components/ui/Field";
@@ -143,11 +143,17 @@ export function LoginForm({
 
           {statusMessage && (
             <div
-              className={statusIsError ? "flex items-start gap-2 p-3 text-sm rounded bg-destructive/10 text-foreground border border-destructive/40" : "p-3 text-sm rounded bg-muted text-foreground border border-border"}
+              className={statusIsError
+                ? "flex items-start gap-2.5 p-3 text-sm rounded-lg bg-destructive/10 text-foreground border border-destructive/40"
+                : "flex items-start gap-2.5 p-3 text-sm rounded-lg bg-emerald-500/10 text-foreground border border-emerald-500/30"}
               role={statusIsError ? "alert" : "status"}
             >
-              {statusIsError && <CircleAlert size={18} aria-hidden="true" className="shrink-0 text-destructive" />}
-              {statusMessage}
+              {statusIsError ? (
+                <CircleAlert size={18} aria-hidden="true" className="shrink-0 text-destructive mt-0.5" />
+              ) : (
+                <CheckCircle2 size={18} aria-hidden="true" className="shrink-0 text-emerald-600 dark:text-emerald-400 mt-0.5" />
+              )}
+              <span className="flex-1">{statusMessage}</span>
             </div>
           )}
 

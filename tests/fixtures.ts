@@ -9,7 +9,7 @@ export const test = base.extend({
     await context.route("**/*", async (route) => {
       const request = route.request();
       const url = new URL(request.url());
-      if (url.origin !== origin || !["GET", "HEAD"].includes(request.method())) {
+      if ((url.origin !== origin && !url.pathname.includes("/auth/v1/")) || (!["GET", "HEAD"].includes(request.method()) && !url.pathname.includes("/auth/v1/"))) {
         return route.abort("blockedbyclient");
       }
       if (url.pathname === "/api/places") {

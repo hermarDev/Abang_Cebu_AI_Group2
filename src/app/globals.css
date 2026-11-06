@@ -361,3 +361,66 @@ body > [role="status"].fixed.bottom-4.right-4.border-action {
 .site-header .brand-logo-mark { display: none; }
 .site-header .brand-logo-full { height: 34px; width: auto; }
 .site-header .profile-button { margin-left: auto; }
+
+/* Startup splash: initial document only, never interactive, fail-open. */
+[data-startup-splash] {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: var(--background);
+  color: var(--foreground);
+  pointer-events: none;
+}
+html[data-startup="pending"] [data-startup-splash] {
+  display: flex;
+  animation: startup-splash-watchdog 0s linear 8s forwards;
+}
+html[data-startup="ready"] [data-startup-splash] {
+  display: flex;
+  animation: startup-splash-exit 160ms ease-in forwards;
+}
+[data-startup-splash] img {
+  width: min(15rem, 65vw);
+  height: auto;
+}
+html[data-startup="pending"] [data-startup-splash] img {
+  animation: startup-splash-enter 220ms ease-out both;
+}
+[data-startup-splash] img[src="/icons/main_Logo_Light.png"] { display: none; }
+.dark [data-startup-splash] img[src="/icons/main_Logo.png"] { display: none; }
+.dark [data-startup-splash] img[src="/icons/main_Logo_Light.png"] { display: block; }
+[data-startup-splash] [role="status"] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+@keyframes startup-splash-enter {
+  from { opacity: 0; transform: scale(0.98); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes startup-splash-exit {
+  from { opacity: 1; }
+  to { opacity: 0; visibility: hidden; }
+}
+@keyframes startup-splash-watchdog {
+  to { opacity: 0; visibility: hidden; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html[data-startup="pending"] [data-startup-splash],
+  html[data-startup="pending"] [data-startup-splash] img,
+  html[data-startup="ready"] [data-startup-splash] {
+    animation: none;
+  }
+  html[data-startup="ready"] [data-startup-splash] {
+    display: none;
+  }
+}

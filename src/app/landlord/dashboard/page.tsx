@@ -21,12 +21,26 @@ export default async function LandlordDashboardPage() {
     .select("id,title,status,is_available")
     .eq("owner_id", user.id)
     .order("created_at", { ascending: false });
+  const { data: submissions, error: submissionError } = await supabase.from("properties")
+    .select("id,title,status,moderation_note")
+    .eq("landlord_id", user.id)
+    .order("created_at", { ascending: false });
+  const { data: submittedDrafts, error: correctionError } = await supabase.from("property_submissions")
+    .select("property_id,draft_id,expected_revision,superseded_by")
+    .eq("owner_id", user.id)
+    .order("created_at", { ascending: false });
+  const correctionTargets = new Map<string, { draftId: string; revision: number }>();
+  for (const submission of submittedDrafts ?? []) {
+    if (!submission.superseded_by && !correctionTargets.has(submission.property_id) && Number.isSafeInteger(submission.expected_revision) && submission.expected_revision > 0) {
+      correctionTargets.set(submission.property_id, { draftId: submission.draft_id, revision: submission.expected_revision });
+    }
+  }
 
   const stats = [
     { label: "Total properties", value: error ? null : listings?.length ?? 0, detail: "Existing listings in your portfolio", Icon: Building2 },
     { label: "Live listings", value: error ? null : listings?.filter(listing => listing.status === "published" && listing.is_available).length ?? 0, detail: "Published and available", Icon: Compass },
-    { label: "Under review", value: null, detail: "Review tracking unavailable", Icon: Clock3 },
-    { label: "Changes requested", value: null, detail: "Review tracking unavailable", Icon: CircleAlert },
+    { label: "Under review", value: submissionError ? null : submissions?.filter(property => property.status === "pending").length ?? 0, detail: "Submitted and waiting for review", Icon: Clock3 },
+    { label: "Changes requested", value: submissionError ? null : submissions?.filter(property => property.status === "rejected").length ?? 0, detail: "Rejected with notes", Icon: CircleAlert },
   ];
 
   return <LandlordWorkspaceLayout
@@ -36,7 +50,7 @@ export default async function LandlordDashboardPage() {
       <details className="group relative">
         <summary aria-label={`Account options for ${displayName}`} title={displayName} className="inline-flex min-h-11 cursor-pointer list-none items-center gap-2 rounded-xl border border-border bg-card px-3 text-sm font-semibold hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring [&::-webkit-details-marker]:hidden">{avatarUrl ? <Image src={avatarUrl} alt="" width={28} height={28} unoptimized className="size-7 shrink-0 rounded-full border border-border object-cover" /> : <span className="grid size-7 shrink-0 place-items-center rounded-full bg-action/10 text-action"><UserRound size={16} aria-hidden="true" /></span>} <span>Account</span><ChevronDown size={15} className="transition-transform group-open:rotate-180" aria-hidden="true" /></summary>
         <div className="absolute right-0 top-[calc(100%+0.5rem)] z-50 grid min-w-48 gap-1 rounded-xl border border-border bg-card p-1 text-card-foreground shadow-xl">
-          <Link href="/account" className="inline-flex min-h-11 items-center gap-2 rounded-lg px-3 text-sm font-semibold hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"><UserRound size={17} aria-hidden="true" /> Manage account</Link>
+          <Link href="/account" className="inline-flex min-h-11 items-center gap-2 rounded-lg px-3 text-sm font-semibold hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"><UserRound size={17} aria-hidden="true" /> Account settings</Link>
           <Link href="/auth/logout" className="inline-flex min-h-11 items-center gap-2 rounded-lg px-3 text-sm font-semibold hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"><LogOut size={17} aria-hidden="true" /> Log out</Link>
         </div>
       </details>
@@ -49,7 +63,7 @@ export default async function LandlordDashboardPage() {
           <h1 className="mb-0 mt-2 text-3xl font-bold tracking-tight sm:text-4xl">Welcome back, {profile.full_name?.trim() || "landlord"}</h1>
           <p className="mb-0 mt-2 text-sm text-muted-foreground sm:text-base">Manage your rentals and keep track of your properties.</p>
         </div>
-        <Link href="/list-property" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-action px-4 text-sm font-bold text-action-foreground hover:bg-action-hover">Open listing form preview <ArrowRight size={17} aria-hidden="true" /></Link>
+        <Link href="/list-property" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-action px-4 text-sm font-bold text-action-foreground hover:bg-action-hover">Open listing form <ArrowRight size={17} aria-hidden="true" /></Link>
       </div>
     </section>
     <section className="grid grid-cols-2 gap-3 xl:grid-cols-4" aria-label="Property overview">
@@ -70,6 +84,19 @@ export default async function LandlordDashboardPage() {
           <p className="mt-1 text-sm text-muted-foreground">{listing.status === "published" ? listing.is_available ? "Published · Available" : "Published · Unavailable" : listing.status === "archived" ? "Archived" : "Draft"}</p>
         </li>)}</ul>}
     </section>
-    <p className="text-sm text-muted-foreground">Property submission is not available yet.</p>
+    <section id="submissions" aria-labelledby="submissions-heading">
+      <p className="mb-1 text-xs font-bold uppercase tracking-[.15em] text-action">Listing review</p>
+      <h2 id="submissions-heading" className="text-xl font-bold sm:text-2xl">Submitted properties</h2>
+      {correctionError && !submissionError && <p role="alert" className="mt-4">Correction links could not be loaded. Refresh the page to try again.</p>}
+      {submissionError ? <p role="alert" className="mt-4">Could not load review status. Refresh the page to try again.</p>
+        : !submissions?.length ? <p className="mt-4 text-sm text-muted-foreground">Submissions appear here with their review status.</p>
+        : <ul className="mt-4 grid list-none gap-3 p-0">{submissions.map(property => <li key={property.id} className="rounded-2xl border border-border bg-card p-4 sm:p-5">
+          <h3 className="font-semibold">{property.title}</h3>
+          <p className="mt-1 text-sm text-muted-foreground">{property.status === "pending" ? "Pending review" : property.status === "rejected" ? "Changes requested" : property.status === "approved" ? "Approved" : "Archived"}</p>
+          {property.status === "rejected" && property.moderation_note && <p className="mt-1 text-sm text-muted-foreground">{property.moderation_note}</p>}
+          {property.status === "rejected" && correctionTargets.has(property.id) && <Link href={`/list-property?draftId=${correctionTargets.get(property.id)!.draftId}&revision=${correctionTargets.get(property.id)!.revision}`} className="mt-3 inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-border bg-card px-3 text-sm font-semibold hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">Correct and resubmit <ArrowRight size={15} aria-hidden="true" /></Link>}
+        </li>)}</ul>}
+    </section>
+    <p className="text-sm text-muted-foreground">The listing form is a preview. Draft saving and submission are not available yet.</p>
   </LandlordWorkspaceLayout>;
 }

@@ -12,7 +12,7 @@ import { RentalFilterDialog } from "@/features/rentals/RentalFilterDialog";
 import Image from "next/image";
 import Link from "next/link";
 import { FinderAssistant } from "./FinderAssistant";
-import { Building2, ChevronDown, ChevronsLeft, ChevronsRight, LogIn, LogOut, MapPinned, Menu, Pencil, Search, User, X } from "lucide-react";
+import { Building2, ChevronDown, ChevronsLeft, ChevronsRight, CircleAlert, Info, LogIn, LogOut, MapPinned, Menu, Pencil, Search, User, X } from "lucide-react";
 import { AccountAccessContent, type AccountMode } from "@/components/auth/AccountAccessContent";
 import MapSearch from "@/components/map/MapSearch";
 import type { PlaceResult } from "@/lib/search/places";
@@ -109,6 +109,7 @@ export function RestoredFinderShell({ rentalStatus: statusOverride, initialAccou
     }
   }, [accountMode]);
   const [accountPrompt, setAccountPrompt] = useState<string | null>(null);
+  const [initialError, setInitialError] = useState<string | null>(initialErrorMessage ?? null);
   const favoriteRequests = useRef(new Set<string>());
   const [mapRadius, setMapRadius] = useState(2);
   const [locationQuery, setLocationQuery] = useState("");
@@ -240,7 +241,7 @@ export function RestoredFinderShell({ rentalStatus: statusOverride, initialAccou
       <span>Account</span><ChevronDown size={15} aria-hidden="true" />
     </summary>
     <div className={styles.accountMenuPopover}>
-      <Link href="/account"><User size={17} aria-hidden="true" /><span>Manage account</span></Link>
+      <Link href="/account"><User size={17} aria-hidden="true" /><span>Account settings</span></Link>
       <Link href="/auth/logout"><LogOut size={17} aria-hidden="true" /><span>Log out</span></Link>
     </div>
   </details> : <button className={styles.signIn} aria-label="Open account dialog" onClick={() => setAccountOpen(true)}><LogIn size={19} aria-hidden="true" /><span>Log in</span></button>}
@@ -300,13 +301,38 @@ export function RestoredFinderShell({ rentalStatus: statusOverride, initialAccou
       <Image src={activeTheme === "dark" ? "/icons/main_Logo_Light.png" : "/icons/main_Logo.png"} unoptimized alt="AbangCebu" width={299} height={100} loading="eager" />
     </div>
     <div ref={accountBodyRef} className={styles.accountBody}>
-      {(initialErrorMessage || accountPrompt) && <p role={initialErrorMessage ? "alert" : "status"}>{initialErrorMessage ?? accountPrompt}</p>}
-      {authenticated ? <section className={styles.accountContent}><h2 className={styles.accountHeading}>Your account</h2><p>Manage your profile and security.</p><div className="mt-5 grid gap-3"><Link href="/account" className="inline-flex min-h-11 items-center justify-center rounded-lg bg-action px-4 text-sm font-semibold text-action-foreground hover:bg-action-hover">Manage account</Link><Link href="/auth/logout" className="inline-flex min-h-11 items-center justify-center rounded-lg border border-border bg-card px-4 text-sm font-semibold text-card-foreground hover:bg-muted">Log out</Link></div></section> : <AccountAccessContent mode={accountMode} onModeChange={setAccountMode} isRecovery={isRecovery} statusMessage={initialStatusMessage} onLoginSuccess={() => { setAccountOpen(false); setAccountPrompt(null); }} />}
+      {initialError && accountMode === "sign-in" && (
+        <div className={styles.recoveryAlert} role="alert">
+          <CircleAlert size={18} className="text-destructive shrink-0 mt-0.5" aria-hidden="true" />
+          <div className={styles.recoveryAlertBody}>
+            <p className={styles.recoveryAlertTitle}>Password reset link expired or invalid</p>
+            <p className={styles.recoveryAlertText}>{initialError}</p>
+            <button
+              type="button"
+              className={styles.recoveryAlertAction}
+              onClick={() => {
+                focusAccountHeading.current = true;
+                setAccountMode("reset");
+                setInitialError(null);
+              }}
+            >
+              Request a new password reset link &rarr;
+            </button>
+          </div>
+        </div>
+      )}
+      {accountPrompt && (
+        <div className={styles.accountPromptAlert} role="status">
+          <Info size={16} className="text-action shrink-0" aria-hidden="true" />
+          <span>{accountPrompt}</span>
+        </div>
+      )}
+      {authenticated ? <section className={styles.accountContent}><h2 className={styles.accountHeading}>Your account</h2><p>Manage your profile and security.</p><div className="mt-5 grid gap-3"><Link href="/account" className="inline-flex min-h-11 items-center justify-center rounded-lg bg-action px-4 text-sm font-semibold text-action-foreground hover:bg-action-hover">Account settings</Link><Link href="/auth/logout" className="inline-flex min-h-11 items-center justify-center rounded-lg border border-border bg-card px-4 text-sm font-semibold text-card-foreground hover:bg-muted">Log out</Link></div></section> : <AccountAccessContent mode={accountMode} onModeChange={setAccountMode} isRecovery={isRecovery} statusMessage={initialStatusMessage} onLoginSuccess={() => { setAccountOpen(false); setAccountPrompt(null); setInitialError(null); }} />}
     </div>
     <div className={styles.accountFooter}>
-      {accountMode === "sign-in" && !authenticated && <span>Don’t have an account? <button type="button" onClick={() => { focusAccountHeading.current = true; setAccountMode("sign-up"); }}>Register</button></span>}
-      {accountMode === "sign-up" && !authenticated && <span>Already have an account? <button type="button" onClick={() => { focusAccountHeading.current = true; setAccountMode("sign-in"); }}>Log in</button></span>}
-      <Button type="button" variant="ghost" className={styles.accountBack} onClick={() => setAccountOpen(false)}>Continue browsing map</Button>
+      {accountMode === "sign-in" && !authenticated && <span>Don’t have an account? <button type="button" onClick={() => { focusAccountHeading.current = true; setAccountMode("sign-up"); setInitialError(null); }}>Register</button></span>}
+      {accountMode === "sign-up" && !authenticated && <span>Already have an account? <button type="button" onClick={() => { focusAccountHeading.current = true; setAccountMode("sign-in"); setInitialError(null); }}>Log in</button></span>}
+      <Button type="button" variant="ghost" className={styles.accountBack} onClick={() => { setAccountOpen(false); setAccountPrompt(null); setInitialError(null); }}>Continue browsing map</Button>
     </div>
   </Modal>
   {canUseRentalAssistant && !helpOpen && <button type="button" className={styles.chatLauncher} aria-label="Open rental assistant" title="Rental assistant" onClick={() => setHelpOpen(true)}><Image src="/icons/chatbot_logo.png" alt="" width={48} height={48} /></button>}

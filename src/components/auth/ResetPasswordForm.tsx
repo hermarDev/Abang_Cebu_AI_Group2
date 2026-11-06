@@ -6,7 +6,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
-import { KeyRound, Mail, LockKeyhole, Eye, EyeOff } from "lucide-react";
+import { CircleAlert, Eye, EyeOff, KeyRound, LockKeyhole, Mail } from "lucide-react";
 import { PasswordRequirements } from "./PasswordRequirements";
 
 const genericSuccess = "If an account is associated with this email, a password recovery link has been dispatched.";
@@ -99,8 +99,34 @@ export function ResetPasswordForm({ isRecovery = false, onBackToLogin, embedded 
       </div>}
       <CardContent className="px-6 pb-6">
         {message && (
-          <div className="mb-4 rounded border border-border bg-accent p-4 text-center text-accent-foreground" role={isError ? "alert" : "status"}>
-            <p className="text-sm">{message}</p>
+          <div
+            className={isError
+              ? "mb-4 flex items-start gap-2.5 rounded-lg border border-destructive/40 bg-destructive/10 p-3.5 text-foreground"
+              : "mb-4 flex items-start gap-2.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3.5 text-foreground"}
+            role={isError ? "alert" : "status"}
+          >
+            {isError ? (
+              <CircleAlert size={18} aria-hidden="true" className="shrink-0 text-destructive mt-0.5" />
+            ) : (
+              <Mail size={18} aria-hidden="true" className="shrink-0 text-emerald-600 dark:text-emerald-400 mt-0.5" />
+            )}
+            <div className="flex-1 text-left">
+              <p className="text-sm font-medium">{message}</p>
+              {isError && isRecovery && message.includes("expired") && (
+                <button
+                  type="button"
+                  className="mt-2 inline-flex items-center text-xs font-semibold text-action hover:underline"
+                  onClick={() => {
+                    setMessage(null);
+                    setIsError(false);
+                    if (onBackToLogin) onBackToLogin();
+                    else window.location.href = "/reset-password";
+                  }}
+                >
+                  Request a new reset link &rarr;
+                </button>
+              )}
+            </div>
           </div>
         )}
         {!requestSent && <form onSubmit={handleSubmit} className="space-y-4">
