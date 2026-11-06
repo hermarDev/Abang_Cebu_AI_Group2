@@ -21,6 +21,8 @@ export async function POST(request: Request) {
   return reply("Listing submission is unavailable in preview.", 503);
 }
 
+// Retain the disabled submission path until revision-safe recovery is verified.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function submitListing(request: Request) {
   const session = await access(request);
   if ("response" in session && session.response) return session.response;

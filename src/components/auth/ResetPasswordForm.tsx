@@ -120,7 +120,7 @@ export function ResetPasswordForm({ isRecovery = false, onBackToLogin, embedded 
                     setMessage(null);
                     setIsError(false);
                     if (onBackToLogin) onBackToLogin();
-                    else window.location.href = "/reset-password";
+                    else router.push("/reset-password");
                   }}
                 >
                   Request a new reset link &rarr;
