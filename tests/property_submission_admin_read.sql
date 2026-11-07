@@ -21,4 +21,9 @@ SELECT set_config('request.jwt.claim.sub','aaaaaaaa-0000-4000-8000-000000000004'
 DO $$ BEGIN IF (SELECT count(*) FROM public.property_submissions) <> 0 THEN RAISE EXCEPTION 'renter can read submitted evidence'; END IF; END $$;
 SELECT set_config('request.jwt.claim.sub','aaaaaaaa-0000-4000-8000-000000000001',true);
 DO $$ BEGIN IF (SELECT count(*) FROM public.property_submissions) <> 1 THEN RAISE EXCEPTION 'owner cannot read submitted evidence'; END IF; END $$;
+DO $$ BEGIN
+ IF (public.landlord_property_status('eeeeeeee-0000-4000-8000-000000000001')->>'propertyId') <> 'dddddddd-0000-4000-8000-000000000001' THEN
+   RAISE EXCEPTION 'landlord cannot read own property status';
+ END IF;
+END $$;
 ROLLBACK;
