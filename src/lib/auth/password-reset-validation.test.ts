@@ -19,7 +19,7 @@ describe("password reset confirmation validation", () => {
     expect(validateResetConfirmation({ newPassword: "NewStrong1!" })).toEqual({ ok: false, code: "VALIDATION_ERROR" });
     expect(validateResetConfirmation({ newPassword: "NewStrong1!", confirmPassword: "Different1!" })).toEqual({ ok: false, code: "VALIDATION_ERROR" });
   });
-  it.each(["weak", "A".repeat(73), "abcdefgh1"]) ("rejects weak password %s", (password) => {
+  it.each(["weak", "A".repeat(73), "abcdefgh1", "abcdef1!", "ABCDEF1!", "Abcdefg!", "Abcdef12"]) ("rejects weak password %s", (password) => {
     expect(validateResetConfirmation({ newPassword: password, confirmPassword: password })).toEqual({ ok: false, code: "WEAK_PASSWORD" });
   });
 });

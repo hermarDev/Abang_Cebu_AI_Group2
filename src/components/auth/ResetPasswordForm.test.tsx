@@ -40,8 +40,8 @@ afterEach(() => {
   vi.clearAllMocks();
 });
 
-const { replace, refresh } = vi.hoisted(() => ({ replace: vi.fn(), refresh: vi.fn() }));
-vi.mock("next/navigation", () => ({ useRouter: () => ({ replace, refresh }) }));
+const { replace, refresh, push } = vi.hoisted(() => ({ replace: vi.fn(), refresh: vi.fn(), push: vi.fn() }));
+vi.mock("next/navigation", () => ({ useRouter: () => ({ replace, refresh, push }) }));
 
 
 describe("ResetPasswordForm", () => {
@@ -89,6 +89,22 @@ describe("ResetPasswordForm", () => {
     expect(html).toContain("Passwords do not match.");
     expect(html).toContain(`id="${confirmation.props["aria-describedby"]}"`);
   });
+  it("refreshes router state and clears error on expired reset link click", async () => {
+    state.active = true;
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: false, json: async () => ({ success: false, error: { message: "Your recovery session has expired." } }) }));
+    const form = findElement(renderForm(true), (element) => element.type === "form")!;
+    await (form.props.onSubmit as (event: unknown) => Promise<void>)({ preventDefault: vi.fn(), currentTarget: { querySelector: vi.fn() } });
+    const button = findElement(renderForm(true), (element) => typeof element.props.className === "string" && (element.props.className as string).includes("hover:underline") && typeof element.props.onClick === "function")!;
+    (button.props.onClick as () => void)();
+    expect(refresh).toHaveBeenCalled();
+  });
+  it("renders a persistent live region for password match feedback", () => {
+    state.active = true;
+    const tree = renderForm(true);
+    const region = findElement(tree, (element) => element.props["data-password-match-status"] === true);
+    expect(region?.props.role).toBe("status");
+    expect(region?.props.children).toBeFalsy();
+  });
   it("shows a recovery icon above the recovery form", () => {
     const html = renderToStaticMarkup(<ResetPasswordForm />);
 
@@ -99,7 +115,8 @@ describe("ResetPasswordForm", () => {
     const html = renderToStaticMarkup(<ResetPasswordForm isRecovery />);
 
     expect(html).toContain("Choose a new password");
-    expect(html).toContain("Use 8–72 characters and include at least three");
+    expect(html).toContain("Password requirements");
+    for (const label of ["8–72 characters", "Uppercase letter", "Lowercase letter", "Number", "Symbol"]) expect(html).toContain(label);
     expect(html).toContain('name="newPassword"');
     expect(html).toContain('name="confirmPassword"');
     expect(html).toContain('autoComplete="new-password"');

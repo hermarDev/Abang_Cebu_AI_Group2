@@ -1,7 +1,7 @@
 "use client";
 
-import { useId, useMemo, useState } from "react";
-import { Eye, EyeOff, Mail, LockKeyhole, UserRound, Search, HousePlus } from "lucide-react";
+import { useId, useState } from "react";
+import { CircleAlert, Eye, EyeOff, HousePlus, LockKeyhole, Mail, Search, UserRound } from "lucide-react";
 import { useRouter } from "next/navigation";
 import * as RadioGroup from "@radix-ui/react-radio-group";
 import { Button } from "@/components/ui/Button";
@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/Input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
 import { validateRegistration } from "@/lib/auth/validation";
 import type { RegisterPayload } from "@/types/auth";
+import { PasswordRequirements } from "./PasswordRequirements";
 
 export function RegisterForm({ onLogin }: { onLogin?: () => void } = {}) {
   const router = useRouter();
@@ -33,23 +34,6 @@ export function RegisterForm({ onLogin }: { onLogin?: () => void } = {}) {
     setFieldErrors(errors => ({ ...errors, [field]: validation.ok ? undefined : validation.errors[field] }));
   };
   const [registered, setRegistered] = useState(false);
-
-  // Live password strength calculation
-  const strengthScore = useMemo(() => {
-    let score = 0;
-    if (password.length >= 8) score++;
-    if (/[a-z]/.test(password) && /[A-Z]/.test(password)) score++;
-    if (/\d/.test(password)) score++;
-    if (/[^a-zA-Z0-9]/.test(password)) score++;
-    return score;
-  }, [password]);
-
-  const strengthLabel = useMemo(() => {
-    if (!password) return "";
-    if (strengthScore <= 1) return "Weak";
-    if (strengthScore <= 3) return "Moderate";
-    return "Strong";
-  }, [password, strengthScore]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -131,14 +115,17 @@ export function RegisterForm({ onLogin }: { onLogin?: () => void } = {}) {
         </RadioGroup.Root>
 
         {successMessage && registered ? (
-          <div className="p-4 text-center rounded bg-accent text-accent-foreground border border-border" role="status">
-            <h4 className="font-semibold mb-1">Check Your Email</h4>
-            <p className="text-sm">{successMessage}</p>
-            <div className="mt-4">
-              <button type="button" className="text-sm font-medium text-action hover:underline" onClick={onLogin ?? (() => router.push("/login"))}>
-                {onLogin ? "Log In" : "Return to Login"}
+          <div className="flex flex-col items-center p-6 text-center rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-foreground" role="status">
+            <span className="grid size-12 place-items-center rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 mb-3" aria-hidden="true">
+              <Mail size={22} />
+            </span>
+            <h4 className="text-base font-semibold mb-1">Check Your Email</h4>
+            <p className="text-sm text-muted-foreground">{successMessage}</p>
+            {!onLogin && <div className="mt-4">
+              <button type="button" className="text-sm font-medium text-action hover:underline" onClick={() => router.push("/login")}>
+                Return to Login
               </button>
-            </div>
+            </div>}
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4" noValidate>
@@ -220,32 +207,12 @@ export function RegisterForm({ onLogin }: { onLogin?: () => void } = {}) {
                 </button>
               </div>
 
-              <p id={`${passwordId}-policy`} className="mt-2 text-xs text-muted-foreground">Use 8–72 characters and at least 3 of: uppercase, lowercase, numbers, and symbols.</p>
-              {password && (
-                <div className="mt-2 text-xs flex items-center justify-between">
-                  <span className="text-muted-foreground">Strength: {strengthLabel}</span>
-                  <div className="flex gap-1">
-                    {[1, 2, 3, 4].map((step) => (
-                      <div
-                        key={step}
-                        className={`h-1.5 w-6 rounded-full ${
-                          strengthScore >= step
-                            ? strengthScore <= 1
-                              ? "bg-destructive"
-                              : strengthScore <= 3
-                              ? "bg-warning"
-                              : "bg-action"
-                            : "bg-muted"
-                        }`}
-                      />
-                    ))}
-                  </div>
-                </div>
-              )}
+              <PasswordRequirements id={`${passwordId}-policy`} password={password} />
             </div>
             {errorMessage && (
-              <div className="p-3 text-sm rounded bg-destructive/10 text-destructive border border-destructive/20" role="alert">
-                {errorMessage}
+              <div className="flex items-start gap-2.5 p-3 text-sm rounded-lg bg-destructive/10 text-foreground border border-destructive/40" role="alert">
+                <CircleAlert size={18} aria-hidden="true" className="shrink-0 text-destructive mt-0.5" />
+                <span className="flex-1">{errorMessage}</span>
               </div>
             )}
 

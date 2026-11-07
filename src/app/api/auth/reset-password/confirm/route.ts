@@ -32,10 +32,12 @@ export async function POST(request: Request) {
     const supabase = await createClient();
     const { data: { user }, error: userError } = await supabase.auth.getUser();
     if (userError || !user) {
+      cookieStore.delete(PASSWORD_RESET_RECOVERY_COOKIE);
       return failure(401, "AUTH_PASSWORD_RESET_TOKEN_INVALID", "Your recovery session is invalid or expired. Request a new link.");
     }
     const { data: { session }, error: sessionError } = await supabase.auth.getSession();
     if (sessionError || !session) {
+      cookieStore.delete(PASSWORD_RESET_RECOVERY_COOKIE);
       return failure(401, "AUTH_PASSWORD_RESET_TOKEN_INVALID", "Your recovery session is invalid or expired. Request a new link.");
     }
     const claimsResult = await supabase.auth.getClaims();
@@ -46,6 +48,7 @@ export async function POST(request: Request) {
       (method) => method && typeof method === "object" && "method" in method && method.method === "recovery",
     );
     if (claimsError || !hasRecoveryMethod) {
+      cookieStore.delete(PASSWORD_RESET_RECOVERY_COOKIE);
       return failure(401, "AUTH_PASSWORD_RESET_TOKEN_INVALID", "Your recovery session is invalid or expired. Request a new link.");
     }
 

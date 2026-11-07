@@ -132,7 +132,7 @@ export async function updateAccountPassword(formData: FormData): Promise<Account
   const password = formData.get("password");
   const confirmPassword = formData.get("confirmPassword");
   if (typeof currentPassword !== "string" || !currentPassword) return { success: false, message: "Enter your current password." };
-  if (typeof password !== "string" || !validatePasswordStrength(password).isValid) return { success: false, message: "Use 8–72 characters and at least 3 of: uppercase, lowercase, number and symbol." };
+  if (typeof password !== "string" || !validatePasswordStrength(password).isValid) return { success: false, message: "Use 8–72 characters, including uppercase, lowercase, a number, and a symbol." };
   if (password !== confirmPassword) return { success: false, message: "Passwords do not match." };
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;

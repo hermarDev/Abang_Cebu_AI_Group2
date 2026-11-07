@@ -12,7 +12,7 @@ const linkGroups = [
   {
     label: "Property",
     links: [
-      { href: "/list-property", label: "Listing form preview", Icon: HousePlus },
+      { href: "/list-property", label: "Listing form", ariaLabel: "Listing form", Icon: HousePlus },
       { href: "/landlord/map", label: "Property map", Icon: MapPinned },
     ],
   },

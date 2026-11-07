@@ -191,30 +191,44 @@
 .chatHistoryNotice { width: 100%; border-top: 1px solid var(--border); padding: .45rem .8rem; color: var(--muted-foreground); font-size: .67rem; line-height: 1.4; }
 .chatHistory > .chatHistoryNotice { width: calc(100% - 1.5rem); margin: .5rem .75rem 0; border: 1px solid var(--border); border-radius: .7rem; background: color-mix(in srgb, var(--action) 6%, var(--card)); }
 
-.accountDialog { display: flex; width: min(30rem, calc(100vw - 2rem)); height: min(42.5rem, calc(100dvh - max(1rem, env(safe-area-inset-top)) - max(1rem, env(safe-area-inset-bottom)))); max-height: none; flex-direction: column; overflow: hidden; overscroll-behavior: contain; border-radius: 1.1rem; padding: 0; }
-.accountDialog > div { display: grid; min-height: 0; height: 100%; grid-template-rows: auto minmax(0, 1fr) auto; padding: 0; }
+.accountDialog { display: flex; width: min(28rem, calc(100vw - 2rem)); height: auto; max-height: min(90dvh, calc(100dvh - max(1.25rem, env(safe-area-inset-top)) - max(1.25rem, env(safe-area-inset-bottom)))); flex-direction: column; overflow: hidden; overscroll-behavior: contain; border-radius: 1rem; padding: 0; box-shadow: 0 20px 45px -10px rgb(0 0 0 / 25%), 0 10px 20px -8px rgb(0 0 0 / 15%); }
+.accountDialog > div { display: flex; flex-direction: column; min-height: 0; height: auto; max-height: inherit; padding: 0; }
 .accountDialog > div > header { position: absolute; inset: 0 0 auto; z-index: 1; margin: 0; padding: 0; }
 .accountDialog > div > header > p { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
-.accountHeader { display: flex; min-height: 5rem; align-items: center; border-bottom: 1px solid var(--border); padding: .75rem 1.5rem; }
-.accountHeader img { display: block; width: 8.625rem; height: auto; }
-.accountClose { position: absolute; top: .75rem; right: .75rem; display: grid; width: 2.75rem; height: 2.75rem; place-items: center; border: 0; border-radius: .7rem; background: transparent; color: var(--muted-foreground); cursor: pointer; }
+.accountHeader { display: flex; min-height: 4.25rem; align-items: center; border-bottom: 1px solid var(--border); padding: .75rem 1.5rem; flex-shrink: 0; background: var(--card); }
+.accountHeader img { display: block; width: 8.5rem; height: auto; }
+.accountClose { position: absolute; top: .625rem; right: .625rem; display: grid; width: 2.75rem; height: 2.75rem; place-items: center; border: 0; border-radius: .5rem; background: transparent; color: var(--muted-foreground); cursor: pointer; transition: background .15s ease, color .15s ease; }
 .accountClose:hover { background: var(--muted); color: var(--foreground); }
-.accountBody { min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 1.25rem 1.5rem; scrollbar-color: var(--input) transparent; scrollbar-width: thin; }
+.accountBody { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 1.25rem 1.5rem .75rem; scrollbar-color: var(--input) transparent; scrollbar-width: thin; }
 .accountContent { width: 100%; }
-.accountHeading { margin: 0; color: var(--card-foreground); font-size: 1.5rem; font-weight: 750; letter-spacing: -.025em; line-height: 1.2; }
-.accountFooter { display: grid; gap: .35rem; border-top: 1px solid var(--border); padding: .65rem 1.5rem max(.65rem, env(safe-area-inset-bottom)); background: var(--card); }
+.accountHeading { margin: 0; color: var(--card-foreground); font-size: 1.375rem; font-weight: 700; letter-spacing: -.02em; line-height: 1.2; }
+.recoveryAlert,
+.accountAlert { display: flex; align-items: flex-start; gap: .75rem; border: 1px solid color-mix(in srgb, var(--destructive) 40%, var(--border)); border-radius: .75rem; padding: .875rem 1rem; background: color-mix(in srgb, var(--destructive) 8%, var(--card)); margin-bottom: 1.25rem; text-align: left; box-shadow: 0 1px 3px rgb(0 0 0 / 8%); }
+.recoveryAlertBody,
+.accountAlertBody { flex: 1; }
+.recoveryAlertTitle,
+.accountAlertTitle { margin: 0; font-size: .875rem; font-weight: 700; color: var(--destructive); line-height: 1.3; }
+.recoveryAlertText,
+.accountAlertText { margin: .25rem 0 0; font-size: .8125rem; color: var(--card-foreground); opacity: .85; line-height: 1.45; }
+.recoveryAlertAction,
+.accountAlertAction { display: inline-flex; align-items: center; gap: .35rem; margin-top: .625rem; padding: .35rem .75rem; border: 0; border-radius: .5rem; background: var(--action); color: var(--action-foreground); font-size: .75rem; font-weight: 600; cursor: pointer; box-shadow: 0 1px 2px rgb(0 0 0 / 8%); transition: background-color .15s ease, transform .1s ease; }
+.recoveryAlertAction:hover,
+.accountAlertAction:hover { background: var(--action-hover); text-decoration: none; }
+.accountPromptAlert { display: flex; align-items: center; gap: .65rem; border: 1px solid color-mix(in srgb, var(--action) 25%, var(--border)); border-radius: .75rem; padding: .65rem .875rem; background: color-mix(in srgb, var(--action) 8%, var(--card)); margin-bottom: 1rem; color: var(--foreground); font-size: .8125rem; text-align: left; }
+.accountFooter { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; gap: .25rem; border-top: 1px solid var(--border); padding: .75rem 1.5rem max(.75rem, env(safe-area-inset-bottom)); background: var(--card); }
 .accountFooter > span { color: var(--muted-foreground); font-size: .8125rem; text-align: center; }
-.accountFooter > span button { min-width: 2.75rem; min-height: 2.75rem; border: 0; border-radius: .4rem; padding: .25rem .5rem; background: transparent; color: var(--action); cursor: pointer; font: inherit; font-weight: 700; }
+.accountFooter > span button { min-width: 2.75rem; min-height: 2.75rem; border: 0; border-radius: .4rem; padding: .25rem .5rem; background: transparent; color: var(--action); cursor: pointer; font: inherit; font-weight: 600; }
 .accountFooter > span button:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
-.accountBack { justify-self: center; width: auto; min-height: 2.75rem; margin: 0; border: 0; background: transparent; color: var(--muted-foreground); font-weight: 400; }
-.accountBack:hover { color: var(--foreground); text-decoration: underline; }
+.accountBack { justify-self: center; width: auto; min-height: 2.75rem; padding: .35rem .75rem; border: 0; border-radius: .5rem; background: transparent; color: var(--muted-foreground); font-size: .8125rem; font-weight: 400; transition: color .15s ease, background-color .15s ease; }
+.accountBack:hover { color: var(--foreground); background: var(--muted); text-decoration: none; }
 
 @media (max-height: 44rem) {
-  .accountDialog { height: calc(100dvh - max(1rem, env(safe-area-inset-top)) - max(1rem, env(safe-area-inset-bottom))); }
+  .accountDialog { max-height: calc(100dvh - max(1rem, env(safe-area-inset-top)) - max(1rem, env(safe-area-inset-bottom))); }
 }
 
-@media (max-width: 360px) {
-  .accountHeader, .accountBody, .accountFooter { padding-inline: 1rem; }
+@media (max-width: 480px) {
+  .accountDialog { width: calc(100vw - 1.25rem); border-radius: .875rem; }
+  .accountHeader, .accountBody, .accountFooter { padding-inline: 1.125rem; }
 }
 
 .filterPopover { z-index: 60; width: min(18rem, calc(100vw - 2rem)); max-height: min(70dvh, 30rem); overflow-y: auto; border: 1px solid var(--border); border-radius: .9rem; padding: .75rem; background: var(--popover); color: var(--popover-foreground); box-shadow: 0 10px 35px rgb(13 27 43 / 18%); }

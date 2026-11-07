@@ -54,6 +54,7 @@ describe("password reset confirmation route", () => {
     getUser.mockResolvedValue({ data: { user: null }, error: { message: "expired" } });
     const response = await POST(request(valid));
     expect(response.status).toBe(401);
+    expect(cookieDelete).toHaveBeenCalledWith("abangcebu-password-reset");
     expect(updateUser).not.toHaveBeenCalled();
     expect(signOut).not.toHaveBeenCalled();
   });

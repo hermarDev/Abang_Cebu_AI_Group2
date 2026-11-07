@@ -89,6 +89,40 @@ describe("signInWithEmail", () => {
     expect(from).not.toHaveBeenCalled();
   });
 
+  it.each([
+    ["invalid grant (HTTP 400)", { code: "invalid_grant", status: 400 }, "Invalid email or password."],
+    ["legacy status-only rejection (HTTP 400)", { status: 400 }, "Invalid email or password."],
+    ["invalid credentials (HTTP 400)", { code: "invalid_credentials", status: 400 }, "Invalid email or password."],
+    ["rate limit exceeded (HTTP 429 / over_request_rate_limit)", { code: "over_request_rate_limit", status: 429 }, "Too many login attempts. Please try again later."],
+    ["rate limit exceeded (HTTP 429 status code)", { status: 429 }, "Too many login attempts. Please try again later."],
+    ["email not confirmed (HTTP 400)", { code: "email_not_confirmed", status: 400 }, "Your email address is not yet verified."],
+    ["email not confirmed (HTTP 403)", { code: "email_not_confirmed", status: 403 }, "Your email address is not yet verified."],
+    ["server failure (HTTP 503)", { code: "unexpected_failure", status: 503 }, "Sign in is temporarily unavailable. Please try again."],
+  ])("sanitizes returned login error: %s", async (_condition, providerError, message) => {
+    signInWithPassword.mockResolvedValue({
+      data: { user: null, session: null },
+      error: { ...providerError, message: "private provider detail" },
+    });
+    const result = await signInWithEmail("renter@example.com", "wrong");
+    expect(result).toEqual({ success: false, message });
+    expect(JSON.stringify(result)).not.toContain("private provider detail");
+    expect(from).not.toHaveBeenCalled();
+  });
+
+  it("sanitizes a thrown authentication failure", async () => {
+    signInWithPassword.mockRejectedValue(new Error("private provider detail"));
+    const result = await signInWithEmail("renter@example.com", "wrong");
+    expect(result).toEqual({ success: false, message: "Sign in is temporarily unavailable. Please try again." });
+    expect(JSON.stringify(result)).not.toContain("private provider detail");
+  });
+
+  it("returns an unavailable message when the provider returns no user or error", async () => {
+    signInWithPassword.mockResolvedValue({ data: { user: null, session: null }, error: null });
+    await expect(signInWithEmail("renter@example.com", "wrong")).resolves.toEqual({
+      success: false, message: "Sign in is temporarily unavailable. Please try again.",
+    });
+  });
+
   it("fails closed and clears the session if reading the canonical profile throws", async () => {
     maybeSingle.mockRejectedValue(new Error("connection failed"));
     await expect(

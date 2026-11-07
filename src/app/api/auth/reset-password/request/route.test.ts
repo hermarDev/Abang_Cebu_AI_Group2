@@ -101,6 +101,29 @@ describe("password reset request route", () => {
     expect(resetPasswordForEmail).not.toHaveBeenCalled();
   });
 
+  it.each([
+    ["malformed", "not a URL"],
+    ["insecure production URL", "http://recovery.example"],
+    ["origin with path", "https://recovery.example/path"],
+    ["origin with query", "https://recovery.example/?query=1"],
+    ["origin with credentials", "https://user:pass@recovery.example"],
+    ["origin with fragment", "https://recovery.example/#fragment"],
+  ])("fails safely for %s", async (_label, siteUrl) => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("NEXT_PUBLIC_SITE_URL", siteUrl);
+    const response = await POST(request({ email: "safe@example.com" }));
+    const body = await response.json();
+    expect(response.status).toBe(503);
+    expect(body).toEqual({ success: false, error: {
+      code: "AUTH_PASSWORD_RESET_UNAVAILABLE",
+      message: "Password recovery is temporarily unavailable.",
+    } });
+    expect(response.headers.get("cache-control")).toBe("no-store");
+    expect(createClient).not.toHaveBeenCalled();
+    expect(resetPasswordForEmail).not.toHaveBeenCalled();
+    expect(JSON.stringify(body)).not.toContain(siteUrl);
+  });
+
   it("rejects requests when no trusted proxy IP is present", async () => {
     vi.stubEnv("NODE_ENV", "production");
     const response = await POST(request({ email: "person@example.com" }, "", false));

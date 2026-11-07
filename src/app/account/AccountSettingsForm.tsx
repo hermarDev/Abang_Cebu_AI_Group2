@@ -8,6 +8,7 @@ import { notify } from "@/components/ui/AppToaster";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Modal } from "@/components/ui/Modal";
+import { PasswordRequirements } from "@/components/auth/PasswordRequirements";
 import { normalizePhilippineAccountMobile } from "@/lib/phone-number";
 import { validatePasswordStrength } from "@/types/auth";
 import { prepareAvatar } from "./prepare-avatar";
@@ -49,6 +50,8 @@ function PasswordDialog({ open, onClose, onSuccess }: { open: boolean; onClose: 
   ] as const;
   const strength = validatePasswordStrength(values.password);
   const mismatch = confirmTouched && (!values.confirm || values.password !== values.confirm);
+  const passwordsMatch = !!values.password && !!values.confirm && values.password === values.confirm;
+  const samePassword = !!values.current && !!values.password && values.current === values.password;
   const currentError = error?.field === "currentPassword" ? error.message : currentTouched && !values.current ? "Enter your current password." : null;
 
   function reset() {
@@ -66,7 +69,7 @@ function PasswordDialog({ open, onClose, onSuccess }: { open: boolean; onClose: 
   }
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (submitting.current || !values.current || !strength.isValid || values.password !== values.confirm) return;
+    if (submitting.current || !values.current || !strength.isValid || samePassword || values.password !== values.confirm) return;
     const form = event.currentTarget;
     submitting.current = true;
     setPending(true);
@@ -98,16 +101,17 @@ function PasswordDialog({ open, onClose, onSuccess }: { open: boolean; onClose: 
       {fields.map(({ key, label, autoComplete }) => <div key={key} className="grid gap-1.5">
         <label htmlFor={`account-${key}`} className="text-sm font-medium">{label}</label>
         <div className="relative" onBlur={(event) => { if (!event.currentTarget.contains(event.relatedTarget as Node | null)) { if (key === "current") setCurrentTouched(true); if (key === "password") setPasswordTouched(true); if (key === "confirm") setConfirmTouched(true); } }}>
-          <Input id={`account-${key}`} type={visible[key] ? "text" : "password"} autoComplete={autoComplete} maxLength={72} value={values[key]} onChange={(event) => { setValues({ ...values, [key]: event.target.value }); if (key === "current" && error?.field === "currentPassword") setError(null); }} aria-invalid={(key === "password" && passwordTouched && !strength.isValid) || (key === "confirm" && mismatch) || (key === "current" && !!currentError)} aria-describedby={key === "password" ? "password-requirements" : key === "confirm" && mismatch ? "password-mismatch" : key === "current" && currentError ? "account-current-error" : undefined} className="pr-12" />
+          <Input id={`account-${key}`} type={visible[key] ? "text" : "password"} autoComplete={autoComplete} maxLength={72} value={values[key]} onChange={(event) => { setValues({ ...values, [key]: event.target.value }); if (key === "current" && error?.field === "currentPassword") setError(null); }} aria-invalid={(key === "password" && ((passwordTouched && !strength.isValid) || samePassword)) || (key === "confirm" && mismatch) || (key === "current" && !!currentError)} aria-describedby={key === "password" ? `password-requirements${samePassword ? " password-same" : ""}` : key === "confirm" && (mismatch || passwordsMatch) ? "password-mismatch" : key === "current" && currentError ? "account-current-error" : undefined} className="pr-12" />
           <button type="button" aria-label={`${visible[key] ? "Hide" : "Show"} ${label.toLowerCase()}`} onClick={() => setVisible({ ...visible, [key]: !visible[key] })} className="absolute right-0 top-0 grid size-11 place-items-center rounded-lg text-muted-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">{visible[key] ? <EyeOff size={18} aria-hidden="true" /> : <Eye size={18} aria-hidden="true" />}</button>
         </div>
         {key === "current" && currentError && <p id="account-current-error" role={error?.field === "currentPassword" ? "alert" : undefined} className="text-xs text-destructive">{currentError}</p>}
-        {key === "password" && <p id="password-requirements" className="text-xs text-muted-foreground">8–72 characters and at least 3 of: uppercase, lowercase, number and symbol. {values.password ? (strength.isValid ? "Requirements met." : "Requirements not met.") : passwordTouched ? "Enter a new password." : null}</p>}
-        {key === "confirm" && mismatch && <p id="password-mismatch" className="text-xs text-destructive">{values.confirm ? "Passwords do not match." : "Confirm your new password."}</p>}
+        {key === "password" && samePassword && <p id="password-same" className="text-xs text-destructive">Choose a different password.</p>}
+        {key === "password" && <PasswordRequirements id="password-requirements" password={values.password} emptyError={passwordTouched && !values.password} />}
+        {key === "confirm" && (mismatch || passwordsMatch) && <p id="password-mismatch" className={`text-xs ${mismatch ? "text-destructive" : "text-emerald-700 dark:text-emerald-400"}`}>{mismatch ? (values.confirm ? "Passwords do not match." : "Confirm your new password.") : <><span aria-hidden="true">✓ </span>Passwords match.</>}</p>}
       </div>)}
       {error?.field !== "currentPassword" && <ActionMessage result={error} />}
       {pending && <p role="status" className="text-sm text-muted-foreground">Updating your password…</p>}
-      <div className="flex flex-wrap justify-end gap-2"><Button type="button" variant="outline" onClick={close} disabled={pending}>Cancel</Button><Button type="submit" disabled={pending || !values.current || !strength.isValid || values.password !== values.confirm}>{pending ? "Updating…" : "Update password"}</Button></div>
+      <div className="flex flex-wrap justify-end gap-2"><Button type="button" variant="outline" onClick={close} disabled={pending}>Cancel</Button><Button type="submit" disabled={pending || !values.current || !strength.isValid || samePassword || values.password !== values.confirm}>{pending ? "Updating…" : "Update password"}</Button></div>
     </form>
   </Modal>;
 }
