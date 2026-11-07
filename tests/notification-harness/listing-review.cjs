@@ -151,7 +151,7 @@ async function main() {
     await page.locator('[name="propertyType"]').selectOption("apartment");
     await page.getByRole("button", { name: "Continue" }).click();
     await page.getByRole("button", { name: "Continue" }).click();
-    await page.getByText("file", { exact: true }).waitFor({ timeout: 3000 });
+    await page.getByText(`${goodHash}.jpg`, { exact: true }).waitFor({ timeout: 3000 });
     await page.unroute("**/api/property-drafts/media?*");
     await page.route("**/api/property-drafts/media?*", route => route.fulfill({ json: { media: Array.from({ length: 7 }, () => media(goodHash)) } }));
     await page.reload();
