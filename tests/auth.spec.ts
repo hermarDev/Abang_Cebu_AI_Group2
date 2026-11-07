@@ -1,6 +1,6 @@
 import { test, expect } from "./fixtures";
 
-test("browser fixture isolates reads and blocks mutations and external requests", async ({ page }) => {
+test("browser fixture isolates reads and blocks mutations and external requests", async ({ page, blockedRequests }) => {
   await page.goto("/");
   const result = await page.evaluate(async () => {
     const places = await fetch("/api/places?q=Cebu").then((response) => response.json());
@@ -11,7 +11,7 @@ test("browser fixture isolates reads and blocks mutations and external requests"
     return { places, rentals, mutationBlocked, externalBlocked, externalAuthBlocked };
   });
   expect(result).toEqual({ places: { places: [] }, rentals: { rentals: [] }, mutationBlocked: true, externalBlocked: true, externalAuthBlocked: true });
-  expect(await page.evaluate(() => (window as unknown as { blockedRequests?: string[] }).blockedRequests)).toBeUndefined();
+  expect(blockedRequests).toContain("POST https://example.com/auth/v1/token");
 });
 
 for (const viewport of [{ width: 360, height: 800 }, { width: 430, height: 932 }]) {
