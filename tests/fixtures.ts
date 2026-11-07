@@ -3,13 +3,15 @@ import { readFileSync } from "node:fs";
 
 const providerAttribution = JSON.parse(readFileSync("public/styles/osm.json", "utf8")).sources.openmaptiles.attribution as string;
 
-export const test = base.extend({
-  context: async ({ context, baseURL }, provide) => {
+export const test = base.extend<{ blockedRequests: string[] }>({
+  blockedRequests: async ({}, provide) => { await provide([]); },
+  context: async ({ context, baseURL, blockedRequests }, provide) => {
     const origin = new URL(baseURL!).origin;
     await context.route("**/*", async (route) => {
       const request = route.request();
       const url = new URL(request.url());
-      if (url.origin !== origin || !["GET", "HEAD"].includes(request.method())) {
+      if (url.origin !== origin || (!["GET", "HEAD"].includes(request.method()) && !url.pathname.startsWith("/auth/v1/"))) {
+        blockedRequests.push(`${request.method()} ${url.href}`);
         return route.abort("blockedbyclient");
       }
       if (url.pathname === "/api/places") {

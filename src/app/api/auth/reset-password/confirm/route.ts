@@ -29,23 +29,39 @@ export async function POST(request: Request) {
       return failure(401, "AUTH_PASSWORD_RESET_TOKEN_INVALID", "Your recovery session is invalid or expired. Request a new link.");
     }
 
+    const isTransient = (err?: { status?: number; code?: string }) =>
+      (typeof err?.status === "number" && (err.status >= 500 || err.status === 429)) ||
+      err?.code === "over_request_rate_limit";
+
     const supabase = await createClient();
     const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError && isTransient(userError)) {
+      return failure(503, "INTERNAL_AUTH_ERROR", "Authentication service is temporarily unavailable. Please try again.");
+    }
     if (userError || !user) {
+      cookieStore.delete(PASSWORD_RESET_RECOVERY_COOKIE);
       return failure(401, "AUTH_PASSWORD_RESET_TOKEN_INVALID", "Your recovery session is invalid or expired. Request a new link.");
     }
     const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError && isTransient(sessionError)) {
+      return failure(503, "INTERNAL_AUTH_ERROR", "Authentication service is temporarily unavailable. Please try again.");
+    }
     if (sessionError || !session) {
+      cookieStore.delete(PASSWORD_RESET_RECOVERY_COOKIE);
       return failure(401, "AUTH_PASSWORD_RESET_TOKEN_INVALID", "Your recovery session is invalid or expired. Request a new link.");
     }
     const claimsResult = await supabase.auth.getClaims();
     const claims = claimsResult.data?.claims;
     const claimsError = claimsResult.error;
+    if (claimsError && isTransient(claimsError)) {
+      return failure(503, "INTERNAL_AUTH_ERROR", "Authentication service is temporarily unavailable. Please try again.");
+    }
     const authMethods = claims?.amr;
     const hasRecoveryMethod = Array.isArray(authMethods) && authMethods.some(
       (method) => method && typeof method === "object" && "method" in method && method.method === "recovery",
     );
     if (claimsError || !hasRecoveryMethod) {
+      cookieStore.delete(PASSWORD_RESET_RECOVERY_COOKIE);
       return failure(401, "AUTH_PASSWORD_RESET_TOKEN_INVALID", "Your recovery session is invalid or expired. Request a new link.");
     }
 

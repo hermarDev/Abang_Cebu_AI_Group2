@@ -77,6 +77,18 @@ async function main() {
     assert.equal(await emptyConfirmation.getAttribute("aria-invalid"), "false", "Reopened confirmation field is untouched");
     assert.equal(await dialog.locator("#password-mismatch").count(), 0, "Reopened dialog has no stale error");
     const newPassword = dialog.getByLabel("New password", { exact: true });
+    assert.equal(await dialog.getByText("Passwords match.").count(), 0);
+    await emptyCurrent.fill("SamePassword1!");
+    await newPassword.fill("SamePassword1!");
+    await emptyConfirmation.fill("SamePassword1!");
+    assert.equal(await dialog.getByText("Choose a different password.").count(), 1);
+    assert.equal(await dialog.getByRole("button", { name: "Update password" }).isDisabled(), true);
+    assert.equal(await dialog.getByText("Passwords match.").count(), 1);
+    await newPassword.fill("Different1!");
+    assert.equal(await dialog.getByText("Choose a different password.").count(), 0);
+    assert.equal(await dialog.getByText("Passwords match.").count(), 0);
+    await dialog.getByRole("button", { name: "Cancel" }).click();
+    await page.getByRole("button", { name: "Change password" }).click();
     await newPassword.fill("weak");
     assert.equal(await newPassword.getAttribute("aria-invalid"), "false", "Do not mark the field invalid while initially typing");
     await newPassword.blur();

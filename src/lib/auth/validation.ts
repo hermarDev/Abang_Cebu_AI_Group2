@@ -28,7 +28,7 @@ export function validateRegistration(payload: unknown): RegistrationValidation {
   const role = input.role;
   if (typeof role !== "string" || !["renter", "landlord"].includes(role)) errors.role = "Choose renter or landlord.";
   if (email.length > 254 || !emailPattern.test(email)) errors.email = "Enter a valid email address.";
-  if (!validatePasswordStrength(password).isValid) errors.password = "Use 8–72 characters with at least 3 of: uppercase, lowercase, number, symbol.";
+  if (!validatePasswordStrength(password).isValid) errors.password = "Use 8–72 characters, including uppercase, lowercase, a number, and a symbol.";
   if (fullName.length < 2 || fullName.length > 100 || !namePattern.test(fullName)) errors.fullName = "Enter a name of 2–100 letters, spaces, hyphens, or periods.";
 
   let phoneNumber: string | undefined;

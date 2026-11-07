@@ -16,19 +16,23 @@ describe("property form preview", () => {
   });
   it("requires an active landlord", async () => {
     mocks.getUser.mockResolvedValueOnce({ data: { user: null }, error: null });
-    await expect(ListPropertyPage()).rejects.toThrow("redirect");
+    await expect(ListPropertyPage({ searchParams: Promise.resolve({}) })).rejects.toThrow("redirect");
     expect(mocks.redirect).toHaveBeenCalledWith("/login?next=%2Flist-property");
     mocks.profile.mockResolvedValueOnce({ data: { role: "renter", is_suspended: false }, error: null });
-    await expect(ListPropertyPage()).rejects.toThrow("not found");
+    await expect(ListPropertyPage({ searchParams: Promise.resolve({}) })).rejects.toThrow("not found");
   });
-  it("clearly identifies the form as unsaved preview", async () => {
-    const html = renderToStaticMarkup(await ListPropertyPage());
-    expect(html).toContain("Preview only");
+  it("labels the unfinished form as a preview", async () => {
+    const html = renderToStaticMarkup(await ListPropertyPage({ searchParams: Promise.resolve({}) }));
+    expect(html).toContain("Listing form preview");
+    expect(html).toContain("Draft saving and submission are not available yet.");
     expect(html).toMatch(/<a[^>]*aria-label="Back to dashboard"[^>]*><svg[^>]*lucide-arrow-left/);
     expect(html).toContain("First rental unit");
+    expect(html).toContain('name="propertyType"');
+    expect(html).toContain('name="rentalType"');
+    expect(html).toContain('name="barangay"');
     expect(html).toContain("Unit type");
     expect(html).toContain("Monthly rent (PHP)");
     expect(html).toContain("Property details");
-    expect(html).toContain("Submission is unavailable");
+    expect(html).toContain("Submission is not available yet.");
   });
 });
