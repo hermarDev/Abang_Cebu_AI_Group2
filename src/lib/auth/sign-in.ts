@@ -36,7 +36,7 @@ export async function signInWithEmail(
       success: false,
       message: error?.status === 429 || error?.code === "over_request_rate_limit"
         ? "Too many login attempts. Please try again later."
-        : error?.code === "invalid_credentials" || error?.code === "invalid_grant"
+        : error?.code === "invalid_credentials" || error?.code === "invalid_grant" || (!error?.code && error?.status === 400)
           ? "Invalid email or password."
           : "Sign in is temporarily unavailable. Please try again.",
     };

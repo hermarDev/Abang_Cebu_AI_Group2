@@ -90,6 +90,8 @@ describe("signInWithEmail", () => {
   });
 
   it.each([
+    ["invalid grant (HTTP 400)", { code: "invalid_grant", status: 400 }, "Invalid email or password."],
+    ["legacy status-only rejection (HTTP 400)", { status: 400 }, "Invalid email or password."],
     ["invalid credentials (HTTP 400)", { code: "invalid_credentials", status: 400 }, "Invalid email or password."],
     ["rate limit exceeded (HTTP 429 / over_request_rate_limit)", { code: "over_request_rate_limit", status: 429 }, "Too many login attempts. Please try again later."],
     ["rate limit exceeded (HTTP 429 status code)", { status: 429 }, "Too many login attempts. Please try again later."],
