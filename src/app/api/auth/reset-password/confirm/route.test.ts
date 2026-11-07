@@ -50,6 +50,14 @@ describe("password reset confirmation route", () => {
     expect(updateUser).not.toHaveBeenCalled();
   });
 
+  it("preserves the recovery marker and returns 503 when auth validation encounters transient service errors", async () => {
+    getUser.mockResolvedValueOnce({ data: { user: null }, error: { status: 503, message: "service unavailable" } });
+    const response = await POST(request(valid));
+    expect(response.status).toBe(503);
+    expect(cookieDelete).not.toHaveBeenCalled();
+    expect(updateUser).not.toHaveBeenCalled();
+  });
+
   it("rejects expired or absent recovery users before mutating auth", async () => {
     getUser.mockResolvedValue({ data: { user: null }, error: { message: "expired" } });
     const response = await POST(request(valid));

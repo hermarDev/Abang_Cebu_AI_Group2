@@ -37,7 +37,11 @@ export class BrowserDraftIntentRepository implements DraftIntentRepository {
       };
       request.onsuccess = () => {
         if (abandoned) { request.result.close(); return; }
-        resolve(request.result);
+        const database = request.result;
+        const forget = () => { if (this.databasePromise === opening) this.databasePromise = null; };
+        database.onversionchange = () => { database.close(); forget(); };
+        database.onclose = forget;
+        resolve(database);
       };
       request.onerror = () => reject(request.error ?? new Error("Draft browser storage is unavailable."));
       request.onblocked = () => { abandoned = true; reject(new Error("Draft browser storage is busy in another tab.")); };
