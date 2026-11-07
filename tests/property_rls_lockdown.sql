@@ -11,7 +11,9 @@ SET LOCAL ROLE authenticated;
 SELECT set_config('request.jwt.claim.sub','fffffff0-0000-4000-8000-000000000001',true);
 DO $$ DECLARE a uuid; p uuid; BEGIN
  a := public.save_property_draft('fffffff0-0000-4000-8000-000000000011', jsonb_build_object('property', jsonb_build_object('title','RLS me','description','A valid description for fixture.','property_type','house','street_address','S','barangay','B','city','C','latitude',10.3,'longitude',123.9,'permit_applicability','not_required','permit_not_required_confirmed','true'), 'unit', jsonb_build_object('rental_type','private_room','monthly_rent','5000','max_occupants','2')));
+ SET LOCAL ROLE postgres;
  p := (public.submit_property_from_draft('fffffff0-0000-4000-8000-000000000012', a, 1)->>'property_id')::uuid;
+ SET LOCAL ROLE authenticated;
  PERFORM set_config('request.jwt.claim.sub','fffffff0-0000-4000-8000-000000000003',true);
  PERFORM public.review_property(p,'fffffff0-0000-4000-8000-000000000013','rejected','Fix it', a, 1);
  PERFORM set_config('request.jwt.claim.sub','fffffff0-0000-4000-8000-000000000001',true);
