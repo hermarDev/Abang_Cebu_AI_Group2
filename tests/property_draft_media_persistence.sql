@@ -1,3 +1,4 @@
+\set ON_ERROR_STOP on
 BEGIN;
 -- Fixture depends on 20261104130000_property_draft_save.sql and the private bucket migration.
 INSERT INTO auth.users(id, raw_user_meta_data) VALUES
