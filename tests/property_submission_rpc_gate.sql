@@ -1,3 +1,4 @@
+\set ON_ERROR_STOP on
 BEGIN;
 DO $$ BEGIN
   IF has_function_privilege('anon', 'public.submit_property_from_draft(uuid,uuid,bigint)', 'EXECUTE')

@@ -29,7 +29,9 @@ describe("landlord dashboard", () => {
     mocks.landlordEq.mockReturnValue({ order: mocks.properties });
     mocks.submissionEq.mockReturnValue({ order: mocks.submissions });
     mocks.submissions.mockResolvedValue({ data: [{ property_id: "property-b", draft_id: "draft-1", expected_revision: 2, superseded_by: null }], error: null });
-    mocks.statusRpc.mockResolvedValue({ data: { draftId: "draft-1", revision: 2, propertyId: "property-b" }, error: null });
+    mocks.statusRpc.mockImplementation(async (name: string) => name === "landlord_rejection_feedback"
+      ? { data: [{ propertyId: "property-b", reason: "Permit image unreadable." }], error: null }
+      : { data: { draftId: "draft-1", revision: 2, propertyId: "property-b" }, error: null });
     mocks.listings.mockResolvedValue({ data: [{ id: "listing-a", title: "Test property", status: "draft", is_available: true }], error: null });
     mocks.properties.mockResolvedValue({ data: [{ id: "property-a", title: "Submitted room", status: "pending", moderation_note: null }, { id: "property-b", title: "Rejected house", status: "rejected", moderation_note: "Permit image unreadable." }], error: null });
   });
@@ -46,6 +48,7 @@ describe("landlord dashboard", () => {
   it("shows owner-filtered listings and links to the labeled preview", async () => {
     const html = renderToStaticMarkup(await LandlordDashboardPage());
     expect(mocks.eq).toHaveBeenCalledWith("owner_id", "owner-a");
+    expect(mocks.statusRpc).toHaveBeenCalledWith("landlord_rejection_feedback");
     expect(html).toMatch(/<a[^>]*aria-label="Open property map"[^>]*class="hidden lg:inline-flex [^"]*"[^>]*><svg[^>]*lucide-map-pinned/);
     expect(html).toContain("Support");
     expect(html).toContain("Contact Support");
@@ -100,6 +103,21 @@ describe("landlord dashboard", () => {
     expect(html).not.toContain("Correct and resubmit");
     expect(html).toContain("Correction links could not be loaded. Refresh the page to try again.");
     expect(html).toContain("Permit image unreadable.");
+  });
+  it("reports unavailable feedback without hiding properties or inventing a reason", async () => {
+    mocks.statusRpc.mockResolvedValueOnce({ data: null, error: { message: "failure" } });
+    const html = renderToStaticMarkup(await LandlordDashboardPage());
+    expect(html).toContain("Review feedback could not be loaded. Refresh the page to try again.");
+    expect(html).toContain("Rejected house");
+    expect(html).not.toContain("Permit image unreadable.");
+    expect(html).toContain("Correct and resubmit");
+  });
+  it("shows a clear error when the feedback function is absent during rollout", async () => {
+    mocks.statusRpc.mockResolvedValueOnce({ data: null, error: { code: "PGRST202" } });
+    const html = renderToStaticMarkup(await LandlordDashboardPage());
+    expect(html).toContain("Review feedback could not be loaded. Refresh the page to try again.");
+    expect(html).toContain("Rejected house");
+    expect(html).not.toContain("Permit image unreadable.");
   });
   it("shows the signed profile photo in account options", async () => {
     mocks.profile.mockResolvedValueOnce({ data: { full_name: "Landlord", role: "landlord", is_suspended: false, avatar_url: "owner-a/photo.png" }, error: null });

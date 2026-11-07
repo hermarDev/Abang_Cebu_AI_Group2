@@ -1,5 +1,10 @@
 \set ON_ERROR_STOP on
 BEGIN;
+-- Exercise RLS in this rolled-back fixture without Storage's direct-delete guard.
+SET LOCAL storage.allow_delete_query = 'true';
+-- Ensure restrictive policy, not absence of permissive grants, denies this bucket.
+CREATE POLICY draft_media_test_allow ON storage.objects FOR ALL TO authenticated
+  USING (true) WITH CHECK (true);
 DO $$ BEGIN
   IF NOT EXISTS (SELECT 1 FROM storage.buckets WHERE id = 'property-draft-media' AND public = false AND file_size_limit = 10485760 AND allowed_mime_types = ARRAY['image/jpeg','image/png','image/webp','application/pdf']) THEN
     RAISE EXCEPTION 'private draft media bucket missing or incompatible';

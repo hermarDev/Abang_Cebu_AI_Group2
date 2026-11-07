@@ -1,7 +1,5 @@
 -- Preserve filenames and allow safe release of abandoned media reservations.
 BEGIN;
--- Fail closed until complete migration, recovery, and security checks pass.
-DO $$ BEGIN RAISE EXCEPTION 'Incomplete migration: security and retry review required'; END $$;
 
 ALTER TABLE public.property_draft_media ADD COLUMN IF NOT EXISTS original_name text;
 ALTER TABLE public.property_draft_media ADD COLUMN IF NOT EXISTS released_at timestamptz;

@@ -22,7 +22,7 @@ export default async function LandlordDashboardPage() {
     .eq("owner_id", user.id)
     .order("created_at", { ascending: false });
   const { data: submissions, error: submissionError } = await supabase.from("properties")
-    .select("id,title,status,moderation_note")
+    .select("id,title,status")
     .eq("landlord_id", user.id)
     .order("created_at", { ascending: false });
   const { data: submittedDrafts, error: correctionError } = await supabase.from("property_submissions")
@@ -33,6 +33,14 @@ export default async function LandlordDashboardPage() {
   for (const submission of submittedDrafts ?? []) {
     if (!submission.superseded_by && !correctionTargets.has(submission.property_id) && Number.isSafeInteger(submission.expected_revision) && submission.expected_revision > 0) {
       correctionTargets.set(submission.property_id, { draftId: submission.draft_id, revision: submission.expected_revision });
+    }
+  }
+
+  const { data: feedbackData, error: feedbackError } = await supabase.rpc("landlord_rejection_feedback");
+  const feedback = new Map<string, string>();
+  if (Array.isArray(feedbackData)) {
+    for (const item of feedbackData) {
+      if (typeof item?.propertyId === "string" && typeof item.reason === "string") feedback.set(item.propertyId, item.reason);
     }
   }
 
@@ -88,12 +96,13 @@ export default async function LandlordDashboardPage() {
       <p className="mb-1 text-xs font-bold uppercase tracking-[.15em] text-action">Listing review</p>
       <h2 id="submissions-heading" className="text-xl font-bold sm:text-2xl">Submitted properties</h2>
       {correctionError && !submissionError && <p role="alert" className="mt-4">Correction links could not be loaded. Refresh the page to try again.</p>}
+      {feedbackError && <p role="alert" className="mt-4">Review feedback could not be loaded. Refresh the page to try again.</p>}
       {submissionError ? <p role="alert" className="mt-4">Could not load review status. Refresh the page to try again.</p>
         : !submissions?.length ? <p className="mt-4 text-sm text-muted-foreground">Submissions appear here with their review status.</p>
         : <ul className="mt-4 grid list-none gap-3 p-0">{submissions.map(property => <li key={property.id} className="rounded-2xl border border-border bg-card p-4 sm:p-5">
           <h3 className="font-semibold">{property.title}</h3>
           <p className="mt-1 text-sm text-muted-foreground">{property.status === "pending" ? "Pending review" : property.status === "rejected" ? "Changes requested" : property.status === "approved" ? "Approved" : "Archived"}</p>
-          {property.status === "rejected" && property.moderation_note && <p className="mt-1 text-sm text-muted-foreground">{property.moderation_note}</p>}
+          {property.status === "rejected" && feedback.has(property.id) && <p className="mt-1 text-sm text-muted-foreground">{feedback.get(property.id)}</p>}
           {property.status === "rejected" && correctionTargets.has(property.id) && <Link href={`/list-property?draftId=${correctionTargets.get(property.id)!.draftId}&revision=${correctionTargets.get(property.id)!.revision}`} className="mt-3 inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-border bg-card px-3 text-sm font-semibold hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">Correct and resubmit <ArrowRight size={15} aria-hidden="true" /></Link>}
         </li>)}</ul>}
     </section>

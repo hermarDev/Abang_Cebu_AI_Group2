@@ -1,3 +1,4 @@
+\set ON_ERROR_STOP on
 BEGIN;
 INSERT INTO auth.users(id, raw_user_meta_data) VALUES ('aaaaaaaa-0000-4000-8000-000000000001','{"role":"landlord"}');
 SET LOCAL ROLE authenticated;
