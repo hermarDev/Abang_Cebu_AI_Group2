@@ -415,7 +415,6 @@ html[data-startup="pending"] [data-startup-splash] img {
   to { opacity: 0; visibility: hidden; }
 }
 @media (prefers-reduced-motion: reduce) {
-  html[data-startup="pending"] [data-startup-splash],
   html[data-startup="pending"] [data-startup-splash] img,
   html[data-startup="ready"] [data-startup-splash] {
     animation: none;

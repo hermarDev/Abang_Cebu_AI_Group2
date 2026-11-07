@@ -78,6 +78,17 @@ test("failed app chunk still fails open through the CSS watchdog and does not bl
   expect(hit).toBe("page");
 });
 
+test("reduced motion still fails open when app chunks fail", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.route("**/_next/**/*.js*", (route) => route.abort());
+  await page.goto("/", { waitUntil: "domcontentloaded" });
+  const splash = page.locator("[data-startup-splash]");
+  await expect(page.locator("html")).toHaveAttribute("data-startup", "pending");
+  await expect(splash).toBeVisible();
+  await expect(splash).toHaveCSS("animation-name", "startup-splash-watchdog");
+  await expect(splash).toBeHidden({ timeout: 10_000 });
+});
+
 test("reduced motion removes animation and hides immediately when ready", async ({ page }) => {
   const splash = page.locator("[data-startup-splash]");
   await page.emulateMedia({ reducedMotion: "reduce" });

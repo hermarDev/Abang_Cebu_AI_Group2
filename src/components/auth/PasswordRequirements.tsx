@@ -2,12 +2,14 @@ import { REGISTRATION_VALIDATION_RULES } from "@/types/auth";
 
 export function PasswordRequirements({ password, id, emptyError = false }: { password: string; id: string; emptyError?: boolean }) {
   const policy = REGISTRATION_VALIDATION_RULES.password;
+  const symbols = Array.from({ length: 95 }, (_, index) => String.fromCharCode(index + 32))
+    .filter((character) => policy.classes.symbol.test(character)).join("");
   const requirements = [
     { label: `${policy.minLength}–${policy.maxLength} characters`, met: password.length >= policy.minLength && password.length <= policy.maxLength },
     { label: "Uppercase letter", met: policy.classes.uppercase.test(password) },
     { label: "Lowercase letter", met: policy.classes.lowercase.test(password) },
     { label: "Number", met: policy.classes.digit.test(password) },
-    { label: "Symbol", met: policy.classes.symbol.test(password) },
+    { label: `Symbol (${symbols})`, met: policy.classes.symbol.test(password) },
   ];
 
   return <div id={id} className="mt-2 text-xs text-muted-foreground">
