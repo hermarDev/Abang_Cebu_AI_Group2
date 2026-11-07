@@ -89,6 +89,13 @@ describe("ResetPasswordForm", () => {
     expect(html).toContain("Passwords do not match.");
     expect(html).toContain(`id="${confirmation.props["aria-describedby"]}"`);
   });
+  it("renders a persistent live region for password match feedback", () => {
+    state.active = true;
+    const tree = renderForm(true);
+    const region = findElement(tree, (element) => element.props["data-password-match-status"] === true);
+    expect(region?.props.role).toBe("status");
+    expect(region?.props.children).toBeFalsy();
+  });
   it("shows a recovery icon above the recovery form", () => {
     const html = renderToStaticMarkup(<ResetPasswordForm />);
 

@@ -182,7 +182,9 @@ export function ResetPasswordForm({ isRecovery = false, onBackToLogin, embedded 
                   </button>
                 </div>
                 {passwordMismatch && <p id={`${confirmPasswordId}-error`} role="alert" className="text-sm text-destructive">Passwords do not match.</p>}
-                {!passwordMismatch && passwordsMatch && <p id={`${confirmPasswordId}-error`} className="text-sm text-emerald-700 dark:text-emerald-400"><span aria-hidden="true">✓ </span>Passwords match.</p>}
+                <div role="status" data-password-match-status={true}>
+                  {!passwordMismatch && passwordsMatch && <p id={`${confirmPasswordId}-error`} className="text-sm text-emerald-700 dark:text-emerald-400"><span aria-hidden="true">✓ </span>Passwords match.</p>}
+                </div>
               </div>
             </>
           ) : (

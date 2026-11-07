@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Check, ChevronLeft, ChevronRight, FileText, ImagePlus, MapPin, Upload } from "lucide-react";
 import MapSearch from "@/components/map/MapSearch";
 import type { PlaceResult } from "@/lib/search/places";
-import { createDraftPayload, restoreDraftValues } from "./draft-payload";
+import { createDraftPayload, restoreDraftValues, restoredMediaName } from "./draft-payload";
 import { BrowserDraftIntentRepository } from "./draft-retry-store";
 import { executeDraftSave, type DraftSaveFile, type DraftSaveIntent } from "./draft-save-client";
 
@@ -35,6 +35,7 @@ export function ListPropertyForm({ userId, restoreTarget }: { userId: string; re
   const restoreDraftFilesRef = useRef<(id: string | undefined) => Promise<void>>(() => Promise.resolve());
   const formRef = useRef<HTMLFormElement>(null);
   const fileEdits = useRef(0);
+  const preservedDraftValues = useRef<ReturnType<typeof restoreDraftValues>["preserved"]>(undefined);
   const [step, setStep] = useState(0);
   const [review, setReview] = useState<ListingReview | null>(null);
   const [location, setLocation] = useState<PlaceResult | null>(null);
@@ -87,6 +88,7 @@ export function ListPropertyForm({ userId, restoreTarget }: { userId: string; re
       setLocation(values.location);
       setPermitApplicability(values.permitApplicability);
       setPermitNotRequiredConfirmed(values.permitNotRequiredConfirmed);
+      preservedDraftValues.current = values.preserved;
       setDirty(true);
       setDraftError("");
       setRevision(target.revision);
@@ -183,10 +185,9 @@ export function ListPropertyForm({ userId, restoreTarget }: { userId: string; re
         if (blob.size !== item.sizeBytes) throw new Error("media size mismatch");
         const digest = await crypto.subtle.digest("SHA-256", await blob.arrayBuffer());
         if (Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("") !== item.sha256) throw new Error("media digest mismatch");
-        const name = (item as { originalName?: unknown }).originalName && typeof (item as { originalName?: unknown }).originalName === "string"
-          ? ((item as { originalName: string }).originalName)
-          : (String((item as { object_path?: string }).object_path ?? "file").split("/").pop() ?? "file");
-        const file = new File([blob], name, { type: String((item as { contentType?: string }).contentType ?? blob.type) });
+        const contentType = String((item as { contentType?: string }).contentType ?? blob.type);
+        const name = restoredMediaName(item.sha256, contentType, (item as { originalName?: unknown }).originalName);
+        const file = new File([blob], name, { type: contentType });
         if (item.kind === "photo") files.push(file);
         else if (permit) throw new Error("multiple saved permits");
         else permit = file;
@@ -212,7 +213,7 @@ export function ListPropertyForm({ userId, restoreTarget }: { userId: string; re
       address, barangay: value("barangay"), city: value("city"), bathroomType: value("bathroomType"), maxOccupants: value("maxOccupants"),
       amenities: Array.from(form.querySelectorAll<HTMLInputElement>('input[name="amenities"]:checked')).map((input) => input.value),
       permitApplicability, permitNumber: value("permitNumber"), permitLgu: value("permitLgu"), permitExpiresOn: value("permitExpiresOn"),
-      permitNotRequiredConfirmed, location,
+      permitNotRequiredConfirmed, location, preserved: preservedDraftValues.current,
     };
   }
 
@@ -353,7 +354,7 @@ export function ListPropertyForm({ userId, restoreTarget }: { userId: string; re
           {permitDocument && <p className="m-0 truncate text-xs text-muted-foreground sm:col-span-2">Selected: {permitDocument.name}</p>}
           <p className="m-0 text-xs text-muted-foreground sm:col-span-2">Upload a current PDF, JPG, or PNG file, up to 10 MB.</p>
         </fieldset>
-        {permitApplicability === "not_required" && <label className="flex items-start gap-2 rounded-xl border border-border bg-muted/30 p-3 text-sm leading-relaxed"><input className="mt-1 size-4 shrink-0 accent-blue-600" type="checkbox" name="permitNotRequiredConfirmed" value="yes" checked={permitNotRequiredConfirmed} onChange={(event) => setPermitNotRequiredConfirmed(event.target.checked)} required /><span>I checked the requirements for this property’s location and rental activity and confirm a business permit is not required.</span></label>}
+        {permitApplicability === "not_required" && <label className="flex items-start gap-2 rounded-xl border border-border bg-muted/30 p-3 text-sm leading-relaxed"><input className="mt-1 size-4 shrink-0 accent-blue-600" type="checkbox" name="permitNotRequiredConfirmed" value="yes" checked={permitNotRequiredConfirmed} onChange={(event) => { if (preservedDraftValues.current) preservedDraftValues.current.emptyPermitConfirmation = false; setPermitNotRequiredConfirmed(event.target.checked); }} required /><span>I checked the requirements for this property’s location and rental activity and confirm a business permit is not required.</span></label>}
       </section>
     </div>
 

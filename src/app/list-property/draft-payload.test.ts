@@ -1,7 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { createDraftPayload, restoreDraftValues } from "./draft-payload";
+import { createDraftPayload, restoreDraftValues, restoredMediaName } from "./draft-payload";
 
 describe("property draft payload", () => {
+  it("uses unique digest-based names for media without original names", () => {
+    expect(restoredMediaName("a".repeat(64), "image/png", null)).toBe(`${"a".repeat(64)}.png`);
+    expect(restoredMediaName("b".repeat(64), "application/pdf", "")).toBe(`${"b".repeat(64)}.pdf`);
+    expect(restoredMediaName("a".repeat(64), "image/jpeg", "original.jpg")).toBe("original.jpg");
+  });
   it("round-trips every non-file form field and selected location", () => {
     const values = {
       title: "House", description: "A room to rent", propertyType: "house", rentalType: "private_room",
@@ -11,6 +16,13 @@ describe("property draft payload", () => {
       location: { id: "osm-node-1", name: "Sample", detail: "Cebu", coordinates: [123.9, 10.3] as [number, number] },
     };
     expect(restoreDraftValues(createDraftPayload(values))).toEqual(values);
+  });
+  it("retains supported fields the editor does not expose when a draft is saved again", () => {
+    const payload = { property: { title: "Saved", postal_code: "6000", permit_not_required_confirmed: "" }, unit: { security_deposit: 1000, bedrooms: 2, furnished_status: "furnished" } };
+    const restored = restoreDraftValues(payload);
+    const saved = createDraftPayload(restored);
+    expect(saved.property).toMatchObject({ postal_code: "6000", permit_not_required_confirmed: "" });
+    expect(saved.unit).toMatchObject({ security_deposit: 1000, bedrooms: 2, furnished_status: "furnished" });
   });
   it("rejects malformed stored data instead of silently replacing it", () => {
     expect(() => restoreDraftValues({ property: { title: "Saved" }, unit: {}, amenities: ["unknown"] })).toThrow("Unsupported property draft");

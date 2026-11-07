@@ -1,24 +1,32 @@
 import type { PlaceResult } from "@/lib/search/places";
 
+export function restoredMediaName(sha256: string, contentType: string, originalName: unknown) {
+  if (typeof originalName === "string" && originalName) return originalName;
+  const extension = contentType === "application/pdf" ? "pdf" : contentType === "image/png" ? "png" : contentType === "image/webp" ? "webp" : "jpg";
+  return `${sha256}.${extension}`;
+}
+
 type DraftValues = {
   title: string; description: string; propertyType: string; rentalType: string; price: string;
   address: string; barangay: string; city: string; bathroomType: string; maxOccupants: string;
   amenities: string[]; permitApplicability: string; permitNumber: string; permitLgu: string;
   permitExpiresOn: string; permitNotRequiredConfirmed: boolean; location: PlaceResult | null;
+  preserved?: { property: Record<string, string | number | null>; unit: Record<string, string | number | null>; emptyPermitConfirmation: boolean };
 };
 
 export function createDraftPayload(values: DraftValues) {
   return {
     property: {
+      ...values.preserved?.property,
       title: values.title, description: values.description, property_type: values.propertyType,
       street_address: values.address, barangay: values.barangay, city: values.city,
       latitude: values.location?.coordinates[1] ?? null, longitude: values.location?.coordinates[0] ?? null,
       location_id: values.location?.id ?? null, location_name: values.location?.name ?? null,
       location_detail: values.location?.detail ?? null, permit_applicability: values.permitApplicability,
       permit_number: values.permitNumber, permit_lgu: values.permitLgu, permit_expires_on: values.permitExpiresOn,
-      permit_not_required_confirmed: String(values.permitNotRequiredConfirmed),
+      permit_not_required_confirmed: values.preserved?.emptyPermitConfirmation && !values.permitNotRequiredConfirmed ? "" : String(values.permitNotRequiredConfirmed),
     },
-    unit: { rental_type: values.rentalType, monthly_rent: values.price, bathroom_type: values.bathroomType, max_occupants: values.maxOccupants },
+    unit: { ...values.preserved?.unit, rental_type: values.rentalType, monthly_rent: values.price, bathroom_type: values.bathroomType, max_occupants: values.maxOccupants },
     amenities: values.amenities,
   };
 }
@@ -30,8 +38,10 @@ export function restoreDraftValues(value: unknown): DraftValues {
   if (!payload.property || typeof payload.property !== "object" || Array.isArray(payload.property) ||
       !payload.unit || typeof payload.unit !== "object" || Array.isArray(payload.unit)) return unsupported();
   const prototype = createDraftPayload({ title: "", description: "", propertyType: "", rentalType: "", price: "", address: "", barangay: "", city: "", bathroomType: "", maxOccupants: "", amenities: [], permitApplicability: "", permitNumber: "", permitLgu: "", permitExpiresOn: "", permitNotRequiredConfirmed: false, location: null });
-  const allowedProperty = Object.keys(prototype.property);
-  const allowedUnit = Object.keys(prototype.unit);
+  const extraProperty = ["postal_code"];
+  const extraUnit = ["security_deposit", "advance_rent", "bedrooms", "bathrooms", "floor_area_sqm", "furnished_status", "available_from", "minimum_lease_months"];
+  const allowedProperty = [...Object.keys(prototype.property), ...extraProperty];
+  const allowedUnit = [...Object.keys(prototype.unit), ...extraUnit];
   if (Object.keys(payload).some((key) => !["property", "unit", "amenities"].includes(key)) ||
       Object.keys(payload.property).some((key) => !allowedProperty.includes(key)) ||
       Object.keys(payload.unit).some((key) => !allowedUnit.includes(key))) return unsupported();
@@ -46,7 +56,12 @@ export function restoreDraftValues(value: unknown): DraftValues {
   if (p.title.length > 200 || p.description.length > 4000 || p.street_address.length > 1000 || p.barangay.length > 200 || p.city.length > 200 || p.permit_number.length > 100 || p.permit_lgu.length > 200) return unsupported();
   if ((u.monthly_rent !== "" && !/^(?:0|[1-9]\d*)(?:\.\d+)?$/.test(u.monthly_rent)) || (u.max_occupants !== "" && !/^\d+$/.test(u.max_occupants))) return unsupported();
   if (p.permit_expires_on !== "" && (!/^\d{4}-\d{2}-\d{2}$/.test(p.permit_expires_on) || Number.isNaN(Date.parse(`${p.permit_expires_on}T00:00:00Z`)) || new Date(`${p.permit_expires_on}T00:00:00Z`).toISOString().slice(0, 10) !== p.permit_expires_on)) return unsupported();
-  if (!["true", "false"].includes(p.permit_not_required_confirmed)) return unsupported();
+  if (!["", "true", "false"].includes(p.permit_not_required_confirmed)) return unsupported();
+  const selectExtras = (source: object, keys: string[]) => Object.fromEntries(Object.entries(source).filter(([key]) => keys.includes(key)));
+  const propertyExtras = selectExtras(payload.property, extraProperty);
+  const unitExtras = selectExtras(payload.unit, extraUnit);
+  if ([...Object.values(propertyExtras), ...Object.values(unitExtras)].some((item) => item !== null && typeof item !== "string" && (typeof item !== "number" || !Number.isFinite(item)))) return unsupported();
+  const preserved = { property: propertyExtras, unit: unitExtras, emptyPermitConfirmation: p.permit_not_required_confirmed === "" };
   const locationParts = [p.location_id, p.location_name, p.location_detail, p.latitude, p.longitude];
   if (!locationParts.every((part) => part === null) && !(typeof p.location_id === "string" && typeof p.location_name === "string" && typeof p.location_detail === "string" && typeof p.latitude === "number" && Number.isFinite(p.latitude) && p.latitude >= -90 && p.latitude <= 90 && typeof p.longitude === "number" && Number.isFinite(p.longitude) && p.longitude >= -180 && p.longitude <= 180)) return unsupported();
   return {
@@ -55,6 +70,7 @@ export function restoreDraftValues(value: unknown): DraftValues {
     bathroomType: u.bathroom_type, maxOccupants: u.max_occupants, amenities,
     permitApplicability: p.permit_applicability, permitNumber: p.permit_number, permitLgu: p.permit_lgu,
     permitExpiresOn: p.permit_expires_on, permitNotRequiredConfirmed: p.permit_not_required_confirmed === "true",
+    ...(Object.keys(propertyExtras).length || Object.keys(unitExtras).length || preserved.emptyPermitConfirmation ? { preserved } : {}),
     location: p.location_id !== null && p.location_name !== null && p.location_detail !== null && p.longitude !== null && p.latitude !== null
       ? { id: p.location_id, name: p.location_name, detail: p.location_detail, coordinates: [p.longitude, p.latitude] }
       : null,
