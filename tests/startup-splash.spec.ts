@@ -4,13 +4,25 @@ function recordStartup(page: import("@playwright/test").Page) {
   return page.addInitScript(() => {
     const samples: string[] = [];
     Object.assign(window, { startupSamples: samples });
-    new MutationObserver((records) => {
-      for (const record of records) {
-        if (record.target === document.documentElement && record.attributeName === "data-startup") {
-          samples.push(document.documentElement.dataset.startup ?? "");
-        }
-      }
-    }).observe(document.documentElement, { attributes: true, attributeFilter: ["data-startup"] });
+    const originalSetAttribute = Element.prototype.setAttribute;
+    Element.prototype.setAttribute = function (name, value) {
+      if (this === document.documentElement && name === "data-startup") samples.push(String(value));
+      return originalSetAttribute.call(this, name, value);
+    };
+    const originalDataset = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "dataset")!;
+    Object.defineProperty(HTMLElement.prototype, "dataset", {
+      ...originalDataset,
+      get() {
+        const dataset = originalDataset.get!.call(this) as DOMStringMap;
+        if (this !== document.documentElement) return dataset;
+        return new Proxy(dataset, {
+          set(target, key, value) {
+            if (key === "startup") samples.push(String(value));
+            return Reflect.set(target, key, value);
+          },
+        });
+      },
+    });
   });
 }
 
@@ -51,7 +63,10 @@ test("reload creates a new initial cycle", async ({ page }) => {
   await page.goto("/");
   await expect(page.locator("html")).toHaveAttribute("data-startup", "ready");
   await page.reload({ waitUntil: "domcontentloaded" });
-  await expect(page.locator("html")).toHaveAttribute("data-startup", /pending|ready/);
+  await expect(page.locator("html")).toHaveAttribute("data-startup", "ready");
+  await expect.poll(() => page.evaluate(() => (window as unknown as { startupSamples: string[] }).startupSamples)).toEqual(expect.arrayContaining(["pending", "ready"]));
+  const samples = await page.evaluate(() => (window as unknown as { startupSamples: string[] }).startupSamples);
+  expect(samples.indexOf("pending")).toBeLessThan(samples.indexOf("ready"));
 });
 
 test("JS disabled leaves the app usable because the splash is absent without inline bootstrap", async ({ browser }) => {
