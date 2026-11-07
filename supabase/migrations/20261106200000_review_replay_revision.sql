@@ -19,7 +19,7 @@ BEGIN
   PERFORM pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended('property-review:' || p_property_id::text, 0));
   SELECT * INTO v_previous FROM public.property_reviews WHERE admin_id = v_admin AND operation_id = p_operation_id;
   IF FOUND THEN
-    IF v_previous.property_id IS DISTINCT FROM p_property_id OR v_previous.decision IS DISTINCT FROM p_decision OR v_previous.note IS DISTINCT FROM p_note THEN
+    IF v_previous.property_id IS DISTINCT FROM p_property_id OR v_previous.decision IS DISTINCT FROM p_decision OR v_previous.note IS DISTINCT FROM (CASE WHEN p_decision = 'rejected' THEN p_note ELSE NULL END) THEN
       RAISE EXCEPTION 'operation already used for different review' USING ERRCODE = '23505';
     END IF;
     IF p_submission_draft_id IS NOT NULL AND NOT EXISTS (

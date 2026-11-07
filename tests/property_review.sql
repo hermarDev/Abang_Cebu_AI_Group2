@@ -9,7 +9,9 @@ SET LOCAL ROLE authenticated;
 SELECT set_config('request.jwt.claim.sub','cccccccc-0000-4000-8000-000000000001',true);
 DO $$ DECLARE a uuid; p uuid; r jsonb; BEGIN
  a := public.save_property_draft('dddddddd-0000-4000-8000-000000000001', jsonb_build_object('property', jsonb_build_object('title','Review me','description','A valid description for fixture.','property_type','house','street_address','Street 1','barangay','Mabolo','city','Cebu City','latitude',10.3,'longitude',123.9,'location_id','x','location_name','Cebu','location_detail','Cebu City','permit_applicability','not_required','permit_not_required_confirmed','true'), 'unit', jsonb_build_object('rental_type','private_room','monthly_rent','5000','bathroom_type','private','max_occupants','2'), 'amenities', jsonb_build_array('wifi')));
+ SET LOCAL ROLE postgres;
  p := (public.submit_property_from_draft('cccccccc-0000-4000-8000-000000000001', a, 1)->>'property_id')::uuid;
+ SET LOCAL ROLE authenticated;
  PERFORM set_config('request.jwt.claim.sub','cccccccc-0000-4000-8000-000000000002',true);
  r := public.review_property(p,'dddddddd-0000-4000-8000-000000000001','rejected','Fix permit image', a, 1);
  IF (r->>'status') <> 'rejected' THEN RAISE EXCEPTION 'reject failed'; END IF;

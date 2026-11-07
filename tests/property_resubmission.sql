@@ -10,11 +10,14 @@ SET LOCAL ROLE authenticated;
 SELECT set_config('request.jwt.claim.sub','bbbbbbbb-0000-4000-8000-000000000001',true);
 DO $$ DECLARE a uuid; p uuid; rev bigint; s jsonb; BEGIN
  a := public.save_property_draft('aaaaaaa1-0000-4000-8000-000000000009', jsonb_build_object('property', jsonb_build_object('title','Resub me','description','A valid description for fixture.','property_type','house','street_address','Street 1','barangay','Mabolo','city','Cebu City','latitude',10.3,'longitude',123.9,'permit_applicability','not_required','permit_not_required_confirmed','true'), 'unit', jsonb_build_object('rental_type','private_room','monthly_rent','5000','max_occupants','2')));
+ SET LOCAL ROLE postgres;
  p := (public.submit_property_from_draft('aaaaaaa1-0000-4000-8000-000000000008', a, 1)->>'property_id')::uuid;
+ SET LOCAL ROLE authenticated;
  PERFORM set_config('request.jwt.claim.sub','bbbbbbbb-0000-4000-8000-000000000002',true);
  PERFORM public.review_property(p,'aaaaaaa1-0000-4000-8000-000000000007','rejected','Fix the permit scan', a, 1);
  PERFORM set_config('request.jwt.claim.sub','bbbbbbbb-0000-4000-8000-000000000001',true);
  rev := public.update_property_draft(a, 'aaaaaaa2-0000-4000-8000-000000000006', 1, jsonb_build_object('property', jsonb_build_object('title','Resub me v2','description','A corrected valid description.','property_type','house','street_address','Street 2','barangay','Lahug','city','Cebu City','latitude',10.31,'longitude',123.91,'permit_applicability','not_required','permit_not_required_confirmed','true'), 'unit', jsonb_build_object('rental_type','private_room','monthly_rent','5500','max_occupants','2')));
+ SET LOCAL ROLE postgres;
  s := public.resubmit_rejected_property('aaaaaaa2-0000-4000-8000-000000000005', a, rev);
  IF (s->>'status') <> 'pending' THEN RAISE EXCEPTION 'resubmission not pending: %', s; END IF;
  BEGIN PERFORM public.resubmit_rejected_property('aaaaaaa2-0000-4000-8000-000000000005', a, rev); RAISE EXCEPTION 'duplicate operation accepted'; EXCEPTION WHEN unique_violation THEN NULL; END;
