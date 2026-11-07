@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { GET, POST } from "./route";
+import { DELETE, GET, POST } from "./route";
 
 const mocks = vi.hoisted(() => ({
   getUser: vi.fn(async (): Promise<{ data: { user: { id: string } | null }; error: unknown }> => ({ data: { user: { id: "landlord-1" } }, error: null })),
@@ -31,6 +31,35 @@ function valid() { return request({ draftId: "11111111-1111-4111-8111-1111111111
 beforeEach(() => { vi.clearAllMocks(); mocks.download.mockReset().mockResolvedValue({ data: new Blob([jpeg]), error: null }); mocks.prepare.mockResolvedValue({ data: { objectPath: path, sha256: sha, resumed: false }, error: null }); mocks.admin.mockReturnValue({ storage: { from: () => ({ upload: mocks.upload, download: mocks.download, createSignedUrl: mocks.signed }) }, rpc: mocks.adminRpc }); });
 
 describe("property draft media", () => {
+  it("releases an owner's exact reservation without touching storage", async () => {
+    mocks.prepare.mockResolvedValueOnce({ data: "released", error: null });
+    const req = new Request("http://localhost/api/property-drafts/media", { method: "DELETE", headers: { "content-type": "application/json", "x-expected-user-id": "landlord-1" }, body: JSON.stringify({ draftId: "11111111-1111-4111-8111-111111111111", operationId: "22222222-2222-4222-8222-222222222222" }) });
+    const response = await DELETE(req);
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ state: "released" });
+    expect(mocks.prepare).toHaveBeenCalledWith("release_property_draft_media", { p_draft_id: "11111111-1111-4111-8111-111111111111", p_operation_id: "22222222-2222-4222-8222-222222222222" });
+    expect(mocks.admin).not.toHaveBeenCalled();
+  });
+  it.each(["confirmed", "missing"])("reports a %s reservation without deleting an object", async (state) => {
+    mocks.prepare.mockResolvedValueOnce({ data: state, error: null });
+    const req = new Request("http://localhost/api/property-drafts/media", { method: "DELETE", headers: { "content-type": "application/json", "x-expected-user-id": "landlord-1" }, body: JSON.stringify({ draftId: "11111111-1111-4111-8111-111111111111", operationId: "22222222-2222-4222-8222-222222222222" }) });
+    const response = await DELETE(req);
+    expect(await response.json()).toEqual({ state });
+    expect(mocks.admin).not.toHaveBeenCalled();
+  });
+  it("preserves uncertainty when the release response is lost", async () => {
+    mocks.prepare.mockRejectedValueOnce(new Error("response lost"));
+    const req = new Request("http://localhost/api/property-drafts/media", { method: "DELETE", headers: { "content-type": "application/json", "x-expected-user-id": "landlord-1" }, body: JSON.stringify({ draftId: "11111111-1111-4111-8111-111111111111", operationId: "22222222-2222-4222-8222-222222222222" }) });
+    const response = await DELETE(req);
+    expect(response.status).toBe(503);
+    expect(await response.json()).toEqual({ error: "The file status could not be confirmed. Retry the same request." });
+    expect(mocks.admin).not.toHaveBeenCalled();
+  });
+  it("rejects release on account mismatch before an RPC", async () => {
+    const req = new Request("http://localhost/api/property-drafts/media", { method: "DELETE", headers: { "content-type": "application/json", "x-expected-user-id": "other" }, body: "{}" });
+    expect((await DELETE(req)).status).toBe(409);
+    expect(mocks.prepare).not.toHaveBeenCalled();
+  });
   it("rejects unauthenticated requests", async () => {
     mocks.getUser.mockResolvedValueOnce({ data: { user: null }, error: null });
     expect((await POST(valid())).status).toBe(401);

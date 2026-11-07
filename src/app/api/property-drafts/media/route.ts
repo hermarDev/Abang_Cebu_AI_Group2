@@ -44,6 +44,21 @@ export async function GET(request: Request) {
   return Response.json({ media }, { headers });
 }
 
+export async function DELETE(request: Request) {
+  const session = await access(request);
+  if ("response" in session && session.response) return session.response;
+  let body: unknown;
+  try { body = await request.json(); } catch { return reply("Invalid media request.", 400); }
+  if (!body || typeof body !== "object" || Array.isArray(body) || !("draftId" in body) || typeof body.draftId !== "string" || !uuid.test(body.draftId) || !("operationId" in body) || typeof body.operationId !== "string" || !uuid.test(body.operationId)) return reply("Invalid media request.", 400);
+  try {
+    const { data, error } = await session.supabase.rpc("release_property_draft_media", { p_draft_id: body.draftId, p_operation_id: body.operationId });
+    if (error || (data !== "released" && data !== "confirmed" && data !== "missing")) return reply("The file status could not be confirmed. Retry the same request.", 503);
+    return Response.json({ state: data }, { headers });
+  } catch {
+    return reply("The file status could not be confirmed. Retry the same request.", 503);
+  }
+}
+
 export async function POST(request: Request) {
   const session = await access(request);
   if ("response" in session && session.response) return session.response;

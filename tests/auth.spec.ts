@@ -11,6 +11,7 @@ test("browser fixture isolates reads and blocks mutations and external requests"
     return { places, rentals, mutationBlocked, externalBlocked, externalAuthBlocked };
   });
   expect(result).toEqual({ places: { places: [] }, rentals: { rentals: [] }, mutationBlocked: true, externalBlocked: true, externalAuthBlocked: true });
+  expect(await page.evaluate(() => (window as unknown as { blockedRequests?: string[] }).blockedRequests)).toBeUndefined();
 });
 
 for (const viewport of [{ width: 360, height: 800 }, { width: 430, height: 932 }]) {

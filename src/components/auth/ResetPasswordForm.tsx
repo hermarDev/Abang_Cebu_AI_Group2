@@ -119,6 +119,7 @@ export function ResetPasswordForm({ isRecovery = false, onBackToLogin, embedded 
                   onClick={() => {
                     setMessage(null);
                     setIsError(false);
+                    router.refresh();
                     if (onBackToLogin) onBackToLogin();
                     else router.push("/reset-password");
                   }}

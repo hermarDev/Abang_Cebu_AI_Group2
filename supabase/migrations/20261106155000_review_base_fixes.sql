@@ -1,5 +1,6 @@
 -- Forward fixes for review objects already present on linked databases.
 BEGIN;
+DROP POLICY IF EXISTS property_submissions_admin_read ON public.property_submissions;
 CREATE POLICY property_submissions_admin_read ON public.property_submissions
   FOR SELECT TO authenticated USING (EXISTS (
     SELECT 1 FROM public.profiles p

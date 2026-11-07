@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { executeDraftSave, type DraftIntentRepository, type DraftSaveIntent } from "./draft-save-client";
+import { executeDraftSave, releaseDraftUpload, restartReleasedDraftUpload, type DraftIntentRepository, type DraftSaveIntent } from "./draft-save-client";
 
 function intent(overrides: Partial<DraftSaveIntent> = {}): DraftSaveIntent {
   return {
@@ -24,11 +24,102 @@ function repository(overrides: Partial<DraftIntentRepository> = {}): DraftIntent
     claimCreate: vi.fn(async () => true),
     completeDraft: vi.fn(async () => undefined),
     getCanonicalDraft: vi.fn(async () => null),
+    markReleasedUpload: vi.fn(async (ownerId, intentId, operationId) => {
+      const current = pending.get(intentId);
+      const file = current?.files.find((item) => item.operationId === operationId);
+      if (!current || current.ownerId !== ownerId || !file) throw new Error("This upload changed in another tab. Reload before retrying.");
+      const version = (current.storageVersion ?? 0) + 1;
+      const updated = { ...current, storageVersion: version, files: current.files.map((item) => item === file ? { ...item, released: true } : item) };
+      pending.set(intentId, updated);
+      return updated;
+    }),
+    restartReleasedUpload: vi.fn(async (ownerId, intentId, oldId, newId, expectedVersion) => {
+      const current = pending.get(intentId);
+      const file = current?.files.find((item) => item.operationId === oldId);
+      if (!current || current.ownerId !== ownerId || (current.storageVersion ?? 0) !== expectedVersion || !file?.released) throw new Error("This upload changed in another tab. Reload before retrying.");
+      const version = (current.storageVersion ?? 0) + 1;
+      pending.set(intentId, { ...current, storageVersion: version, files: current.files.map((item) => item === file ? { ...item, operationId: newId, released: false } : item) });
+      return version;
+    }),
     ...overrides,
   };
 }
 
 describe("durable draft save execution", () => {
+  it("retries an uncertain release with the original operation and keeps the intent", async () => {
+    const file = new File(["file"], "photo.jpg", { type: "image/jpeg" });
+    const saved = intent({ draftId: "draft-a", revision: 1, phase: "created", files: [{ kind: "photo", operationId: "file-op", file }] });
+    const store = repository();
+    await store.putPending(saved);
+    const fetcher = vi.fn().mockRejectedValueOnce(new Error("lost response")).mockResolvedValueOnce(new Response(JSON.stringify({ state: "released" }), { status: 200 }));
+    await expect(releaseDraftUpload(saved, "file-op", store, fetcher)).rejects.toThrow("lost response");
+    expect(store.pending.has(saved.id)).toBe(true);
+    await expect(releaseDraftUpload(saved, "file-op", store, fetcher)).resolves.toBe("released");
+    expect(fetcher.mock.calls[0][1].body).toBe(fetcher.mock.calls[1][1].body);
+    expect(saved.files[0].operationId).toBe("file-op");
+    expect(saved.files[0].released).toBe(true);
+    expect(store.pending.has(saved.id)).toBe(true);
+  });
+  it("persists a completed release response without overwriting a newer tab", async () => {
+    const file = new File(["file"], "photo.jpg", { type: "image/jpeg" });
+    const saved = intent({ draftId: "draft-a", revision: 1, phase: "created", files: [{ kind: "photo", operationId: "file-op", file }] });
+    const store = repository();
+    const fetcher = vi.fn().mockResolvedValue(new Response(JSON.stringify({ state: "released" }), { status: 200 }));
+    await expect(releaseDraftUpload(saved, "file-op", store, fetcher)).resolves.toBe("released");
+    expect(store.markReleasedUpload).toHaveBeenCalledWith("owner-a", "intent-1", "file-op");
+    expect(saved.files[0].released).toBe(true);
+  });
+  it("does not treat an absent reservation as safe to replace", async () => {
+    const file = new File(["file"], "photo.jpg", { type: "image/jpeg" });
+    const saved = intent({ draftId: "draft-a", revision: 1, phase: "created", files: [{ kind: "photo", operationId: "file-op", file }] });
+    const store = repository();
+    const fetcher = vi.fn().mockResolvedValue(new Response(JSON.stringify({ state: "missing" }), { status: 200 }));
+    await expect(releaseDraftUpload(saved, "file-op", store, fetcher)).rejects.toThrow(/not confirmed/i);
+    expect(saved.files[0].released).not.toBe(true);
+    expect(store.pending.has(saved.id)).toBe(true);
+  });
+  it("keeps released file information durable instead of reporting a complete save", async () => {
+    const file = new File(["file"], "photo.jpg", { type: "image/jpeg" });
+    const saved = intent({ draftId: "draft-a", revision: 1, phase: "created", files: [{ kind: "photo", operationId: "file-op", file, released: true }] });
+    const store = repository();
+    const fetcher = vi.fn();
+    await expect(executeDraftSave(saved, store, fetcher)).rejects.toThrow(/released/i);
+    expect(store.pending.get(saved.id)?.files[0].file.name).toBe("photo.jpg");
+    expect(store.deletePending).not.toHaveBeenCalled();
+    expect(fetcher).not.toHaveBeenCalled();
+  });
+  it("retries a released file under a new stable operation without losing its bytes", async () => {
+    const file = new File(["file"], "photo.jpg", { type: "image/jpeg" });
+    const saved = intent({ draftId: "draft-a", revision: 1, phase: "created", files: [{ kind: "photo", operationId: "old-op", file, released: true }] });
+    const store = repository();
+    await store.putPending(saved);
+    const fetcher = vi.fn().mockRejectedValueOnce(new Error("response lost")).mockResolvedValueOnce(new Response("{}", { status: 200 }));
+    await restartReleasedDraftUpload(saved, "old-op", store);
+    await expect(executeDraftSave(saved, store, fetcher)).rejects.toThrow("response lost");
+    const first = (fetcher.mock.calls[0][1].body as FormData).get("operationId");
+    expect(first).not.toBe("old-op");
+    expect(saved.files[0].operationId).toBe(first);
+    expect(store.pending.get(saved.id)?.files[0].operationId).toBe(first);
+    await executeDraftSave(saved, store, fetcher);
+    expect((fetcher.mock.calls[1][1].body as FormData).get("operationId")).toBe(first);
+    expect(await ((fetcher.mock.calls[1][1].body as FormData).get("file") as File).text()).toBe("file");
+  });
+  it("rejects a restart that returns a newer unrelated intent version", async () => {
+    const saved = intent({ draftId: "draft-a", revision: 1, phase: "created", storageVersion: 3, files: [{ kind: "photo", operationId: "old-op", file: new File(["file"], "photo.jpg"), released: true }] });
+    const store = repository({ restartReleasedUpload: vi.fn(async () => 5) });
+    await expect(restartReleasedDraftUpload(saved, "old-op", store)).rejects.toThrow(/changed in another tab/i);
+    expect(saved.storageVersion).toBe(3);
+    expect(saved.files[0].operationId).toBe("old-op");
+  });
+  it("rejects malformed pending media intents before sending requests", async () => {
+    for (const invalid of [null, { files: "bad" }, { files: [null] }, { files: [{ kind: "photo", operationId: "file-op", file: "not a file" }] }]) {
+      const store = repository();
+      const fetcher = vi.fn();
+      await expect(executeDraftSave(invalid as unknown as DraftSaveIntent, store, fetcher)).rejects.toThrow(/incomplete|invalid/i);
+      expect(fetcher).not.toHaveBeenCalled();
+      expect(store.deletePending).not.toHaveBeenCalled();
+    }
+  });
   it("persists the immutable intent before the first network request", async () => {
     const store = repository();
     const fetcher = vi.fn(async () => new Response(JSON.stringify({ id: "22222222-2222-4222-8222-222222222222" }), { status: 200 }));
