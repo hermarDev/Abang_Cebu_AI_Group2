@@ -58,6 +58,7 @@ test("guest calls to private messaging and admin APIs never leak data or return 
     request.post("/api/messages/threads", { data: { listingId: "44444444-4444-4444-8444-444444444444", operationId: "55555555-5555-4555-8555-555555555555", body: "hi" } }),
     request.get("/api/messages/threads/66666666-6666-4666-8666-666666666666"),
     request.post("/api/messages/threads/66666666-6666-4666-8666-666666666666", { data: { operationId: "55555555-5555-4555-8555-555555555555", body: "hi" } }),
+    request.post("/api/messages/threads/66666666-6666-4666-8666-666666666666/attachments"),
     request.get("/api/admin/overview"),
   ];
   for (const response of await Promise.all(calls)) {

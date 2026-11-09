@@ -46,7 +46,47 @@ export async function readJson(request: Request): Promise<Record<string, unknown
 
 export const validMessageBody = (body: unknown): body is string =>
   typeof body === "string" && body.trim().length >= 1 && body.trim().length <= 2000;
-export const invalidMessage = () => reply({ error: "Enter a message between 1 and 2,000 characters." }, 400);
+export const validMessagePayload = (body: unknown, attachments: unknown[] = []) =>
+  (typeof body === "string" && body.trim().length >= 1 && body.trim().length <= 2000) ||
+  (Array.isArray(attachments) && attachments.length > 0 && typeof body === "string" && body.trim().length <= 2000);
+export const invalidMessage = () => reply({ error: "Enter a message between 1 and 2,000 characters or attach a photo." }, 400);
+
+export async function enrichMessagesWithSignedAttachments(messages: Record<string, unknown>[]) {
+  const paths: string[] = [];
+  for (const m of messages) {
+    if (Array.isArray(m?.attachments)) {
+      for (const a of m.attachments as Record<string, unknown>[]) {
+        if (typeof a?.storagePath === "string" && a.storagePath.length > 0) {
+          paths.push(a.storagePath);
+        }
+      }
+    }
+  }
+  const uniquePaths = [...new Set(paths)];
+  const signed = new Map<string, string>();
+  if (uniquePaths.length) {
+    try {
+      const { data } = await createAdminClient().storage
+        .from("rental-message-attachments")
+        .createSignedUrls(uniquePaths, 3600);
+      for (const item of data ?? []) {
+        if (item?.path && item.signedUrl) signed.set(item.path, item.signedUrl);
+      }
+    } catch {
+      // Degrade gracefully if signing fails
+    }
+  }
+  return messages.map((m) => {
+    if (!Array.isArray(m?.attachments) || m.attachments.length === 0) return m;
+    return {
+      ...m,
+      attachments: (m.attachments as Record<string, unknown>[]).map((a) => ({
+        ...a,
+        url: a.storagePath ? signed.get(a.storagePath as string) ?? null : null,
+      })),
+    };
+  });
+}
 
 const FRIENDLY_RPC_ERRORS: Record<string, { status: number; message: string }> = {
   "cannot message your own listing": { status: 400, message: "You cannot message your own listing." },

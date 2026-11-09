@@ -9,11 +9,16 @@ import {
   Archive,
   ArrowLeft,
   Ban,
+  Building2,
   Clock,
+  CornerUpLeft,
   Flag,
   Home,
+  Image as ImageIcon,
   MessageSquare,
   MoreVertical,
+  Paperclip,
+  RefreshCw,
   Search,
   SendHorizontal,
   X,
@@ -22,6 +27,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Modal } from "@/components/ui/Modal";
+import { Sheet } from "@/components/ui/Sheet";
 import { Select } from "@/components/ui/Select";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/Avatar";
@@ -31,13 +37,16 @@ import {
   MessageContent,
   MessageFooter,
   Bubble,
+  BubbleAttachments,
   BubbleContent,
   BubbleGroup,
+  BubbleQuote,
   Marker,
   MarkerContent,
   MessageScroller,
   type MessageScrollerHandle,
 } from "@/components/ui/chat";
+import { PropertyDetailsContent } from "@/features/rentals/PropertyDetailsContent";
 import { notify } from "@/components/ui/AppToaster";
 import { dispatchMessagesUpdated } from "./useUnreadMessageCount";
 import {
@@ -52,8 +61,11 @@ import {
   listingHref,
   mergeMessages,
   postThreadMessage,
+  uploadMessageAttachment,
   type ReportCategory,
+  type RentalMessageAttachment,
   type RentalMessageItem,
+  type RentalQuotedMessage,
   type RentalThreadDetail,
   type RentalThreadSummary,
   type ThreadDetailResponse,
@@ -67,7 +79,22 @@ export type MessagingInboxProps = {
   initialThreads?: RentalThreadSummary[];
 };
 
-type OutboxItem = { operationId: string; body: string; status: "sending" | "failed"; createdAt: string };
+type OutboxItem = {
+  operationId: string;
+  body: string;
+  replyTo?: RentalQuotedMessage | null;
+  attachments?: RentalMessageAttachment[];
+  status: "sending" | "failed";
+  createdAt: string;
+};
+type StagedAttachment = {
+  id: string;
+  file: File;
+  previewUrl: string;
+  status: "uploading" | "ready" | "error";
+  storagePath?: string;
+  errorMessage?: string;
+};
 type ReportTarget = { targetType: "conversation" | "message"; messageId?: string };
 const POLL_MS = 10_000;
 const NO_OUTBOX: OutboxItem[] = [];
@@ -190,6 +217,11 @@ function MessagingInboxInner({
   }, [messages]);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [replyingTo, setReplyingTo] = useState<RentalQuotedMessage | null>(null);
+  const [stagedAttachments, setStagedAttachments] = useState<StagedAttachment[]>([]);
+  const [propertySheetOpen, setPropertySheetOpen] = useState(false);
+  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
 
   const draft = (selectedId && drafts[selectedId]) || "";
   const outbox = (selectedId && outboxes[selectedId]) || NO_OUTBOX;
@@ -292,7 +324,6 @@ function MessagingInboxInner({
 
   useEffect(() => {
     // openThread only sets state after its awaited fetch resolves (external sync), so no cascading render.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (selectedId) void openThread(selectedId);
   }, [selectedId, openThread]);
 
@@ -343,6 +374,9 @@ function MessagingInboxInner({
     setLoadingOlder(false);
     setDetailError(null);
     setDetailLoading(Boolean(id));
+    setReplyingTo(null);
+    setStagedAttachments([]);
+    setPropertySheetOpen(false);
     selectedRef.current = id;
     setSelectedId(id);
     if (typeof window !== "undefined") {
@@ -376,6 +410,121 @@ function MessagingInboxInner({
     }
   }
 
+  async function handleFileSelect(files: FileList | File[]) {
+    if (!thread) return;
+    const array = Array.from(files).slice(0, Math.max(0, 5 - stagedAttachments.length));
+    if (array.length === 0) return;
+    const newItems: StagedAttachment[] = array.map((file) => ({
+      id: newId(),
+      file,
+      previewUrl: URL.createObjectURL(file),
+      status: "uploading",
+    }));
+    setStagedAttachments((prev) => [...prev, ...newItems]);
+
+    for (const item of newItems) {
+      try {
+        const uploaded = await uploadMessageAttachment(thread.id, userId, item.file);
+        setStagedAttachments((prev) =>
+          prev.map((a) =>
+            a.id === item.id
+              ? { ...a, status: "ready", storagePath: uploaded.storagePath, previewUrl: uploaded.url ?? a.previewUrl }
+              : a
+          )
+        );
+      } catch (err) {
+        setStagedAttachments((prev) =>
+          prev.map((a) =>
+            a.id === item.id ? { ...a, status: "error", errorMessage: err instanceof Error ? err.message : "Upload failed" } : a
+          )
+        );
+      }
+    }
+  }
+
+  async function retryUpload(item: StagedAttachment) {
+    if (!thread) return;
+    setStagedAttachments((prev) =>
+      prev.map((a) => (a.id === item.id ? { ...a, status: "uploading", errorMessage: undefined } : a))
+    );
+    try {
+      const uploaded = await uploadMessageAttachment(thread.id, userId, item.file);
+      setStagedAttachments((prev) =>
+        prev.map((a) =>
+          a.id === item.id
+            ? { ...a, status: "ready", storagePath: uploaded.storagePath, previewUrl: uploaded.url ?? a.previewUrl }
+            : a
+        )
+      );
+    } catch (err) {
+      setStagedAttachments((prev) =>
+        prev.map((a) =>
+          a.id === item.id ? { ...a, status: "error", errorMessage: err instanceof Error ? err.message : "Upload failed" } : a
+        )
+      );
+    }
+  }
+
+  function removeAttachment(id: string) {
+    setStagedAttachments((prev) => prev.filter((a) => a.id !== id));
+  }
+
+  function handleFileInputChange(e: React.ChangeEvent<HTMLInputElement>) {
+    if (e.target.files) {
+      void handleFileSelect(e.target.files);
+      e.target.value = "";
+    }
+  }
+
+  const handlePaste = (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+    const imageFiles: File[] = [];
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].type.startsWith("image/")) {
+        const file = items[i].getAsFile();
+        if (file) imageFiles.push(file);
+      }
+    }
+    if (imageFiles.length > 0) {
+      e.preventDefault();
+      void handleFileSelect(imageFiles);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const files = e.dataTransfer?.files;
+    if (!files || files.length === 0) return;
+    const imageFiles = Array.from(files).filter((f) => f.type.startsWith("image/"));
+    if (imageFiles.length > 0) {
+      void handleFileSelect(imageFiles);
+    }
+  };
+
+  function startReply(m: RentalMessageItem) {
+    const isMine = m.senderId === userId;
+    const senderName = isMine ? "yourself" : detail?.counterpart?.fullName ?? "Landlord";
+    setReplyingTo({
+      id: m.id,
+      senderId: m.senderId,
+      senderName,
+      body: m.body,
+    });
+    textareaRef.current?.focus();
+  }
+
+  function jumpToMessage(targetId: string) {
+    const el = document.getElementById(`message-${targetId}`);
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+      el.classList.add("ring-2", "ring-action", "transition-all");
+      setTimeout(() => {
+        el.classList.remove("ring-2", "ring-action", "transition-all");
+      }, 1500);
+    }
+  }
+
   async function deliver(item: OutboxItem) {
     if (!selectedId) return;
     const threadId = selectedId;
@@ -384,10 +533,20 @@ function MessagingInboxInner({
       list.map((o) => (o.operationId === item.operationId ? { ...o, status: "sending" } : o))
     );
     try {
-      const message = await postThreadMessage(threadId, userId, item.operationId, item.body);
+      const message = await postThreadMessage(
+        threadId,
+        userId,
+        item.operationId,
+        item.body,
+        item.replyTo?.id ?? null,
+        item.attachments
+      );
       updateOutbox(threadId, (list) => list.filter((o) => o.operationId !== item.operationId));
       if (selectedRef.current === threadId) setMessages((current) => mergeMessages(current, [message]));
-      patchThread(threadId, { lastMessagePreview: message.body.slice(0, 140), lastMessageAt: message.createdAt });
+      patchThread(threadId, {
+        lastMessagePreview: (message.body || "📷 Photo").slice(0, 140),
+        lastMessageAt: message.createdAt,
+      });
       if (alive.current) dispatchMessagesUpdated();
     } catch (error) {
       updateOutbox(threadId, (list) =>
@@ -401,10 +560,34 @@ function MessagingInboxInner({
   function send(event: FormEvent) {
     event.preventDefault();
     const body = draft.trim();
-    if (!body || body.length > MESSAGE_MAX || !thread?.canSend || outbox.some((o) => o.status === "sending")) return;
-    const item: OutboxItem = { operationId: newId(), body, status: "sending", createdAt: new Date().toISOString() };
+    const readyAttachments = stagedAttachments.filter((a) => a.status === "ready" && a.storagePath);
+    if (
+      (!body && readyAttachments.length === 0) ||
+      body.length > MESSAGE_MAX ||
+      !thread?.canSend ||
+      outbox.some((o) => o.status === "sending") ||
+      stagedAttachments.some((a) => a.status === "uploading")
+    )
+      return;
+
+    const item: OutboxItem = {
+      operationId: newId(),
+      body,
+      replyTo: replyingTo,
+      attachments: readyAttachments.map((a) => ({
+        storagePath: a.storagePath!,
+        fileName: a.file.name,
+        fileSize: a.file.size,
+        mimeType: a.file.type,
+        url: a.previewUrl,
+      })),
+      status: "sending",
+      createdAt: new Date().toISOString(),
+    };
     updateOutbox(thread.id, (list) => [...list, item]);
     setDraft("");
+    setReplyingTo(null);
+    setStagedAttachments([]);
     void deliver(item);
   }
 
@@ -494,6 +677,9 @@ function MessagingInboxInner({
         counterpart={thread?.counterpart}
         showAvatar={showAvatar}
         onReport={() => setReportTarget({ targetType: "message", messageId: current.id })}
+        onReply={(msg) => startReply(msg)}
+        onJumpToMessage={(targetId) => jumpToMessage(targetId)}
+        onPhotoClick={(url) => setLightboxUrl(url)}
       />
     );
   }
@@ -795,6 +981,17 @@ function MessagingInboxInner({
                     <span className="text-muted-foreground">₱{Number(thread.listingPrice).toLocaleString("en-PH")}/month</span>
                   )}
                 </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPropertySheetOpen(true)}
+                  className="shrink-0 h-8 gap-1.5 text-xs font-semibold"
+                  aria-label={`View property details for ${thread.listingTitle}`}
+                >
+                  <Building2 size={13} aria-hidden="true" />
+                  <span>Property details</span>
+                </Button>
                 <Badge
                   variant={listingBadgeLabel(thread) === "Published · Available" ? "default" : "secondary"}
                   className="shrink-0 text-[0.65rem] px-2 py-0.5"
@@ -832,45 +1029,64 @@ function MessagingInboxInner({
                 <ol className="grid gap-2 list-none p-0 m-0">
                   {messageElements}
                   {outbox.map((o) => (
-                    <Message key={o.operationId} mine>
-                      <MessageContent mine>
-                        <BubbleGroup>
-                          <div
-                            className={`rounded-2xl px-3.5 py-2 text-sm leading-relaxed ${
-                              o.status === "sending"
-                                ? "border border-border bg-card/80 text-muted-foreground animate-pulse"
-                                : "border border-destructive/40 bg-destructive/10 text-foreground"
-                            }`}
-                          >
-                            <BubbleContent>{o.body}</BubbleContent>
-                            {o.status === "sending" ? (
-                              <div className="mt-1 flex items-center gap-1.5 text-[0.7rem] text-muted-foreground">
-                                <Clock size={12} className="animate-spin" aria-hidden="true" />
-                                <span>Sending…</span>
-                              </div>
-                            ) : (
-                              <div
-                                role="alert"
-                                className="mt-1.5 flex items-center justify-between gap-3 text-xs text-destructive"
-                              >
-                                <span className="flex items-center gap-1">
-                                  <AlertCircle size={13} aria-hidden="true" />
-                                  <span>Message wasn&apos;t sent</span>
-                                </span>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="min-h-8 h-8 px-2 text-xs border-destructive/30 hover:bg-destructive/10"
-                                  onClick={() => void deliver(o)}
+                    <li key={o.operationId} className="list-none">
+                      <Message mine>
+                        <MessageContent mine>
+                          <BubbleGroup>
+                            <div
+                              className={`rounded-2xl px-3.5 py-2 text-sm leading-relaxed ${
+                                o.status === "sending"
+                                  ? "border border-border bg-card/80 text-muted-foreground animate-pulse"
+                                  : "border border-destructive/40 bg-destructive/10 text-foreground"
+                              }`}
+                            >
+                              {o.replyTo && (
+                                <BubbleQuote
+                                  author={o.replyTo.senderName}
+                                  body={o.replyTo.body}
+                                  mine={true}
+                                  isUnavailable={o.replyTo.isUnavailable}
+                                />
+                              )}
+                              {o.attachments && o.attachments.length > 0 && (
+                                <BubbleAttachments
+                                  attachments={o.attachments}
+                                  onPhotoClick={(idx) => {
+                                    const url = o.attachments?.[idx]?.url;
+                                    if (url) setLightboxUrl(url);
+                                  }}
+                                />
+                              )}
+                              {o.body && <BubbleContent>{o.body}</BubbleContent>}
+                              {o.status === "sending" ? (
+                                <div className="mt-1 flex items-center gap-1.5 text-[0.7rem] text-muted-foreground">
+                                  <Clock size={12} className="animate-spin" aria-hidden="true" />
+                                  <span>Sending…</span>
+                                </div>
+                              ) : (
+                                <div
+                                  role="alert"
+                                  className="mt-1.5 flex items-center justify-between gap-3 text-xs text-destructive"
                                 >
-                                  Retry
-                                </Button>
-                              </div>
-                            )}
-                          </div>
-                        </BubbleGroup>
-                      </MessageContent>
-                    </Message>
+                                  <span className="flex items-center gap-1">
+                                    <AlertCircle size={13} aria-hidden="true" />
+                                    <span>Message wasn&apos;t sent</span>
+                                  </span>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="min-h-8 h-8 px-2 text-xs border-destructive/30 hover:bg-destructive/10"
+                                    onClick={() => void deliver(o)}
+                                  >
+                                    Retry
+                                  </Button>
+                                </div>
+                              )}
+                            </div>
+                          </BubbleGroup>
+                        </MessageContent>
+                      </Message>
+                    </li>
                   ))}
                 </ol>
               )}
@@ -879,13 +1095,119 @@ function MessagingInboxInner({
             <form
               onSubmit={send}
               className="grid gap-2 border-t border-border bg-card p-3 pb-[calc(.75rem+env(safe-area-inset-bottom))]"
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={handleDrop}
             >
               {blockedReason && (
                 <p role="status" className="rounded-lg bg-muted px-3 py-2 text-sm text-muted-foreground">
                   {blockedReason}
                 </p>
               )}
+
+              {/* Reply Header / Preview Bar */}
+              {replyingTo && (
+                <div className="flex items-center justify-between gap-2 px-3 py-1.5 rounded-xl border border-border/80 bg-muted/60 text-xs">
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <CornerUpLeft size={14} className="shrink-0 text-action" aria-hidden="true" />
+                    <div className="min-w-0">
+                      <span className="font-semibold text-foreground">
+                        Replying to {replyingTo.senderId === userId ? "yourself" : replyingTo.senderName}
+                      </span>
+                      <p className="m-0 text-muted-foreground truncate max-w-xs sm:max-w-md">
+                        {replyingTo.body || "📷 Photo"}
+                      </p>
+                    </div>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    aria-label="Cancel reply"
+                    onClick={() => setReplyingTo(null)}
+                    className="size-7 min-h-7 p-0 text-muted-foreground hover:text-foreground"
+                  >
+                    <X size={14} aria-hidden="true" />
+                  </Button>
+                </div>
+              )}
+
+              {/* Staged Attachments Tray */}
+              {stagedAttachments.length > 0 && (
+                <div className="flex gap-2 overflow-x-auto py-1 scrollbar-thin">
+                  {stagedAttachments.map((att) => (
+                    <div
+                      key={att.id}
+                      className="relative flex items-center gap-2 rounded-xl border border-border bg-card p-1.5 pr-2 shadow-2xs shrink-0 max-w-48 text-xs"
+                    >
+                      <div className="relative size-10 shrink-0 overflow-hidden rounded-lg bg-muted">
+                        {att.previewUrl ? (
+                          <Image src={att.previewUrl} alt="" fill unoptimized className="object-cover" />
+                        ) : (
+                          <div className="grid h-full w-full place-items-center text-muted-foreground">
+                            <ImageIcon size={16} aria-hidden="true" />
+                          </div>
+                        )}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="m-0 font-medium truncate">{att.file.name}</p>
+                        <span className="text-[0.68rem] text-muted-foreground">
+                          {att.status === "uploading" ? (
+                            <span className="text-action font-semibold">Uploading…</span>
+                          ) : att.status === "error" ? (
+                            <span className="text-destructive font-semibold">Failed</span>
+                          ) : (
+                            (att.file.size / (1024 * 1024)).toFixed(1) + " MB"
+                          )}
+                        </span>
+                      </div>
+                      {att.status === "error" ? (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          aria-label="Retry upload"
+                          onClick={() => void retryUpload(att)}
+                          className="size-6 min-h-6 p-0 text-action hover:text-action-hover"
+                        >
+                          <RefreshCw size={13} aria-hidden="true" />
+                        </Button>
+                      ) : null}
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        aria-label={`Remove ${att.file.name}`}
+                        onClick={() => removeAttachment(att.id)}
+                        className="size-6 min-h-6 p-0 text-muted-foreground hover:text-foreground"
+                      >
+                        <X size={13} aria-hidden="true" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
               <div className="relative flex items-center rounded-2xl border border-input bg-card shadow-2xs transition-all focus-within:border-action focus-within:ring-2 focus-within:ring-action/20">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  aria-label="Attach photos"
+                  title="Attach photos"
+                  disabled={!thread.canSend || stagedAttachments.length >= 5}
+                  onClick={() => fileInputRef.current?.click()}
+                  className="ml-1 size-8 min-h-8 p-0 text-muted-foreground hover:text-foreground focus-visible:outline-ring cursor-pointer"
+                >
+                  <Paperclip size={17} aria-hidden="true" />
+                </Button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  multiple
+                  onChange={handleFileInputChange}
+                  className="sr-only"
+                />
                 <label htmlFor="message-composer" className="sr-only">
                   Message
                 </label>
@@ -894,6 +1216,7 @@ function MessagingInboxInner({
                   id="message-composer"
                   value={draft}
                   onChange={(e) => setDraft(e.target.value)}
+                  onPaste={handlePaste}
                   disabled={!thread.canSend}
                   maxLength={MESSAGE_MAX}
                   rows={1}
@@ -904,13 +1227,18 @@ function MessagingInboxInner({
                       e.currentTarget.form?.requestSubmit();
                     }
                   }}
-                  className="min-h-11 max-h-36 w-full resize-none border-0 bg-transparent py-2.5 pl-3.5 pr-12 text-sm text-foreground placeholder:text-muted-foreground focus:outline-hidden disabled:cursor-not-allowed disabled:opacity-50"
+                  className="min-h-11 max-h-36 w-full resize-none border-0 bg-transparent py-2.5 pl-2 pr-12 text-sm text-foreground placeholder:text-muted-foreground focus:outline-hidden disabled:cursor-not-allowed disabled:opacity-50"
                 />
                 <Button
                   type="submit"
                   size="sm"
                   variant="primary"
-                  disabled={!thread.canSend || sending || !draft.trim()}
+                  disabled={
+                    !thread.canSend ||
+                    sending ||
+                    (!draft.trim() && !stagedAttachments.some((a) => a.status === "ready")) ||
+                    stagedAttachments.some((a) => a.status === "uploading")
+                  }
                   aria-label={sending ? "Sending message…" : "Send message"}
                   className="absolute right-2 top-1/2 -translate-y-1/2 size-8 min-h-8 rounded-full p-0 flex items-center justify-center bg-action text-action-foreground hover:bg-action-hover disabled:opacity-40"
                 >
@@ -957,6 +1285,31 @@ function MessagingInboxInner({
                 }}
               />
             )}
+            <Sheet
+              open={propertySheetOpen}
+              onClose={() => setPropertySheetOpen(false)}
+              title={thread.listingTitle}
+              description={thread.listingAddress ?? thread.listingCity ?? undefined}
+            >
+              <PropertyDetailsContent
+                thread={thread}
+                userRole={userRole}
+                onClose={() => setPropertySheetOpen(false)}
+              />
+            </Sheet>
+            <Modal
+              open={Boolean(lightboxUrl)}
+              onClose={() => setLightboxUrl(null)}
+              title="Photo preview"
+              hideTitle
+              className="max-w-3xl p-2 bg-black/95 border-border"
+            >
+              {lightboxUrl && (
+                <div className="relative aspect-4/3 max-h-[80dvh] w-full overflow-hidden rounded-xl">
+                  <Image src={lightboxUrl} alt="Photo preview" fill unoptimized className="object-contain" />
+                </div>
+              )}
+            </Modal>
           </>
         )}
       </section>
@@ -968,50 +1321,147 @@ export function MessageItem({
   message: m,
   mine,
   onReport,
+  onReply,
+  onJumpToMessage,
+  onPhotoClick,
   counterpart,
   showAvatar = true,
 }: {
   message: RentalMessageItem;
   mine: boolean;
   onReport: () => void;
+  onReply?: (m: RentalMessageItem) => void;
+  onJumpToMessage?: (id: string) => void;
+  onPhotoClick?: (url: string) => void;
   counterpart?: { fullName: string | null; avatarUrl: string | null } | null;
   showAvatar?: boolean;
 }) {
+  const [swipeOffset, setSwipeOffset] = useState(0);
+  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
+  const swipingRef = useRef(false);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    swipingRef.current = false;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!touchStartRef.current) return;
+    const dx = e.touches[0].clientX - touchStartRef.current.x;
+    const dy = e.touches[0].clientY - touchStartRef.current.y;
+
+    if (!swipingRef.current) {
+      if (Math.abs(dy) > Math.abs(dx)) return;
+      if (dx > 10) swipingRef.current = true;
+    }
+
+    if (swipingRef.current && dx > 0) {
+      const clamped = Math.min(dx * 0.7, 80);
+      setSwipeOffset(clamped);
+      if (clamped >= 60 && typeof navigator !== "undefined" && navigator.vibrate) {
+        navigator.vibrate(10);
+      }
+    }
+  };
+
+  const handleTouchEnd = () => {
+    if (swipeOffset >= 60 && onReply) {
+      onReply(m);
+    }
+    setSwipeOffset(0);
+    touchStartRef.current = null;
+    swipingRef.current = false;
+  };
+
   return (
-    <Message mine={mine}>
-      {!mine && showAvatar && (
-        <MessageAvatar>
-          <Avatar className="size-7">
-            <AvatarImage src={counterpart?.avatarUrl ?? undefined} alt={counterpart?.fullName ?? ""} />
-            <AvatarFallback className="text-[0.65rem]">{getInitials(counterpart?.fullName)}</AvatarFallback>
-          </Avatar>
-        </MessageAvatar>
-      )}
-      {!mine && !showAvatar && <div className="size-7 shrink-0" aria-hidden="true" />}
-      <MessageContent mine={mine}>
-        <BubbleGroup>
-          <div className="group relative flex items-center gap-1.5">
-            <Bubble mine={mine}>
-              <BubbleContent>{m.body}</BubbleContent>
-            </Bubble>
-            {!mine && (
-              <Button
-                variant="ghost"
-                size="sm"
-                aria-label="Report message"
-                className="size-7 min-h-7 p-0 text-muted-foreground opacity-80 group-hover:opacity-100 hover:text-foreground focus-visible:opacity-100"
-                onClick={onReport}
+    <li id={`message-${m.id}`} className="list-none rounded-xl transition-all">
+      <Message mine={mine}>
+        {!mine && showAvatar && (
+          <MessageAvatar>
+            <Avatar className="size-7">
+              <AvatarImage src={counterpart?.avatarUrl ?? undefined} alt={counterpart?.fullName ?? ""} />
+              <AvatarFallback className="text-[0.65rem]">{getInitials(counterpart?.fullName)}</AvatarFallback>
+            </Avatar>
+          </MessageAvatar>
+        )}
+        {!mine && !showAvatar && <div className="size-7 shrink-0" aria-hidden="true" />}
+        <MessageContent mine={mine}>
+          <BubbleGroup>
+            <div
+              className="group relative flex items-center gap-1.5"
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
+            >
+              {swipeOffset > 0 && (
+                <div
+                  className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-full pr-2 text-action pointer-events-none transition-opacity"
+                  style={{ opacity: Math.min(swipeOffset / 50, 1) }}
+                >
+                  <CornerUpLeft size={18} aria-hidden="true" />
+                </div>
+              )}
+              <div
+                style={{
+                  transform: swipeOffset > 0 ? `translateX(${swipeOffset}px)` : undefined,
+                  transition: swipeOffset === 0 ? "transform 0.2s cubic-bezier(0.16, 1, 0.3, 1)" : "none",
+                }}
+                className="max-w-full"
               >
-                <Flag size={13} aria-hidden="true" />
-              </Button>
-            )}
-          </div>
-        </BubbleGroup>
-        <MessageFooter className={mine ? "justify-end" : "justify-start"}>
-          <time dateTime={m.createdAt}>{formatMessageTime(m.createdAt)}</time>
-        </MessageFooter>
-      </MessageContent>
-    </Message>
+                <Bubble mine={mine}>
+                  {m.replyTo && (
+                    <BubbleQuote
+                      author={m.replyTo.senderName}
+                      body={m.replyTo.body}
+                      mine={mine}
+                      isUnavailable={m.replyTo.isUnavailable}
+                      onJump={() => onJumpToMessage?.(m.replyTo!.id)}
+                    />
+                  )}
+                  {m.attachments && m.attachments.length > 0 && (
+                    <BubbleAttachments
+                      attachments={m.attachments}
+                      onPhotoClick={(idx) => {
+                        const url = m.attachments?.[idx]?.url;
+                        if (url) onPhotoClick?.(url);
+                      }}
+                    />
+                  )}
+                  {m.body && <BubbleContent>{m.body}</BubbleContent>}
+                </Bubble>
+              </div>
+              <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
+                {onReply && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    aria-label={`Reply to message`}
+                    className="size-7 min-h-7 p-0 text-muted-foreground hover:text-foreground focus-visible:opacity-100"
+                    onClick={() => onReply(m)}
+                  >
+                    <CornerUpLeft size={13} aria-hidden="true" />
+                  </Button>
+                )}
+                {!mine && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    aria-label="Report message"
+                    className="size-7 min-h-7 p-0 text-muted-foreground opacity-80 group-hover:opacity-100 hover:text-foreground focus-visible:opacity-100"
+                    onClick={onReport}
+                  >
+                    <Flag size={13} aria-hidden="true" />
+                  </Button>
+                )}
+              </div>
+            </div>
+          </BubbleGroup>
+          <MessageFooter className={mine ? "justify-end" : "justify-start"}>
+            <time dateTime={m.createdAt}>{formatMessageTime(m.createdAt)}</time>
+          </MessageFooter>
+        </MessageContent>
+      </Message>
+    </li>
   );
 }
 

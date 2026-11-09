@@ -15,3 +15,5 @@ export type { ToastProps, ToastVariant } from "./Toast";
 export { Skeleton } from "./Skeleton";
 export type { SkeletonProps } from "./Skeleton";
 export { Avatar, AvatarImage, AvatarFallback } from "./Avatar";
+export { Sheet } from "./Sheet";
+export type { SheetProps } from "./Sheet";

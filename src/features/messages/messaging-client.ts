@@ -24,7 +24,31 @@ export type RentalThreadSummary = {
   createdAt?: string;
 };
 export type RentalThreadDetail = RentalThreadSummary;
-export type RentalMessageItem = { id: string; conversationId: string; senderId: string; operationId: string; body: string; createdAt: string };
+export type RentalMessageAttachment = {
+  id?: string;
+  storagePath?: string;
+  url?: string | null;
+  fileName: string;
+  fileSize: number;
+  mimeType: string;
+};
+export type RentalQuotedMessage = {
+  id: string;
+  senderId?: string;
+  senderName: string;
+  body: string;
+  isUnavailable?: boolean;
+};
+export type RentalMessageItem = {
+  id: string;
+  conversationId: string;
+  senderId: string;
+  operationId: string;
+  body: string;
+  createdAt: string;
+  replyTo?: RentalQuotedMessage | null;
+  attachments?: RentalMessageAttachment[];
+};
 export type ThreadDetailResponse = { thread: RentalThreadDetail; messages: RentalMessageItem[]; hasMore: boolean };
 export type ReportCategory = "scam_or_fraud" | "harassment" | "inaccurate_listing" | "off_platform_payment" | "spam" | "other";
 
@@ -92,9 +116,52 @@ export async function apiJson<T>(url: string, userId: string, init: RequestInit 
 }
 
 /** The same operationId is reused on retry so the server dedupes a message that actually landed. */
-export async function postThreadMessage(threadId: string, userId: string, operationId: string, body: string, fetchImpl: typeof fetch = fetch) {
-  const { message } = await apiJson<{ message: RentalMessageItem }>(`/api/messages/threads/${encodeURIComponent(threadId)}`, userId, { method: "POST", body: JSON.stringify({ operationId, body }) }, fetchImpl);
+export async function postThreadMessage(
+  threadId: string,
+  userId: string,
+  operationId: string,
+  body: string,
+  replyToMessageIdOrFetch?: string | null | typeof fetch,
+  attachments?: RentalMessageAttachment[],
+  fetchImpl: typeof fetch = fetch
+) {
+  let replyToMessageId: string | null | undefined;
+  let effectiveFetch: typeof fetch = fetchImpl;
+
+  if (typeof replyToMessageIdOrFetch === "function") {
+    effectiveFetch = replyToMessageIdOrFetch;
+    replyToMessageId = undefined;
+  } else {
+    replyToMessageId = replyToMessageIdOrFetch;
+  }
+
+  const payload: Record<string, unknown> = { operationId, body };
+  if (replyToMessageId) payload.replyToMessageId = replyToMessageId;
+  if (attachments && attachments.length > 0) payload.attachments = attachments;
+
+  const { message } = await apiJson<{ message: RentalMessageItem }>(
+    `/api/messages/threads/${encodeURIComponent(threadId)}`,
+    userId,
+    { method: "POST", body: JSON.stringify(payload) },
+    effectiveFetch
+  );
   return message;
+}
+
+export async function uploadMessageAttachment(
+  threadId: string,
+  userId: string,
+  file: File,
+  fetchImpl: typeof fetch = fetch
+): Promise<RentalMessageAttachment> {
+  const form = new FormData();
+  form.append("file", file);
+  return apiJson<RentalMessageAttachment>(
+    `/api/messages/threads/${encodeURIComponent(threadId)}/attachments`,
+    userId,
+    { method: "POST", body: form },
+    fetchImpl
+  );
 }
 
 export type InquiryIntent = { operationId: string; listingId: string; body: string };

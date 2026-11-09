@@ -2,7 +2,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/Avatar";
 import { Message, MessageAvatar, MessageContent, MessageFooter } from "./Message";
-import { Bubble, BubbleContent, BubbleGroup } from "./Bubble";
+import { Bubble, BubbleAttachments, BubbleContent, BubbleGroup, BubbleQuote } from "./Bubble";
 import { Marker, MarkerContent } from "./Marker";
 import { MessageScroller } from "./MessageScroller";
 
@@ -90,5 +90,35 @@ describe("Chat primitives", () => {
     expect(html).toContain("test-scroller");
     expect(html).toContain("overflow-y-auto");
     expect(html).toContain("Chat stream");
+  });
+
+  it("renders quoted message block inside bubble", () => {
+    const html = renderToStaticMarkup(
+      <Bubble mine>
+        <BubbleQuote author="abangcebu landlord" body="hi" mine />
+        <BubbleContent>Hello! Is the property still available?</BubbleContent>
+      </Bubble>
+    );
+
+    expect(html).toContain("abangcebu landlord");
+    expect(html).toContain("hi");
+    expect(html).toContain("Hello! Is the property still available?");
+  });
+
+  it("renders message attachments grid", () => {
+    const html = renderToStaticMarkup(
+      <Bubble mine={false}>
+        <BubbleAttachments
+          attachments={[
+            { id: "att-1", url: "https://example.test/img1.jpg", fileName: "IMG_1.jpg", fileSize: 1000, mimeType: "image/jpeg" },
+            { id: "att-2", url: "https://example.test/img2.jpg", fileName: "IMG_2.jpg", fileSize: 2000, mimeType: "image/jpeg" },
+          ]}
+        />
+      </Bubble>
+    );
+
+    expect(html).toContain("grid-cols-2");
+    expect(html).toContain("img1.jpg");
+    expect(html).toContain("img2.jpg");
   });
 });
