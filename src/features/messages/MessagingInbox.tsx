@@ -464,9 +464,6 @@ function MessagingInboxInner({
     return title.includes(q) || name.includes(q);
   });
 
-  const activeCount = threads.filter((t) => !t.isArchived).length;
-  const archivedCount = threads.filter((t) => t.isArchived).length;
-
   const messageElements: React.ReactNode[] = [];
   for (let i = 0; i < messages.length; i++) {
     const current = messages[i];
@@ -509,7 +506,6 @@ function MessagingInboxInner({
         <div role="tablist" aria-label="Conversation filter" className="grid grid-cols-2 gap-1 border-b border-border p-2">
           {(["active", "archived"] as const).map((value) => {
             const isSelected = tab === value;
-            const count = value === "active" ? activeCount : archivedCount;
             return (
               <button
                 key={value}
@@ -527,7 +523,9 @@ function MessagingInboxInner({
                 }`}
               >
                 {value === "active" ? "Active" : "Archived"}
-                {count > 0 && <span className="ml-1 text-xs opacity-75">({count})</span>}
+                {value === tab && threads.length > 0 && (
+                  <span className="ml-1 text-xs opacity-75">({threads.length})</span>
+                )}
               </button>
             );
           })}
@@ -695,7 +693,10 @@ function MessagingInboxInner({
                     <ArrowLeft size={18} aria-hidden="true" />
                     <span className="text-xs font-semibold sm:inline hidden">Back to messages</span>
                   </Button>
-                  <Avatar className="size-9 shrink-0">
+                  <Avatar
+                    key={`${thread.counterpart.id}:${thread.counterpart.avatarUrl ?? ""}`}
+                    className="size-9 shrink-0"
+                  >
                     <AvatarImage src={thread.counterpart.avatarUrl ?? undefined} alt={thread.counterpart.fullName ?? ""} />
                     <AvatarFallback>{getInitials(thread.counterpart.fullName)}</AvatarFallback>
                   </Avatar>

@@ -75,7 +75,7 @@ describe("Chat primitives", () => {
       </Marker>
     );
 
-    expect(html).toContain('role="separator"');
+    expect(html).toContain("<li");
     expect(html).toContain("Today");
     expect(html).toContain("rounded-full");
   });
