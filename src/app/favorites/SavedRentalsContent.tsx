@@ -110,8 +110,8 @@ function SavedRentalsSession({ userId }: { userId: string }) {
     }
   }
 
-  async function removeRental(id: string) {
-    if (removingId) return;
+  async function removeRental(id: string): Promise<boolean> {
+    if (removingId) return false;
     const removedRental = rentals.find((rental) => rental.id === id);
     setRemovingId(id);
     setRemoveError(null);
@@ -130,8 +130,10 @@ function SavedRentalsSession({ userId }: { userId: string }) {
       }
       setRentals((current) => current.filter((rental) => rental.id !== id));
       notify("success", `saved-rental-removed-${id}`, "Rental removed from your saved list.", removedRental ? { action: { label: "Undo", onClick: () => { void restoreRental(removedRental); } } } : undefined);
+      return true;
     } catch (removeError) {
       setRemoveError(removeError instanceof Error ? removeError.message : "This rental could not be removed. Please try again.");
+      return false;
     } finally {
       setRemovingId(null);
     }
@@ -256,9 +258,9 @@ function SavedRentalsSession({ userId }: { userId: string }) {
         }}
         canSave={true}
         saved={true}
-        onToggleSaved={(id) => {
-          setSelectedRental(null);
-          void removeRental(id);
+        onToggleSaved={async (id) => {
+          const removed = await removeRental(id);
+          if (removed) setSelectedRental(null);
         }}
       />
     )}

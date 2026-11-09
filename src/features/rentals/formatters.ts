@@ -38,7 +38,7 @@ export function getAmenityIcon(amenity: string): ComponentType<{ size?: number; 
   const norm = amenity.toLowerCase();
   if (norm.includes("wi-fi") || norm.includes("wifi") || norm.includes("internet")) return Wifi;
   if (norm.includes("cook") || norm.includes("kitchen")) return UtensilsCrossed;
-  if (norm.includes("aircon") || norm.includes("air conditioning") || norm.includes("ac")) return AirVent;
+  if (norm.includes("aircon") || norm.includes("air conditioning") || /\bac\b/i.test(amenity)) return AirVent;
   if (norm.includes("laundr") || norm.includes("wash")) return WashingMachine;
   if (norm.includes("water")) return Droplets;
   if (norm.includes("electric") || norm.includes("power")) return Zap;

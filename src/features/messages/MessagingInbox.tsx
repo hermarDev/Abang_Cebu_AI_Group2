@@ -1306,7 +1306,6 @@ function MessagingInboxInner({
               open={propertySheetOpen}
               onClose={() => setPropertySheetOpen(false)}
               thread={thread}
-              userRole={userRole}
             />
             {/* Lightbox: only photo, dark backdrop, Radix Dialog focus trapping & restoration */}
             <Dialog.Root open={Boolean(lightboxUrl)} onOpenChange={(open) => !open && setLightboxUrl(null)}>

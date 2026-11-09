@@ -239,6 +239,7 @@ export function RestoredFinderShell({ rentalStatus: statusOverride, initialAccou
   const closeNavigation = () => { setDrawerOpen(false); menuTrigger.current?.focus(); };
   const toggleFavorite = async (listingId: string) => {
     if (!authenticated) {
+      setExpandedRentalId(null);
       setDrawerOpen(false);
       setAccountMode("sign-in");
       setAccountPrompt("Sign in or create a renter account to save rentals to your list.");

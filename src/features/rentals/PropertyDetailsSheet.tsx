@@ -36,7 +36,6 @@ export interface PropertyDetailsSheetProps {
   onClose: () => void;
   rental?: RentalResult | null;
   thread?: RentalThreadDetail | null;
-  userRole?: "renter" | "landlord" | null;
   canSave?: boolean;
   saved?: boolean;
   onToggleSaved?: (id: string) => void;
@@ -55,8 +54,22 @@ const PROPERTY_TYPE_NAMES: Record<string, string> = {
   house: "House",
 };
 
+export function getPropertyHeaderInfo(
+  rental?: RentalResult | null,
+  thread?: RentalThreadDetail | null
+) {
+  const title = rental?.title ?? thread?.listingTitle ?? "Property details";
+  const address =
+    rental?.address ??
+    (rental?.locality ? rental.locality : null) ??
+    thread?.listingAddress ??
+    thread?.listingCity ??
+    "Cebu City";
+  return { title, address };
+}
+
 export function PropertyDetailsSheetBody({
-  rental: initialRental,
+  rental,
   thread,
   loading: externalLoading,
 }: {
@@ -66,16 +79,8 @@ export function PropertyDetailsSheetBody({
 }) {
   const [photoIndex, setPhotoIndex] = useState(0);
 
-  const rental = initialRental;
+  const { title, address } = getPropertyHeaderInfo(rental, thread);
   const loading = externalLoading;
-
-  const title = rental?.title ?? thread?.listingTitle ?? "Property details";
-  const address =
-    rental?.address ??
-    (rental?.locality ? rental.locality : null) ??
-    thread?.listingAddress ??
-    thread?.listingCity ??
-    "Cebu City";
 
   const photos =
     rental?.imageUrls && rental.imageUrls.length > 0
@@ -369,7 +374,7 @@ export function PropertyDetailsSheetFooter({
           type="button"
           variant="primary"
           size="md"
-          className="flex-1 min-h-11 font-semibold flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white cursor-pointer"
+          className="flex-1 min-h-11 font-semibold flex items-center justify-center gap-2 cursor-pointer"
           onClick={() => {
             const targetId = rental?.id ?? thread?.listingId;
             if (targetId) onMessage?.(targetId);
@@ -415,27 +420,29 @@ export function PropertyDetailsSheet({
   canMessage = false,
   onMessage,
 }: PropertyDetailsSheetProps) {
-  const [fetchedRental, setFetchedRental] = useState<RentalResult | null>(null);
+  const [fetched, setFetched] = useState<{ id: string; rental: RentalResult | null }>({
+    id: "",
+    rental: null,
+  });
   const [loading, setLoading] = useState(false);
 
   // If only a thread is provided, fetch full rental data by thread.listingId
   useEffect(() => {
     if (initialRental || !thread?.listingId || !open) return;
-
+    const targetListingId = thread.listingId;
     let active = true;
 
     async function load() {
       setLoading(true);
       try {
-        const res = await fetch(`/api/rentals?id=${encodeURIComponent(thread!.listingId)}`, {
+        const res = await fetch(`/api/rentals?id=${encodeURIComponent(targetListingId)}`, {
           cache: "no-store",
         });
         if (!res.ok) throw new Error("Could not load property");
         const json = await res.json();
         if (active && Array.isArray(json?.rentals)) {
-          const match =
-            json.rentals.find((r: RentalResult) => r.id === thread!.listingId) ?? json.rentals[0];
-          if (match) setFetchedRental(match);
+          const match = json.rentals.find((r: RentalResult) => r.id === targetListingId) ?? null;
+          if (match) setFetched({ id: targetListingId, rental: match });
         }
       } catch {
         // Fall back to thread-level details
@@ -448,17 +455,10 @@ export function PropertyDetailsSheet({
     return () => {
       active = false;
     };
-  }, [initialRental, thread, open]);
+  }, [initialRental, thread?.listingId, open]);
 
-  const rental = initialRental ?? fetchedRental;
-
-  const title = rental?.title ?? thread?.listingTitle ?? "Property details";
-  const address =
-    rental?.address ??
-    (rental?.locality ? rental.locality : null) ??
-    thread?.listingAddress ??
-    thread?.listingCity ??
-    "Cebu City";
+  const rental = initialRental ?? (fetched.id === thread?.listingId ? fetched.rental : null);
+  const { title, address } = getPropertyHeaderInfo(rental, thread);
 
   const footer = (
     <PropertyDetailsSheetFooter
