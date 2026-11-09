@@ -15,6 +15,7 @@ import {
   MessageSquare,
   MoreVertical,
   Search,
+  SendHorizontal,
   X,
 } from "lucide-react";
 import { Badge } from "@/components/ui/Badge";
@@ -884,33 +885,47 @@ function MessagingInboxInner({
                   {blockedReason}
                 </p>
               )}
-              <label htmlFor="message-composer" className="sr-only">
-                Message
-              </label>
-              <textarea
-                ref={textareaRef}
-                id="message-composer"
-                value={draft}
-                onChange={(e) => setDraft(e.target.value)}
-                disabled={!thread.canSend}
-                maxLength={MESSAGE_MAX}
-                rows={1}
-                placeholder={thread.canSend ? "Write a message…" : "Messaging is not available"}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault();
-                    e.currentTarget.form?.requestSubmit();
-                  }
-                }}
-                className={`min-h-11 max-h-36 w-full resize-none rounded-xl border border-input bg-card px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 transition-all ${focusRing}`}
-              />
-              <div className="flex items-center justify-between gap-3">
-                <span className="text-xs text-muted-foreground">
-                  {draft.length}/{MESSAGE_MAX}
-                </span>
-                <Button type="submit" disabled={!thread.canSend || sending || !draft.trim()}>
-                  {sending ? "Sending…" : "Send"}
+              <div className="relative flex items-center rounded-2xl border border-input bg-card shadow-2xs transition-all focus-within:border-action focus-within:ring-2 focus-within:ring-action/20">
+                <label htmlFor="message-composer" className="sr-only">
+                  Message
+                </label>
+                <textarea
+                  ref={textareaRef}
+                  id="message-composer"
+                  value={draft}
+                  onChange={(e) => setDraft(e.target.value)}
+                  disabled={!thread.canSend}
+                  maxLength={MESSAGE_MAX}
+                  rows={1}
+                  placeholder={thread.canSend ? "Write a message…" : "Messaging is not available"}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
+                      e.preventDefault();
+                      e.currentTarget.form?.requestSubmit();
+                    }
+                  }}
+                  className="min-h-11 max-h-36 w-full resize-none border-0 bg-transparent py-2.5 pl-3.5 pr-12 text-sm text-foreground placeholder:text-muted-foreground focus:outline-hidden disabled:cursor-not-allowed disabled:opacity-50"
+                />
+                <Button
+                  type="submit"
+                  size="sm"
+                  variant="primary"
+                  disabled={!thread.canSend || sending || !draft.trim()}
+                  aria-label={sending ? "Sending message…" : "Send message"}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 size-8 min-h-8 rounded-full p-0 flex items-center justify-center bg-action text-action-foreground hover:bg-action-hover disabled:opacity-40"
+                >
+                  {sending ? (
+                    <Clock size={15} className="animate-spin" aria-hidden="true" />
+                  ) : (
+                    <SendHorizontal size={15} aria-hidden="true" />
+                  )}
                 </Button>
+              </div>
+              <div className="flex items-center justify-between px-1 text-[0.7rem] text-muted-foreground">
+                <span>Enter to send · Shift+Enter for new line</span>
+                <span>
+                  {draft.length} / {MESSAGE_MAX}
+                </span>
               </div>
             </form>
 

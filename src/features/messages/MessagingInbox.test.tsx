@@ -52,6 +52,13 @@ describe("MessagingInbox rendering", () => {
     expect(html).toContain("Unblock user");
     expect(html).toContain("Unarchive");
   });
+
+  it("renders the modern inline composer with send icon and helper text", () => {
+    const html = render({ initialThreads: [thread()], initialThreadId: "t1" });
+    expect(html).toContain('aria-label="Send message"');
+    expect(html).toContain("Enter to send · Shift+Enter for new line");
+    expect(html).toContain("0 / 2000");
+  });
 });
 
 describe("per-message reporting", () => {
