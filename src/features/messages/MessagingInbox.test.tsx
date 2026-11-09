@@ -22,6 +22,7 @@ describe("MessagingInbox rendering", () => {
   it("renders filter tabs and a thread row with unread count, badge, counterpart and escaped text", () => {
     const html = render({ initialThreads: [thread()] });
     expect(html).toContain("Active");
+    expect(html).toContain("(1)");
     expect(html).toContain("Archived");
     expect(html).toContain("Published · Available");
     expect(html).toContain("Maria Santos");
@@ -29,6 +30,7 @@ describe("MessagingInbox rendering", () => {
     expect(html).toContain("Is it still available?");
     expect(html).not.toContain("<b>Lahug</b>");
     expect(html).toContain("&lt;b&gt;Lahug&lt;/b&gt;");
+    expect(html).toContain('placeholder="Search conversations…"');
   });
 
   it("opens the property context banner with the role-specific link and thread actions", () => {
