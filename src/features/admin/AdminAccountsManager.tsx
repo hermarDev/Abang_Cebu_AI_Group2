@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/Button";
 import { Empty } from "@/components/ui/Empty";
 import { Input } from "@/components/ui/Input";
 import { Modal } from "@/components/ui/Modal";
+import { Pagination } from "@/components/ui/Pagination";
 import { Select } from "@/components/ui/Select";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { AdminReasonField } from "./AdminReasonField";
@@ -55,6 +56,8 @@ export function AdminAccountsManager({ userId, initialRole, initialStatus }: { u
   const [role, setRole] = useState(known(roleOptions, initialRole));
   const [status, setStatus] = useState(known(statusOptions, initialStatus));
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const pageSize = 10;
   const [accounts, setAccounts] = useState<AdminAccount[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [dialog, setDialog] = useState<Dialog | null>(null);
@@ -95,16 +98,23 @@ export function AdminAccountsManager({ userId, initialRole, initialStatus }: { u
   }
 
   const name = dialog?.account.fullName?.trim() || "this account";
+  const totalPages = accounts ? Math.max(1, Math.ceil(accounts.length / pageSize)) : 1;
+  const validPage = Math.min(page, totalPages);
+  const paginatedAccounts = accounts ? accounts.slice((validPage - 1) * pageSize, validPage * pageSize) : [];
+
   return <section aria-label="Account management" className="grid gap-4">
     <div className="grid gap-3 sm:grid-cols-[12rem_12rem_minmax(0,1fr)]">
-      <Select aria-label="Filter by role" options={roleOptions} value={role} onValueChange={setRole} />
-      <Select aria-label="Filter by status" options={statusOptions} value={status} onValueChange={setStatus} />
-      <Input type="search" aria-label="Search accounts" placeholder="Search account name…" value={search} onChange={(event) => setSearch(event.target.value)} />
+      <Select aria-label="Filter by role" options={roleOptions} value={role} onValueChange={(val) => { setRole(val); setPage(1); }} />
+      <Select aria-label="Filter by status" options={statusOptions} value={status} onValueChange={(val) => { setStatus(val); setPage(1); }} />
+      <Input type="search" aria-label="Search accounts" placeholder="Search account name…" value={search} onChange={(event) => { setSearch(event.target.value); setPage(1); }} />
     </div>
     {error ? <Alert variant="error">{error} <Button size="sm" variant="outline" onClick={() => setReloadKey((k) => k + 1)}>Retry</Button></Alert>
       : accounts === null ? <div className="grid gap-3">{[0, 1, 2].map((i) => <Skeleton key={i} className="h-20" />)}</div>
       : accounts.length === 0 ? <Empty>No accounts match these filters.</Empty>
-      : <ul className="m-0 grid list-none gap-3 p-0">{accounts.map((account) => <AccountRow key={account.id} account={account} onAction={open} />)}</ul>}
+      : <>
+          <ul className="m-0 grid list-none gap-3 p-0">{paginatedAccounts.map((account) => <AccountRow key={account.id} account={account} onAction={open} />)}</ul>
+          <Pagination currentPage={page} totalPages={totalPages} totalItems={accounts.length} pageSize={pageSize} onPageChange={setPage} />
+        </>}
     <Modal open={!!dialog} onClose={close} title={dialog?.suspend ? "Suspend account" : "Reinstate account"} description={dialog?.suspend ? `${cap(name)} will be signed out of admin-managed features. This is recorded in the audit log.` : `${cap(name)} will regain access. This is recorded in the audit log.`} className="max-h-[calc(100dvh-2rem)] overflow-y-auto">
       <div className="grid gap-4">
         <AdminReasonField id="admin-account-reason" label="Reason" value={reason} min={5} onChange={setReason} disabled={saving} />

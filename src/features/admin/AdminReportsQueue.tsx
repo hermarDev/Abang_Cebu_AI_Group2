@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Empty } from "@/components/ui/Empty";
 import { Modal } from "@/components/ui/Modal";
+import { Pagination } from "@/components/ui/Pagination";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { AdminReasonField } from "./AdminReasonField";
 import { adminCall, formatAdminDate, newOperationId, reasonProblem } from "./admin-api";
@@ -80,6 +81,8 @@ export function EvidenceView({ report }: { report: AdminReport }) {
 
 export function AdminReportsQueue({ userId, initialStatus }: { userId: string; initialStatus?: string }) {
   const [status, setStatus] = useState(tabs.some((t) => t.value === initialStatus) ? initialStatus! : "open");
+  const [page, setPage] = useState(1);
+  const pageSize = 10;
   const [reports, setReports] = useState<AdminReport[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
@@ -127,14 +130,21 @@ export function AdminReportsQueue({ userId, initialStatus }: { userId: string; i
   }
 
   const resolving = dialog?.decision === "resolved";
+  const totalPages = reports ? Math.max(1, Math.ceil(reports.length / pageSize)) : 1;
+  const validPage = Math.min(page, totalPages);
+  const paginatedReports = reports ? reports.slice((validPage - 1) * pageSize, validPage * pageSize) : [];
+
   return <section aria-label="Abuse reports" className="grid gap-4">
     <div role="group" aria-label="Filter by status" className="flex flex-wrap gap-2">
-      {tabs.map((t) => <Button key={t.value} size="sm" variant={status === t.value ? "primary" : "outline"} aria-pressed={status === t.value} onClick={() => setStatus(t.value)}>{t.label}</Button>)}
+      {tabs.map((t) => <Button key={t.value} size="sm" variant={status === t.value ? "primary" : "outline"} aria-pressed={status === t.value} onClick={() => { setStatus(t.value); setPage(1); }}>{t.label}</Button>)}
     </div>
     {error ? <Alert variant="error">{error} <Button size="sm" variant="outline" onClick={() => setReloadKey((k) => k + 1)}>Retry</Button></Alert>
       : reports === null ? <div className="grid gap-3">{[0, 1, 2].map((i) => <Skeleton key={i} className="h-28" />)}</div>
       : reports.length === 0 ? <Empty>No reports match this filter.</Empty>
-      : <ul className="m-0 grid list-none gap-3 p-0">{reports.map((r) => <ReportRow key={r.id} report={r} onInspect={inspect} onDecide={decide} />)}</ul>}
+      : <>
+          <ul className="m-0 grid list-none gap-3 p-0">{paginatedReports.map((r) => <ReportRow key={r.id} report={r} onInspect={inspect} onDecide={decide} />)}</ul>
+          <Pagination currentPage={page} totalPages={totalPages} totalItems={reports.length} pageSize={pageSize} onPageChange={setPage} />
+        </>}
     <Modal open={!!evidence} onClose={() => setEvidence(null)} title="Report evidence" description="Bounded snapshot captured when the report was filed." className="max-h-[calc(100dvh-2rem)] overflow-y-auto">
       {evidence && <EvidenceView report={evidence} />}
     </Modal>

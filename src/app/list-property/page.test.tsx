@@ -21,10 +21,10 @@ describe("property form preview", () => {
     mocks.profile.mockResolvedValueOnce({ data: { role: "renter", is_suspended: false }, error: null });
     await expect(ListPropertyPage({ searchParams: Promise.resolve({}) })).rejects.toThrow("not found");
   });
-  it("labels the unfinished form as a preview", async () => {
+  it("describes the live form instead of a preview", async () => {
     const html = renderToStaticMarkup(await ListPropertyPage({ searchParams: Promise.resolve({}) }));
-    expect(html).toContain("Listing form preview");
-    expect(html).toContain("Draft saving and submission are not available yet.");
+    expect(html).toContain("Save a draft at any step");
+    expect(html).not.toContain("not available yet");
     expect(html).toMatch(/<a[^>]*aria-label="Back to dashboard"[^>]*><svg[^>]*lucide-arrow-left/);
     expect(html).toContain("First rental unit");
     expect(html).toContain('name="propertyType"');
@@ -33,6 +33,8 @@ describe("property form preview", () => {
     expect(html).toContain("Unit type");
     expect(html).toContain("Monthly rent (PHP)");
     expect(html).toContain("Property details");
-    expect(html).toContain("Submission is not available yet.");
+    expect(html).toContain("Save draft");
+    expect(html).not.toContain('aria-label="Landlord mobile navigation"');
+    expect(html).toContain("Tenant preference");
   });
 });

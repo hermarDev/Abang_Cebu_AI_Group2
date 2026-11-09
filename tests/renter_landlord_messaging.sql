@@ -78,13 +78,18 @@ BEGIN
   r := public.send_initial_rental_inquiry('c6000000-0000-4000-8000-000000000001', 'e6000000-0000-4000-8000-000000000003', 'Listing hello');
   SELECT * INTO c FROM public.rental_conversations WHERE id = (r->>'conversationId')::uuid;
   IF c.listing_source <> 'listing' OR c.landlord_unread_count <> 1 THEN RAISE EXCEPTION 'bad listing conversation'; END IF;
+
+  -- 3b. Inquiry on pending property is allowed
+  r := public.send_initial_rental_inquiry('b6000000-0000-4000-8000-000000000002', 'e6000000-0000-4000-8000-000000000004', 'Is pending property available?');
+  SELECT * INTO c FROM public.rental_conversations WHERE id = (r->>'conversationId')::uuid;
+  IF c.listing_source <> 'property' OR c.landlord_unread_count <> 1 THEN RAISE EXCEPTION 'bad pending property conversation'; END IF;
 END $$;
 
 -- 4. Non-public targets, own listing, landlord/admin callers, bad input are rejected.
 DO $$
 DECLARE s text; id uuid;
 BEGIN
-  FOREACH id IN ARRAY ARRAY['b6000000-0000-4000-8000-000000000002','b6000000-0000-4000-8000-000000000003','b6000000-0000-4000-8000-000000000004','c6000000-0000-4000-8000-000000000002']::uuid[] LOOP
+  FOREACH id IN ARRAY ARRAY['b6000000-0000-4000-8000-000000000003','b6000000-0000-4000-8000-000000000004','c6000000-0000-4000-8000-000000000002']::uuid[] LOOP
     BEGIN
       PERFORM public.send_initial_rental_inquiry(id, gen_random_uuid(), 'hi');
       RAISE EXCEPTION 'inquiry on non-public % allowed', id;

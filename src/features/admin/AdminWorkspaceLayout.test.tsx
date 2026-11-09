@@ -27,4 +27,10 @@ describe("AdminWorkspaceLayout", () => {
     expect(html).toContain('aria-label="More admin options"');
     expect(html).toMatch(/aria-label="[^"]*(light|dark|system|theme)/i);
   });
+  it("renders compact 44px responsive header actions with accessible aria-labels", () => {
+    expect(html).toMatch(/<a(?=[^>]*href="\/account")(?=[^>]*aria-label="Account settings")(?=[^>]*class="[^"]*min-h-11 min-w-11[^"]*")[^>]*>/);
+    expect(html).toMatch(/<a(?=[^>]*href="\/auth\/logout")(?=[^>]*aria-label="Log out")(?=[^>]*class="[^"]*min-h-11 min-w-11[^"]*")[^>]*>/);
+    expect(html).toContain('<span class="hidden sm:inline">Account settings</span>');
+    expect(html).toContain('<span class="hidden sm:inline">Log out</span>');
+  });
 });

@@ -20,7 +20,7 @@ export async function GET(request: Request, context: Context) {
     if (!Number.isInteger(limit) || limit < 1 || limit > 100) return reply({ error: "Limit must be between 1 and 100." }, 400);
 
     const { data, error } = await session.supabase.rpc("get_rental_conversation_detail", { p_conversation_id: threadId, p_before: before, p_limit: limit });
-    if (error) return rpcFailure(error.code, { "42501": 403, "22023": 404 });
+    if (error) return rpcFailure(error.code, { "42501": 403, "22023": 404 }, error.message);
     if (!data?.thread) return reply({ error: "Conversation or listing not found." }, 404);
 
     // Best-effort: reading must not fail because the read marker could not be written.
@@ -47,7 +47,7 @@ export async function POST(request: Request, context: Context) {
     if (!validMessageBody(body)) return invalidMessage();
 
     const { data, error } = await session.supabase.rpc("send_rental_message", { p_conversation_id: threadId, p_operation_id: operationId, p_body: body.trim() });
-    if (error) return rpcFailure(error.code, { "23505": 409, "42501": 403, "22023": 400 });
+    if (error) return rpcFailure(error.code, { "23505": 409, "42501": 403, "22023": 400 }, error.message);
     return reply({ message: data }, data?.replayed === true ? 200 : 201);
   } catch {
     return rpcFailure(undefined, {});
@@ -67,7 +67,7 @@ export async function PATCH(request: Request, context: Context) {
     const { error } = action === "mark_read"
       ? await session.supabase.rpc("mark_rental_conversation_read", { p_conversation_id: threadId })
       : await session.supabase.rpc("set_rental_conversation_archived", { p_conversation_id: threadId, p_archived: action === "archive" });
-    if (error) return rpcFailure(error.code, { "42501": 403, "22023": 400 });
+    if (error) return rpcFailure(error.code, { "42501": 403, "22023": 400 }, error.message);
     return reply({ ok: true }, 200);
   } catch {
     return rpcFailure(undefined, {});

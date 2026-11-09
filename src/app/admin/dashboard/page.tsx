@@ -45,10 +45,10 @@ export default async function AdminDashboardPage() {
       <p>Could not load the admin overview. Please try again.</p>
       <a href="/admin/dashboard" className="inline-flex min-h-11 items-center font-semibold text-action underline">Try again</a>
     </section> : <>
-    <section aria-label="Key metrics" className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-      {kpis.map(({ key, label, href }) => <Link key={key} href={href} className="grid min-h-24 gap-1 rounded-xl border border-border bg-card p-4 hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
-        <span className="text-sm text-muted-foreground">{label}</span>
-        <span className="text-3xl font-bold">{typeof overview[key] === "number" ? overview[key] : 0}</span>
+    <section aria-label="Key metrics" className="grid grid-cols-2 gap-2.5 sm:grid-cols-2 xl:grid-cols-4">
+      {kpis.map(({ key, label, href }) => <Link key={key} href={href} className="grid min-h-24 gap-1 rounded-xl border border-border bg-card p-3 sm:p-4 hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
+        <span className="text-xs sm:text-sm text-muted-foreground">{label}</span>
+        <span className="text-2xl sm:text-3xl font-bold">{typeof overview[key] === "number" ? overview[key] : 0}</span>
       </Link>)}
     </section>
     <section aria-label="Recent audit activity" className="grid gap-3">

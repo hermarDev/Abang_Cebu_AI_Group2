@@ -12,6 +12,7 @@ describe("AppToaster", () => {
     expect(element.props).toMatchObject({
       theme: "dark",
       position: "top-right",
+      duration: 3000,
       offset: { top: "76px", right: "20px" },
       mobileOffset: { top: "68px", left: "12px", right: "12px" },
       visibleToasts: 4,
@@ -24,7 +25,7 @@ describe("AppToaster", () => {
     const spy = vi.spyOn(toast, "success").mockReturnValue("id");
     const action = { label: "Undo", onClick: vi.fn() };
     notify("success", "t1", "Saved", { action, description: "Details" });
-    expect(spy).toHaveBeenCalledWith("Saved", { id: "t1", duration: 4000, action, description: "Details" });
+    expect(spy).toHaveBeenCalledWith("Saved", { id: "t1", duration: 3000, action, description: "Details" });
     notify("error", "t2", "Failed");
     expect(spy.mock.calls.length).toBe(1);
     spy.mockRestore();
@@ -33,7 +34,7 @@ describe("AppToaster", () => {
   it("stays backward compatible without options", () => {
     const spy = vi.spyOn(toast, "error").mockReturnValue("id");
     notify("error", "t2", "Failed");
-    expect(spy).toHaveBeenCalledWith("Failed", { id: "t2", duration: 6000 });
+    expect(spy).toHaveBeenCalledWith("Failed", { id: "t2", duration: 3000 });
     spy.mockRestore();
   });
 });

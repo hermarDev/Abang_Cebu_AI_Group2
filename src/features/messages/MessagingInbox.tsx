@@ -101,7 +101,7 @@ function MessagingInboxInner({ userId, userRole, initialThreadId = null, initial
     } catch (error) {
       if (!quiet && seq === listSeq.current) setListError(error instanceof Error ? error.message : "Couldn't load messages.");
     } finally {
-      if (!quiet && seq === listSeq.current) setListLoading(false);
+      if (seq === listSeq.current) setListLoading(false);
     }
   }, [userId]);
 
