@@ -12,6 +12,7 @@ export interface SheetProps extends Omit<HTMLAttributes<HTMLDivElement>, "title"
   description?: string;
   side?: "right" | "bottom";
   closeControl?: ReactNode;
+  footer?: ReactNode;
   hideTitle?: boolean;
   restoreTriggerFocus?: boolean;
   children: ReactNode;
@@ -26,6 +27,7 @@ export function Sheet({
   children,
   className,
   closeControl,
+  footer,
   hideTitle = false,
   restoreTriggerFocus = true,
   ...props
@@ -98,6 +100,11 @@ export function Sheet({
             </Dialog.Close>
           </header>
           <div className="flex-1 overflow-y-auto p-4">{children}</div>
+          {footer && (
+            <footer className="shrink-0 border-t border-border bg-card p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
+              {footer}
+            </footer>
+          )}
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>

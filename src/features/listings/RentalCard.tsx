@@ -45,7 +45,7 @@ export function RentalCard({
     <h2><button id={"rental-card-" + rental.id} type="button" aria-pressed={selected} onClick={() => onSelect(rental.id)}>{rental.title}</button></h2><p className={styles.price}>{formatPrice(rental.price)}<span> / month · per {rental.basis}</span></p>
     <p className={styles.cardAddress}>{rental.address ?? rental.locality}</p><p className={styles.cardDescription}>{rental.description}</p>
     {rental.amenities.length > 0 && <ul className={styles.amenities} aria-label="Amenities">{rental.amenities.map((amenity, index) => <li key={amenity + "-" + index}>{amenity}</li>)}</ul>}
-    <button type="button" className={styles.expandCardButton} aria-label={"Expand " + rental.title} onClick={() => onExpand?.(rental.id)}><Maximize2 size={15} aria-hidden="true" /><span>Expand</span></button>
+    <button type="button" className={styles.expandCardButton} aria-label={"View details for " + rental.title} onClick={() => onExpand?.(rental.id)}><Maximize2 size={15} aria-hidden="true" /><span>View details</span></button>
     {canMessage && <button type="button" className={styles.expandCardButton} aria-label={"Message landlord about " + rental.title} onClick={() => onMessage?.(rental.id)}><MessageSquare size={15} aria-hidden="true" /><span>Message landlord</span></button>}
   </article>;
 }

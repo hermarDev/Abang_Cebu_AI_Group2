@@ -13,6 +13,7 @@ import { FinderNavigation } from "./FinderNavigation";
 import { FinderAssistant } from "./FinderAssistant";
 import { ListingInquiryModal } from "@/features/messages/ListingInquiryModal";
 import { ExpandedRentalModalContent } from "./RestoredFinderShell";
+import { PropertyDetailsSheet, PropertyDetailsSheetBody, type PropertyDetailsSheetProps } from "../rentals/PropertyDetailsSheet";
 
 const hooks = vi.hoisted(() => ({ changeFilters: undefined as ((filters: RentalFilters) => void) | undefined, changeCenter: undefined as ((center: [number, number]) => void) | undefined, mapRentals: [] as RentalResult[], slots: [] as unknown[], index: 0, effects: [] as (() => void | (() => void))[], effect: undefined as (() => void | (() => void)) | undefined }));
 vi.mock("react", async (importOriginal) => ({
@@ -459,21 +460,21 @@ describe("RestoredFinderShell", () => {
 
   const gallery: RentalResult = { ...rental, imageUrls: ["https://example.test/a.jpg", "https://example.test/b.jpg", "https://example.test/c.jpg"], verificationStatus: "property_verified", area: 18, maxOccupants: 2, description: "Full gallery description." };
 
-  it("renders an Expand button and photo count badge on multi-photo rental cards", () => {
+  it("renders a View details button and photo count badge on multi-photo rental cards", () => {
     const html = renderToStaticMarkup(<RentalCard rental={gallery} selected={false} onSelect={vi.fn()} onExpand={vi.fn()} />);
-    expect(html).toContain('aria-label="Expand Endpoint rental"');
+    expect(html).toMatch(/aria-label="(?:Expand|View details for) Endpoint rental"/);
     expect(html).toContain("3 photos");
     expect(renderToStaticMarkup(<RentalCard rental={rental} selected={false} onSelect={vi.fn()} />)).not.toContain(" photos<");
   });
 
-  it("opens the expanded rental modal from a card with photo navigation and full details", async () => {
+  it("opens the expanded rental sheet from a card with photo navigation and full details", async () => {
     await load({ ok: true, json: async () => ({ rentals: [gallery] }) });
     const card = findByType(captureShell(), RentalCard);
     expect(card).toBeDefined();
     (card!.props.onExpand as (id: string) => void)("live-1");
-    const modal = findElementsByType(captureShell(), Modal).find((element) => element.props.title === "Endpoint rental");
-    expect(modal).toBeDefined();
-    const html = renderToStaticMarkup(<>{modal!.props.children}</>);
+    const sheet = findElementsByType(captureShell(), PropertyDetailsSheet).find((element) => (element.props as unknown as PropertyDetailsSheetProps).rental?.title === "Endpoint rental");
+    expect(sheet).toBeDefined();
+    const html = renderToStaticMarkup(<PropertyDetailsSheetBody rental={sheet!.props.rental as RentalResult} />);
     for (const text of ['aria-label="Previous photo"', 'aria-label="Next photo"', 'aria-label="Show photo 3"', "1 / 3", "Verified property", "18 sqm", "Up to 2 occupants", "Full gallery description.", "Wi-Fi"]) expect(html).toContain(text);
   });
 
@@ -546,14 +547,15 @@ describe("RestoredFinderShell", () => {
       const html = renderToStaticMarkup(<ExpandedRentalModalContent rental={gallery} photoIndex={0} onPhotoIndexChange={vi.fn()} canSave={false} saved={false} onToggleSaved={vi.fn()} canMessage onMessage={vi.fn()} />);
       expect(html).toContain("Message landlord");
       expect(renderToStaticMarkup(<ExpandedRentalModalContent rental={gallery} photoIndex={0} onPhotoIndexChange={vi.fn()} canSave={false} saved={false} onToggleSaved={vi.fn()} />)).not.toContain("Message landlord");
-      // Choosing the action from the expanded modal closes it before the inquiry opens.
+      // Choosing the action from the expanded modal/sheet closes it before the inquiry opens.
       hooks.slots = [];
       await load({ ok: true, json: async () => ({ rentals: [gallery] }) });
       cardProps(capture(renter)).onExpand!("live-1");
-      const expanded = findElementsByType(capture(renter), ExpandedRentalModalContent)[0];
+      const expanded = findElementsByType(capture(renter), PropertyDetailsSheet)[0]
+        ?? findElementsByType(capture(renter), ExpandedRentalModalContent)[0];
       expect(expanded.props.canMessage).toBe(true);
       (expanded.props.onMessage as (id: string) => void)("live-1");
-      expect(findElementsByType(capture(renter), ExpandedRentalModalContent)).toHaveLength(0);
+      expect(findElementsByType(capture(renter), PropertyDetailsSheet)).toHaveLength(0);
       expect(findByType(capture(renter), ListingInquiryModal)!.props.listingId).toBe("live-1");
     });
 

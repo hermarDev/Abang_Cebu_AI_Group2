@@ -23,6 +23,12 @@ import { notify } from "@/components/ui/AppToaster";
 import { QuickFilters, propertyTypes } from "./FinderQuickFilters";
 import { RentalCard } from "@/features/listings/RentalCard";
 import { ListingInquiryModal } from "@/features/messages/ListingInquiryModal";
+import { PropertyDetailsSheet } from "@/features/rentals/PropertyDetailsSheet";
+import {
+  formatCurfew,
+  formatOccupancy,
+  formatTenantPolicy,
+} from "@/features/rentals/formatters";
 import type { UserRole } from "@/types/database";
 import listingStyles from "./FinderListings.module.css";
 import styles from "./RestoredFinderShell.module.css";
@@ -48,10 +54,10 @@ export function ExpandedRentalModalContent({ rental, photoIndex, onPhotoIndexCha
   const safeIndex = Math.min(Math.max(photoIndex, 0), Math.max(photos.length - 1, 0));
   const specs = [
     rental.area > 0 && `${rental.area} sqm`,
-    rental.maxOccupants && `Up to ${rental.maxOccupants} occupants`,
+    rental.maxOccupants && formatOccupancy(rental.maxOccupants),
     rental.bathroomType && `${rental.bathroomType} bathroom`,
-    rental.tenantPolicy && `Tenant policy: ${rental.tenantPolicy.replaceAll("_", " ")}`,
-    rental.curfewType && `Curfew: ${rental.curfewType}`,
+    rental.tenantPolicy && `Tenant policy: ${formatTenantPolicy(rental.tenantPolicy)}`,
+    rental.curfewType && `Curfew: ${formatCurfew(rental.curfewType)}`,
   ].filter(Boolean) as string[];
   return <div className={styles.expandedBody}>
     <div className={styles.expandedPhotoViewer}>
@@ -211,6 +217,7 @@ export function RestoredFinderShell({ rentalStatus: statusOverride, initialAccou
   // Declared last so the test's slot-indexed useState/useEffect mocks keep their positions.
   const [expandedRentalId, setExpandedRentalId] = useState<string | null>(null);
   const [expandedPhotoIndex, setExpandedPhotoIndex] = useState(0);
+  void expandedPhotoIndex;
   const [inquiryListingId, setInquiryListingId] = useState<string | null>(null);
   const [pendingInquiryId, setPendingInquiryId] = useState<string | null>(null);
   const openExpandedRental = (id: string) => { setSelectedRentalId(id); setExpandedPhotoIndex(0); setExpandedRentalId(id); };
@@ -419,9 +426,18 @@ export function RestoredFinderShell({ rentalStatus: statusOverride, initialAccou
       <Button type="button" variant="ghost" className={styles.accountBack} onClick={() => { setAccountOpen(false); setAccountPrompt(null); setInitialError(null); setPendingInquiryId(null); }}>Continue browsing map</Button>
     </div>
   </Modal>
-  {expandedRental && <Modal surface="finder" open onClose={() => setExpandedRentalId(null)} title={expandedRental.title} description={expandedRental.address && expandedRental.address !== expandedRental.locality ? `${expandedRental.address}, ${expandedRental.locality}` : expandedRental.locality} className={styles.expandedRentalDialog} closeControl={<button type="button" aria-label="Close dialog" className={styles.accountClose}><X size={18} aria-hidden="true" /></button>}>
-    <ExpandedRentalModalContent rental={expandedRental} photoIndex={expandedPhotoIndex} onPhotoIndexChange={setExpandedPhotoIndex} canSave={canSaveRentals} saved={favoriteIds.includes(expandedRental.id)} onToggleSaved={toggleFavorite} canMessage={canMessageLandlord} onMessage={messageLandlord} />
-  </Modal>}
+  {expandedRental && (
+    <PropertyDetailsSheet
+      open
+      onClose={() => setExpandedRentalId(null)}
+      rental={expandedRental}
+      canSave={canSaveRentals}
+      saved={favoriteIds.includes(expandedRental.id)}
+      onToggleSaved={toggleFavorite}
+      canMessage={canMessageLandlord}
+      onMessage={messageLandlord}
+    />
+  )}
   {inquiryRental && userId && <ListingInquiryModal key={inquiryRental.id} listingId={inquiryRental.id} listingTitle={inquiryRental.title} userId={userId} surface="finder" onClose={() => setInquiryListingId(null)} />}
   {canUseRentalAssistant && !helpOpen && <button type="button" className={styles.chatLauncher} aria-label="Open rental assistant" title="Rental assistant" onClick={() => setHelpOpen(true)}><Image src="/icons/chatbot_logo.png" alt="" width={48} height={48} /></button>}
   {canUseRentalAssistant && helpOpen && <button type="button" className={styles.assistantBackdrop} style={{ backdropFilter: "blur(3px)", WebkitBackdropFilter: "blur(3px)" }} aria-label="Close AbangCebu assistant" tabIndex={-1} onClick={() => setHelpOpen(false)} />}
