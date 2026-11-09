@@ -8,6 +8,8 @@ import { ArrowLeft, Bookmark, Building2, MapPin, MessageSquare, Trash2 } from "l
 import { notify } from "@/components/ui/AppToaster";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { ListingInquiryModal } from "@/features/messages/ListingInquiryModal";
+import { PropertyDetailsSheet } from "@/features/rentals/PropertyDetailsSheet";
+import type { RentalResult } from "@/contracts/preview";
 
 type SavedRental = {
   id: string;
@@ -47,6 +49,7 @@ function SavedRentalsSession({ userId }: { userId: string }) {
   const [error, setError] = useState<string | null>(null);
   const [removingId, setRemovingId] = useState<string | null>(null);
   const [removeError, setRemoveError] = useState<string | null>(null);
+  const [selectedRental, setSelectedRental] = useState<SavedRental | null>(null);
   const retryController = useRef<AbortController | null>(null);
   const [inquiryId, setInquiryId] = useState<string | null>(null);
 
@@ -107,8 +110,8 @@ function SavedRentalsSession({ userId }: { userId: string }) {
     }
   }
 
-  async function removeRental(id: string) {
-    if (removingId) return;
+  async function removeRental(id: string): Promise<boolean> {
+    if (removingId) return false;
     const removedRental = rentals.find((rental) => rental.id === id);
     setRemovingId(id);
     setRemoveError(null);
@@ -127,8 +130,10 @@ function SavedRentalsSession({ userId }: { userId: string }) {
       }
       setRentals((current) => current.filter((rental) => rental.id !== id));
       notify("success", `saved-rental-removed-${id}`, "Rental removed from your saved list.", removedRental ? { action: { label: "Undo", onClick: () => { void restoreRental(removedRental); } } } : undefined);
+      return true;
     } catch (removeError) {
       setRemoveError(removeError instanceof Error ? removeError.message : "This rental could not be removed. Please try again.");
+      return false;
     } finally {
       setRemovingId(null);
     }
@@ -197,9 +202,19 @@ function SavedRentalsSession({ userId }: { userId: string }) {
                     {rental.isAvailable && (rental.address || rental.city) && <p className="flex items-start gap-2 text-sm text-muted-foreground"><MapPin size={17} className="mt-0.5 shrink-0" aria-hidden="true" /><span className="line-clamp-2 break-words">{rental.address || rental.city}</span></p>}
                     {rental.description && <p className="line-clamp-3 text-sm leading-relaxed text-muted-foreground">{rental.description}</p>}
                     <div className="mt-1 flex items-center justify-between gap-3 border-t border-border pt-3">
-                      {rental.isAvailable
-                        ? <Link href={`/?selected=${encodeURIComponent(rental.id)}`} className="inline-flex min-h-10 items-center text-sm font-semibold text-action hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">View on map</Link>
-                        : <span className="text-sm font-semibold text-muted-foreground">No longer available</span>}
+                      <div className="flex items-center gap-3">
+                        <button
+                          type="button"
+                          className="inline-flex min-h-10 items-center text-sm font-semibold text-action hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring cursor-pointer"
+                          onClick={() => setSelectedRental(rental)}
+                        >
+                          View details
+                        </button>
+                        {rental.isAvailable && (
+                          <Link href={`/?selected=${encodeURIComponent(rental.id)}`} className="inline-flex min-h-10 items-center text-sm font-semibold text-muted-foreground hover:text-foreground hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">View on map</Link>
+                        )}
+                      </div>
+                      {!rental.isAvailable && <span className="text-sm font-semibold text-muted-foreground">No longer available</span>}
                       <button type="button" disabled={removingId === rental.id} aria-label={"Remove " + rental.title + " from saved rentals"} className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-border px-3 text-sm font-semibold hover:bg-muted disabled:cursor-wait disabled:opacity-60" onClick={() => { void removeRental(rental.id); }}>
                         <Trash2 size={16} aria-hidden="true" />{removingId === rental.id ? "Removing…" : "Remove"}
                       </button>
@@ -214,6 +229,41 @@ function SavedRentalsSession({ userId }: { userId: string }) {
         </section>
       </div>
     </div>
+    {selectedRental && (
+      <PropertyDetailsSheet
+        open={Boolean(selectedRental)}
+        onClose={() => setSelectedRental(null)}
+        rental={{
+          id: selectedRental.id,
+          title: selectedRental.title,
+          locality: selectedRental.city,
+          address: selectedRental.address ?? undefined,
+          coordinates: [123.89, 10.32],
+          price: selectedRental.price,
+          type: (selectedRental.propertyType as RentalResult["type"]) ?? "room",
+          propertyType: (selectedRental.propertyType as RentalResult["propertyType"]) ?? undefined,
+          basis: "room",
+          amenities: [],
+          description: selectedRental.description,
+          area: 0,
+          tone: "blue",
+          available: selectedRental.isAvailable,
+          distanceMeters: null,
+          imageUrls: selectedRental.imageUrls,
+        }}
+        canMessage={selectedRental.isAvailable}
+        onMessage={(id) => {
+          setSelectedRental(null);
+          setInquiryId(id);
+        }}
+        canSave={true}
+        saved={true}
+        onToggleSaved={async (id) => {
+          const removed = await removeRental(id);
+          if (removed) setSelectedRental(null);
+        }}
+      />
+    )}
     {inquiryRental && <ListingInquiryModal key={inquiryRental.id} listingId={inquiryRental.id} listingTitle={inquiryRental.title} userId={userId} onClose={() => setInquiryId(null)} />}
   </main>;
 }

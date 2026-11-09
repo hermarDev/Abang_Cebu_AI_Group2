@@ -27,7 +27,6 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Modal } from "@/components/ui/Modal";
-import { Sheet } from "@/components/ui/Sheet";
 import { Select } from "@/components/ui/Select";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/Avatar";
@@ -47,7 +46,7 @@ import {
   MessageScroller,
   type MessageScrollerHandle,
 } from "@/components/ui/chat";
-import { PropertyDetailsContent } from "@/features/rentals/PropertyDetailsContent";
+import { PropertyDetailsSheet } from "@/features/rentals/PropertyDetailsSheet";
 import { notify } from "@/components/ui/AppToaster";
 import { dispatchMessagesUpdated } from "./useUnreadMessageCount";
 import {
@@ -1303,18 +1302,11 @@ function MessagingInboxInner({
                 }}
               />
             )}
-            <Sheet
+            <PropertyDetailsSheet
               open={propertySheetOpen}
               onClose={() => setPropertySheetOpen(false)}
-              title={thread.listingTitle}
-              description={thread.listingAddress ?? thread.listingCity ?? undefined}
-            >
-              <PropertyDetailsContent
-                thread={thread}
-                userRole={userRole}
-                onClose={() => setPropertySheetOpen(false)}
-              />
-            </Sheet>
+              thread={thread}
+            />
             {/* Lightbox: only photo, dark backdrop, Radix Dialog focus trapping & restoration */}
             <Dialog.Root open={Boolean(lightboxUrl)} onOpenChange={(open) => !open && setLightboxUrl(null)}>
               <Dialog.Portal>
