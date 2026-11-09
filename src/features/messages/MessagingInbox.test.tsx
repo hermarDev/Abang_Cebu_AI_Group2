@@ -1,7 +1,16 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 import { MessageItem, MessagingInbox } from "./MessagingInbox";
-import { composerBlockedReason, listingBadgeLabel, listingHref, mergeMessages, postThreadMessage, type RentalMessageItem, type RentalThreadSummary } from "./messaging-client";
+import {
+  composerBlockedReason,
+  listingBadgeLabel,
+  listingHref,
+  mergeMessages,
+  postThreadMessage,
+  type RentalMessageAttachment,
+  type RentalMessageItem,
+  type RentalThreadSummary,
+} from "./messaging-client";
 
 vi.mock("@/components/ui/Modal", () => ({ Modal: ({ open, children }: { open: boolean; children: React.ReactNode }) => open ? <div>{children}</div> : null }));
 
@@ -105,5 +114,61 @@ describe("messaging helpers", () => {
     const bodies = fetchImpl.mock.calls.map(([, init]) => JSON.parse(init.body));
     expect(bodies).toEqual([{ operationId: "op-1", body: "hi" }, { operationId: "op-1", body: "hi" }]);
     expect(fetchImpl.mock.calls[0][1].headers["x-expected-user-id"]).toBe("u1");
+  });
+
+  it("supports replyTo and attachments in postThreadMessage", async () => {
+    const message = { id: "m2", conversationId: "t1", senderId: "u1", operationId: "op-2", body: "with reply", createdAt: "2026-11-09T00:00:00Z" };
+    const fetchImpl = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ message }) });
+    const attachments: RentalMessageAttachment[] = [{ id: "att-1", storagePath: "threads/t1/p.jpg", url: "https://example.com/p.jpg", fileName: "p.jpg", mimeType: "image/jpeg", fileSize: 1024 }];
+    await postThreadMessage("t1", "u1", "op-2", "with reply", "m1", attachments, fetchImpl as unknown as typeof fetch);
+    const parsed = JSON.parse(fetchImpl.mock.calls[0][1].body);
+    expect(parsed.replyToMessageId).toBe("m1");
+    expect(parsed.attachments).toHaveLength(1);
+    expect(parsed.attachments[0].id).toBe("att-1");
+  });
+});
+
+describe("MessageItem reply and attachments UI", () => {
+  it("renders quote preview and attachments inside MessageItem", () => {
+    const item: RentalMessageItem = {
+      id: "m10",
+      conversationId: "t1",
+      senderId: "u2",
+      operationId: "op-10",
+      body: "Here is the property photo",
+      createdAt: "2026-11-09T02:00:00Z",
+      replyTo: {
+        id: "m9",
+        senderId: "u1",
+        senderName: "John",
+        body: "Can you send a photo?",
+      },
+      attachments: [
+        {
+          id: "att-1",
+          storagePath: "threads/t1/living_room.webp",
+          url: "https://example.com/photo1.webp",
+          fileName: "living_room.webp",
+          mimeType: "image/webp",
+          fileSize: 204800,
+        },
+      ],
+    };
+
+    const html = renderToStaticMarkup(
+      <MessageItem
+        message={item}
+        mine={false}
+        counterpart={{ fullName: "Maria", avatarUrl: null }}
+        onReport={() => {}}
+        onReply={() => {}}
+      />
+    );
+
+    expect(html).toContain("John");
+    expect(html).toContain("Can you send a photo?");
+    expect(html).toContain("Here is the property photo");
+    expect(html).toContain("living_room.webp");
+    expect(html).toContain("Reply");
   });
 });

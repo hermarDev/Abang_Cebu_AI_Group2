@@ -140,7 +140,13 @@ describe("POST /api/messages/threads/[threadId]", () => {
     const r = await post(valid);
     expect(r.status).toBe(201);
     expect(await r.json()).toEqual({ message: { id: "m1" } });
-    expect(mocks.rpc).toHaveBeenCalledWith("send_rental_message", { p_conversation_id: uuid, p_operation_id: uuid2, p_body: "hi" });
+    expect(mocks.rpc).toHaveBeenCalledWith("send_rental_message", {
+      p_conversation_id: uuid,
+      p_operation_id: uuid2,
+      p_body: "hi",
+      p_reply_to_message_id: null,
+      p_attachments: [],
+    });
     mocks.rpc.mockResolvedValue({ data: { id: "m1", replayed: true }, error: null });
     expect((await post(valid)).status).toBe(200);
   });
