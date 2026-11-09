@@ -9,7 +9,7 @@ export async function GET(request: Request) {
     if (session.response) return session.response;
     const includeArchived = new URL(request.url).searchParams.get("archived") === "true";
     const { data, error } = await session.supabase.rpc("list_rental_conversations", { p_include_archived: includeArchived });
-    if (error) return rpcFailure(error.code, { "42501": 403 });
+    if (error) return rpcFailure(error.code, { "42501": 403 }, error.message);
     return reply({ threads: await enrichThreads(Array.isArray(data) ? data : []) }, 200);
   } catch {
     return rpcFailure(undefined, {});
@@ -29,7 +29,7 @@ export async function POST(request: Request) {
     if (!validMessageBody(body)) return invalidMessage();
 
     const { data, error } = await session.supabase.rpc("send_initial_rental_inquiry", { p_listing_id: listingId, p_operation_id: operationId, p_body: body.trim() });
-    if (error) return rpcFailure(error.code, { "23505": 409, "42501": 403, "22023": 404 });
+    if (error) return rpcFailure(error.code, { "23505": 409, "42501": 403, "22023": 404 }, error.message);
     const result = (data ?? {}) as { conversationId?: string; messageId?: string; createdAt?: string; replayed?: boolean };
     return reply({ conversationId: result.conversationId, messageId: result.messageId, createdAt: result.createdAt, replayed: Boolean(result.replayed) }, result.replayed === true ? 200 : 201);
   } catch {

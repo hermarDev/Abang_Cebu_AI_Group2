@@ -48,7 +48,24 @@ export const validMessageBody = (body: unknown): body is string =>
   typeof body === "string" && body.trim().length >= 1 && body.trim().length <= 2000;
 export const invalidMessage = () => reply({ error: "Enter a message between 1 and 2,000 characters." }, 400);
 
-export function rpcFailure(code: string | undefined, map: Record<string, number>) {
+const FRIENDLY_RPC_ERRORS: Record<string, { status: number; message: string }> = {
+  "cannot message your own listing": { status: 400, message: "You cannot message your own listing." },
+  "you cannot message your own listing": { status: 400, message: "You cannot message your own listing." },
+  "only active renters can send inquiries": { status: 403, message: "Only active renters can send inquiries." },
+  "listing is not publicly available": { status: 403, message: "This listing is not currently available for inquiries." },
+  "landlord account is unavailable": { status: 403, message: "The landlord account is currently unavailable." },
+  "conversation is blocked": { status: 403, message: "You cannot message this user." },
+  "conversation is closed": { status: 403, message: "This conversation is closed." },
+  "listing not found": { status: 404, message: "Listing not found." },
+  "operation id already used for a different message": { status: 409, message: "That request was already used. Please try again." },
+};
+
+export function rpcFailure(code: string | undefined, map: Record<string, number>, rawMessage?: string) {
+  const normalized = rawMessage?.trim().toLowerCase();
+  if (normalized && FRIENDLY_RPC_ERRORS[normalized]) {
+    const entry = FRIENDLY_RPC_ERRORS[normalized];
+    return reply({ error: entry.message }, entry.status);
+  }
   const status = (code && map[code]) || 503;
   const error = status === 503 ? "Messaging is temporarily unavailable. Please try again." : status === 403 ? "You can't do that in this conversation." : status === 404 ? "Conversation or listing not found." : status === 409 ? "That request was already used. Please try again." : "That request was not valid.";
   return reply({ error }, status);

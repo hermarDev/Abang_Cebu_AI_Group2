@@ -154,6 +154,18 @@ describe("POST /api/messages/threads", () => {
     mocks.rpc.mockResolvedValue({ data: null, error: { code } });
     expect((await post(valid)).status).toBe(status);
   });
+  it.each([
+    ["cannot message your own listing", 400, "You cannot message your own listing."],
+    ["only active renters can send inquiries", 403, "Only active renters can send inquiries."],
+    ["listing is not publicly available", 403, "This listing is not currently available for inquiries."],
+    ["landlord account is unavailable", 403, "The landlord account is currently unavailable."],
+    ["conversation is blocked", 403, "You cannot message this user."],
+  ])("passes through descriptive error for '%s'", async (msg, status, expectedError) => {
+    mocks.rpc.mockResolvedValue({ data: null, error: { code: "42501", message: msg } });
+    const r = await post(valid);
+    expect(r.status).toBe(status);
+    expect(await r.json()).toEqual({ error: expectedError });
+  });
   it("429 with Retry-After after 10 inquiries", async () => {
     mocks.getUser.mockResolvedValue({ data: { user: { id: "rate-limited-user" } }, error: null });
     mocks.rpc.mockResolvedValue({ data: { conversationId: "c", messageId: "m", createdAt: "t" }, error: null });

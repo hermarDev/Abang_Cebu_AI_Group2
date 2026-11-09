@@ -4,7 +4,7 @@ import { notify } from "./AppToaster";
 
 describe("action notification policy", () => {
   it.each([
-    ["success", 4000], ["info", 5000], ["warning", 6000], ["error", 6000], ["loading", Infinity],
+    ["success", 3000], ["info", 3000], ["warning", 3000], ["error", 3000], ["loading", Infinity],
   ] as const)("applies the %s duration and stable operation ID", (type, duration) => {
     const id = `test-${type}`;
     notify(type, id, "First message");

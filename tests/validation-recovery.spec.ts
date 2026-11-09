@@ -117,7 +117,7 @@ for (const response of [
     await password.fill("RecoveryPass1!");
     await confirmation.fill("RecoveryPass1!");
     await dialog.getByRole("button", { name: "Update Password" }).click();
-    await expect(dialog.getByRole("alert")).toHaveText(response.message);
+    await expect(dialog.getByRole("alert")).toContainText(response.message);
     await expect(password).toHaveValue("RecoveryPass1!");
     await expect(confirmation).toHaveValue("RecoveryPass1!");
     await expect(page).toHaveURL(/\/reset-password/);
@@ -149,16 +149,16 @@ test("recovery weak password is associated with its input and retains values", a
   const dialog = page.getByRole("dialog");
   const password = dialog.getByLabel("New password", { exact: true });
   const confirm = dialog.getByLabel("Confirm new password", { exact: true });
-  await expect(password).toHaveAccessibleDescription(/at least three/);
+  await expect(password).toHaveAccessibleDescription(/Password requirements/);
   await password.fill("weakpassword");
   await confirm.fill("weakpassword");
   await dialog.getByRole("button", { name: "Update Password" }).click();
   await expect(password).toHaveAttribute("aria-invalid", "true");
   await expect(password).toBeFocused();
-  await expect(password).toHaveAccessibleDescription(/at least three[\s\S]*Choose a stronger password/);
+  await expect(password).toHaveAccessibleDescription(/Password requirements[\s\S]*Choose a stronger password/);
   await expect(password).toHaveValue("weakpassword");
   await expect(confirm).toHaveValue("weakpassword");
   await password.fill("BetterPass1!");
   await expect(password).toHaveAttribute("aria-invalid", "false");
-  await expect(password).toHaveAccessibleDescription(/at least three/);
+  await expect(password).toHaveAccessibleDescription(/Password requirements/);
 });

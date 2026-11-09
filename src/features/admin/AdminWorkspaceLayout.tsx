@@ -60,7 +60,7 @@ function AdminMobileNav({ pathname }: { pathname: string }) {
 export function AdminWorkspaceLayout({ displayName, title, subtitle, actions, children }: { userId?: string; displayName?: string | null; title?: string; subtitle?: string; actions?: ReactNode; children: ReactNode }) {
   const pathname = usePathname() ?? "";
   const [expanded, setExpanded] = useState(true);
-  const headerLink = `inline-flex min-h-11 items-center gap-2 rounded-lg px-3 text-sm font-semibold hover:bg-muted ${focusRing}`;
+  const headerLink = `inline-flex min-h-11 min-w-11 items-center justify-center sm:justify-start gap-2 rounded-lg px-2 sm:px-3 text-sm font-semibold hover:bg-muted ${focusRing}`;
 
   return <main className="min-h-[100dvh] bg-gradient-to-br from-action/5 via-background to-muted/70 pt-16 pb-[calc(5rem+env(safe-area-inset-bottom))] text-foreground lg:pb-0">
     <header className="fixed inset-x-0 top-0 z-40 border-b border-border/80 bg-background/90 shadow-sm backdrop-blur-lg">
@@ -72,8 +72,8 @@ export function AdminWorkspaceLayout({ displayName, title, subtitle, actions, ch
         </Link>
         <div className="flex shrink-0 items-center gap-1 sm:gap-2">
           {displayName && <span className="hidden max-w-40 truncate text-sm text-muted-foreground xl:block" title={displayName}>{displayName}</span>}
-          <Link href="/account" className={`${headerLink} hidden lg:inline-flex`}><UserRound size={17} aria-hidden="true" />Account settings</Link>
-          <Link href="/auth/logout" className={headerLink}><LogOut size={17} aria-hidden="true" />Log out</Link>
+          <Link href="/account" aria-label="Account settings" title="Account settings" className={headerLink}><UserRound size={17} aria-hidden="true" /><span className="hidden sm:inline">Account settings</span></Link>
+          <Link href="/auth/logout" aria-label="Log out" title="Log out" className={headerLink}><LogOut size={17} aria-hidden="true" /><span className="hidden sm:inline">Log out</span></Link>
         </div>
       </div>
     </header>

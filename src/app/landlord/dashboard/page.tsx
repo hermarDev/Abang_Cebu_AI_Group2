@@ -4,6 +4,7 @@ import { notFound, redirect } from "next/navigation";
 import { ArrowRight, Building2, ChevronDown, CircleAlert, Clock3, Compass, LogOut, MapPinned, UserRound } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { signProfileAvatar } from "@/lib/profile-avatar";
+import { LandlordSubmissionsList } from "./LandlordSubmissionsList";
 import { LandlordWorkspaceLayout } from "./LandlordWorkspaceLayout";
 
 export const dynamic = "force-dynamic";
@@ -110,15 +111,14 @@ export default async function LandlordDashboardPage() {
       {feedbackError && <p role="alert" className="mt-4">Review feedback could not be loaded. Refresh the page to try again.</p>}
       {submissionError ? <p role="alert" className="mt-4">Could not load review status. Refresh the page to try again.</p>
         : !submissions?.length ? <p className="mt-4 text-sm text-muted-foreground">Submissions appear here with their review status.</p>
-        : <ul className="mt-4 grid list-none gap-3 p-0">{submissions.map(property => <li key={property.id} className="rounded-2xl border border-border bg-card p-4 sm:p-5">
-          <h3 className="font-semibold">{property.title}</h3>
-          <p className="mt-1 text-sm text-muted-foreground">{property.status === "pending" ? "Pending review" : property.status === "rejected" ? "Changes requested" : property.status === "approved" ? availableIds.has(property.id) ? "Published · Available" : "Published · Unavailable" : "Archived"}</p>
-          {property.status === "rejected" && feedback.has(property.id) && <p className="mt-1 text-sm text-muted-foreground">{feedback.get(property.id)}</p>}
-          <div className="mt-3 flex flex-wrap gap-2">
-            <Link href={`/landlord/map?selected=${encodeURIComponent(property.id)}`} className={linkClass}><MapPinned size={15} aria-hidden="true" /> View on map</Link>
-            {(property.status === "pending" || property.status === "rejected") && correctionTargets.has(property.id) && <Link href={`/list-property?draftId=${encodeURIComponent(correctionTargets.get(property.id)!.draftId)}&revision=${correctionTargets.get(property.id)!.revision}`} className={linkClass}>{property.status === "pending" ? "Edit submission" : "Correct and resubmit"} <ArrowRight size={15} aria-hidden="true" /></Link>}
-          </div>
-        </li>)}</ul>}
+        : <LandlordSubmissionsList
+            submissions={submissions}
+            availableIds={Array.from(availableIds)}
+            feedback={Object.fromEntries(feedback)}
+            correctionTargets={Object.fromEntries(correctionTargets)}
+            linkClass={linkClass}
+            pageSize={10}
+          />}
     </section>
   </LandlordWorkspaceLayout>;
 }

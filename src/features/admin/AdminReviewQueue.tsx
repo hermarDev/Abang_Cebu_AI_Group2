@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/Button";
 import { Empty } from "@/components/ui/Empty";
 import { Input } from "@/components/ui/Input";
 import { Modal } from "@/components/ui/Modal";
+import { Pagination } from "@/components/ui/Pagination";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { AdminReasonField } from "./AdminReasonField";
 import { adminCall, newOperationId, reasonProblem } from "./admin-api";
@@ -146,6 +147,8 @@ export function ReviewCard({ property, onAction, onInspect }: { property: AdminP
 export function AdminReviewQueue({ userId, initialStatus = "pending" }: { userId: string; initialStatus?: string }) {
   const [status, setStatus] = useState(reviewTabs.some((t) => t.value === initialStatus) ? initialStatus : "pending");
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const pageSize = 10;
   const [properties, setProperties] = useState<AdminProperty[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [dialog, setDialog] = useState<Dialog | null>(null);
@@ -190,15 +193,21 @@ export function AdminReviewQueue({ userId, initialStatus = "pending" }: { userId
     notify("success", "admin-review-action", copy.success);
   }
 
+  const totalPages = properties ? Math.max(1, Math.ceil(properties.length / pageSize)) : 1;
+  const paginatedProperties = properties ? properties.slice((page - 1) * pageSize, page * pageSize) : [];
+
   return <section aria-label="Listing review queue" className="grid gap-4">
     <div className="flex flex-wrap gap-2" role="group" aria-label="Review status">
-      {reviewTabs.map((tab) => <Button key={tab.value} size="sm" variant={status === tab.value ? "primary" : "outline"} aria-pressed={status === tab.value} onClick={() => setStatus(tab.value)}>{tab.label}</Button>)}
+      {reviewTabs.map((tab) => <Button key={tab.value} size="sm" variant={status === tab.value ? "primary" : "outline"} aria-pressed={status === tab.value} onClick={() => { setStatus(tab.value); setPage(1); }}>{tab.label}</Button>)}
     </div>
-    <Input type="search" aria-label="Search listings" placeholder="Search title, address, or landlord…" value={search} onChange={(event) => setSearch(event.target.value)} />
+    <Input type="search" aria-label="Search listings" placeholder="Search title, address, or landlord…" value={search} onChange={(event) => { setSearch(event.target.value); setPage(1); }} />
     {error ? <Alert variant="error">{error} <Button size="sm" variant="outline" onClick={() => setReloadKey((k) => k + 1)}>Retry</Button></Alert>
       : properties === null ? <div className="grid gap-3">{[0, 1, 2].map((i) => <Skeleton key={i} className="h-32" />)}</div>
       : properties.length === 0 ? <Empty>No listings match this view.</Empty>
-      : <div className="grid gap-3">{properties.map((property) => <ReviewCard key={property.id} property={property} onAction={open} onInspect={setInspecting} />)}</div>}
+      : <>
+          <div className="grid gap-3">{paginatedProperties.map((property) => <ReviewCard key={property.id} property={property} onAction={open} onInspect={setInspecting} />)}</div>
+          <Pagination currentPage={page} totalPages={totalPages} totalItems={properties.length} pageSize={pageSize} onPageChange={setPage} />
+        </>}
     <Modal open={!!inspecting} onClose={() => setInspecting(null)} title={inspecting?.title || "Untitled property"} description="Property details and permits" className="max-h-[calc(100dvh-2rem)] max-w-2xl overflow-y-auto">
       {inspecting && <PropertyDetails property={inspecting} />}
     </Modal>
