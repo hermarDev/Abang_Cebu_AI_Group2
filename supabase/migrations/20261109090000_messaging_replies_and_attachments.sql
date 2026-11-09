@@ -74,7 +74,7 @@ CREATE TABLE IF NOT EXISTS public.rental_message_attachments (
   message_id uuid NOT NULL REFERENCES public.rental_messages(id) ON DELETE CASCADE,
   conversation_id uuid NOT NULL REFERENCES public.rental_conversations(id) ON DELETE CASCADE,
   uploader_id uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-  storage_path text NOT NULL CHECK (length(storage_path) <= 500),
+  storage_path text NOT NULL UNIQUE CHECK (length(storage_path) <= 500),
   file_name text NOT NULL CHECK (length(pg_catalog.btrim(file_name)) BETWEEN 1 AND 255),
   file_size integer NOT NULL CHECK (file_size BETWEEN 1 AND 10485760),
   mime_type text NOT NULL CHECK (mime_type IN ('image/jpeg', 'image/png', 'image/webp')),
@@ -117,8 +117,8 @@ CREATE OR REPLACE FUNCTION public.send_rental_message(
   p_conversation_id uuid,
   p_operation_id uuid,
   p_body text,
-  p_reply_to_message_id uuid DEFAULT NULL,
-  p_attachments jsonb DEFAULT '[]'::jsonb
+  p_reply_to_message_id uuid,
+  p_attachments jsonb
 )
 RETURNS jsonb
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = ''
@@ -254,6 +254,13 @@ BEGIN
   -- Insert attachments if provided
   IF v_has_attachments THEN
     FOR v_att_elem IN SELECT * FROM jsonb_array_elements(p_attachments) LIMIT 5 LOOP
+      -- Path validation: must be scoped to v_conv.id / v_user / <filename>, no traversal
+      IF v_att_elem->>'storagePath' IS NULL
+         OR NOT (v_att_elem->>'storagePath' LIKE (v_conv.id::text || '/' || v_user::text || '/%'))
+         OR (v_att_elem->>'storagePath' LIKE '%..%') THEN
+        RAISE EXCEPTION 'invalid attachment storage path' USING ERRCODE = '22023';
+      END IF;
+
       INSERT INTO public.rental_message_attachments(
         message_id, conversation_id, uploader_id, storage_path, file_name, file_size, mime_type
       )
@@ -262,7 +269,7 @@ BEGIN
         v_conv.id,
         v_user,
         v_att_elem->>'storagePath',
-        COALESCE(v_att_elem->>'fileName', 'photo.jpg'),
+        COALESCE(pg_catalog.left(v_att_elem->>'fileName', 100), 'photo.jpg'),
         COALESCE((v_att_elem->>'fileSize')::integer, 0),
         COALESCE(v_att_elem->>'mimeType', 'image/jpeg')
       );

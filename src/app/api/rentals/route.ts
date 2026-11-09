@@ -20,21 +20,38 @@ async function signPhotos(rows: unknown[]): Promise<Map<string, string>> {
   return signed;
 }
 
-export async function GET() {
+export async function GET(request?: Request) {
   const headers = { "Cache-Control": "no-store" };
   try {
+    const url = request ? new URL(request.url) : null;
+    const targetId = url?.searchParams.get("id");
     const supabase = await createClient();
-    const listingsQuery = supabase.from("listings")
+    let listingsQuery = supabase.from("listings")
       .select(projection)
       .eq("status", "published")
-      .eq("is_available", true)
-      .order("created_at", { ascending: false }).order("id", { ascending: true })
-      .limit(200);
+      .eq("is_available", true);
+
+    if (targetId) {
+      listingsQuery = listingsQuery.eq("id", targetId).limit(1);
+    } else {
+      listingsQuery = listingsQuery
+        .order("created_at", { ascending: false })
+        .order("id", { ascending: true })
+        .limit(200);
+    }
+
     const submittedQuery = typeof (supabase as { rpc?: unknown }).rpc === "function" ? supabase.rpc("get_public_submitted_rentals") : null;
     const [{ data, error }, submitted] = await Promise.all([listingsQuery, submittedQuery]);
     if (error || !Array.isArray(data)) throw new Error("Rental read failed");
     // Submitted-property failures degrade to published listings only; they must not take down the map.
-    const submittedRows = submitted && !submitted.error && Array.isArray(submitted.data) ? submitted.data as unknown[] : [];
+    const rawSubmittedRows = submitted && !submitted.error && Array.isArray(submitted.data) ? (submitted.data as unknown[]) : [];
+    const submittedRows = targetId
+      ? rawSubmittedRows.filter(
+          (r) =>
+            (r as { id?: string; property_id?: string })?.id === targetId ||
+            (r as { id?: string; property_id?: string })?.property_id === targetId
+        )
+      : rawSubmittedRows;
     const visibleSubmittedRows = submittedRows.filter((row) => {
       const status = (row as { moderation_status?: unknown } | null)?.moderation_status;
       return status === "approved" || status === "pending";

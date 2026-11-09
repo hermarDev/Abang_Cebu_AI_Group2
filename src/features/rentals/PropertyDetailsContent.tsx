@@ -40,11 +40,11 @@ export function PropertyDetailsContent({
     async function loadListing() {
       setLoading(true);
       try {
-        const res = await fetch("/api/rentals", { cache: "no-store" });
+        const res = await fetch(`/api/rentals?id=${encodeURIComponent(thread.listingId)}`, { cache: "no-store" });
         if (!res.ok) throw new Error("Failed to load rental details");
         const json = await res.json();
         if (active && Array.isArray(json?.rentals)) {
-          const match = json.rentals.find((r: RentalResult) => r.id === thread.listingId);
+          const match = json.rentals.find((r: RentalResult) => r.id === thread.listingId) ?? json.rentals[0];
           if (match) setRental(match);
         }
       } catch {

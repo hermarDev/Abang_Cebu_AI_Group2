@@ -97,11 +97,16 @@ export class MessagingApiError extends Error {
 
 export async function apiJson<T>(url: string, userId: string, init: RequestInit = {}, fetchImpl: typeof fetch = fetch): Promise<T> {
   let response: Response;
+  const isFormData = typeof FormData !== "undefined" && init.body instanceof FormData;
   try {
     response = await fetchImpl(url, {
       cache: "no-store",
       ...init,
-      headers: { "x-expected-user-id": userId, ...(init.body ? { "content-type": "application/json" } : {}), ...init.headers },
+      headers: {
+        "x-expected-user-id": userId,
+        ...(init.body && !isFormData ? { "content-type": "application/json" } : {}),
+        ...init.headers,
+      },
     });
   } catch {
     const { message, kind } = normalizeApiError(0, null, "Check your connection and try again.");

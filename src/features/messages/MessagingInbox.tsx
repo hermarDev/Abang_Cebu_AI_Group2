@@ -1029,64 +1029,62 @@ function MessagingInboxInner({
                 <ol className="grid gap-2 list-none p-0 m-0">
                   {messageElements}
                   {outbox.map((o) => (
-                    <li key={o.operationId} className="list-none">
-                      <Message mine>
-                        <MessageContent mine>
-                          <BubbleGroup>
-                            <div
-                              className={`rounded-2xl px-3.5 py-2 text-sm leading-relaxed ${
-                                o.status === "sending"
-                                  ? "border border-border bg-card/80 text-muted-foreground animate-pulse"
-                                  : "border border-destructive/40 bg-destructive/10 text-foreground"
-                              }`}
-                            >
-                              {o.replyTo && (
-                                <BubbleQuote
-                                  author={o.replyTo.senderName}
-                                  body={o.replyTo.body}
-                                  mine={true}
-                                  isUnavailable={o.replyTo.isUnavailable}
-                                />
-                              )}
-                              {o.attachments && o.attachments.length > 0 && (
-                                <BubbleAttachments
-                                  attachments={o.attachments}
-                                  onPhotoClick={(idx) => {
-                                    const url = o.attachments?.[idx]?.url;
-                                    if (url) setLightboxUrl(url);
-                                  }}
-                                />
-                              )}
-                              {o.body && <BubbleContent>{o.body}</BubbleContent>}
-                              {o.status === "sending" ? (
-                                <div className="mt-1 flex items-center gap-1.5 text-[0.7rem] text-muted-foreground">
-                                  <Clock size={12} className="animate-spin" aria-hidden="true" />
-                                  <span>Sending…</span>
-                                </div>
-                              ) : (
-                                <div
-                                  role="alert"
-                                  className="mt-1.5 flex items-center justify-between gap-3 text-xs text-destructive"
+                    <Message key={o.operationId} mine>
+                      <MessageContent mine>
+                        <BubbleGroup>
+                          <div
+                            className={`rounded-2xl px-3.5 py-2 text-sm leading-relaxed ${
+                              o.status === "sending"
+                                ? "border border-border bg-card/80 text-muted-foreground animate-pulse"
+                                : "border border-destructive/40 bg-destructive/10 text-foreground"
+                            }`}
+                          >
+                            {o.replyTo && (
+                              <BubbleQuote
+                                author={o.replyTo.senderName}
+                                body={o.replyTo.body}
+                                mine={true}
+                                isUnavailable={o.replyTo.isUnavailable}
+                              />
+                            )}
+                            {o.attachments && o.attachments.length > 0 && (
+                              <BubbleAttachments
+                                attachments={o.attachments}
+                                onPhotoClick={(idx) => {
+                                  const url = o.attachments?.[idx]?.url;
+                                  if (url) setLightboxUrl(url);
+                                }}
+                              />
+                            )}
+                            {o.body && <BubbleContent>{o.body}</BubbleContent>}
+                            {o.status === "sending" ? (
+                              <div className="mt-1 flex items-center gap-1.5 text-[0.7rem] text-muted-foreground">
+                                <Clock size={12} className="animate-spin" aria-hidden="true" />
+                                <span>Sending…</span>
+                              </div>
+                            ) : (
+                              <div
+                                role="alert"
+                                className="mt-1.5 flex items-center justify-between gap-3 text-xs text-destructive"
+                              >
+                                <span className="flex items-center gap-1">
+                                  <AlertCircle size={13} aria-hidden="true" />
+                                  <span>Message wasn&apos;t sent</span>
+                                </span>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="min-h-8 h-8 px-2 text-xs border-destructive/30 hover:bg-destructive/10"
+                                  onClick={() => void deliver(o)}
                                 >
-                                  <span className="flex items-center gap-1">
-                                    <AlertCircle size={13} aria-hidden="true" />
-                                    <span>Message wasn&apos;t sent</span>
-                                  </span>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="min-h-8 h-8 px-2 text-xs border-destructive/30 hover:bg-destructive/10"
-                                    onClick={() => void deliver(o)}
-                                  >
-                                    Retry
-                                  </Button>
-                                </div>
-                              )}
-                            </div>
-                          </BubbleGroup>
-                        </MessageContent>
-                      </Message>
-                    </li>
+                                  Retry
+                                </Button>
+                              </div>
+                            )}
+                          </div>
+                        </BubbleGroup>
+                      </MessageContent>
+                    </Message>
                   ))}
                 </ol>
               )}
@@ -1374,9 +1372,8 @@ export function MessageItem({
   };
 
   return (
-    <li id={`message-${m.id}`} className="list-none rounded-xl transition-all">
-      <Message mine={mine}>
-        {!mine && showAvatar && (
+    <Message id={`message-${m.id}`} mine={mine} className="rounded-xl transition-all">
+      {!mine && showAvatar && (
           <MessageAvatar>
             <Avatar className="size-7">
               <AvatarImage src={counterpart?.avatarUrl ?? undefined} alt={counterpart?.fullName ?? ""} />
@@ -1461,7 +1458,6 @@ export function MessageItem({
           </MessageFooter>
         </MessageContent>
       </Message>
-    </li>
   );
 }
 
