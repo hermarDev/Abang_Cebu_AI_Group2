@@ -48,7 +48,7 @@ export const validMessageBody = (body: unknown): body is string =>
   typeof body === "string" && body.trim().length >= 1 && body.trim().length <= 2000;
 export const validMessagePayload = (body: unknown, attachments: unknown[] = []) =>
   (typeof body === "string" && body.trim().length >= 1 && body.trim().length <= 2000) ||
-  (Array.isArray(attachments) && attachments.length > 0 && typeof body === "string" && body.trim().length <= 2000);
+  (Array.isArray(attachments) && attachments.length > 0 && (typeof body === "string" ? body.trim().length <= 2000 : body === undefined || body === null));
 export const invalidMessage = () => reply({ error: "Enter a message between 1 and 2,000 characters or attach a photo." }, 400);
 
 export async function enrichMessagesWithSignedAttachments(messages: Record<string, unknown>[]) {

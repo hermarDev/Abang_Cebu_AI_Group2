@@ -93,6 +93,7 @@ type StagedAttachment = {
   previewUrl: string;
   status: "uploading" | "ready" | "error";
   storagePath?: string;
+  mimeType?: string;
   errorMessage?: string;
 };
 type ReportTarget = { targetType: "conversation" | "message"; messageId?: string };
@@ -222,6 +223,15 @@ function MessagingInboxInner({
   const [stagedAttachments, setStagedAttachments] = useState<StagedAttachment[]>([]);
   const [propertySheetOpen, setPropertySheetOpen] = useState(false);
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!lightboxUrl) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setLightboxUrl(null);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [lightboxUrl]);
 
   const draft = (selectedId && drafts[selectedId]) || "";
   const outbox = (selectedId && outboxes[selectedId]) || NO_OUTBOX;
@@ -1071,14 +1081,32 @@ function MessagingInboxInner({
                                   <AlertCircle size={13} aria-hidden="true" />
                                   <span>Message wasn&apos;t sent</span>
                                 </span>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="min-h-8 h-8 px-2 text-xs border-destructive/30 hover:bg-destructive/10"
-                                  onClick={() => void deliver(o)}
-                                >
-                                  Retry
-                                </Button>
+                                <div className="flex items-center gap-1.5">
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="min-h-8 h-8 px-2 text-xs border-destructive/30 hover:bg-destructive/10"
+                                    onClick={() => void deliver(o)}
+                                  >
+                                    Retry
+                                  </Button>
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    aria-label="Dismiss unsent message"
+                                    className="min-h-8 h-8 px-2 text-xs text-muted-foreground hover:text-foreground"
+                                    onClick={() => {
+                                      if (selectedId) {
+                                        updateOutbox(selectedId, (list) =>
+                                          list.filter((item) => item.operationId !== o.operationId)
+                                        );
+                                      }
+                                    }}
+                                  >
+                                    Dismiss
+                                  </Button>
+                                </div>
                               </div>
                             )}
                           </div>
@@ -1295,19 +1323,39 @@ function MessagingInboxInner({
                 onClose={() => setPropertySheetOpen(false)}
               />
             </Sheet>
-            <Modal
-              open={Boolean(lightboxUrl)}
-              onClose={() => setLightboxUrl(null)}
-              title="Photo preview"
-              hideTitle
-              className="max-w-3xl p-2 bg-black/95 border-border"
-            >
-              {lightboxUrl && (
-                <div className="relative aspect-4/3 max-h-[80dvh] w-full overflow-hidden rounded-xl">
-                  <Image src={lightboxUrl} alt="Photo preview" fill unoptimized className="object-contain" />
+            {/* Lightbox: only photo, dark backdrop, minimal close button */}
+            {lightboxUrl && (
+              <div
+                role="dialog"
+                aria-modal="true"
+                aria-label="Photo preview"
+                className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4 backdrop-blur-xs animate-in fade-in duration-150"
+                onClick={() => setLightboxUrl(null)}
+              >
+                <button
+                  type="button"
+                  aria-label="Close photo preview"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setLightboxUrl(null);
+                  }}
+                  className="absolute right-4 top-4 z-50 flex size-10 min-h-10 min-w-10 items-center justify-center rounded-full bg-black/60 text-white/80 hover:bg-black/90 hover:text-white transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-white"
+                >
+                  <X size={20} aria-hidden="true" />
+                </button>
+                <div
+                  className="relative max-h-[90dvh] max-w-[90dvw] w-auto h-auto flex items-center justify-center"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={lightboxUrl}
+                    alt="Photo preview"
+                    className="max-h-[90dvh] max-w-[90dvw] object-contain rounded-lg shadow-2xl select-none"
+                  />
                 </div>
-              )}
-            </Modal>
+              </div>
+            )}
           </>
         )}
       </section>
