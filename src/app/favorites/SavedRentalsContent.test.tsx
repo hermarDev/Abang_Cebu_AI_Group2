@@ -131,7 +131,7 @@ describe("SavedRentalsContent fetch lifecycle", () => {
     expect(notify).not.toHaveBeenCalled();
     resolveRemoval({ ok: true });
     await settle();
-    expect(notify).toHaveBeenCalledWith("success", "saved-rental-removed", "Rental removed from your saved list.", expect.objectContaining({ action: expect.objectContaining({ label: "Undo", onClick: expect.any(Function) }) }));
+    expect(notify).toHaveBeenCalledWith("success", "saved-rental-removed-rental-1", "Rental removed from your saved list.", expect.objectContaining({ action: expect.objectContaining({ label: "Undo", onClick: expect.any(Function) }) }));
     expect(text(page.tree())).not.toContain("Lahug studio");
     expect(text(page.tree())).not.toContain("Rental removed from your saved list.");
     page.unmount();

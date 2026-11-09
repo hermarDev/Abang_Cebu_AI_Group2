@@ -133,6 +133,8 @@ export function MapCanvas({ selectedPlace, selectedRentalId, onSelectRental, ren
   useEffect(() => { onPinChangeRef.current = onPinChange; }, [onPinChange]);
   const rentalMarkersRef = useRef<Marker[]>([]);
   const rentalPopupRef = useRef<Popup | null>(null);
+  const dismissedPopupRentalIdRef = useRef<string | null>(null);
+  const prevSelectedRentalRef = useRef<string | null>(null);
   const locationRequestRef = useRef(0);
   const [activePopupRentalId, setActivePopupRentalId] = useState<string | null>(null);
   const [popupPhotoIndex, setPopupPhotoIndex] = useState(0);
@@ -173,11 +175,14 @@ export function MapCanvas({ selectedPlace, selectedRentalId, onSelectRental, ren
     [visibleRentals, rentals, activePopupRentalId],
   );
   const closeRentalPopup = useCallback(() => {
+    if (activePopupRentalId) {
+      dismissedPopupRentalIdRef.current = activePopupRentalId;
+    }
     rentalPopupRef.current?.remove();
     rentalPopupRef.current = null;
     setPopupPortalTarget(null);
     setActivePopupRentalId(null);
-  }, []);
+  }, [activePopupRentalId]);
   useEffect(() => {
     if (!popupPortalTarget || !rentalPopupRef.current) return;
     rentalPopupRef.current.setOffset(POPUP_OFFSETS);
@@ -494,8 +499,12 @@ export function MapCanvas({ selectedPlace, selectedRentalId, onSelectRental, ren
       const rentalIds = marker.getElement().dataset.rentalIds?.split(",") ?? [];
       marker.getElement().setAttribute("aria-pressed", String(Boolean(activeSelectedRental && rentalIds.includes(activeSelectedRental))));
     }
+    if (activeSelectedRental !== prevSelectedRentalRef.current) {
+      prevSelectedRentalRef.current = activeSelectedRental;
+      dismissedPopupRentalIdRef.current = null;
+    }
     const selected = visibleRentals.find((rental) => rental.id === activeSelectedRental);
-    if (selected) {
+    if (selected && dismissedPopupRentalIdRef.current !== selected.id) {
       const isCompact = typeof window !== "undefined" && window.matchMedia("(max-width: 639px)").matches;
       map.flyTo({ center: selected.coordinates, offset: isCompact ? [0, 15] : [0, 85], zoom: Math.max(map.getZoom(), 14), duration: 350 });
       openRentalPopup(selected, map);

@@ -35,7 +35,11 @@ async function loadSubmittedRentalsMap(
     if (error || !Array.isArray(data)) return result;
 
     const matched = (data as SubmittedRentalRow[]).filter(
-      (row) => row && typeof row.id === "string" && row.moderation_status === "approved" && targetIds.has(row.id),
+      (row) =>
+        row &&
+        typeof row.id === "string" &&
+        (row.moderation_status === "approved" || row.moderation_status === "pending") &&
+        targetIds.has(row.id),
     );
     if (matched.length === 0) return result;
 
@@ -67,6 +71,7 @@ async function loadSubmittedRentalsMap(
     for (const row of matched) {
       const seenLeaf = new Set<string>();
       const signedImageUrls = (row.photo_paths ?? [])
+        .filter((p): p is string => typeof p === "string")
         .filter((p) => {
           const leaf = p.split("/").pop()?.toLowerCase() ?? p;
           if (seenLeaf.has(leaf)) return false;

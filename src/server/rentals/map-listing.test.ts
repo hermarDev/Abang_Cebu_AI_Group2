@@ -59,11 +59,19 @@ describe("mapSubmittedRental", () => {
     address: "123 Gorordo Ave", city: "Cebu City", max_occupants: 2, moderation_status: "approved", photo_paths: [],
   };
 
-  it.each(["pending", "rejected", "archived"])("rejects %s submitted properties from public map results", (moderation_status) => {
+  it.each(["rejected", "archived", "draft"])("rejects %s submitted properties from public map results", (moderation_status) => {
     expect(() => mapSubmittedRental({ ...submitted, moderation_status })).toThrow("Invalid listing");
   });
 
   it("maps approved submitted properties as property_verified", () => {
     expect(mapSubmittedRental(submitted)).toMatchObject({ id: submitted.id, verificationStatus: "property_verified", directLandlord: true });
+  });
+
+  it("maps pending submitted properties as unverified", () => {
+    expect(mapSubmittedRental({ ...submitted, moderation_status: "pending" })).toMatchObject({
+      id: submitted.id,
+      verificationStatus: "unverified",
+      directLandlord: true,
+    });
   });
 });

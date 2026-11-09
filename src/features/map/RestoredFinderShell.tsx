@@ -163,7 +163,10 @@ export function RestoredFinderShell({ rentalStatus: statusOverride, initialAccou
   const favoriteRequests = useRef(new Set<string>());
   const [mapRadius, setMapRadius] = useState(2);
   const [locationQuery, setLocationQuery] = useState("");
-  const [selectedRentalId, setSelectedRentalId] = useState<string | null>(null);
+  const [selectedRentalId, setSelectedRentalId] = useState<string | null>(() => {
+    if (typeof window === "undefined") return null;
+    return new URLSearchParams(window.location.search).get("selected");
+  });
   const [selectedPlace, setSelectedPlace] = useState<PlaceResult | null>(null);
   const [searchCenter, setSearchCenter] = useState<[number, number]>([123.8854, 10.3157]);
   const visibleRentals = searchPreviewRentals(rentals, { ...filters, radiusKm: mapRadius }, "", searchCenter);

@@ -126,7 +126,7 @@ function SavedRentalsSession({ userId }: { userId: string }) {
         throw new Error(message);
       }
       setRentals((current) => current.filter((rental) => rental.id !== id));
-      notify("success", "saved-rental-removed", "Rental removed from your saved list.", removedRental ? { action: { label: "Undo", onClick: () => { void restoreRental(removedRental); } } } : undefined);
+      notify("success", `saved-rental-removed-${id}`, "Rental removed from your saved list.", removedRental ? { action: { label: "Undo", onClick: () => { void restoreRental(removedRental); } } } : undefined);
     } catch (removeError) {
       setRemoveError(removeError instanceof Error ? removeError.message : "This rental could not be removed. Please try again.");
     } finally {

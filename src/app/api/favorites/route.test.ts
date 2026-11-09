@@ -162,13 +162,13 @@ describe("favorites account consistency", () => {
       }],
     });
   });
-  it.each(["pending", "rejected", "archived"])("rejects saving a %s submitted property with 409", async (status) => {
+  it.each(["rejected", "archived"])("rejects saving a %s submitted property with 409", async (status) => {
     mocks.listing.mockResolvedValue({ data: null, error: null });
     mocks.rpc.mockResolvedValue({ data: [{ id: listingId, title: "Hidden", price: 1, moderation_status: status, photo_paths: [] }], error: null });
     expect((await POST(request("POST", "account-b")))?.status).toBe(409);
     expect(mocks.insert).not.toHaveBeenCalled();
   });
-  it.each(["pending", "rejected", "archived"])("redacts a %s submitted property on GET", async (status) => {
+  it.each(["rejected", "archived"])("redacts a %s submitted property on GET", async (status) => {
     mocks.favorites.mockResolvedValue({ data: [{ listing_id: listingId, created_at: "2026-11-08" }], error: null });
     mocks.sessionRows.mockResolvedValue({ data: [], error: null });
     mocks.rpc.mockResolvedValue({ data: [{ id: listingId, title: "Secret Pending Title", price: 1, moderation_status: status, photo_paths: [] }], error: null });

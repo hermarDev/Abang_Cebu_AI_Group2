@@ -89,7 +89,7 @@ export function mapSubmittedRental(value: unknown, signedUrlsByPath: ReadonlyMap
   if (maxOccupants !== null && !Number.isInteger(maxOccupants)) throw new Error("Invalid listing");
   const policy = typeof row.tenant_policy === "string" ? row.tenant_policy : typeof policyObject.tenant_policy === "string" ? policyObject.tenant_policy : null;
   const curfew = policyObject.curfew_policy ?? policyObject.curfew_type;
-  const status = choice(row.moderation_status, ["approved"] as const);
+  const status = choice(row.moderation_status, ["approved", "pending"] as const);
   const photos = Array.isArray(row.photo_paths) ? row.photo_paths : [];
   const seenKeys = new Set<string>();
   const imageUrls = photos.flatMap((path) => {

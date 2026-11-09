@@ -20,8 +20,8 @@ SET LOCAL ROLE anon;
 DO $$ DECLARE ids uuid[]; BEGIN
   SELECT array_agg(id) INTO ids FROM public.get_public_submitted_rentals()
   WHERE id::text LIKE 'b0000000-0000-4000-8000-0000000000%';
-  IF ids IS DISTINCT FROM ARRAY['b0000000-0000-4000-8000-000000000021'::uuid] THEN
-    RAISE EXCEPTION 'public RPC must return only the approved active-owner property, got %', ids;
+  IF ids IS DISTINCT FROM ARRAY['b0000000-0000-4000-8000-000000000021'::uuid, 'b0000000-0000-4000-8000-000000000022'::uuid] THEN
+    RAISE EXCEPTION 'public RPC must return approved and pending active-owner properties, got %', ids;
   END IF;
 END $$;
 ROLLBACK;

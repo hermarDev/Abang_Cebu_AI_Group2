@@ -35,9 +35,12 @@ export async function GET() {
     if (error || !Array.isArray(data)) throw new Error("Rental read failed");
     // Submitted-property failures degrade to published listings only; they must not take down the map.
     const submittedRows = submitted && !submitted.error && Array.isArray(submitted.data) ? submitted.data as unknown[] : [];
-    const approvedRows = submittedRows.filter((row) => (row as { moderation_status?: unknown } | null)?.moderation_status === "approved");
-    const signed = await signPhotos(approvedRows);
-    const submittedRentals = approvedRows.flatMap((row) => { try { return [mapSubmittedRental(row, signed)]; } catch { return []; } });
+    const visibleSubmittedRows = submittedRows.filter((row) => {
+      const status = (row as { moderation_status?: unknown } | null)?.moderation_status;
+      return status === "approved" || status === "pending";
+    });
+    const signed = await signPhotos(visibleSubmittedRows);
+    const submittedRentals = visibleSubmittedRows.flatMap((row) => { try { return [mapSubmittedRental(row, signed)]; } catch { return []; } });
     const rentals = [...submittedRentals, ...data.map(mapListing)];
     return Response.json({ rentals: rentals.filter((r, i) => rentals.findIndex((o) => o.id === r.id) === i) }, { headers });
   } catch {

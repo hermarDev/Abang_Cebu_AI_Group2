@@ -84,19 +84,19 @@ describe("GET /api/rentals", () => {
       createSignedUrls.mockResolvedValue({ data: [{ path: photo, signedUrl: "https://signed.test/photo", error: null }], error: null });
     });
 
-    it("excludes pending rows and maps approved rows with batch-signed photos", async () => {
+    it("maps both approved (property_verified) and pending (unverified) rows with batch-signed photos", async () => {
       rpc.mockResolvedValue({ data: [row("p1", "pending", [photo]), row("p2", "approved", [photo])], error: null });
       const body = await (await GET()).json();
       expect(rpc).toHaveBeenCalledWith("get_public_submitted_rentals");
       expect(createSignedUrls).toHaveBeenCalledTimes(1);
       expect(createSignedUrls).toHaveBeenCalledWith([photo], 3600);
-      expect(body.rentals.map((r: { id: string; verificationStatus: string }) => [r.id, r.verificationStatus])).toEqual([["p2", "property_verified"]]);
-      expect(body.rentals[0]).toMatchObject({ type: "condo", imageUrls: ["https://signed.test/photo"], tenantPolicy: "female_only", wifiAvailable: true,
+      expect(body.rentals.map((r: { id: string; verificationStatus: string }) => [r.id, r.verificationStatus])).toEqual([["p1", "unverified"], ["p2", "property_verified"]]);
+      expect(body.rentals[1]).toMatchObject({ type: "condo", imageUrls: ["https://signed.test/photo"], tenantPolicy: "female_only", wifiAvailable: true,
         cookingAllowed: true, amenities: ["Wi-Fi", "Cooking allowed"], directLandlord: true, area: 12 });
     });
 
-    it("does not sign photos for unapproved rows", async () => {
-      rpc.mockResolvedValue({ data: [row("p1", "pending", [photo])], error: null });
+    it("does not sign photos for rejected or draft rows", async () => {
+      rpc.mockResolvedValue({ data: [row("p1", "rejected", [photo])], error: null });
       expect((await (await GET()).json()).rentals).toEqual([]);
       expect(createSignedUrls).not.toHaveBeenCalled();
     });
