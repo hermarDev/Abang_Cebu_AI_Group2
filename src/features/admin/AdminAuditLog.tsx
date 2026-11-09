@@ -33,7 +33,8 @@ export function AdminAuditLog({ userId }: { userId: string }) {
   }, [targetType, userId]);
 
   const totalPages = entries ? Math.max(1, Math.ceil(entries.length / pageSize)) : 1;
-  const paginatedEntries = entries ? entries.slice((page - 1) * pageSize, page * pageSize) : [];
+  const validPage = Math.min(page, totalPages);
+  const paginatedEntries = entries ? entries.slice((validPage - 1) * pageSize, validPage * pageSize) : [];
 
   return <section aria-label="Audit log" className="grid gap-4">
     <div className="max-w-56"><Select aria-label="Filter by target type" options={targetOptions} value={targetType} onValueChange={(val) => { setTargetType(val); setPage(1); }} /></div>
@@ -42,6 +43,7 @@ export function AdminAuditLog({ userId }: { userId: string }) {
       : entries.length === 0 ? <Empty>No audit entries yet.</Empty>
       : <>
           <AdminAuditEntries entries={paginatedEntries} />
+          {entries.length >= 50 && <p className="m-0 text-xs text-muted-foreground">Showing the 50 most recent moderation events.</p>}
           <Pagination currentPage={page} totalPages={totalPages} totalItems={entries.length} pageSize={pageSize} onPageChange={setPage} />
         </>}
   </section>;

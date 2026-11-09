@@ -437,8 +437,8 @@ html[data-startup="pending"] [data-startup-splash] img {
   box-shadow: var(--shadow-lg, 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)) !important;
 }
 
-/* 2.5px progress line along bottom decreasing from 100% to 0% over 3s */
-.abang-toast::after {
+/* 2.5px progress line along bottom decreasing from 100% to 0% over 3s, excluded for loading toasts */
+.abang-toast:not([data-type="loading"])::after {
   content: "";
   position: absolute;
   left: 0;
@@ -465,7 +465,7 @@ html[data-startup="pending"] [data-startup-splash] img {
 }
 
 /* Minimalist animated circular countdown indicator replacing close button × */
-.abang-toast [data-close-button] {
+.abang-toast:not([data-type="loading"]) [data-close-button] {
   position: absolute !important;
   top: 12px !important;
   right: 12px !important;
@@ -491,7 +491,7 @@ html[data-startup="pending"] [data-startup-splash] img {
   transform: scale(1.1) !important;
 }
 
-.abang-toast [data-close-button] svg {
+.abang-toast:not([data-type="loading"]) [data-close-button] svg {
   display: none !important;
 }
 

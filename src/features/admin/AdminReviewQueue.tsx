@@ -194,7 +194,8 @@ export function AdminReviewQueue({ userId, initialStatus = "pending" }: { userId
   }
 
   const totalPages = properties ? Math.max(1, Math.ceil(properties.length / pageSize)) : 1;
-  const paginatedProperties = properties ? properties.slice((page - 1) * pageSize, page * pageSize) : [];
+  const validPage = Math.min(page, totalPages);
+  const paginatedProperties = properties ? properties.slice((validPage - 1) * pageSize, validPage * pageSize) : [];
 
   return <section aria-label="Listing review queue" className="grid gap-4">
     <div className="flex flex-wrap gap-2" role="group" aria-label="Review status">

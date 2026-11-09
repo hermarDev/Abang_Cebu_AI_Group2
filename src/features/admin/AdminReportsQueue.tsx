@@ -131,7 +131,8 @@ export function AdminReportsQueue({ userId, initialStatus }: { userId: string; i
 
   const resolving = dialog?.decision === "resolved";
   const totalPages = reports ? Math.max(1, Math.ceil(reports.length / pageSize)) : 1;
-  const paginatedReports = reports ? reports.slice((page - 1) * pageSize, page * pageSize) : [];
+  const validPage = Math.min(page, totalPages);
+  const paginatedReports = reports ? reports.slice((validPage - 1) * pageSize, validPage * pageSize) : [];
 
   return <section aria-label="Abuse reports" className="grid gap-4">
     <div role="group" aria-label="Filter by status" className="flex flex-wrap gap-2">

@@ -433,10 +433,15 @@ export function ListPropertyForm({ userId, restoreTarget }: { userId: string; re
         return null;
       }
       if (existing.length === 1) {
-        const saved = await executeDraftSave(existing[0], repository);
-        setDraftId(saved.draftId);
-        setRevision(saved.revision);
-        return { ...saved, message: "The earlier save was recovered. Your current entries were kept.", recovered: true };
+        try {
+          const saved = await executeDraftSave(existing[0], repository);
+          setDraftId(saved.draftId);
+          setRevision(saved.revision);
+          return { ...saved, message: "The earlier save was recovered. Your current entries were kept.", recovered: true };
+        } catch {
+          // If the pending save failed permanently (e.g. 400/409/claim conflict), discard it so it does not block future saves
+          await repository.deletePending(existing[0].ownerId, existing[0].id, existing[0].storageVersion ?? 0).catch(() => {});
+        }
       }
       const values = currentValues();
       const photoFilesWithOp = await Promise.all(photos.map(async (file): Promise<DraftSaveFile> => {
@@ -468,7 +473,11 @@ export function ListPropertyForm({ userId, restoreTarget }: { userId: string; re
       setConfirmedMedia(nextConfirmed);
       setSavedSnapshot({ payload: JSON.stringify(intent.payload), photos, permits: permitPhotos });
       // Refresh drafts list to get latest revision
-      await loadDrafts();
+      try {
+        await loadDrafts();
+      } catch {
+        // list refresh is best-effort; the save succeeded
+      }
       return { ...saved, message: files.length ? "Draft and files saved." : "Draft saved.", recovered: false };
     } catch {
       const message = "The save outcome could not be confirmed. Your entries were kept.";

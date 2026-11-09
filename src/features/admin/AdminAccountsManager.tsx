@@ -99,7 +99,8 @@ export function AdminAccountsManager({ userId, initialRole, initialStatus }: { u
 
   const name = dialog?.account.fullName?.trim() || "this account";
   const totalPages = accounts ? Math.max(1, Math.ceil(accounts.length / pageSize)) : 1;
-  const paginatedAccounts = accounts ? accounts.slice((page - 1) * pageSize, page * pageSize) : [];
+  const validPage = Math.min(page, totalPages);
+  const paginatedAccounts = accounts ? accounts.slice((validPage - 1) * pageSize, validPage * pageSize) : [];
 
   return <section aria-label="Account management" className="grid gap-4">
     <div className="grid gap-3 sm:grid-cols-[12rem_12rem_minmax(0,1fr)]">
