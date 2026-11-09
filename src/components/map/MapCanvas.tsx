@@ -1,6 +1,6 @@
 "use client";
 
-import { Plus, Minus, LocateFixed, Search } from "lucide-react";
+import { Plus, Minus, LocateFixed, Search, Building2, Images, MapPin, ArrowUpRight, Bookmark, ChevronLeft, ChevronRight, MessageSquare, X } from "lucide-react";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -46,6 +46,18 @@ type ResolvedTheme = "light" | "dark";
 
 const DEFAULT_LIGHT_STYLE_URL = "/styles/osm.json";
 
+const POPUP_OFFSETS = {
+  center: [0, 0] as [number, number],
+  top: [0, 14] as [number, number],
+  "top-left": [0, 14] as [number, number],
+  "top-right": [0, 14] as [number, number],
+  bottom: [0, -42] as [number, number],
+  "bottom-left": [0, -42] as [number, number],
+  "bottom-right": [0, -42] as [number, number],
+  left: [18, -18] as [number, number],
+  right: [-18, -18] as [number, number],
+};
+
 export function resolveMapStyleUrl(resolvedTheme: ResolvedTheme = "light", configuredStyleUrl?: string): string {
   if (configuredStyleUrl && configuredStyleUrl !== DEFAULT_LIGHT_STYLE_URL) return configuredStyleUrl;
   return resolvedTheme === "dark" ? "/styles/osm-dark.json" : DEFAULT_LIGHT_STYLE_URL;
@@ -71,9 +83,15 @@ type MapCanvasProps = {
   savedRentalIds?: string[];
   canSaveRentals?: boolean;
   onToggleFavorite?: (id: string) => void;
+  onExpandRental?: (id: string) => void;
+  canMessageLandlord?: boolean;
+  onMessageLandlord?: (id: string) => void;
+  enablePinDrop?: boolean;
+  pinCoordinates?: [number, number] | null;
+  onPinChange?: (coordinates: [number, number]) => void;
 };
 
-export function MapCanvas({ selectedPlace, selectedRentalId, onSelectRental, rentals = [], dataStatus = "error", filters: externalFilters, onFiltersChange, locationQuery: externalLocationQuery, onLocationQueryChange, searchRadiusKm: externalSearchRadiusKm, onSearchRadiusKmChange, onSearchCenterChange, resolvedTheme = "light", assistantControlsTarget, savedRentalIds, canSaveRentals = false, onToggleFavorite, decorative = false, showAttribution = true }: MapCanvasProps) {
+export function MapCanvas({ selectedPlace, selectedRentalId, onSelectRental, rentals = [], dataStatus = "error", filters: externalFilters, onFiltersChange, locationQuery: externalLocationQuery, onLocationQueryChange, searchRadiusKm: externalSearchRadiusKm, onSearchRadiusKmChange, onSearchCenterChange, resolvedTheme = "light", assistantControlsTarget, savedRentalIds, canSaveRentals = false, onToggleFavorite, onExpandRental, canMessageLandlord = false, onMessageLandlord, decorative = false, showAttribution = true, enablePinDrop = false, pinCoordinates, onPinChange }: MapCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [selectedRental, setSelectedRental] = useState<string | null>(null);
   const activeSelectedRental = selectedRentalId !== undefined ? selectedRentalId : selectedRental;
@@ -101,7 +119,7 @@ export function MapCanvas({ selectedPlace, selectedRentalId, onSelectRental, ren
   const searchRadiusKm = externalSearchRadiusKm ?? internalSearchRadiusKm;
   const setSearchRadiusKm = onSearchRadiusKmChange ?? setInternalSearchRadiusKm;
   const searchRadiusMeters = searchRadiusKm * 1000;
-  const externallyControlled = externalFilters !== undefined;
+  const externallyControlled = externalFilters !== undefined || enablePinDrop;
   const visibleRentals = useMemo(() => searchPreviewRentals(rentals, { ...filters, radiusKm: searchRadiusKm }, externallyControlled ? "" : locationQuery, searchCenter) as RentalResult[], [rentals, filters, locationQuery, searchCenter, searchRadiusKm, externallyControlled]);
   const markerGroups = useMemo(() => groupRentalsByCoordinates(visibleRentals), [visibleRentals]);
   const onSelectRentalRef = useRef(onSelectRental ?? setSelectedRental);
@@ -110,45 +128,60 @@ export function MapCanvas({ selectedPlace, selectedRentalId, onSelectRental, ren
   }, [onSelectRental]);
   const mapRef = useRef<MapLibreMap | null>(null);
   const markerRef = useRef<Marker | null>(null);
+  const pinMarkerRef = useRef<Marker | null>(null);
+  const onPinChangeRef = useRef(onPinChange);
+  useEffect(() => { onPinChangeRef.current = onPinChange; }, [onPinChange]);
   const rentalMarkersRef = useRef<Marker[]>([]);
   const rentalPopupRef = useRef<Popup | null>(null);
-  const savedRentalIdsRef = useRef(new Set(savedRentalIds ?? []));
-  const onToggleFavoriteRef = useRef(onToggleFavorite);
   const locationRequestRef = useRef(0);
-  useEffect(() => { savedRentalIdsRef.current = new Set(savedRentalIds ?? []); }, [savedRentalIds]);
-  useEffect(() => { onToggleFavoriteRef.current = onToggleFavorite; }, [onToggleFavorite]);
+  const [activePopupRentalId, setActivePopupRentalId] = useState<string | null>(null);
+  const [popupPhotoIndex, setPopupPhotoIndex] = useState(0);
+  const [popupPhotoFailed, setPopupPhotoFailed] = useState(false);
+  const [popupPortalTarget, setPopupPortalTarget] = useState<HTMLDivElement | null>(null);
   const openRentalPopup = useCallback((rental: RentalResult, map: MapLibreMap) => {
     rentalPopupRef.current?.remove();
     const content = document.createElement("div");
-    content.className = styles.rentalPopup;
-    const title = document.createElement("strong");
-    title.textContent = rental.title;
-    const locality = document.createElement("span");
-    locality.textContent = rental.locality;
-    const price = document.createElement("span");
-    price.textContent = formatPrice(rental.price) + " / month";
-    content.append(title, locality, price);
-    if (canSaveRentals) {
-      const saveButton = document.createElement("button");
-      saveButton.type = "button";
-      saveButton.className = styles.rentalPopupSave;
-      saveButton.dataset.favoriteId = rental.id;
-      const saved = savedRentalIdsRef.current.has(rental.id);
-      saveButton.setAttribute("aria-pressed", String(saved));
-      saveButton.setAttribute("aria-label", saved ? "Remove " + rental.title + " from saved rentals" : "Save " + rental.title);
-      saveButton.textContent = saved ? "Saved" : "Save rental";
-      saveButton.addEventListener("click", (event) => {
-        event.preventDefault();
-        event.stopPropagation();
-        onToggleFavoriteRef.current?.(rental.id);
-      });
-      content.append(saveButton);
+    content.className = styles.rentalPopupHost;
+    const stopMapEvent = (e: Event) => { e.stopPropagation(); };
+    for (const evt of ["click", "dblclick", "wheel", "pointerdown", "touchstart"]) {
+      content.addEventListener(evt, stopMapEvent);
     }
-    rentalPopupRef.current = new Popup({ offset: 18, closeButton: true, closeOnClick: false })
+    const popup = new Popup({
+      offset: POPUP_OFFSETS,
+      maxWidth: "none",
+      closeButton: false,
+      closeOnClick: false,
+    })
       .setLngLat(rental.coordinates)
       .setDOMContent(content)
       .addTo(map);
-  }, [canSaveRentals]);
+    popup.on("close", () => {
+      if (rentalPopupRef.current === popup) {
+        rentalPopupRef.current = null;
+        setPopupPortalTarget(null);
+        setActivePopupRentalId(null);
+      }
+    });
+    rentalPopupRef.current = popup;
+    setPopupPhotoIndex(0);
+    setPopupPhotoFailed(false);
+    setActivePopupRentalId(rental.id);
+    setPopupPortalTarget(content);
+  }, []);
+  const activePopupRental = useMemo(
+    () => visibleRentals.find((r) => r.id === activePopupRentalId) ?? rentals.find((r) => r.id === activePopupRentalId) ?? null,
+    [visibleRentals, rentals, activePopupRentalId],
+  );
+  const closeRentalPopup = useCallback(() => {
+    rentalPopupRef.current?.remove();
+    rentalPopupRef.current = null;
+    setPopupPortalTarget(null);
+    setActivePopupRentalId(null);
+  }, []);
+  useEffect(() => {
+    if (!popupPortalTarget || !rentalPopupRef.current) return;
+    rentalPopupRef.current.setOffset(POPUP_OFFSETS);
+  }, [popupPortalTarget, activePopupRentalId, popupPhotoIndex, savedRentalIds]);
   const [mapStatus, setMapStatus] = useState<MapStatus>("loading");
   const [locationStatus, setLocationStatus] = useState<LocationStatus>("idle");
   const [statusMessage, setStatusMessage] = useState(
@@ -277,6 +310,28 @@ export function MapCanvas({ selectedPlace, selectedRentalId, onSelectRental, ren
 
   useEffect(() => {
     const map = mapRef.current;
+    if (!map || !enablePinDrop) return;
+    const handleClick = (event: { lngLat: { lng: number; lat: number } }) => onPinChangeRef.current?.([event.lngLat.lng, event.lngLat.lat]);
+    map.on("click", handleClick);
+    return () => { map.off("click", handleClick); pinMarkerRef.current?.remove(); pinMarkerRef.current = null; };
+  }, [enablePinDrop, mapStatus]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !enablePinDrop) return;
+    if (!pinCoordinates) { pinMarkerRef.current?.remove(); pinMarkerRef.current = null; return; }
+    if (!pinMarkerRef.current) {
+      const marker = new Marker({ draggable: true, color: "#2563eb" }).setLngLat(pinCoordinates).addTo(map);
+      marker.on("dragend", () => {
+        const position = marker.getLngLat();
+        onPinChangeRef.current?.([position.lng, position.lat]);
+      });
+      pinMarkerRef.current = marker;
+    } else pinMarkerRef.current.setLngLat(pinCoordinates);
+  }, [enablePinDrop, pinCoordinates, mapStatus]);
+
+  useEffect(() => {
+    const map = mapRef.current;
     if (!map) return;
     const configuredStyleUrl = process.env.NEXT_PUBLIC_MAP_STYLE_URL;
     const styleUrl = resolveMapStyleUrl(resolvedTheme, configuredStyleUrl);
@@ -382,7 +437,7 @@ export function MapCanvas({ selectedPlace, selectedRentalId, onSelectRental, ren
     rentalMarkersRef.current = [];
     rentalPopupRef.current?.remove();
     rentalPopupRef.current = null;
-    if (decorative) return;
+    if (decorative || enablePinDrop) return;
     for (const group of markerGroups) {
       const element = document.createElement("button");
       const titles = group.rentals.map((rental) => rental.title);
@@ -430,7 +485,7 @@ export function MapCanvas({ selectedPlace, selectedRentalId, onSelectRental, ren
     const onStyleLoad = () => updateArea();
     map.on("style.load", onStyleLoad);
     return () => { map.off("style.load", onStyleLoad); };
-  }, [decorative, markerGroups, visibleRentals, searchCenter, searchRadiusMeters, mapStatus, openRentalPopup]);
+  }, [decorative, enablePinDrop, markerGroups, visibleRentals, searchCenter, searchRadiusMeters, mapStatus, openRentalPopup]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -440,23 +495,18 @@ export function MapCanvas({ selectedPlace, selectedRentalId, onSelectRental, ren
       marker.getElement().setAttribute("aria-pressed", String(Boolean(activeSelectedRental && rentalIds.includes(activeSelectedRental))));
     }
     const selected = visibleRentals.find((rental) => rental.id === activeSelectedRental);
-    if (selected) map.flyTo({ center: selected.coordinates, zoom: Math.max(map.getZoom(), 14), duration: 350 });
-  }, [activeSelectedRental, visibleRentals, mapStatus, decorative]);
-
-  useEffect(() => {
-    if (mapStatus !== "ready" || decorative) return;
-    const favoriteButton = rentalPopupRef.current?.getElement().querySelector<HTMLButtonElement>("[data-favorite-id]");
-    if (!favoriteButton) return;
-    const saved = savedRentalIdsRef.current.has(favoriteButton.dataset.favoriteId ?? "");
-    const rental = visibleRentals.find((item) => item.id === favoriteButton.dataset.favoriteId);
-    favoriteButton.setAttribute("aria-pressed", String(saved));
-    favoriteButton.setAttribute("aria-label", saved && rental ? "Remove " + rental.title + " from saved rentals" : "Save " + (rental?.title ?? "rental"));
-    favoriteButton.textContent = saved ? "Saved" : "Save rental";
-  }, [savedRentalIds, mapStatus, decorative, visibleRentals]);
+    if (selected) {
+      const isCompact = typeof window !== "undefined" && window.matchMedia("(max-width: 639px)").matches;
+      map.flyTo({ center: selected.coordinates, offset: isCompact ? [0, 15] : [0, 85], zoom: Math.max(map.getZoom(), 14), duration: 350 });
+      openRentalPopup(selected, map);
+    } else if (activeSelectedRental === null) {
+      closeRentalPopup();
+    }
+  }, [activeSelectedRental, visibleRentals, mapStatus, decorative, openRentalPopup, closeRentalPopup]);
 
   useEffect(() => {
     const map = mapRef.current;
-    if (!map || mapStatus !== "ready" || decorative) return;
+    if (!map || mapStatus !== "ready" || decorative || enablePinDrop) return;
     const updatePreview = () => {
       if (!map.isStyleLoaded()) return;
       const center = map.getCenter();
@@ -476,7 +526,7 @@ export function MapCanvas({ selectedPlace, selectedRentalId, onSelectRental, ren
       map.off("move", updatePreview);
       map.off("style.load", updatePreview);
     };
-  }, [mapStatus, isDragging, areaDirty, searchRadiusMeters, decorative]);
+  }, [mapStatus, isDragging, areaDirty, searchRadiusMeters, decorative, enablePinDrop]);
 
   const mapControls = (
     <div className={[styles.mapControls, externallyControlled && styles.controlledControls, assistantControlsTarget && styles.assistantControls].filter(Boolean).join(" ")} role="group" aria-label="Map controls">
@@ -501,7 +551,7 @@ export function MapCanvas({ selectedPlace, selectedRentalId, onSelectRental, ren
   );
 
   return (
-    <section className={styles.mapRoot} aria-label={decorative ? "Cebu map background" : "Rental map"}>
+    <section className={styles.mapRoot} style={enablePinDrop ? { height: "100%", minHeight: 0 } : undefined} aria-label={decorative ? "Cebu map background" : enablePinDrop ? "Property location map" : "Rental map"}>
       <div
         ref={containerRef}
         className={styles.mapCanvas}
@@ -517,13 +567,13 @@ export function MapCanvas({ selectedPlace, selectedRentalId, onSelectRental, ren
         </div>
       )}
 
-      {!decorative && isDragging && mapStatus === "ready" && (
+      {!decorative && !enablePinDrop && isDragging && mapStatus === "ready" && (
         <>
           <span data-map-drag-target aria-hidden="true" className={styles.dragTarget} />
           <div role="status" className={`${styles.searchAreaButton} ${styles.dragFeedback}`}>Move map to choose an area</div>
         </>
       )}
-      {!decorative && areaDirty && !isDragging && mapStatus === "ready" && (
+      {!decorative && !enablePinDrop && areaDirty && !isDragging && mapStatus === "ready" && (
         <button type="button" aria-label="Search this area" className={styles.searchAreaButton} onClick={() => {
           const map = mapRef.current;
           map?.stop();
@@ -600,7 +650,130 @@ export function MapCanvas({ selectedPlace, selectedRentalId, onSelectRental, ren
         {statusMessage}
       </div>}
 
-      {!decorative && (assistantControlsTarget ? createPortal(mapControls, assistantControlsTarget) : mapControls)}
+      {!decorative && !enablePinDrop && popupPortalTarget && activePopupRental && createPortal((() => {
+        const photos = activePopupRental.imageUrls ?? [];
+        const photoCount = photos.length;
+        const safePhotoIdx = photoCount > 0 ? Math.min(Math.max(popupPhotoIndex, 0), photoCount - 1) : 0;
+        const currentPhotoUrl = photoCount > 0 && !popupPhotoFailed ? photos[safePhotoIdx] : null;
+        const rawCategory = (activePopupRental.propertyType ?? activePopupRental.type ?? "Rental").replaceAll(/[-_]/g, " ");
+        const categoryLabel = rawCategory.charAt(0).toUpperCase() + rawCategory.slice(1);
+        const locationLabel = (activePopupRental.address ?? activePopupRental.locality ?? "Cebu").trim() || "Cebu";
+        const isSaved = Boolean(savedRentalIds?.includes(activePopupRental.id));
+        const photoSummary = photoCount === 0 ? "No photos" : photoCount === 1 ? "1 photo" : `${safePhotoIdx + 1} of ${photoCount} photos`;
+        return (
+          <article
+            className={styles.rentalPopup}
+            aria-label={`Preview of ${activePopupRental.title}`}
+            onKeyDown={(e) => {
+              if (e.key === "Escape") { e.stopPropagation(); closeRentalPopup(); }
+              else if (e.key === "ArrowLeft" && photoCount > 1) { e.preventDefault(); setPopupPhotoFailed(false); setPopupPhotoIndex((safePhotoIdx - 1 + photoCount) % photoCount); }
+              else if (e.key === "ArrowRight" && photoCount > 1) { e.preventDefault(); setPopupPhotoFailed(false); setPopupPhotoIndex((safePhotoIdx + 1) % photoCount); }
+            }}
+          >
+            <div className={styles.rentalPopupPhotoFrame}>
+              {currentPhotoUrl ? (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img
+                  src={currentPhotoUrl}
+                  alt={`Photo ${safePhotoIdx + 1} of ${activePopupRental.title}`}
+                  className={styles.rentalPopupPhoto}
+                  onError={() => setPopupPhotoFailed(true)}
+                />
+              ) : (
+                <div className={styles.rentalPopupNoPhoto} role="img" aria-label={`No photo available for ${activePopupRental.title}`}>
+                  <Building2 size={24} aria-hidden="true" />
+                  <span>No photo available</span>
+                </div>
+              )}
+              {photoCount > 1 && (
+                <>
+                  <button
+                    type="button"
+                    className={`${styles.rentalPopupPhotoNav} ${styles.rentalPopupPhotoPrev}`}
+                    aria-label="Previous photo"
+                    onClick={() => { setPopupPhotoFailed(false); setPopupPhotoIndex((safePhotoIdx - 1 + photoCount) % photoCount); }}
+                  >
+                    <ChevronLeft size={16} aria-hidden="true" />
+                  </button>
+                  <button
+                    type="button"
+                    className={`${styles.rentalPopupPhotoNav} ${styles.rentalPopupPhotoNext}`}
+                    aria-label="Next photo"
+                    onClick={() => { setPopupPhotoFailed(false); setPopupPhotoIndex((safePhotoIdx + 1) % photoCount); }}
+                  >
+                    <ChevronRight size={16} aria-hidden="true" />
+                  </button>
+                </>
+              )}
+            </div>
+            <div className={styles.rentalPopupBody}>
+              <div className={styles.rentalPopupMetaRow}>
+                <span className={styles.rentalPopupCategory}>{categoryLabel}</span>
+                <span className={styles.rentalPopupPhotoCount}>
+                  <Images size={13} aria-hidden="true" />
+                  <span>{photoSummary}</span>
+                </span>
+              </div>
+              <h3 className={styles.rentalPopupTitle} title={activePopupRental.title}>{activePopupRental.title}</h3>
+              <p className={styles.rentalPopupLocation} title={locationLabel}>
+                <MapPin size={13} aria-hidden="true" />
+                <span>{locationLabel}</span>
+              </p>
+              <p className={styles.rentalPopupPriceRow}>
+                <strong className={styles.rentalPopupPrice}>{formatPrice(activePopupRental.price)}</strong>
+                <span className={styles.rentalPopupBasis}>/ month · per {activePopupRental.basis}</span>
+              </p>
+              <button
+                type="button"
+                className={styles.rentalPopupClose}
+                aria-label={`Close ${activePopupRental.title} preview`}
+                onClick={closeRentalPopup}
+              >
+                <X size={15} aria-hidden="true" />
+              </button>
+              <div className={styles.rentalPopupActions} data-single-action={!canSaveRentals || undefined}>
+                <button
+                  type="button"
+                  className={styles.rentalPopupExpand}
+                  data-expand-id={activePopupRental.id}
+                  aria-label={`View details for ${activePopupRental.title}`}
+                  onClick={() => onExpandRental?.(activePopupRental.id)}
+                >
+                  <span>View details</span>
+                  <ArrowUpRight size={15} aria-hidden="true" />
+                </button>
+                {canSaveRentals && (
+                  <button
+                    type="button"
+                    className={styles.rentalPopupSave}
+                    data-favorite-id={activePopupRental.id}
+                    aria-pressed={isSaved}
+                    aria-label={isSaved ? `Remove ${activePopupRental.title} from saved rentals` : `Save ${activePopupRental.title}`}
+                    onClick={() => onToggleFavorite?.(activePopupRental.id)}
+                  >
+                    <Bookmark size={14} aria-hidden="true" fill={isSaved ? "currentColor" : "none"} />
+                    <span>{isSaved ? "Saved" : "Save"}</span>
+                  </button>
+                )}
+                {canMessageLandlord && (
+                  <button
+                    type="button"
+                    className={styles.rentalPopupSave}
+                    style={{ gridColumn: "1 / -1" }}
+                    data-message-id={activePopupRental.id}
+                    aria-label={`Message landlord about ${activePopupRental.title}`}
+                    onClick={() => { closeRentalPopup(); onMessageLandlord?.(activePopupRental.id); }}
+                  >
+                    <MessageSquare size={14} aria-hidden="true" />
+                    <span>Message landlord</span>
+                  </button>
+                )}
+              </div>
+            </div>
+          </article>
+        );
+      })(), popupPortalTarget)}
+      {!decorative && !enablePinDrop && (assistantControlsTarget ? createPortal(mapControls, assistantControlsTarget) : mapControls)}
     </section>
   );
 }

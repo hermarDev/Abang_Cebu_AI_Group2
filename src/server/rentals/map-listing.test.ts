@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { mapListing } from "./map-listing";
+import { mapListing, mapSubmittedRental } from "./map-listing";
 
 export const listing = {
   id: "d9cdfbde-346b-4bcc-956a-960db23b6792", title: "Room in Cebu", description: "Private room",
@@ -49,5 +49,21 @@ describe("mapListing", () => {
 
   it.each([null, [], "listing"])("rejects a non-record %j", (value) => {
     expect(() => mapListing(value)).toThrow();
+  });
+});
+
+describe("mapSubmittedRental", () => {
+  const submitted = {
+    id: "11111111-1111-4111-8111-111111111111", title: "Studio", description: "Reviewed unit.", price: 8500,
+    property_type: "apartment", rental_type: "entire_place", latitude: 10.3157, longitude: 123.8854,
+    address: "123 Gorordo Ave", city: "Cebu City", max_occupants: 2, moderation_status: "approved", photo_paths: [],
+  };
+
+  it.each(["pending", "rejected", "archived"])("rejects %s submitted properties from public map results", (moderation_status) => {
+    expect(() => mapSubmittedRental({ ...submitted, moderation_status })).toThrow("Invalid listing");
+  });
+
+  it("maps approved submitted properties as property_verified", () => {
+    expect(mapSubmittedRental(submitted)).toMatchObject({ id: submitted.id, verificationStatus: "property_verified", directLandlord: true });
   });
 });

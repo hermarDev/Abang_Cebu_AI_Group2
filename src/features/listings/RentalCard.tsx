@@ -1,5 +1,5 @@
 import type { RentalResult } from "@/contracts/preview";
-import { Bookmark, Building2 } from "lucide-react";
+import { Bookmark, Building2, Maximize2, MessageSquare } from "lucide-react";
 import Image from "next/image";
 import { formatPrice } from "@/features/rentals/search";
 import { propertyTypes } from "@/features/map/FinderQuickFilters";
@@ -12,6 +12,9 @@ export function RentalCard({
   saved = false,
   canSave = false,
   onToggleSaved,
+  onExpand,
+  canMessage = false,
+  onMessage,
 }: {
   rental: RentalResult;
   selected: boolean;
@@ -19,12 +22,16 @@ export function RentalCard({
   saved?: boolean;
   canSave?: boolean;
   onToggleSaved?: (id: string) => void;
+  onExpand?: (id: string) => void;
+  canMessage?: boolean;
+  onMessage?: (id: string) => void;
 }) {
   return <article className={styles.rentalCard}>
     <div className={styles.rentalPhotoFrame}>
       {rental.imageUrls?.[0]
         ? <Image src={rental.imageUrls[0]} alt={"Photo of " + rental.title} width={800} height={480} unoptimized className={styles.rentalPhoto} />
         : <div className={styles.noPhoto}><Building2 size={22} aria-hidden="true" /><span>No photos provided</span></div>}
+      {rental.imageUrls && rental.imageUrls.length > 1 && <span className={styles.photoCountBadge}>{rental.imageUrls.length} photos</span>}
       {canSave && <button
         type="button"
         className={styles.favoriteButton}
@@ -36,7 +43,9 @@ export function RentalCard({
     </div>
     <span className={styles.category}>{propertyTypes.find(({ value }) => value === (rental.propertyType ?? rental.type))?.label ?? rental.type.replaceAll(/[-_]/g, " ")}</span>
     <h2><button id={"rental-card-" + rental.id} type="button" aria-pressed={selected} onClick={() => onSelect(rental.id)}>{rental.title}</button></h2><p className={styles.price}>{formatPrice(rental.price)}<span> / month · per {rental.basis}</span></p>
-    <p>{rental.address ?? rental.locality}</p><p>{rental.description}</p>
+    <p className={styles.cardAddress}>{rental.address ?? rental.locality}</p><p className={styles.cardDescription}>{rental.description}</p>
     {rental.amenities.length > 0 && <ul className={styles.amenities} aria-label="Amenities">{rental.amenities.map((amenity, index) => <li key={amenity + "-" + index}>{amenity}</li>)}</ul>}
+    <button type="button" className={styles.expandCardButton} aria-label={"Expand " + rental.title} onClick={() => onExpand?.(rental.id)}><Maximize2 size={15} aria-hidden="true" /><span>Expand</span></button>
+    {canMessage && <button type="button" className={styles.expandCardButton} aria-label={"Message landlord about " + rental.title} onClick={() => onMessage?.(rental.id)}><MessageSquare size={15} aria-hidden="true" /><span>Message landlord</span></button>}
   </article>;
 }

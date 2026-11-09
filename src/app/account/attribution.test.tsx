@@ -19,6 +19,10 @@ describe("account map attribution", () => {
     fixture.profile = { ...fixture.profile, role: "renter" };
     const renter = renderToStaticMarkup(await AccountPage());
     expect(renter).toContain("Back to map");
+    fixture.profile = { ...fixture.profile, role: "admin" };
+    const admin = renderToStaticMarkup(await AccountPage());
+    expect(admin).toContain('href="/admin/dashboard"');
+    expect(admin).toContain("Back to admin workspace");
     fixture.profile = null;
   });
 

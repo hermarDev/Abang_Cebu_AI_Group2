@@ -1,11 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { GET } from "./route";
 
-const { createClient, query } = vi.hoisted(() => {
+const { createClient, query, createSignedUrls } = vi.hoisted(() => {
   const query = { select: vi.fn(), eq: vi.fn(), order: vi.fn(), limit: vi.fn() };
-  return { createClient: vi.fn(), query };
+  return { createClient: vi.fn(), query, createSignedUrls: vi.fn() };
 });
 vi.mock("@/lib/supabase/server", () => ({ createClient }));
+vi.mock("@/lib/supabase/admin", () => ({ createAdminClient: () => ({ storage: { from: (bucket: string) => { expect(bucket).toBe("property-draft-media"); return { createSignedUrls }; } } }) }));
 
 beforeEach(() => {
   vi.resetAllMocks();
@@ -67,5 +68,53 @@ describe("GET /api/rentals", () => {
     const response = await GET();
     expect(response.status).toBe(503);
     expect(await response.text()).not.toContain("secret");
+  });
+
+  describe("submitted properties", () => {
+    const owner = "aaaaaaaa-0000-4000-8000-000000000001";
+    const photo = `${owner}/bbbbbbbb-0000-4000-8000-000000000001/cccccccc-0000-4000-8000-000000000001/${"a".repeat(64)}.jpg`;
+    const permit = `${owner}/bbbbbbbb-0000-4000-8000-000000000001/cccccccc-0000-4000-8000-000000000002/${"b".repeat(64)}.pdf`;
+    const row = (id: string, status: string, photo_paths: string[]) => ({ id, title: `Home ${id}`, description: "Nice", price: 5000, property_type: "condominium",
+      rental_type: "private_room", latitude: 10.3, longitude: 123.9, address: "Street 1", barangay: "Mabolo", city: "Cebu City", max_occupants: 2,
+      floor_area_sqm: 12, bathroom_type: "private", tenant_policy: "female_only", amenities: ["wifi", "cooking"], photo_paths, moderation_status: status,
+      created_at: "2026-11-08T00:00:00Z" });
+    const rpc = vi.fn();
+    beforeEach(() => {
+      createClient.mockResolvedValue({ from: vi.fn(() => query), rpc });
+      createSignedUrls.mockResolvedValue({ data: [{ path: photo, signedUrl: "https://signed.test/photo", error: null }], error: null });
+    });
+
+    it("excludes pending rows and maps approved rows with batch-signed photos", async () => {
+      rpc.mockResolvedValue({ data: [row("p1", "pending", [photo]), row("p2", "approved", [photo])], error: null });
+      const body = await (await GET()).json();
+      expect(rpc).toHaveBeenCalledWith("get_public_submitted_rentals");
+      expect(createSignedUrls).toHaveBeenCalledTimes(1);
+      expect(createSignedUrls).toHaveBeenCalledWith([photo], 3600);
+      expect(body.rentals.map((r: { id: string; verificationStatus: string }) => [r.id, r.verificationStatus])).toEqual([["p2", "property_verified"]]);
+      expect(body.rentals[0]).toMatchObject({ type: "condo", imageUrls: ["https://signed.test/photo"], tenantPolicy: "female_only", wifiAvailable: true,
+        cookingAllowed: true, amenities: ["Wi-Fi", "Cooking allowed"], directLandlord: true, area: 12 });
+    });
+
+    it("does not sign photos for unapproved rows", async () => {
+      rpc.mockResolvedValue({ data: [row("p1", "pending", [photo])], error: null });
+      expect((await (await GET()).json()).rentals).toEqual([]);
+      expect(createSignedUrls).not.toHaveBeenCalled();
+    });
+
+    it("never signs or exposes invalid/permit paths or private fields", async () => {
+      rpc.mockResolvedValue({ data: [{ ...row("p1", "approved", [permit, "../x.jpg", photo]), landlord_id: "private-landlord", moderation_note: "private-note", owner_id: "private-owner" }], error: null });
+      const text = await (await GET()).text();
+      expect(createSignedUrls).toHaveBeenCalledWith([photo], 3600);
+      for (const secret of ["private-landlord", "private-note", "private-owner", permit, "../x.jpg"]) expect(text).not.toContain(secret);
+    });
+
+    it("degrades to listings when rpc or signing fails", async () => {
+      rpc.mockResolvedValue({ data: null, error: { message: "secret" } });
+      expect(await (await GET()).json()).toEqual({ rentals: [] });
+      rpc.mockResolvedValue({ data: [row("p1", "approved", [photo])], error: null });
+      createSignedUrls.mockRejectedValue(new Error("secret"));
+      const body = await (await GET()).json();
+      expect(body.rentals[0].imageUrls).toEqual([]);
+    });
   });
 });

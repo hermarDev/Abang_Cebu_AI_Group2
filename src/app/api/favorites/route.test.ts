@@ -1,9 +1,15 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const mocks = vi.hoisted(() => ({ getUser: vi.fn(), profile: vi.fn(), favorites: vi.fn(), listing: vi.fn(), insert: vi.fn(), remove: vi.fn(), ownerFilter: vi.fn(), adminRows: vi.fn(), sessionRows: vi.fn() }));
-vi.mock("@/lib/supabase/admin", () => ({ createAdminClient: () => ({ from: () => ({ select: () => ({ in: mocks.adminRows }) }) }) }));
+const mocks = vi.hoisted(() => ({ getUser: vi.fn(), profile: vi.fn(), favorites: vi.fn(), listing: vi.fn(), insert: vi.fn(), remove: vi.fn(), ownerFilter: vi.fn(), adminRows: vi.fn(), sessionRows: vi.fn(), rpc: vi.fn(), createSignedUrls: vi.fn() }));
+vi.mock("@/lib/supabase/admin", () => ({
+  createAdminClient: () => ({
+    from: () => ({ select: () => ({ in: mocks.adminRows }) }),
+    storage: { from: () => ({ createSignedUrls: mocks.createSignedUrls }) },
+  }),
+}));
 vi.mock("@/lib/supabase/server", () => ({ createClient: async () => ({
   auth: { getUser: mocks.getUser },
+  rpc: mocks.rpc,
   from: (table: string) => {
     if (table === "profiles") return { select: () => ({ eq: () => ({ maybeSingle: mocks.profile }) }) };
     if (table === "favorites") return { select: () => ({ eq: mocks.ownerFilter }), insert: mocks.insert, delete: () => ({ eq: () => ({ eq: mocks.remove }) }) };
@@ -29,6 +35,8 @@ beforeEach(() => {
   mocks.ownerFilter.mockReturnValue({ order: mocks.favorites });
   mocks.favorites.mockResolvedValue({ data: [], error: null });
   mocks.listing.mockResolvedValue({ data: { id: listingId }, error: null });
+  mocks.rpc.mockResolvedValue({ data: [], error: null });
+  mocks.createSignedUrls.mockResolvedValue({ data: [], error: null });
   mocks.insert.mockResolvedValue({ error: null });
   mocks.remove.mockResolvedValue({ error: null });
 });
@@ -88,5 +96,84 @@ describe("favorites account consistency", () => {
     mocks.getUser.mockResolvedValue({ data: { user: null }, error: null });
     expect((await GET(request("GET", "account-a")))?.status).toBe(401);
     expect(mocks.profile).not.toHaveBeenCalled();
+  });
+  it("allows saving a submitted property from get_public_submitted_rentals when not in listings", async () => {
+    mocks.listing.mockResolvedValue({ data: null, error: null });
+    mocks.rpc.mockResolvedValue({
+      data: [{
+        id: listingId,
+        title: "Cebu It Park",
+        description: "Submitted boarding house",
+        price: 40000,
+        property_type: "boarding_house",
+        rental_type: "room",
+        address: "M.J. Cuenco Avenue",
+        city: "Cebu City",
+        latitude: 10.3089,
+        longitude: 123.9081,
+        moderation_status: "approved",
+        photo_paths: [],
+      }],
+      error: null,
+    });
+    const response = await POST(request("POST", "account-b"));
+    expect(response?.status).toBe(201);
+    expect(mocks.insert).toHaveBeenCalledWith({ user_id: "account-b", listing_id: listingId });
+  });
+  it("returns submitted property details with signed photo URLs on GET when not in listings", async () => {
+    const validPath = "11111111-1111-4111-8111-111111111111/22222222-2222-4222-8222-222222222222/33333333-3333-4333-8333-333333333333/" + "a".repeat(64) + ".jpg";
+    mocks.favorites.mockResolvedValue({ data: [{ listing_id: listingId, created_at: "2026-11-08" }], error: null });
+    mocks.sessionRows.mockResolvedValue({ data: [], error: null });
+    mocks.rpc.mockResolvedValue({
+      data: [{
+        id: listingId,
+        title: "Cebu It Park",
+        description: "Submitted boarding house",
+        price: 40000,
+        property_type: "boarding_house",
+        rental_type: "room",
+        address: "M.J. Cuenco Avenue",
+        city: "Cebu City",
+        latitude: 10.3089,
+        longitude: 123.9081,
+        moderation_status: "approved",
+        photo_paths: [validPath],
+      }],
+      error: null,
+    });
+    mocks.createSignedUrls.mockResolvedValue({
+      data: [{ path: validPath, signedUrl: "https://example.com/signed-cover.jpg", error: null }],
+      error: null,
+    });
+    const response = await GET(request("GET", "account-b"));
+    expect(response?.status).toBe(200);
+    expect(await response?.json()).toEqual({
+      favorites: [{
+        id: listingId,
+        savedAt: "2026-11-08",
+        title: "Cebu It Park",
+        description: "Submitted boarding house",
+        price: 40000,
+        propertyType: "boarding_house",
+        address: "M.J. Cuenco Avenue",
+        city: "Cebu City",
+        imageUrls: ["https://example.com/signed-cover.jpg"],
+        isAvailable: true,
+      }],
+    });
+  });
+  it.each(["pending", "rejected", "archived"])("rejects saving a %s submitted property with 409", async (status) => {
+    mocks.listing.mockResolvedValue({ data: null, error: null });
+    mocks.rpc.mockResolvedValue({ data: [{ id: listingId, title: "Hidden", price: 1, moderation_status: status, photo_paths: [] }], error: null });
+    expect((await POST(request("POST", "account-b")))?.status).toBe(409);
+    expect(mocks.insert).not.toHaveBeenCalled();
+  });
+  it.each(["pending", "rejected", "archived"])("redacts a %s submitted property on GET", async (status) => {
+    mocks.favorites.mockResolvedValue({ data: [{ listing_id: listingId, created_at: "2026-11-08" }], error: null });
+    mocks.sessionRows.mockResolvedValue({ data: [], error: null });
+    mocks.rpc.mockResolvedValue({ data: [{ id: listingId, title: "Secret Pending Title", price: 1, moderation_status: status, photo_paths: [] }], error: null });
+    const text = (await (await GET(request("GET", "account-b")))?.text()) ?? "";
+    expect(text).not.toContain("Secret Pending Title");
+    expect(JSON.parse(text).favorites).toEqual([{ id: listingId, savedAt: "2026-11-08", title: "Unavailable rental", description: "", price: 0, propertyType: "", address: "", city: "", imageUrls: [], isAvailable: false }]);
   });
 });

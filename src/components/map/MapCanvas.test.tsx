@@ -67,4 +67,29 @@ describe("MapCanvas controls", () => {
     expect(source).toContain("Search this area");
     expect(source).toContain("publishSearchCenter([center.lng, center.lat])");
   });
+
+  it("renders a structured React portal popup with gallery fallback, View details, and Save/Saved actions", () => {
+    expect(source).toContain("createPortal");
+    expect(source).toContain("No photo available");
+    expect(source).toContain("photoCount > 1 &&");
+    expect(source).toContain('aria-label="Previous photo"');
+    expect(source).toContain('aria-label="Next photo"');
+    expect(source).toContain("<span>View details</span>");
+    expect(source).toContain('<span>{isSaved ? "Saved" : "Save"}</span>');
+    expect(source).toContain("closeButton: false");
+    expect(styles).toContain(".rentalPopupMetaRow");
+    expect(styles).toContain(".rentalPopupCategory");
+    expect(styles).toContain(".rentalPopupPhotoCount");
+    expect(styles).toContain(".rentalPopupTitle");
+    expect(styles).toContain(".rentalPopupLocation");
+    expect(styles).toContain(".rentalPopupPriceRow");
+  });
+
+  it("adds a role-gated Message landlord popup action that closes the popup before opening the inquiry", () => {
+    expect(source).toContain("canMessageLandlord = false, onMessageLandlord");
+    expect(source).toContain("{canMessageLandlord && (");
+    expect(source).toContain("<span>Message landlord</span>");
+    expect(source).toContain("closeRentalPopup(); onMessageLandlord?.(activePopupRental.id);");
+    expect(source).toContain("aria-label={`Message landlord about ${activePopupRental.title}`}");
+  });
 });

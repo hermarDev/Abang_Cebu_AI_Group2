@@ -255,7 +255,7 @@ export function AccountSettingsForm({ profile }: { profile: AccountProfile }) {
         <ActionMessage result={avatarResult} />
         <form className="grid gap-4" onSubmit={saveProfile}>
           <div className="grid gap-4 sm:grid-cols-2">
-            <label className="grid content-start gap-1.5 text-sm font-medium" htmlFor="account-full-name">
+            <label className="grid content-start gap-1.5 text-sm font-medium sm:col-span-2" htmlFor="account-full-name">
               Full name
               <Input id="account-full-name" name="fullName" value={fullName} disabled={profilePending} onChange={(event) => setFullName(event.target.value)} autoComplete="name" minLength={2} maxLength={100} required />
             </label>

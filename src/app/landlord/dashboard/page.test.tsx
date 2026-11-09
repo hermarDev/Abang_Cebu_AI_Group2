@@ -1,7 +1,7 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const mocks = vi.hoisted(() => ({ getUser: vi.fn(), profile: vi.fn(), listings: vi.fn(), properties: vi.fn(), submissions: vi.fn(), statusRpc: vi.fn(), eq: vi.fn(), landlordEq: vi.fn(), submissionEq: vi.fn(), redirect: vi.fn(), notFound: vi.fn(), signAvatar: vi.fn() }));
+const mocks = vi.hoisted(() => ({ getUser: vi.fn(), profile: vi.fn(), listings: vi.fn(), properties: vi.fn(), submissions: vi.fn(), units: vi.fn(), statusRpc: vi.fn(), eq: vi.fn(), landlordEq: vi.fn(), submissionEq: vi.fn(), redirect: vi.fn(), notFound: vi.fn(), signAvatar: vi.fn() }));
 vi.mock("@/lib/profile-avatar", () => ({ signProfileAvatar: mocks.signAvatar }));
 vi.mock("@/lib/supabase/server", () => ({ createClient: async () => ({
   auth: { getUser: mocks.getUser },
@@ -10,6 +10,8 @@ vi.mock("@/lib/supabase/server", () => ({ createClient: async () => ({
     ? { select: () => ({ eq: () => ({ maybeSingle: mocks.profile }) }) }
     : table === "properties"
       ? { select: () => ({ eq: mocks.landlordEq }) }
+      : table === "rental_units"
+        ? { select: () => ({ in: mocks.units }) }
       : table === "property_submissions"
         ? { select: () => ({ eq: mocks.submissionEq }) }
         : { select: () => ({ eq: mocks.eq }) },
@@ -28,6 +30,7 @@ describe("landlord dashboard", () => {
     mocks.eq.mockReturnValue({ order: mocks.listings });
     mocks.landlordEq.mockReturnValue({ order: mocks.properties });
     mocks.submissionEq.mockReturnValue({ order: mocks.submissions });
+    mocks.units.mockResolvedValue({ data: [], error: null });
     mocks.submissions.mockResolvedValue({ data: [{ property_id: "property-b", draft_id: "draft-1", expected_revision: 2, superseded_by: null }], error: null });
     mocks.statusRpc.mockImplementation(async (name: string) => name === "landlord_rejection_feedback"
       ? { data: [{ propertyId: "property-b", reason: "Permit image unreadable." }], error: null }
@@ -85,7 +88,10 @@ describe("landlord dashboard", () => {
     expect(html).toContain("Draft");
     expect(html).toContain('aria-label="Listing form"');
     expect(html).toContain('href="/list-property"');
-    expect(html).toContain("The listing form is a preview. Draft saving and submission are not available yet.");
+    expect(html).not.toContain("The listing form is a preview");
+    expect(html).toContain('href="/landlord/map?selected=property-a"');
+    expect(html).toContain('href="/landlord/map?selected=property-b"');
+    expect(html.match(/View on map/g)).toHaveLength(2);
   });
   it("links each rejected property to its own latest unsuperseded draft", async () => {
     mocks.properties.mockResolvedValueOnce({ data: [{ id: "property-a", title: "First", status: "rejected", moderation_note: null }, { id: "property-b", title: "Second", status: "rejected", moderation_note: null }], error: null });
@@ -94,6 +100,13 @@ describe("landlord dashboard", () => {
     expect(mocks.submissionEq).toHaveBeenCalledWith("owner_id", "owner-a");
     expect(html).toContain('href="/list-property?draftId=draft-a&amp;revision=3"');
     expect(html).toContain('href="/list-property?draftId=draft-b&amp;revision=5"');
+  });
+  it("links pending submissions to their active draft for editing", async () => {
+    mocks.submissions.mockResolvedValueOnce({ data: [{ property_id: "property-a", draft_id: "draft-p", expected_revision: 4, superseded_by: null }], error: null });
+    const html = renderToStaticMarkup(await LandlordDashboardPage());
+    expect(html).toContain("Edit submission");
+    expect(html).toContain('href="/list-property?draftId=draft-p&amp;revision=4"');
+    expect(html).not.toContain("Correct and resubmit");
   });
   it("does not link superseded submissions or invent targets when the query fails", async () => {
     mocks.submissions.mockResolvedValueOnce({ data: [{ property_id: "property-b", draft_id: "old-draft", expected_revision: 1, superseded_by: "new-operation" }], error: null });
@@ -126,6 +139,30 @@ describe("landlord dashboard", () => {
     expect(mocks.signAvatar).toHaveBeenCalledWith("owner-a", "owner-a/photo.png");
     expect(html).toContain('src="https://example.test/signed-photo.png"');
     expect(html).toContain('aria-label="Account options for Landlord"');
+  });
+  it("counts submitted properties in portfolio totals and live listings", async () => {
+    mocks.listings.mockResolvedValueOnce({ data: [], error: null });
+    mocks.properties.mockResolvedValueOnce({ data: [{ id: "property-a", title: "Pending room", status: "pending" }, { id: "property-c", title: "Approved flat", status: "approved" }], error: null });
+    mocks.units.mockResolvedValueOnce({ data: [{ property_id: "property-c", is_available: true }], error: null });
+    const html = renderToStaticMarkup(await LandlordDashboardPage());
+    const stat = (label: string) => html.match(new RegExp(`${label}</p><p[^>]*>(\\d+)<`))?.[1];
+    expect([stat("Total properties"), stat("Live listings"), stat("Under review")]).toEqual(["2", "1", "1"]);
+    expect(mocks.units).toHaveBeenCalledWith("property_id", ["property-a", "property-c"]);
+    expect(html).toContain("Pending review");
+    expect(html).toContain("Published · Available");
+  });
+  it.each([
+    ["has no available unit", { data: [{ property_id: "property-c", is_available: false }], error: null }],
+    ["availability cannot be read", { data: null, error: { message: "failure" } }],
+  ])("does not count or label an approved property as live when it %s", async (_name, units) => {
+    mocks.listings.mockResolvedValueOnce({ data: [], error: null });
+    mocks.properties.mockResolvedValueOnce({ data: [{ id: "property-c", title: "Approved flat", status: "approved" }], error: null });
+    mocks.units.mockResolvedValueOnce(units);
+    const html = renderToStaticMarkup(await LandlordDashboardPage());
+    const stat = (label: string) => html.match(new RegExp(`${label}</p><p[^>]*>(\\d+)<`))?.[1];
+    expect([stat("Total properties"), stat("Live listings")]).toEqual(["1", "0"]);
+    expect(html).toContain("Published · Unavailable");
+    expect(html).not.toContain("Published · Available");
   });
   it("shows a load error rather than an empty state when the query fails", async () => {
     mocks.listings.mockResolvedValueOnce({ data: null, error: { message: "failure" } });

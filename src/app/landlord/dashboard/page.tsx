@@ -14,21 +14,30 @@ export default async function LandlordDashboardPage() {
   if (authError || !user) redirect("/login?next=%2Flandlord%2Fdashboard");
   const { data: profile, error: profileError } = await supabase.from("profiles").select("full_name,avatar_url,role,is_suspended").eq("id", user.id).maybeSingle();
   if (profileError || profile?.role !== "landlord" || profile.is_suspended) notFound();
-  const avatarUrl = await signProfileAvatar(user.id, profile.avatar_url);
   const displayName = profile.full_name?.trim() || "landlord";
 
-  const { data: listings, error } = await supabase.from("listings")
-    .select("id,title,status,is_available")
-    .eq("owner_id", user.id)
-    .order("created_at", { ascending: false });
-  const { data: submissions, error: submissionError } = await supabase.from("properties")
-    .select("id,title,status")
-    .eq("landlord_id", user.id)
-    .order("created_at", { ascending: false });
-  const { data: submittedDrafts, error: correctionError } = await supabase.from("property_submissions")
-    .select("property_id,draft_id,expected_revision,superseded_by")
-    .eq("owner_id", user.id)
-    .order("created_at", { ascending: false });
+  const [avatarUrl, { data: listings, error }, { data: submissions, error: submissionError }, { data: submittedDrafts, error: correctionError }, { data: feedbackData, error: feedbackError }] = await Promise.all([
+    signProfileAvatar(user.id, profile.avatar_url),
+    supabase.from("listings")
+      .select("id,title,status,is_available")
+      .eq("owner_id", user.id)
+      .order("created_at", { ascending: false }),
+    supabase.from("properties")
+      .select("id,title,status")
+      .eq("landlord_id", user.id)
+      .order("created_at", { ascending: false }),
+    supabase.from("property_submissions")
+      .select("property_id,draft_id,expected_revision,superseded_by")
+      .eq("owner_id", user.id)
+      .order("created_at", { ascending: false }),
+    supabase.rpc("landlord_rejection_feedback"),
+  ]);
+  const propertyIds = (submissions ?? []).map(property => property.id);
+  const { data: units, error: unitsError } = propertyIds.length
+    ? await supabase.from("rental_units").select("property_id,is_available").in("property_id", propertyIds)
+    : { data: [], error: null };
+  // Unknown availability (read failed) is never counted live, so the stat cannot be inflated.
+  const availableIds = new Set(unitsError ? [] : (units ?? []).filter(unit => unit.is_available).map(unit => unit.property_id));
   const correctionTargets = new Map<string, { draftId: string; revision: number }>();
   for (const submission of submittedDrafts ?? []) {
     if (!submission.superseded_by && !correctionTargets.has(submission.property_id) && Number.isSafeInteger(submission.expected_revision) && submission.expected_revision > 0) {
@@ -36,7 +45,6 @@ export default async function LandlordDashboardPage() {
     }
   }
 
-  const { data: feedbackData, error: feedbackError } = await supabase.rpc("landlord_rejection_feedback");
   const feedback = new Map<string, string>();
   if (Array.isArray(feedbackData)) {
     for (const item of feedbackData) {
@@ -45,13 +53,16 @@ export default async function LandlordDashboardPage() {
   }
 
   const stats = [
-    { label: "Total properties", value: error ? null : listings?.length ?? 0, detail: "Existing listings in your portfolio", Icon: Building2 },
-    { label: "Live listings", value: error ? null : listings?.filter(listing => listing.status === "published" && listing.is_available).length ?? 0, detail: "Published and available", Icon: Compass },
+    { label: "Total properties", value: error ? null : new Set([...(listings ?? []).map(l => l.id), ...(submissions ?? []).map(p => p.id)]).size, detail: "Properties in your portfolio", Icon: Building2 },
+    { label: "Live listings", value: error ? null : (listings?.filter(listing => listing.status === "published" && listing.is_available).length ?? 0) + (submissions?.filter(property => property.status === "approved" && availableIds.has(property.id) && !listings?.some(l => l.id === property.id)).length ?? 0), detail: "Published and available", Icon: Compass },
     { label: "Under review", value: submissionError ? null : submissions?.filter(property => property.status === "pending").length ?? 0, detail: "Submitted and waiting for review", Icon: Clock3 },
     { label: "Changes requested", value: submissionError ? null : submissions?.filter(property => property.status === "rejected").length ?? 0, detail: "Rejected with notes", Icon: CircleAlert },
   ];
 
+  const linkClass = "inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-border bg-card px-3 text-sm font-semibold hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring";
+
   return <LandlordWorkspaceLayout
+    userId={user.id}
     brand={<Link href="/landlord/dashboard" aria-label="AbangCebu landlord workspace" className="flex min-w-0 items-center gap-3"><Image src="/icons/main_Logo.png" alt="AbangCebu" width={299} height={100} unoptimized className="h-auto w-24 dark:hidden sm:w-32" loading="eager" /><Image src="/icons/main_Logo_Light.png" alt="" width={299} height={100} unoptimized className="hidden h-auto w-24 dark:block sm:w-32" loading="eager" /><span className="hidden border-l border-border pl-3 text-sm font-semibold text-muted-foreground md:block">Landlord workspace</span></Link>}
     actions={<>
       <Link href="/landlord/map" aria-label="Open property map" className="hidden lg:inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-border bg-card px-3 text-sm font-semibold hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"><MapPinned size={17} aria-hidden="true" /><span>Property map</span></Link>
@@ -101,11 +112,13 @@ export default async function LandlordDashboardPage() {
         : !submissions?.length ? <p className="mt-4 text-sm text-muted-foreground">Submissions appear here with their review status.</p>
         : <ul className="mt-4 grid list-none gap-3 p-0">{submissions.map(property => <li key={property.id} className="rounded-2xl border border-border bg-card p-4 sm:p-5">
           <h3 className="font-semibold">{property.title}</h3>
-          <p className="mt-1 text-sm text-muted-foreground">{property.status === "pending" ? "Pending review" : property.status === "rejected" ? "Changes requested" : property.status === "approved" ? "Approved" : "Archived"}</p>
+          <p className="mt-1 text-sm text-muted-foreground">{property.status === "pending" ? "Pending review" : property.status === "rejected" ? "Changes requested" : property.status === "approved" ? availableIds.has(property.id) ? "Published · Available" : "Published · Unavailable" : "Archived"}</p>
           {property.status === "rejected" && feedback.has(property.id) && <p className="mt-1 text-sm text-muted-foreground">{feedback.get(property.id)}</p>}
-          {property.status === "rejected" && correctionTargets.has(property.id) && <Link href={`/list-property?draftId=${correctionTargets.get(property.id)!.draftId}&revision=${correctionTargets.get(property.id)!.revision}`} className="mt-3 inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-border bg-card px-3 text-sm font-semibold hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">Correct and resubmit <ArrowRight size={15} aria-hidden="true" /></Link>}
+          <div className="mt-3 flex flex-wrap gap-2">
+            <Link href={`/landlord/map?selected=${encodeURIComponent(property.id)}`} className={linkClass}><MapPinned size={15} aria-hidden="true" /> View on map</Link>
+            {(property.status === "pending" || property.status === "rejected") && correctionTargets.has(property.id) && <Link href={`/list-property?draftId=${encodeURIComponent(correctionTargets.get(property.id)!.draftId)}&revision=${correctionTargets.get(property.id)!.revision}`} className={linkClass}>{property.status === "pending" ? "Edit submission" : "Correct and resubmit"} <ArrowRight size={15} aria-hidden="true" /></Link>}
+          </div>
         </li>)}</ul>}
     </section>
-    <p className="text-sm text-muted-foreground">The listing form is a preview. Draft saving and submission are not available yet.</p>
   </LandlordWorkspaceLayout>;
 }

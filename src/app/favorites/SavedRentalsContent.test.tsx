@@ -2,8 +2,11 @@ import { isValidElement, type ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { SavedRentalsContent } from "./SavedRentalsContent";
 import { notify } from "@/components/ui/AppToaster";
+import { ListingInquiryModal } from "@/features/messages/ListingInquiryModal";
+import { Skeleton } from "@/components/ui/Skeleton";
 
 vi.mock("@/components/ui/AppToaster", () => ({ notify: vi.fn() }));
+vi.mock("@/features/messages/ListingInquiryModal", () => ({ ListingInquiryModal: () => null }));
 
 const hooks = vi.hoisted(() => ({
   cursor: 0,
@@ -110,6 +113,7 @@ beforeEach(() => {
   hooks.refCursor = 0;
   hooks.refs = [];
   vi.unstubAllGlobals();
+  vi.mocked(notify).mockClear();
 });
 
 describe("SavedRentalsContent fetch lifecycle", () => {
@@ -127,9 +131,100 @@ describe("SavedRentalsContent fetch lifecycle", () => {
     expect(notify).not.toHaveBeenCalled();
     resolveRemoval({ ok: true });
     await settle();
-    expect(notify).toHaveBeenCalledWith("success", "saved-rental-removed", "Rental removed from your saved list.");
+    expect(notify).toHaveBeenCalledWith("success", "saved-rental-removed", "Rental removed from your saved list.", expect.objectContaining({ action: expect.objectContaining({ label: "Undo", onClick: expect.any(Function) }) }));
     expect(text(page.tree())).not.toContain("Lahug studio");
     expect(text(page.tree())).not.toContain("Rental removed from your saved list.");
+    page.unmount();
+  });
+  it("restores a removed rental through POST /api/favorites when Undo is clicked", async () => {
+    const request = vi.fn()
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ favorites: [rental] }) })
+      .mockResolvedValueOnce({ ok: true })
+      .mockResolvedValueOnce({ ok: true });
+    vi.stubGlobal("fetch", request);
+    const page = mounted();
+    await settle();
+    let remove: (() => void) | undefined;
+    walk(page.tree(), element => { if (element.props["aria-label"] === "Remove Lahug studio from saved rentals") remove = element.props.onClick as () => void; });
+    remove?.();
+    await settle();
+    expect(text(page.tree())).not.toContain("Lahug studio");
+    const options = vi.mocked(notify).mock.calls[0][3];
+    options?.action?.onClick();
+    await settle();
+    expect(request).toHaveBeenLastCalledWith("/api/favorites", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-expected-user-id": "test-user" },
+      body: JSON.stringify({ listingId: "rental-1" }),
+    });
+    expect(text(page.tree())).toContain("Lahug studio");
+    expect(notify).toHaveBeenCalledWith("success", "saved-rental-restored", "Rental restored to your saved list.");
+    page.unmount();
+  });
+  it("keeps the rental out of the list and reports an error when Undo fails", async () => {
+    const request = vi.fn()
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ favorites: [rental] }) })
+      .mockResolvedValueOnce({ ok: true })
+      .mockResolvedValueOnce({ ok: false });
+    vi.stubGlobal("fetch", request);
+    const page = mounted();
+    await settle();
+    let remove: (() => void) | undefined;
+    walk(page.tree(), element => { if (element.props["aria-label"] === "Remove Lahug studio from saved rentals") remove = element.props.onClick as () => void; });
+    remove?.();
+    await settle();
+    vi.mocked(notify).mock.calls[0][3]?.action?.onClick();
+    await settle();
+    expect(text(page.tree())).not.toContain("Lahug studio");
+    expect(notify).toHaveBeenCalledWith("error", "saved-rental-restore-failed", "Rental could not be restored. Please try again.");
+    page.unmount();
+  });
+  it("renders a 3-card skeleton grid while loading", () => {
+    vi.stubGlobal("fetch", vi.fn().mockReturnValue(new Promise(() => {})));
+    const page = mounted();
+    const tree = page.tree();
+    let status: Record<string, unknown> | undefined;
+    let skeletons = 0;
+    walk(tree, element => {
+      if (element.props.role === "status") status = element.props;
+      if (element.type === Skeleton) skeletons += 1;
+    });
+    expect(status?.["aria-label"]).toBe("Loading saved rentals");
+    expect(text(tree)).toContain("Loading your saved rentals…");
+    expect(skeletons).toBe(3 * 4);
+    page.unmount();
+  });
+  it("links available rentals to the map and not unavailable ones", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true, json: async () => ({ favorites: [rental, { ...rental, id: "rental-2", title: "Gone studio", isAvailable: false }] }) }));
+    const page = mounted();
+    await settle();
+    const tree = page.tree();
+    const hrefs: string[] = [];
+    walk(tree, element => { if (text(element.props.children as ReactNode).trim() === "View on map") hrefs.push(element.props.href as string); });
+    expect(hrefs).toEqual(["/?selected=rental-1"]);
+    expect(text(tree)).not.toContain("Currently available");
+    expect(text(tree)).toContain("No longer available");
+    page.unmount();
+  });
+  it("opens the inquiry modal for an available saved rental and hides the action for unavailable ones", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true, json: async () => ({ favorites: [rental, { ...rental, id: "rental-2", title: "Gone studio", isAvailable: false }] }) }));
+    const page = mounted();
+    await settle();
+    const labels: string[] = [];
+    let open: (() => void) | undefined;
+    walk(page.tree(), (element) => {
+      const label = element.props["aria-label"];
+      if (typeof label === "string" && label.startsWith("Message landlord about")) { labels.push(label); open = element.props.onClick as () => void; }
+    });
+    expect(labels).toEqual(["Message landlord about Lahug studio"]);
+    open?.();
+    let modal: Record<string, unknown> | undefined;
+    walk(page.tree(), (element) => { if (element.type === ListingInquiryModal) modal = element.props; });
+    expect(modal).toMatchObject({ listingId: "rental-1", listingTitle: "Lahug studio", userId: "test-user" });
+    (modal!.onClose as () => void)();
+    let stillOpen = false;
+    walk(page.tree(), (element) => { if (element.type === ListingInquiryModal) stillOpen = true; });
+    expect(stillOpen).toBe(false);
     page.unmount();
   });
   it("does not display a zero price for an unavailable rental", async () => {
