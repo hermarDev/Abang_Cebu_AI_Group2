@@ -161,6 +161,25 @@ BEGIN
         RAISE EXCEPTION 'invalid attachment storage path' USING ERRCODE = '22023';
       END IF;
 
+      -- Validate fileName
+      IF v_att_elem->>'fileName' IS NULL OR length(pg_catalog.btrim(v_att_elem->>'fileName')) = 0 THEN
+        RAISE EXCEPTION 'invalid attachment file name' USING ERRCODE = '22023';
+      END IF;
+
+      -- Validate fileSize (must be positive integer between 1 and 10MB)
+      IF (v_att_elem->>'fileSize') IS NULL
+         OR (v_att_elem->>'fileSize') !~ '^[0-9]+$'
+         OR (v_att_elem->>'fileSize')::bigint < 1
+         OR (v_att_elem->>'fileSize')::bigint > 10485760 THEN
+        RAISE EXCEPTION 'invalid attachment file size' USING ERRCODE = '22023';
+      END IF;
+
+      -- Validate mimeType (must be image/jpeg, image/png, or image/webp)
+      IF (v_att_elem->>'mimeType') IS NULL
+         OR (v_att_elem->>'mimeType') NOT IN ('image/jpeg', 'image/png', 'image/webp') THEN
+        RAISE EXCEPTION 'invalid attachment mime type' USING ERRCODE = '22023';
+      END IF;
+
       INSERT INTO public.rental_message_attachments(
         message_id, conversation_id, uploader_id, storage_path, file_name, file_size, mime_type
       )
@@ -169,12 +188,9 @@ BEGIN
         v_conv.id,
         v_user,
         v_att_elem->>'storagePath',
-        COALESCE(pg_catalog.left(v_att_elem->>'fileName', 100), 'photo.jpg'),
-        GREATEST(COALESCE((v_att_elem->>'fileSize')::integer, 1024), 1),
-        CASE WHEN v_att_elem->>'mimeType' IN ('image/jpg', 'image/jpeg') THEN 'image/jpeg'
-             WHEN v_att_elem->>'mimeType' = 'image/png' THEN 'image/png'
-             WHEN v_att_elem->>'mimeType' = 'image/webp' THEN 'image/webp'
-             ELSE 'image/jpeg' END
+        pg_catalog.left(pg_catalog.btrim(v_att_elem->>'fileName'), 100),
+        (v_att_elem->>'fileSize')::integer,
+        v_att_elem->>'mimeType'
       );
     END LOOP;
 
