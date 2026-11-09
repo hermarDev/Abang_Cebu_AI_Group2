@@ -150,6 +150,18 @@ describe("landlord dashboard", () => {
     expect(mocks.units).toHaveBeenCalledWith("property_id", ["property-a", "property-c"]);
     expect(html).toContain("Pending review");
     expect(html).toContain("Published · Available");
+    expect(html).toContain("Published listings appear below");
+    expect(html).not.toContain("No published listings yet");
+    expect(html).not.toContain("No properties yet");
+  });
+  it("displays 'No published listings yet' when submissions exist but none are approved", async () => {
+    mocks.listings.mockResolvedValueOnce({ data: [], error: null });
+    mocks.properties.mockResolvedValueOnce({ data: [{ id: "property-a", title: "Pending room", status: "pending" }], error: null });
+    mocks.units.mockResolvedValueOnce({ data: [], error: null });
+    const html = renderToStaticMarkup(await LandlordDashboardPage());
+    expect(html).toContain("No published listings yet");
+    expect(html).toContain("Approved listings will appear here once published.");
+    expect(html).not.toContain("No properties yet");
   });
   it.each([
     ["has no available unit", { data: [{ property_id: "property-c", is_available: false }], error: null }],

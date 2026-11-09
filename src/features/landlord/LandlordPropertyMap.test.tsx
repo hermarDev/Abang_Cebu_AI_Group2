@@ -69,4 +69,12 @@ describe("LandlordPropertyMap", () => {
     expect(html).not.toContain("Next photo");
     expect(html).not.toContain("Edit submission");
   });
+  it("renders panel collapse and fit all properties controls", () => {
+    const html = renderToStaticMarkup(<LandlordPropertyMap properties={properties} />);
+    expect(html).toContain('aria-label="Collapse properties panel"');
+    expect(html).toContain('title="Fit all properties"');
+    expect(source).toContain('"View property details ↗"');
+    expect(source).toContain("setPanelCollapsed");
+    expect(source).toContain("fitAllProperties");
+  });
 });
