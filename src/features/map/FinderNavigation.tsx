@@ -3,9 +3,10 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Search, Bookmark, MessageCircle, CircleHelp, Headset, Map, UserRound, LogIn, LayoutDashboard } from "lucide-react";
+import { Search, Bookmark, MessageCircle, CircleHelp, Headset, Map, UserRound, LogIn, LayoutDashboard, Mail } from "lucide-react";
 import { AppearanceControls } from "./AppearanceControls";
 import { Modal } from "@/components/ui/Modal";
+import { useUnreadMessageCount } from "@/features/messages/useUnreadMessageCount";
 import type { UserRole } from "@/types/database";
 import styles from "./FinderNavigation.module.css";
 
@@ -19,10 +20,14 @@ export interface FinderNavigationProps {
   onHelp: () => void;
   authenticated?: boolean;
   userRole?: UserRole | null;
+  userId?: string | null;
+  unreadMessageCount?: number;
 }
 
-export function FinderNavigation({ open, onClose, preference, resolvedTheme, onPreferenceChange, onAccount, onHelp, authenticated = false, userRole = null }: FinderNavigationProps) {
+export function FinderNavigation({ open, onClose, preference, resolvedTheme, onPreferenceChange, onAccount, onHelp, authenticated = false, userRole = null, userId = null, unreadMessageCount }: FinderNavigationProps) {
   const [faqOpen, setFaqOpen] = useState(false);
+  const { unreadCount: polledUnread } = useUnreadMessageCount(userId, Boolean(authenticated && userId && userRole === "renter"));
+  const badgeCount = unreadMessageCount ?? polledUnread;
   return (
     <Modal id="finder-navigation" open={open} onClose={onClose} title="AbangCebu Menu" hideTitle surface="finder" className={styles.dialog}
       restoreTriggerFocus={false}
@@ -48,6 +53,7 @@ export function FinderNavigation({ open, onClose, preference, resolvedTheme, onP
             <Search aria-hidden="true" /><span>Find rentals</span>
           </Link>
           {authenticated && userRole === "landlord" && <Link href="/landlord/dashboard" className={styles.navItem} onClick={onClose}><LayoutDashboard aria-hidden="true" /><span>Landlord workspace</span></Link>}
+          {authenticated && userRole === "renter" && <Link href="/messages" className={styles.navItem} onClick={onClose}><Mail aria-hidden="true" /><span>Messages</span>{badgeCount > 0 && <span aria-label={`${badgeCount} unread messages`} className={styles.unreadBadge}>{badgeCount > 99 ? "99+" : badgeCount}</span>}</Link>}
           {(userRole === "renter" || !authenticated) && <Link href="/favorites" className={styles.navItem} onClick={onClose}><Bookmark aria-hidden="true" /><span>Saved rentals</span></Link>}
           {(userRole === "renter" || !authenticated) && <button type="button" className={styles.navItem} onClick={() => { onClose(); onHelp(); }}><MessageCircle aria-hidden="true" /><span>Help finding a rental</span></button>}
         </nav>

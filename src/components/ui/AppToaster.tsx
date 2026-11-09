@@ -5,11 +5,23 @@ import { useFinderTheme } from "@/features/map/useFinderTheme";
 
 const notificationDuration = { success: 4000, info: 5000, warning: 6000, error: 6000, loading: Infinity } as const;
 
-export function notify(type: keyof typeof notificationDuration, id: string, message: string) {
-  return toast[type](message, { id, duration: notificationDuration[type] });
+export type NotifyOptions = { action?: { label: string; onClick: () => void }; description?: string };
+
+export function notify(type: keyof typeof notificationDuration, id: string, message: string, options?: NotifyOptions) {
+  return toast[type](message, { id, duration: notificationDuration[type], ...options });
 }
 
 export function AppToaster() {
   const { resolvedTheme } = useFinderTheme();
-  return <Toaster position="top-center" offset={{ top: "calc(112px + env(safe-area-inset-top, 0px))" }} mobileOffset={{ top: "calc(112px + env(safe-area-inset-top, 0px))" }} theme={resolvedTheme} closeButton toastOptions={{ duration: 4000 }} />;
+  return (
+    <Toaster
+      theme={resolvedTheme}
+      position="top-right"
+      offset={{ top: "76px", right: "20px" }}
+      mobileOffset={{ top: "68px", left: "12px", right: "12px" }}
+      visibleToasts={4}
+      closeButton
+      toastOptions={{ className: "abang-toast" }}
+    />
+  );
 }

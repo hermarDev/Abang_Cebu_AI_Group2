@@ -96,6 +96,19 @@
   background: var(--accent);
 }
 
+.unreadBadge {
+  margin-left: auto;
+  min-width: 22px;
+  border-radius: 999px;
+  padding: 1px 7px;
+  background: var(--nav-blue);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 20px;
+  text-align: center;
+}
+
 .currentPage {
   background: var(--nav-selected);
   color: var(--nav-blue);

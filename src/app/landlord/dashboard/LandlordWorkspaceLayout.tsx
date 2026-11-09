@@ -4,9 +4,10 @@ import { useEffect, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useFinderTheme } from "@/features/map/useFinderTheme";
-import { ChevronLeft, ChevronRight, Headset, HousePlus, MapPinned, UserRound } from "lucide-react";
+import { ChevronLeft, ChevronRight, Headset, HousePlus, MapPinned, MessageSquare, UserRound } from "lucide-react";
 import { LandlordMobileNav } from "@/features/landlord/LandlordMobileNav";
 import { AppearanceControls } from "@/features/map/AppearanceControls";
+import { useUnreadMessageCount } from "@/features/messages/useUnreadMessageCount";
 
 const linkGroups = [
   {
@@ -14,6 +15,7 @@ const linkGroups = [
     links: [
       { href: "/list-property", label: "Listing form", ariaLabel: "Listing form", Icon: HousePlus },
       { href: "/landlord/map", label: "Property map", Icon: MapPinned },
+      { href: "/landlord/messages", label: "Messages", Icon: MessageSquare },
     ],
   },
   {
@@ -34,14 +36,16 @@ type LandlordWorkspaceLayoutProps = {
   brand: ReactNode;
   actions: ReactNode;
   children: ReactNode;
+  userId?: string | null;
 };
 
 function LandlordAppearanceControls({ expanded }: { expanded: boolean }) {
   const { preference, resolvedTheme, setPreference } = useFinderTheme();
   return <AppearanceControls preference={preference} resolvedTheme={resolvedTheme} onPreferenceChange={setPreference} expanded={expanded} />;
 }
-export function LandlordWorkspaceLayout({ brand, actions, children }: LandlordWorkspaceLayoutProps) {
+export function LandlordWorkspaceLayout({ brand, actions, children, userId = null }: LandlordWorkspaceLayoutProps) {
   const pathname = usePathname();
+  const { unreadCount } = useUnreadMessageCount(userId, Boolean(userId));
   const [expanded, setExpanded] = useState(true);
   const [activeHash, setActiveHash] = useState("#overview");
 
@@ -65,13 +69,15 @@ export function LandlordWorkspaceLayout({ brand, actions, children }: LandlordWo
         return <Link
           key={href}
           href={href}
+          prefetch={true}
           title={isExpanded ? undefined : label}
-          aria-label={label}
+          aria-label={href === "/landlord/messages" && unreadCount > 0 ? `${label}, ${unreadCount} unread` : label}
           aria-current={isActive ? (hash ? "location" : "page") : undefined}
           className={`inline-flex min-h-12 items-center rounded-xl transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring ${isExpanded ? "justify-start gap-3 px-3" : "justify-center px-0"} ${isActive ? "bg-action/10 font-semibold text-action" : "font-medium text-muted-foreground hover:bg-muted hover:text-foreground"}`}
         >
           <Icon size={19} className="shrink-0" aria-hidden="true" />
           {isExpanded && <span className="truncate">{label}</span>}
+          {href === "/landlord/messages" && unreadCount > 0 && <span className={`rounded-full bg-action px-1.5 text-xs font-bold leading-5 text-action-foreground ${isExpanded ? "ml-auto" : "sr-only"}`}>{unreadCount > 99 ? "99+" : unreadCount}</span>}
         </Link>;
       })}
     </section>)}
@@ -115,6 +121,6 @@ export function LandlordWorkspaceLayout({ brand, actions, children }: LandlordWo
       <div className="min-w-0 space-y-5 sm:space-y-6">{children}</div>
     </div>
 
-    <LandlordMobileNav />
+    <LandlordMobileNav unreadCount={unreadCount} />
   </main>;
 }

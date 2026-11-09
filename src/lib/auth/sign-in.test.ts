@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { signInWithEmail, getPostLoginRedirect } from "./sign-in";
+import { signInWithEmail, getPostLoginRedirect, isAllowedSessionRole } from "./sign-in";
 
 const { signInWithPassword, signOut, maybeSingle, from } = vi.hoisted(() => ({
   signInWithPassword: vi.fn(),
@@ -56,6 +56,20 @@ describe("signInWithEmail", () => {
       signInWithEmail("renter@example.com", "Password1!"),
     ).resolves.toEqual({ success: true, role: "landlord" });
     expect(signOut).not.toHaveBeenCalled();
+  });
+
+  it("allows active admin accounts to sign in", async () => {
+    maybeSingle.mockResolvedValue({ data: { role: "admin", is_suspended: false }, error: null });
+    await expect(signInWithEmail("admin@example.com", "Password1!")).resolves.toEqual({ success: true, role: "admin" });
+    expect(signOut).not.toHaveBeenCalled();
+  });
+
+  it("signs out and rejects unknown roles", async () => {
+    maybeSingle.mockResolvedValue({ data: { role: "superuser", is_suspended: false }, error: null });
+    await expect(signInWithEmail("x@example.com", "Password1!")).resolves.toEqual({
+      success: false, message: "We could not verify this account. Please try again.",
+    });
+    expect(signOut).toHaveBeenCalledWith({ scope: "local" });
   });
 
   it("clears suspended users' local sessions", async () => {
@@ -155,5 +169,27 @@ describe("getPostLoginRedirect", () => {
     expect(getPostLoginRedirect("https://attacker.example")).toBe("/");
     expect(getPostLoginRedirect("/\\\\attacker.example")).toBe("/");
     expect(getPostLoginRedirect(null)).toBe("/");
+  });
+
+  it("allows active admin accounts and redirects them to /admin/dashboard", () => {
+    expect(getPostLoginRedirect(null, "admin")).toBe("/admin/dashboard");
+    expect(getPostLoginRedirect("/", "admin")).toBe("/admin/dashboard");
+    expect(getPostLoginRedirect("/map", "admin")).toBe("/admin/dashboard");
+    expect(getPostLoginRedirect("/landlord/map", "admin")).toBe("/admin/dashboard");
+    expect(getPostLoginRedirect("/admin/reviews", "admin")).toBe("/admin/reviews");
+    expect(getPostLoginRedirect("//attacker.example", "admin")).toBe("/admin/dashboard");
+  });
+
+  it("keeps landlords and renters out of admin routes", () => {
+    expect(getPostLoginRedirect("/admin/reviews", "landlord")).toBe("/landlord/dashboard");
+    expect(getPostLoginRedirect("/admin/reviews", "renter")).toBe("/");
+    expect(getPostLoginRedirect("/landlord/dashboard", "renter")).toBe("/");
+  });
+});
+
+describe("isAllowedSessionRole", () => {
+  it("accepts renter, landlord, admin only", () => {
+    expect(["renter", "landlord", "admin"].every(isAllowedSessionRole)).toBe(true);
+    expect([null, undefined, "", "root", 1].some(isAllowedSessionRole)).toBe(false);
   });
 });

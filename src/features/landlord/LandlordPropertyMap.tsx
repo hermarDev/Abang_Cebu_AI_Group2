@@ -1,8 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import Image from "next/image";
+import Link from "next/link";
 import { AttributionControl, LngLatBounds, Map as MapLibreMap, Marker, Popup, setWorkerUrl } from "maplibre-gl";
-import { ArrowUpRight, Building2, CircleAlert, LocateFixed, MapPin, Minus, Plus, RefreshCw } from "lucide-react";
+import { ArrowUpRight, Building2, ChevronLeft, ChevronRight, CircleAlert, ImageOff, LocateFixed, MapPin, Minus, Plus, RefreshCw } from "lucide-react";
+import { Modal } from "@/components/ui/Modal";
 import { METRO_CEBU_CENTER } from "@/components/map/map-geometry";
 import styles from "./LandlordPropertyMap.module.css";
 
@@ -18,38 +21,196 @@ export type LandlordPropertyMapItem = {
   latitude: number;
   longitude: number;
   is_available: boolean;
-  status: "draft" | "published" | "archived";
+  status: "draft" | "pending" | "rejected" | "published" | "approved" | "archived";
+  editHref?: string | null;
+  imageUrls?: string[];
+  description?: string | null;
+  amenities?: string[];
 };
 
 function getListingStatus(property: LandlordPropertyMapItem) {
-  if (property.status === "published") return property.is_available ? "Live · Available" : "Published · Unavailable";
+  if (property.status === "pending") return "Pending review";
+  if (property.status === "rejected") return "Changes requested";
+  if (property.status === "published" || property.status === "approved") return property.is_available ? "Published · Available" : "Published · Unavailable";
   if (property.status === "archived") return "Archived";
   return "Draft";
 }
 
 function getStatusTone(property: LandlordPropertyMapItem) {
-  if (property.status === "published" && property.is_available) return styles.live;
+  if (property.status === "pending") return styles.underReview;
+  if (property.status === "rejected") return styles.actionNeeded;
+  if ((property.status === "published" || property.status === "approved") && property.is_available) return styles.live;
   return styles.draft;
 }
 
-function makePopup(property: LandlordPropertyMapItem) {
-  const content = document.createElement("div");
+const formatPrice = (price: number) => new Intl.NumberFormat("en-PH", { style: "currency", currency: "PHP", maximumFractionDigits: 0 }).format(Number(price));
+
+const POPUP_OFFSETS = {
+  center: [0, 0] as [number, number],
+  top: [0, 14] as [number, number],
+  "top-left": [0, 14] as [number, number],
+  "top-right": [0, 14] as [number, number],
+  bottom: [0, -34] as [number, number],
+  "bottom-left": [0, -34] as [number, number],
+  "bottom-right": [0, -34] as [number, number],
+  left: [18, -18] as [number, number],
+  right: [-18, -18] as [number, number],
+};
+
+function dedupeImageUrls(urls?: string[]): string[] {
+  if (!Array.isArray(urls)) return [];
+  const seen = new Set<string>();
+  return urls.filter((url) => {
+    if (typeof url !== "string" || !url) return false;
+    const clean = url.split("?")[0];
+    const leaf = clean.split("/").pop()?.toLowerCase() ?? clean;
+    const key = /^[0-9a-f]{64}\.(jpg|png|webp)$/i.test(leaf) ? leaf : clean;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+function formatCategoryLabel(raw: string): string {
+  const cleaned = (raw || "Property").replaceAll(/[-_]/g, " ").trim();
+  return cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
+}
+
+function makePopup(property: LandlordPropertyMapItem, onExpand?: (id: string) => void, onClose?: () => void) {
+  const content = document.createElement("article");
   content.className = styles.popup;
+  content.setAttribute("aria-label", "Preview of " + property.title);
+  const stopMapEvent = (e: Event) => { e.stopPropagation(); };
+  for (const evt of ["click", "dblclick", "wheel", "pointerdown", "touchstart"]) {
+    content.addEventListener(evt, stopMapEvent);
+  }
+
+  const photos = dedupeImageUrls(property.imageUrls);
+  let currentIdx = 0;
+
+  const frame = document.createElement("div");
+  frame.className = styles.popupPhotoFrame;
+
+  const renderNoPhoto = () => {
+    frame.replaceChildren();
+    const empty = document.createElement("div");
+    empty.className = styles.popupNoPhoto;
+    empty.textContent = "No photo available";
+    frame.append(empty);
+  };
+
+  const countText = document.createElement("span");
+  const updateCountText = (idx: number) => {
+    countText.textContent = photos.length === 0 ? "No photos" : photos.length === 1 ? "1 photo" : `${idx + 1} of ${photos.length} photos`;
+  };
+  updateCountText(0);
+
+  if (photos[0]) {
+    const img = document.createElement("img");
+    img.src = photos[0];
+    img.alt = "Photo of " + property.title;
+    img.className = styles.popupPhoto;
+    img.addEventListener("error", renderNoPhoto);
+    frame.append(img);
+
+    if (photos.length > 1) {
+      const setPhoto = (next: number) => {
+        currentIdx = (next + photos.length) % photos.length;
+        img.src = photos[currentIdx];
+        updateCountText(currentIdx);
+      };
+      const prevBtn = document.createElement("button");
+      prevBtn.type = "button";
+      prevBtn.className = `${styles.popupPhotoNav} ${styles.popupPhotoPrev}`;
+      prevBtn.setAttribute("aria-label", "Previous photo");
+      prevBtn.textContent = "‹";
+      prevBtn.addEventListener("click", (e) => { e.preventDefault(); e.stopPropagation(); setPhoto(currentIdx - 1); });
+      const nextBtn = document.createElement("button");
+      nextBtn.type = "button";
+      nextBtn.className = `${styles.popupPhotoNav} ${styles.popupPhotoNext}`;
+      nextBtn.setAttribute("aria-label", "Next photo");
+      nextBtn.textContent = "›";
+      nextBtn.addEventListener("click", (e) => { e.preventDefault(); e.stopPropagation(); setPhoto(currentIdx + 1); });
+      frame.append(prevBtn, nextBtn);
+    }
+  } else {
+    renderNoPhoto();
+  }
+
+  const closeBtn = document.createElement("button");
+  closeBtn.type = "button";
+  closeBtn.className = styles.popupClose;
+  closeBtn.setAttribute("aria-label", "Close " + property.title + " preview");
+  closeBtn.textContent = "×";
+  closeBtn.addEventListener("click", (e) => { e.preventDefault(); e.stopPropagation(); onClose?.(); });
+
+  const body = document.createElement("div");
+  body.className = styles.popupBody;
+
+  const metaRow = document.createElement("div");
+  metaRow.className = styles.popupMetaRow;
+  const metaBadges = document.createElement("div");
+  metaBadges.className = styles.popupMetaBadges;
+  const category = document.createElement("span");
+  category.className = styles.popupCategory;
+  category.textContent = formatCategoryLabel(property.property_type);
+  const status = document.createElement("span");
+  status.className = `${styles.statusPill} ${getStatusTone(property)}`;
+  status.textContent = getListingStatus(property);
+  metaBadges.append(category, status);
+
+  const photoCountWrap = document.createElement("span");
+  photoCountWrap.className = styles.popupPhotoCount;
+  photoCountWrap.append(countText);
+  metaRow.append(metaBadges, photoCountWrap);
 
   const title = document.createElement("strong");
+  title.className = styles.popupTitle;
   title.textContent = property.title;
+  title.title = property.title;
+
   const location = document.createElement("span");
-  location.textContent = property.address + ", " + property.city;
-  const price = document.createElement("span");
-  price.textContent = new Intl.NumberFormat("en-PH", { style: "currency", currency: "PHP", maximumFractionDigits: 0 }).format(Number(property.price)) + " / month";
-  const status = document.createElement("span");
-  status.className = styles.popupStatus;
-  status.textContent = getListingStatus(property);
-  content.append(title, location, price, status);
+  location.className = styles.popupLocation;
+  const fullLocation = [property.address, property.city].filter(Boolean).join(", ");
+  location.textContent = fullLocation;
+  location.title = fullLocation;
+
+  const priceRow = document.createElement("div");
+  priceRow.className = styles.popupPriceRow;
+  const price = document.createElement("strong");
+  price.className = styles.popupPrice;
+  price.textContent = formatPrice(property.price);
+  const basis = document.createElement("span");
+  basis.className = styles.popupBasis;
+  basis.textContent = "/ month";
+  priceRow.append(price, basis);
+
+  const actions = document.createElement("div");
+  actions.className = styles.popupActions;
+  if (!property.editHref) actions.dataset.singleAction = "true";
+
+  const expand = document.createElement("button");
+  expand.type = "button";
+  expand.className = styles.popupExpandButton;
+  expand.setAttribute("aria-label", "Expand " + property.title);
+  expand.textContent = "View details ↗";
+  expand.addEventListener("click", () => onExpand?.(property.id));
+  actions.append(expand);
+
+  if (property.editHref) {
+    const edit = document.createElement("a");
+    edit.href = property.editHref;
+    edit.className = styles.popupEditLink;
+    edit.textContent = "Edit submission";
+    actions.append(edit);
+  }
+
+  body.append(metaRow, title, location, priceRow, actions);
+  content.append(frame, closeBtn, body);
   return content;
 }
 
-export function LandlordPropertyMap({ properties, loadError = false }: { properties: LandlordPropertyMapItem[]; loadError?: boolean }) {
+export function LandlordPropertyMap({ properties, loadError = false, initialSelectedId = null }: { properties: LandlordPropertyMapItem[]; loadError?: boolean; initialSelectedId?: string | null }) {
   const workspaceRef = useRef<HTMLElement>(null);
   const panelRef = useRef<HTMLElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -57,7 +218,11 @@ export function LandlordPropertyMap({ properties, loadError = false }: { propert
   const markerRefs = useRef<Marker[]>([]);
   const locationMarkerRef = useRef<Marker | null>(null);
   const locationRequestRef = useRef(0);
-  const [selectedId, setSelectedId] = useState<string | null>(properties[0]?.id ?? null);
+  const [selectedId, setSelectedId] = useState<string | null>(initialSelectedId && properties.some((property) => property.id === initialSelectedId) ? initialSelectedId : (properties[0]?.id ?? null));
+  const [expandedPropertyId, setExpandedPropertyId] = useState<string | null>(null);
+  const [activePhotoIndex, setActivePhotoIndex] = useState(0);
+  const expandedProperty = properties.find((property) => property.id === expandedPropertyId);
+  const openExpanded = useCallback((id: string) => { setActivePhotoIndex(0); setExpandedPropertyId(id); }, []);
   const [mapError, setMapError] = useState(false);
   const [locating, setLocating] = useState(false);
   const [locationMessage, setLocationMessage] = useState("");
@@ -135,9 +300,11 @@ export function LandlordPropertyMap({ properties, loadError = false }: { propert
         markerElement.append(glyph);
         markerElement.addEventListener("click", () => setSelectedId(property.id));
 
+        const popup = new Popup({ offset: POPUP_OFFSETS, maxWidth: "none", closeButton: false, closeOnClick: false });
+        popup.setDOMContent(makePopup(property, openExpanded, () => popup.remove()));
         const marker = new Marker({ element: markerElement, anchor: "bottom" })
           .setLngLat([property.longitude, property.latitude])
-          .setPopup(new Popup({ offset: 28, closeButton: true }).setDOMContent(makePopup(property)))
+          .setPopup(popup)
           .addTo(map);
         markers.push(marker);
         bounds.extend([property.longitude, property.latitude]);
@@ -152,7 +319,12 @@ export function LandlordPropertyMap({ properties, loadError = false }: { propert
           const details = container.querySelector<HTMLDetailsElement>(".maplibregl-ctrl-attrib.maplibregl-compact-show");
           details?.querySelector<HTMLElement>("summary")?.click();
         }
-        if (properties.length > 1 && !bounds.isEmpty()) {
+        const selectedIndex = initialSelectedId ? properties.findIndex((property) => property.id === initialSelectedId) : -1;
+        if (selectedIndex >= 0) {
+          const selected = properties[selectedIndex];
+          map.easeTo({ center: [selected.longitude, selected.latitude], offset: [0, 75], zoom: 15, duration: 0 });
+          markerRefs.current[selectedIndex]?.togglePopup();
+        } else if (properties.length > 1 && !bounds.isEmpty()) {
           const isMobile = window.matchMedia("(max-width: 767px)").matches;
           map.fitBounds(bounds, {
             padding: isMobile ? { top: 92, right: 28, bottom: 300, left: 28 } : { top: 96, right: 40, bottom: 40, left: 410 },
@@ -160,7 +332,8 @@ export function LandlordPropertyMap({ properties, loadError = false }: { propert
             duration: 0,
           });
         } else if (properties.length === 1) {
-          map.easeTo({ center: [properties[0].longitude, properties[0].latitude], zoom: 14.5, duration: 0 });
+          map.easeTo({ center: [properties[0].longitude, properties[0].latitude], offset: [0, 75], zoom: 14.5, duration: 0 });
+          markerRefs.current[0]?.togglePopup();
         }
       };
       const onError = () => {
@@ -184,7 +357,7 @@ export function LandlordPropertyMap({ properties, loadError = false }: { propert
       const timer = window.setTimeout(() => setMapError(true), 0);
       return () => window.clearTimeout(timer);
     }
-  }, [properties]);
+  }, [properties, initialSelectedId, openExpanded]);
 
   function locateMe() {
     const map = mapRef.current;
@@ -218,9 +391,14 @@ export function LandlordPropertyMap({ properties, loadError = false }: { propert
 
   function focusProperty(property: LandlordPropertyMapItem) {
     setSelectedId(property.id);
-    mapRef.current?.flyTo({ center: [property.longitude, property.latitude], zoom: 15, duration: 600 });
+    mapRef.current?.flyTo({ center: [property.longitude, property.latitude], offset: [0, 75], zoom: 15, duration: 600 });
     const markerIndex = properties.findIndex((item) => item.id === property.id);
-    if (markerIndex >= 0) markerRefs.current[markerIndex]?.togglePopup();
+    markerRefs.current.forEach((m, idx) => {
+      if (idx !== markerIndex && m.getPopup()?.isOpen()) m.togglePopup();
+    });
+    if (markerIndex >= 0 && !markerRefs.current[markerIndex]?.getPopup()?.isOpen()) {
+      markerRefs.current[markerIndex]?.togglePopup();
+    }
   }
 
   return <section ref={workspaceRef} className={styles.mapWorkspace} aria-label="Your property map">
@@ -262,13 +440,13 @@ export function LandlordPropertyMap({ properties, loadError = false }: { propert
           </div>
           : <div className={styles.propertyList}>
             <p className={styles.listIntro}>Only properties in your landlord account appear here.</p>
-            {properties.map((property) => <button
-              key={property.id}
+            {properties.map((property) => <div key={property.id} className={styles.propertyItem}><button
               type="button"
               className={styles.propertyCard + (selectedId === property.id ? " " + styles.selected : "")}
               aria-pressed={selectedId === property.id}
               onClick={() => focusProperty(property)}
             >
+              {property.imageUrls?.[0] && <Image src={property.imageUrls[0]} alt={"Photo of " + property.title} width={640} height={360} unoptimized className={styles.cardPhoto} />}
               <span className={styles.propertyHeading}>
                 <span className={styles.propertyName}>{property.title}</span>
                 <span className={styles.pinDot} data-status={property.status} data-available={String(property.is_available)} aria-hidden="true" />
@@ -279,13 +457,47 @@ export function LandlordPropertyMap({ properties, loadError = false }: { propert
                 <span className={styles.propertyType}>{property.property_type.replaceAll("_", " ")}</span>
               </span>
               <span className={styles.propertyFooter}>
-                <strong>{new Intl.NumberFormat("en-PH", { style: "currency", currency: "PHP", maximumFractionDigits: 0 }).format(Number(property.price))}<small> / month</small></strong>
+                <strong>{formatPrice(property.price)}<small> / month</small></strong>
                 <span>View on map <ArrowUpRight size={14} aria-hidden="true" /></span>
               </span>
-            </button>)}
+            </button>
+            <div className={styles.propertyActions} data-single-action={!property.editHref || undefined}>
+              <button type="button" className={styles.cardPrimaryAction} aria-label={"Expand " + property.title} onClick={() => openExpanded(property.id)}><span>View details</span> <ArrowUpRight size={15} aria-hidden="true" /></button>
+              {property.editHref && <Link href={property.editHref} className={styles.secondaryLink}>Edit submission</Link>}
+            </div>
+            </div>)}
           </div>}
 
       {mapError && <p className={styles.mapNotice} role="status">The map tiles could not be loaded. Your property details are still available above.</p>}
     </aside>
+    {expandedProperty && <Modal open onClose={() => setExpandedPropertyId(null)} title={expandedProperty.title} description={expandedProperty.address + ", " + expandedProperty.city} className={styles.expandModal}>
+      <ExpandedPropertyView property={expandedProperty} photoIndex={activePhotoIndex} onPhotoIndexChange={setActivePhotoIndex} />
+    </Modal>}
   </section>;
+}
+
+export function ExpandedPropertyView({ property, photoIndex, onPhotoIndexChange }: { property: LandlordPropertyMapItem; photoIndex: number; onPhotoIndexChange: (index: number) => void }) {
+  const urls = dedupeImageUrls(property.imageUrls);
+  const index = Math.min(photoIndex, Math.max(urls.length - 1, 0));
+  const go = (delta: number) => onPhotoIndexChange((index + delta + urls.length) % urls.length);
+  return <div className={styles.expandBody}>
+    {urls.length ? <div className={styles.viewer}>
+      <Image src={urls[index]} alt={"Photo " + (index + 1) + " of " + property.title} width={1200} height={900} unoptimized className={styles.viewerPhoto} />
+      <span className={styles.photoBadge}>{index + 1} / {urls.length}</span>
+      {urls.length > 1 && <>
+        <button type="button" className={styles.viewerPrev} aria-label="Previous photo" onClick={() => go(-1)}><ChevronLeft size={20} aria-hidden="true" /></button>
+        <button type="button" className={styles.viewerNext} aria-label="Next photo" onClick={() => go(1)}><ChevronRight size={20} aria-hidden="true" /></button>
+      </>}
+    </div> : <div className={styles.noPhotos}><ImageOff size={22} aria-hidden="true" /><span>No photos uploaded</span></div>}
+    {urls.length > 1 && <div className={styles.thumbs}>{urls.map((url, i) => <button key={url} type="button" className={styles.thumb} aria-label={"Show photo " + (i + 1)} aria-current={i === index} onClick={() => onPhotoIndexChange(i)}><Image src={url} alt="" width={112} height={112} unoptimized /></button>)}</div>}
+    <div className={styles.propertyMeta}>
+      <span className={styles.statusPill + " " + getStatusTone(property)}>{getListingStatus(property)}</span>
+      <span className={styles.propertyType}>{property.property_type.replaceAll("_", " ")}</span>
+    </div>
+    <strong className={styles.expandPrice}>{formatPrice(property.price)}<small> / month</small></strong>
+    <p className={styles.expandText}>{property.address}, {property.city}</p>
+    {property.description && <p className={styles.expandText}>{property.description}</p>}
+    {property.amenities?.length ? <ul className={styles.amenities}>{property.amenities.map((amenity) => <li key={amenity}>{amenity}</li>)}</ul> : null}
+    {property.editHref && <Link href={property.editHref} className={styles.secondaryLink}>Edit submission</Link>}
+  </div>;
 }

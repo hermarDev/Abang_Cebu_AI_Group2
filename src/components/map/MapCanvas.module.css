@@ -302,10 +302,11 @@
   cursor: pointer;
 }
 .mapRoot :global(.rental-map-marker[aria-pressed="true"]) {
-  background: var(--foreground);
-  color: var(--background);
-  outline: 3px solid var(--ring);
-  outline-offset: 2px;
+  border-color: #fff;
+  background: #1d4ed8;
+  color: #fff;
+  box-shadow: 0 0 0 3px rgb(37 99 235 / 35%), 0 4px 12px rgb(15 39 66 / 40%);
+  transform: scale(1.06);
 }
 .mapRoot :global(.rental-map-marker:focus-visible) { outline: 3px solid #f59e0b; outline-offset: 2px; }
 .mapRoot :global(.rental-search-center) { width: 0.8rem; height: 0.8rem; border: 2px solid #fff; border-radius: 50%; background: #2563eb; box-shadow: 0 0 0 5px rgb(37 99 235 / 18%); }
@@ -385,7 +386,8 @@
   .rentalResults { top: max(25rem, calc(env(safe-area-inset-top) + 24.5rem)); max-height: 32dvh; }
 }
 
-.mapRoot :global(.maplibregl-popup-content) { background: var(--card); color: var(--card-foreground); }
+.mapRoot :global(.maplibregl-popup) { z-index: calc(var(--z-index-search-bar, 30) + 1); max-width: min(19.5rem, calc(100vw - 1.5rem)) !important; }
+.mapRoot :global(.maplibregl-popup-content) { border: 1px solid var(--border); border-radius: 1.25rem; padding: .75rem; background: var(--card); color: var(--card-foreground); box-shadow: 0 18px 40px -10px rgb(15 23 42 / 24%), 0 4px 12px -2px rgb(15 23 42 / 10%); }
 .mapRoot :global(.maplibregl-popup-anchor-top .maplibregl-popup-tip),
 .mapRoot :global(.maplibregl-popup-anchor-top-left .maplibregl-popup-tip),
 .mapRoot :global(.maplibregl-popup-anchor-top-right .maplibregl-popup-tip) { border-bottom-color: var(--card); }
@@ -394,9 +396,50 @@
 .mapRoot :global(.maplibregl-popup-anchor-bottom-right .maplibregl-popup-tip) { border-top-color: var(--card); }
 .mapRoot :global(.maplibregl-popup-anchor-left .maplibregl-popup-tip) { border-right-color: var(--card); }
 .mapRoot :global(.maplibregl-popup-anchor-right .maplibregl-popup-tip) { border-left-color: var(--card); }
-.rentalPopup { display: grid; min-width: 11rem; gap: .3rem; color: var(--card-foreground); font-size: .8rem; }
-.rentalPopup strong { font-size: .9rem; }
-.rentalPopup span { color: var(--muted-foreground); }
-.rentalPopupSave { justify-self: start; min-height: 2.25rem; margin-top: .35rem; border: 1px solid var(--border); border-radius: .6rem; padding: .35rem .7rem; background: var(--card); color: var(--action); font: inherit; font-weight: 700; cursor: pointer; }
-.rentalPopupSave:hover { background: var(--accent); }
-.rentalPopupSave:focus-visible { outline: 3px solid var(--ring); outline-offset: 2px; }
+.rentalPopupHost { display: block; width: 100%; }
+.rentalPopup { position: relative; display: grid; width: min(17.75rem, calc(100vw - 3rem)); gap: .65rem; color: var(--card-foreground); font-family: var(--font-sans, inherit); font-size: .8125rem; }
+.rentalPopupPhotoFrame { position: relative; width: 100%; aspect-ratio: 16 / 10; overflow: hidden; border-radius: .875rem; background: var(--muted); }
+.rentalPopupPhoto { display: block; width: 100%; height: 100%; object-fit: cover; }
+.rentalPopupNoPhoto { display: flex; width: 100%; height: 100%; flex-direction: column; align-items: center; justify-content: center; gap: .35rem; color: var(--muted-foreground); font-size: .75rem; font-weight: 600; text-align: center; padding: .35rem; }
+.rentalPopupClose { position: absolute; top: .5rem; right: .5rem; z-index: 3; display: grid; width: 2rem; height: 2rem; place-items: center; border: 1px solid rgb(255 255 255 / .14); border-radius: 999px; padding: 0; background: rgb(15 23 42 / .62); color: #fff; cursor: pointer; backdrop-filter: blur(6px); transition: background-color 140ms ease, transform 120ms ease; }
+.rentalPopupClose:hover { background: rgb(15 23 42 / .84); }
+.rentalPopupClose:focus-visible, .rentalPopupPhotoNav:focus-visible, .rentalPopupExpand:focus-visible, .rentalPopupSave:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+.rentalPopupPhotoNav { position: absolute; top: 50%; z-index: 2; display: grid; width: 2rem; height: 2rem; place-items: center; transform: translateY(-50%); border: 1px solid rgb(255 255 255 / .14); border-radius: 999px; padding: 0; background: rgb(15 23 42 / .62); color: #fff; cursor: pointer; backdrop-filter: blur(6px); transition: background-color 140ms ease; }
+.rentalPopupPhotoNav:hover { background: rgb(15 23 42 / .84); }
+.rentalPopupPhotoPrev { left: .5rem; }
+.rentalPopupPhotoNext { right: .5rem; }
+.rentalPopupBody { display: grid; gap: .45rem; min-width: 0; padding-inline: .1rem; }
+.rentalPopupMetaRow { display: flex; align-items: center; justify-content: space-between; gap: .5rem; min-width: 0; }
+.rentalPopupCategory { display: inline-flex; align-items: center; border-radius: 999px; padding: .2rem .65rem; background: var(--muted); color: var(--card-foreground); font-size: .72rem; font-weight: 650; line-height: 1.2; white-space: nowrap; }
+.rentalPopupPhotoCount { display: inline-flex; align-items: center; gap: .3rem; color: var(--muted-foreground); font-size: .72rem; font-weight: 500; white-space: nowrap; }
+.rentalPopupTitle { margin: .05rem 0 0; overflow: hidden; color: var(--card-foreground); font-size: 1rem; font-weight: 750; letter-spacing: -.015em; line-height: 1.25; text-overflow: ellipsis; white-space: nowrap; }
+.rentalPopupLocation { display: flex; align-items: center; gap: .3rem; margin: 0; min-width: 0; color: var(--muted-foreground); font-size: .78rem; line-height: 1.3; }
+.rentalPopupLocation > svg { flex: 0 0 auto; color: var(--muted-foreground); }
+.rentalPopupLocation > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rentalPopupPriceRow { display: flex; flex-wrap: wrap; align-items: baseline; gap: .3rem; margin: .1rem 0 0; }
+.rentalPopupPrice { color: var(--card-foreground); font-size: 1.05rem; font-weight: 800; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+.rentalPopupBasis { color: var(--muted-foreground); font-size: .76rem; font-weight: 500; }
+.rentalPopupActions { display: grid; grid-template-columns: 1.2fr 1fr; gap: .45rem; margin-top: .25rem; }
+.rentalPopupActions[data-single-action] { grid-template-columns: 1fr; }
+.rentalPopupExpand { display: inline-flex; min-height: 2.625rem; width: 100%; align-items: center; justify-content: center; gap: .35rem; border: 1px solid transparent; border-radius: 999px; padding: .4rem .85rem; background: var(--card-foreground); color: var(--card); font: inherit; font-size: .78rem; font-weight: 700; cursor: pointer; white-space: nowrap; transition: opacity 140ms ease, transform 120ms ease; }
+.rentalPopupExpand:hover { opacity: .92; }
+.rentalPopupSave { display: inline-flex; min-height: 2.625rem; width: 100%; align-items: center; justify-content: center; gap: .35rem; border: 1px solid var(--border); border-radius: 999px; padding: .4rem .75rem; background: transparent; color: var(--card-foreground); font: inherit; font-size: .78rem; font-weight: 650; cursor: pointer; white-space: nowrap; transition: background-color 140ms ease, border-color 140ms ease, color 140ms ease; }
+.rentalPopupSave:hover { background: var(--muted); }
+.rentalPopupSave[aria-pressed="true"] { border-color: color-mix(in srgb, var(--action) 45%, var(--border)); background: color-mix(in srgb, var(--action) 12%, var(--card)); color: var(--action); font-weight: 700; }
+@media (max-width: 639px) {
+  .mapRoot :global(.maplibregl-popup-content) { padding: .65rem; border-radius: 1.1rem; }
+  .rentalPopup { width: min(18.5rem, calc(100vw - 2rem)); grid-template-columns: 5.5rem minmax(0, 1fr); align-items: center; gap: .5rem .65rem; }
+  .rentalPopupPhotoFrame { aspect-ratio: 1 / 1; height: 5.5rem; border-radius: .75rem; }
+  .rentalPopupPhotoNav { width: 1.65rem; height: 1.65rem; }
+  .rentalPopupPhotoPrev { left: .25rem; }
+  .rentalPopupPhotoNext { right: .25rem; }
+  .rentalPopupClose { top: -.15rem; right: -.15rem; width: 2rem; height: 2rem; border-color: var(--border); background: var(--muted); color: var(--card-foreground); }
+  .rentalPopupClose:hover { background: var(--accent); color: var(--card-foreground); }
+  .rentalPopupBody { display: contents; }
+  .rentalPopupMetaRow, .rentalPopupTitle, .rentalPopupLocation, .rentalPopupPriceRow { grid-column: 2; }
+  .rentalPopupMetaRow { padding-right: 2.1rem; }
+  .rentalPopupTitle { margin: 0; font-size: .925rem; }
+  .rentalPopupPrice { font-size: .95rem; }
+  .rentalPopupActions { grid-column: 1 / -1; margin-top: .15rem; }
+  .rentalPopupExpand, .rentalPopupSave { min-height: 2.75rem; }
+}

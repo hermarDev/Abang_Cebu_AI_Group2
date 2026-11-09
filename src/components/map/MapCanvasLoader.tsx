@@ -8,7 +8,7 @@ import type { RentalFilters } from "@/contracts/rental-filters";
 const MapCanvas = dynamic(() => import("./MapCanvas").then((module) => module.MapCanvas), {
   ssr: false,
   loading: () => (
-    <div role="status" aria-live="polite" className="flex h-[100dvh] min-h-96 items-center justify-center bg-[var(--background)] text-[var(--foreground)]">
+    <div role="status" aria-live="polite" className="flex h-full min-h-0 items-center justify-center bg-[var(--background)] text-[var(--foreground)]">
       Loading the interactive map…
     </div>
   ),
@@ -19,6 +19,9 @@ type MapCanvasLoaderProps = {
   savedRentalIds?: string[];
   canSaveRentals?: boolean;
   onToggleFavorite?: (id: string) => void;
+  onExpandRental?: (id: string) => void;
+  canMessageLandlord?: boolean;
+  onMessageLandlord?: (id: string) => void;
   selectedPlace?: PlaceResult | null;
   rentals?: RentalResult[];
   dataStatus?: "loading" | "ready" | "error";
@@ -33,9 +36,12 @@ type MapCanvasLoaderProps = {
   assistantControlsTarget?: HTMLDivElement | null;
   decorative?: boolean;
   showAttribution?: boolean;
+  enablePinDrop?: boolean;
+  pinCoordinates?: [number, number] | null;
+  onPinChange?: (coordinates: [number, number]) => void;
 };
 
 export default function MapCanvasLoader(props: MapCanvasLoaderProps) {
   const { rentals = [], dataStatus = "error", filters, onFiltersChange, locationQuery, onLocationQueryChange, searchRadiusKm, onSearchRadiusKmChange, onSearchCenterChange, resolvedTheme, decorative, showAttribution } = props;
-  return <MapCanvas selectedRentalId={props.selectedRentalId} onSelectRental={props.onSelectRental} selectedPlace={props.selectedPlace} rentals={rentals} dataStatus={dataStatus} filters={filters} onFiltersChange={onFiltersChange} locationQuery={locationQuery} onLocationQueryChange={onLocationQueryChange} searchRadiusKm={searchRadiusKm} onSearchRadiusKmChange={onSearchRadiusKmChange} onSearchCenterChange={onSearchCenterChange} resolvedTheme={resolvedTheme} assistantControlsTarget={props.assistantControlsTarget} savedRentalIds={props.savedRentalIds} canSaveRentals={props.canSaveRentals} onToggleFavorite={props.onToggleFavorite} decorative={decorative} showAttribution={showAttribution} />;
+  return <MapCanvas enablePinDrop={props.enablePinDrop} pinCoordinates={props.pinCoordinates} onPinChange={props.onPinChange} selectedRentalId={props.selectedRentalId} onSelectRental={props.onSelectRental} selectedPlace={props.selectedPlace} rentals={rentals} dataStatus={dataStatus} filters={filters} onFiltersChange={onFiltersChange} locationQuery={locationQuery} onLocationQueryChange={onLocationQueryChange} searchRadiusKm={searchRadiusKm} onSearchRadiusKmChange={onSearchRadiusKmChange} onSearchCenterChange={onSearchCenterChange} resolvedTheme={resolvedTheme} assistantControlsTarget={props.assistantControlsTarget} savedRentalIds={props.savedRentalIds} canSaveRentals={props.canSaveRentals} onToggleFavorite={props.onToggleFavorite} onExpandRental={props.onExpandRental} canMessageLandlord={props.canMessageLandlord} onMessageLandlord={props.onMessageLandlord} decorative={decorative} showAttribution={showAttribution} />;
 }

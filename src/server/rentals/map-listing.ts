@@ -60,3 +60,62 @@ export function mapListing(value: unknown): RentalResult {
     directLandlord: boolean(row.direct_landlord),
   };
 }
+
+
+const amenityLabels: Record<string, string> = { wifi: "Wi-Fi", cooking: "Cooking allowed", aircon: "Air conditioning", laundry: "Laundry allowed",
+  water_included: "Water included", electricity_included: "Electricity included", motorcycle_parking: "Motorcycle parking", car_parking: "Car parking" };
+const storagePath = /^[0-9a-f-]+\/[0-9a-f-]+\/[0-9a-f-]+\/[0-9a-f]{64}\.(?:jpg|png|webp)$/i;
+
+// Maps a get_public_submitted_rentals row; tenant_policy may be a plain policy string or an object of amenity flags.
+export function mapSubmittedRental(value: unknown, signedUrlsByPath: ReadonlyMap<string, string> = new Map()): RentalResult {
+  if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("Invalid listing");
+  const row = value as Record<string, unknown>;
+  const policyObject = row.tenant_policy && typeof row.tenant_policy === "object" && !Array.isArray(row.tenant_policy) ? row.tenant_policy as Record<string, unknown> : {};
+  const tags = new Set(Array.isArray(row.amenities) ? row.amenities.filter((a): a is string => typeof a === "string") : []);
+  const flag = (tag: string, key: string) => tags.has(tag) || policyObject[key] === true;
+  const parking = String(policyObject.parking_availability ?? "").toLowerCase();
+  const motorcycleParking = flag("motorcycle_parking", "motorcycle_parking") || /motor/.test(parking) || parking === "both";
+  const carParking = flag("car_parking", "car_parking") || /\bcar\b/.test(parking) || parking === "both";
+  const wifi = flag("wifi", "wifi_included"), aircon = flag("aircon", "aircon_included"), cooking = flag("cooking", "cooking_allowed"),
+    laundry = flag("laundry", "laundry_allowed"), water = flag("water_included", "water_included"), power = flag("electricity_included", "electricity_included");
+  const active = { wifi, aircon, cooking, laundry, water_included: water, electricity_included: power, motorcycle_parking: motorcycleParking, car_parking: carParking };
+
+  const rentalType = row.rental_type;
+  const mapped = row.property_type === "condominium" ? "condo" : row.property_type === "townhouse" ? "house"
+    : row.property_type === "commercial" ? (rentalType === "bedspace" || rentalType === "private_room" || rentalType === "shared_room" ? rentalType : "apartment")
+    : row.property_type;
+  const propertyType = choice(mapped, propertyTypes);
+  const maxOccupants = row.max_occupants == null ? null : number(row.max_occupants, 1, Number.MAX_SAFE_INTEGER);
+  if (maxOccupants !== null && !Number.isInteger(maxOccupants)) throw new Error("Invalid listing");
+  const policy = typeof row.tenant_policy === "string" ? row.tenant_policy : typeof policyObject.tenant_policy === "string" ? policyObject.tenant_policy : null;
+  const curfew = policyObject.curfew_policy ?? policyObject.curfew_type;
+  const status = choice(row.moderation_status, ["approved", "pending"] as const);
+  const photos = Array.isArray(row.photo_paths) ? row.photo_paths : [];
+  const seenKeys = new Set<string>();
+  const imageUrls = photos.flatMap((path) => {
+    if (typeof path !== "string") return [];
+    const dedupeKey = path.split("/").pop()?.toLowerCase() ?? path;
+    if (seenKeys.has(dedupeKey)) return [];
+    if (/^https:\/\//i.test(path)) { seenKeys.add(dedupeKey); return [path]; }
+    const url = storagePath.test(path) ? signedUrlsByPath.get(path) : undefined;
+    if (!url) return [];
+    seenKeys.add(dedupeKey);
+    return [url];
+  });
+
+  return {
+    id: text(row.id), title: text(row.title), address: row.address == null ? text(row.city) : text(row.address), imageUrls,
+    description: row.description == null ? "" : text(row.description), locality: text(row.city),
+    coordinates: [number(row.longitude, -180, 180), number(row.latitude, -90, 90)], price: number(row.price, 0, Number.MAX_SAFE_INTEGER),
+    type: propertyType, propertyType, basis: rentalType === "bedspace" ? "bed" : "room", available: true, distanceMeters: null,
+    area: row.floor_area_sqm == null ? 0 : number(row.floor_area_sqm, 0, Number.MAX_SAFE_INTEGER), tone: "sage",
+    amenities: Object.entries(active).filter(([, on]) => on).map(([tag]) => amenityLabels[tag]),
+    maxOccupants, bathroomType: row.bathroom_type == null ? null : choice(row.bathroom_type, ["private", "shared"]),
+    tenantPolicy: policy == null ? null : choice(policy, ["any", "female_only", "male_only", "mixed"]),
+    curfewType: curfew == null ? null : choice(curfew, ["none", "fixed", "conditional"]),
+    cookingAllowed: cooking, laundryAllowed: laundry, wifiAvailable: wifi, aircon,
+    waterPricingType: water ? "included" : null, electricityPricingType: power ? "included" : null,
+    motorcycleParking, carParking,
+    verificationStatus: status === "approved" ? "property_verified" : "unverified", directLandlord: true,
+  };
+}

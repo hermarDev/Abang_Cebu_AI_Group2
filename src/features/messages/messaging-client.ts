@@ -1,0 +1,107 @@
+import { normalizeApiError, type ApiErrorKind } from "@/lib/api-error";
+
+export type ThreadCounterpart = { id: string; fullName: string | null; avatarUrl: string | null; role: "renter" | "landlord" | "admin"; isSuspended?: boolean };
+export type RentalThreadSummary = {
+  id: string;
+  listingSource?: string;
+  listingId: string;
+  listingTitle: string;
+  listingPrice: number | null;
+  listingAddress?: string | null;
+  listingCity?: string | null;
+  listingStatus: string;
+  listingAvailable: boolean;
+  listingThumbnailUrl?: string | null;
+  listingPhotoUrl?: string | null;
+  counterpart: ThreadCounterpart;
+  unreadCount: number;
+  isArchived: boolean;
+  isBlocked: boolean;
+  blockedByViewer: boolean;
+  canSend: boolean;
+  lastMessagePreview: string | null;
+  lastMessageAt: string | null;
+  createdAt?: string;
+};
+export type RentalThreadDetail = RentalThreadSummary;
+export type RentalMessageItem = { id: string; conversationId: string; senderId: string; operationId: string; body: string; createdAt: string };
+export type ThreadDetailResponse = { thread: RentalThreadDetail; messages: RentalMessageItem[]; hasMore: boolean };
+export type ReportCategory = "scam_or_fraud" | "harassment" | "inaccurate_listing" | "off_platform_payment" | "spam" | "other";
+
+export const MESSAGE_MAX = 2000;
+export const REPORT_DETAILS_MIN = 10;
+export const REPORT_DETAILS_MAX = 1000;
+export const REPORT_CATEGORIES: { value: ReportCategory; label: string }[] = [
+  { value: "scam_or_fraud", label: "Scam or fraud" },
+  { value: "harassment", label: "Harassment" },
+  { value: "inaccurate_listing", label: "Inaccurate listing" },
+  { value: "off_platform_payment", label: "Off-platform payment request" },
+  { value: "spam", label: "Spam" },
+  { value: "other", label: "Something else" },
+];
+
+export const isListingGone = (t: Pick<RentalThreadSummary, "listingStatus" | "listingAvailable">) => t.listingStatus === "archived" || t.listingStatus === "removed" || !t.listingAvailable;
+
+export const listingBadgeLabel = (t: Pick<RentalThreadSummary, "listingStatus" | "listingAvailable">) => isListingGone(t) ? "Listing no longer available" : "Published · Available";
+
+export function composerBlockedReason(t: RentalThreadDetail): string | null {
+  if (t.canSend) return null;
+  if (t.blockedByViewer) return "You blocked this user";
+  if (t.listingStatus === "archived" || t.listingStatus === "removed") return "Listing no longer available";
+  return "This conversation is unavailable";
+}
+
+export const listingHref = (t: Pick<RentalThreadSummary, "listingId">, role: "renter" | "landlord") =>
+  `${role === "renter" ? "/" : "/landlord/map"}?selected=${encodeURIComponent(t.listingId)}`;
+
+const time = new Intl.DateTimeFormat("en-PH", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit", timeZone: "Asia/Manila" });
+export const formatMessageTime = (iso: string | null | undefined) => {
+  const date = iso ? new Date(iso) : null;
+  return date && !Number.isNaN(date.getTime()) ? time.format(date) : "";
+};
+
+/** Merge by id, keep chronological order. */
+export function mergeMessages(existing: RentalMessageItem[], incoming: RentalMessageItem[]) {
+  const byId = new Map(existing.map(m => [m.id, m]));
+  for (const m of incoming) byId.set(m.id, m);
+  return [...byId.values()].sort((a, b) => a.createdAt.localeCompare(b.createdAt) || a.id.localeCompare(b.id));
+}
+
+export class MessagingApiError extends Error {
+  constructor(message: string, readonly kind?: ApiErrorKind) { super(message); }
+}
+
+export async function apiJson<T>(url: string, userId: string, init: RequestInit = {}, fetchImpl: typeof fetch = fetch): Promise<T> {
+  let response: Response;
+  try {
+    response = await fetchImpl(url, {
+      cache: "no-store",
+      ...init,
+      headers: { "x-expected-user-id": userId, ...(init.body ? { "content-type": "application/json" } : {}), ...init.headers },
+    });
+  } catch {
+    const { message, kind } = normalizeApiError(0, null, "Check your connection and try again.");
+    throw new MessagingApiError(message, kind);
+  }
+  const payload = await response.json().catch(() => null);
+  if (!response.ok) {
+    const { message, kind } = normalizeApiError(response.status, payload, "Something went wrong. Please try again.");
+    throw new MessagingApiError(message, kind);
+  }
+  return payload as T;
+}
+
+/** The same operationId is reused on retry so the server dedupes a message that actually landed. */
+export async function postThreadMessage(threadId: string, userId: string, operationId: string, body: string, fetchImpl: typeof fetch = fetch) {
+  const { message } = await apiJson<{ message: RentalMessageItem }>(`/api/messages/threads/${encodeURIComponent(threadId)}`, userId, { method: "POST", body: JSON.stringify({ operationId, body }) }, fetchImpl);
+  return message;
+}
+
+export type InquiryIntent = { operationId: string; listingId: string; body: string };
+
+/** One POST per intent; the same operationId on retry lets the server dedupe an inquiry that actually landed. */
+export async function postListingInquiry(userId: string, { listingId, operationId, body }: InquiryIntent, fetchImpl: typeof fetch = fetch) {
+  const result = await apiJson<{ conversationId?: unknown }>("/api/messages/threads", userId, { method: "POST", body: JSON.stringify({ listingId, operationId, body }) }, fetchImpl);
+  if (typeof result?.conversationId !== "string") throw new MessagingApiError("Something went wrong. Please try again.", "server");
+  return { conversationId: result.conversationId };
+}

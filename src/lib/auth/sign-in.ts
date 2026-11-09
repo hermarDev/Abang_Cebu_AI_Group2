@@ -1,14 +1,22 @@
 import { createClient } from "@/lib/supabase/client";
-import { isRegisterableRole, isSafeRedirectUrl } from "@/types/auth";
+import { isSafeRedirectUrl } from "@/types/auth";
+import type { UserRole } from "@/types/database";
 
-export type SignInResult = { success: true; role: "renter" | "landlord" } | { success: false; message: string };
+export type SignInResult = { success: true; role: UserRole } | { success: false; message: string };
 
-export function getPostLoginRedirect(destination: string | null, role?: "renter" | "landlord"): string {
+export function isAllowedSessionRole(role: unknown): role is UserRole {
+  return role === "renter" || role === "landlord" || role === "admin";
+}
+
+export function getPostLoginRedirect(destination: string | null, role?: UserRole): string {
   if (destination && isSafeRedirectUrl(destination)) {
     const pathname = new URL(destination, "http://localhost").pathname;
-    if (role === "landlord" && (pathname === "/" || pathname === "/map")) return "/landlord/dashboard";
+    if (role === "admin" && (pathname === "/" || pathname === "/map" || pathname.startsWith("/landlord"))) return "/admin/dashboard";
+    if (role === "landlord" && (pathname === "/" || pathname === "/map" || pathname.startsWith("/admin"))) return "/landlord/dashboard";
+    if (role === "renter" && (pathname.startsWith("/landlord") || pathname.startsWith("/admin"))) return "/";
     return destination;
   }
+  if (role === "admin") return "/admin/dashboard";
   return role === "landlord" ? "/landlord/dashboard" : "/";
 }
 
@@ -67,7 +75,7 @@ export async function signInWithEmail(
       };
     }
 
-    if (!isRegisterableRole(profile.role)) {
+    if (!isAllowedSessionRole(profile.role)) {
       await supabase.auth.signOut({ scope: "local" });
       return {
         success: false,

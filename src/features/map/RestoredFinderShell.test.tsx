@@ -2,13 +2,17 @@ import { readFileSync } from "node:fs";
 import { renderToStaticMarkup } from "react-dom/server";
 import { isValidElement, type ReactNode, type ReactElement } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { RestoredFinderShell } from "./RestoredFinderShell";
+import { RestoredFinderShell, clearRentalsMemoryCache } from "./RestoredFinderShell";
+import { RentalCard } from "@/features/listings/RentalCard";
+import { Modal } from "@/components/ui/Modal";
 import type { RentalResult } from "@/contracts/preview";
 import { DEFAULT_RENTAL_FILTERS, type RentalFilters } from "@/contracts/rental-filters";
 import { Button } from "@/components/ui/Button";
 import * as RadixPopover from "@radix-ui/react-popover";
 import { FinderNavigation } from "./FinderNavigation";
 import { FinderAssistant } from "./FinderAssistant";
+import { ListingInquiryModal } from "@/features/messages/ListingInquiryModal";
+import { ExpandedRentalModalContent } from "./RestoredFinderShell";
 
 const hooks = vi.hoisted(() => ({ changeFilters: undefined as ((filters: RentalFilters) => void) | undefined, changeCenter: undefined as ((center: [number, number]) => void) | undefined, mapRentals: [] as RentalResult[], slots: [] as unknown[], index: 0, effects: [] as (() => void | (() => void))[], effect: undefined as (() => void | (() => void)) | undefined }));
 vi.mock("react", async (importOriginal) => ({
@@ -56,7 +60,7 @@ async function load(response: { ok: boolean; json: () => Promise<unknown> }) {
   return { html, fetchMock, cleanup };
 }
 
-afterEach(() => { hooks.slots = []; hooks.index = 0; hooks.effect = undefined; hooks.effects = []; vi.unstubAllGlobals(); vi.unstubAllEnvs(); });
+afterEach(() => { clearRentalsMemoryCache(); hooks.slots = []; hooks.index = 0; hooks.effect = undefined; hooks.effects = []; vi.unstubAllGlobals(); vi.unstubAllEnvs(); });
 
 function captureShell() {
   hooks.index = 0;
@@ -451,5 +455,111 @@ describe("RestoredFinderShell", () => {
     expect(html).not.toContain('class="_accountDialog_');
     expect(html).not.toContain('aria-label="Account access"');
     expect(html).not.toContain("Email Address");
+  });
+
+  const gallery: RentalResult = { ...rental, imageUrls: ["https://example.test/a.jpg", "https://example.test/b.jpg", "https://example.test/c.jpg"], verificationStatus: "property_verified", area: 18, maxOccupants: 2, description: "Full gallery description." };
+
+  it("renders an Expand button and photo count badge on multi-photo rental cards", () => {
+    const html = renderToStaticMarkup(<RentalCard rental={gallery} selected={false} onSelect={vi.fn()} onExpand={vi.fn()} />);
+    expect(html).toContain('aria-label="Expand Endpoint rental"');
+    expect(html).toContain("3 photos");
+    expect(renderToStaticMarkup(<RentalCard rental={rental} selected={false} onSelect={vi.fn()} />)).not.toContain(" photos<");
+  });
+
+  it("opens the expanded rental modal from a card with photo navigation and full details", async () => {
+    await load({ ok: true, json: async () => ({ rentals: [gallery] }) });
+    const card = findByType(captureShell(), RentalCard);
+    expect(card).toBeDefined();
+    (card!.props.onExpand as (id: string) => void)("live-1");
+    const modal = findElementsByType(captureShell(), Modal).find((element) => element.props.title === "Endpoint rental");
+    expect(modal).toBeDefined();
+    const html = renderToStaticMarkup(<>{modal!.props.children}</>);
+    for (const text of ['aria-label="Previous photo"', 'aria-label="Next photo"', 'aria-label="Show photo 3"', "1 / 3", "Verified property", "18 sqm", "Up to 2 occupants", "Full gallery description.", "Wi-Fi"]) expect(html).toContain(text);
+  });
+
+  it("reuses the 60s rentals memory cache on remount until it is cleared", async () => {
+    const { fetchMock } = await load({ ok: true, json: async () => ({ rentals: [rental] }) });
+    const remount = () => { hooks.slots = []; hooks.index = 0; hooks.effect = undefined; hooks.effects = []; const html = render(); (hooks.effect as (() => void) | undefined)?.(); return html; };
+    expect(remount()).toContain(rental.title);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    clearRentalsMemoryCache();
+    expect(remount()).toContain("Loading rentals…");
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  describe("Message landlord entry points", () => {
+    type ShellProps = Parameters<typeof RestoredFinderShell>[0];
+    const capture = (props: ShellProps = {}) => {
+      hooks.index = 0;
+      let tree: ReactNode;
+      function Capture() { tree = RestoredFinderShell(props); return null; }
+      renderToStaticMarkup(<Capture />);
+      return tree!;
+    };
+    const renter: ShellProps = { authenticated: true, userRole: "renter", userId: "renter-1" };
+    const accountModal = (tree: ReactNode) => findElementsByType(tree, Modal).find((element) => element.props.title === "Account access");
+    const mapProps = (tree: ReactNode) => findElement<{ canMessageLandlord?: boolean; onMessageLandlord?: (id: string) => void }>(tree, (element) => "onMessageLandlord" in element.props)!.props;
+    const cardProps = (tree: ReactNode) => findByType(tree, RentalCard)!.props as { canMessage?: boolean; onMessage?: (id: string) => void; onExpand?: (id: string) => void };
+
+    it("offers the action on the map popup and cards for guests and renters but not landlords, admins or samples", async () => {
+      await load({ ok: true, json: async () => ({ rentals: [rental] }) });
+      for (const props of [{}, renter]) {
+        expect(mapProps(capture(props)).canMessageLandlord).toBe(true);
+        expect(cardProps(capture(props)).canMessage).toBe(true);
+      }
+      for (const userRole of ["landlord", "admin"] as const) {
+        const tree = capture({ authenticated: true, userRole, userId: "u" });
+        expect(mapProps(tree).canMessageLandlord).toBe(false);
+        expect(cardProps(tree).canMessage).toBe(false);
+      }
+    });
+
+    it("hands a guest to the login prompt, closes the expanded modal, and resumes the same listing after sign-in", async () => {
+      await load({ ok: true, json: async () => ({ rentals: [gallery] }) });
+      cardProps(capture()).onMessage!("live-1");
+      let tree = capture();
+      expect(accountModal(tree)!.props.open).toBe(true);
+      expect(findElement(tree, (element) => element.props.children === "Sign in or create a renter account to message the landlord.")).toBeDefined();
+      expect(findByType(tree, ListingInquiryModal)).toBeUndefined();
+      capture(renter); // the sign-in transition sets state during render; the mocked useState needs a second pass
+      tree = capture(renter);
+      const inquiry = findByType(tree, ListingInquiryModal);
+      expect(inquiry!.props).toMatchObject({ listingId: "live-1", userId: "renter-1", listingTitle: "Endpoint rental" });
+    });
+
+    it("drops a pending guest inquiry when the account dialog is dismissed or the user is not a renter", async () => {
+      await load({ ok: true, json: async () => ({ rentals: [rental] }) });
+      mapProps(capture()).onMessageLandlord!("live-1");
+      (accountModal(capture())!.props.onClose as () => void)();
+      expect(findByType(capture(renter), ListingInquiryModal)).toBeUndefined();
+      hooks.slots = [];
+      await load({ ok: true, json: async () => ({ rentals: [rental] }) });
+      mapProps(capture()).onMessageLandlord!("live-1");
+      expect(findByType(capture({ authenticated: true, userRole: "landlord", userId: "l1" }), ListingInquiryModal)).toBeUndefined();
+    });
+
+    it("opens the inquiry modal from the map popup, card and expanded modal for a signed-in renter", async () => {
+      await load({ ok: true, json: async () => ({ rentals: [gallery] }) });
+      mapProps(capture(renter)).onMessageLandlord!("live-1");
+      expect(findByType(capture(renter), ListingInquiryModal)!.props.listingId).toBe("live-1");
+      (findByType(capture(renter), ListingInquiryModal)!.props.onClose as () => void)();
+      const html = renderToStaticMarkup(<ExpandedRentalModalContent rental={gallery} photoIndex={0} onPhotoIndexChange={vi.fn()} canSave={false} saved={false} onToggleSaved={vi.fn()} canMessage onMessage={vi.fn()} />);
+      expect(html).toContain("Message landlord");
+      expect(renderToStaticMarkup(<ExpandedRentalModalContent rental={gallery} photoIndex={0} onPhotoIndexChange={vi.fn()} canSave={false} saved={false} onToggleSaved={vi.fn()} />)).not.toContain("Message landlord");
+      // Choosing the action from the expanded modal closes it before the inquiry opens.
+      hooks.slots = [];
+      await load({ ok: true, json: async () => ({ rentals: [gallery] }) });
+      cardProps(capture(renter)).onExpand!("live-1");
+      const expanded = findElementsByType(capture(renter), ExpandedRentalModalContent)[0];
+      expect(expanded.props.canMessage).toBe(true);
+      (expanded.props.onMessage as (id: string) => void)("live-1");
+      expect(findElementsByType(capture(renter), ExpandedRentalModalContent)).toHaveLength(0);
+      expect(findByType(capture(renter), ListingInquiryModal)!.props.listingId).toBe("live-1");
+    });
+
+    it("renders the card action", () => {
+      expect(renderToStaticMarkup(<RentalCard rental={rental} selected={false} onSelect={vi.fn()} canMessage onMessage={vi.fn()} />)).toContain('aria-label="Message landlord about Endpoint rental"');
+      expect(renderToStaticMarkup(<RentalCard rental={rental} selected={false} onSelect={vi.fn()} />)).not.toContain("Message landlord");
+    });
   });
 });

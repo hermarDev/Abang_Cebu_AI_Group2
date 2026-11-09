@@ -28,3 +28,21 @@ it("does not link administrators to the deferred review route", () => {
   expect(html).toContain('href="/account"');
   expect(html).not.toContain('href="/admin/listings"');
 });
+
+it("links authenticated renters to messages with an unread badge", () => {
+  const html = renderToStaticMarkup(<FinderNavigation open authenticated userRole="renter" userId="renter-1" unreadMessageCount={120} onClose={() => {}} preference="system" resolvedTheme="light" onPreferenceChange={() => {}} onAccount={() => {}} onHelp={() => {}} />);
+  expect(html).toContain('href="/messages"');
+  expect(html).toContain("Messages");
+  expect(html).toContain('aria-label="120 unread messages"');
+  expect(html).toContain("99+");
+});
+
+it("hides the unread badge at zero and the messages link from guests and landlords", () => {
+  const renter = renderToStaticMarkup(<FinderNavigation open authenticated userRole="renter" userId="renter-1" unreadMessageCount={0} onClose={() => {}} preference="system" resolvedTheme="light" onPreferenceChange={() => {}} onAccount={() => {}} onHelp={() => {}} />);
+  expect(renter).toContain('href="/messages"');
+  expect(renter).not.toContain("unread messages");
+  for (const role of ["landlord", null] as const) {
+    const html = renderToStaticMarkup(<FinderNavigation open authenticated={role !== null} userRole={role} onClose={() => {}} preference="system" resolvedTheme="light" onPreferenceChange={() => {}} onAccount={() => {}} onHelp={() => {}} />);
+    expect(html).not.toContain('href="/messages"');
+  }
+});
