@@ -1,0 +1,8 @@
+# CodeRabbit Configuration
+# Filter out test suites and SQL rehearsal scripts so reviews stay under 100 files
+reviews:
+  path_filters:
+    - "!tests/**"
+    - "!**/*.test.ts"
+    - "!**/*.test.tsx"
+    - "!**/*.sql"
