@@ -111,6 +111,15 @@ function MessagingInboxInner({ userId, userRole, initialThreadId = null, initial
     void loadThreads(tab === "archived");
   }, [tab, loadThreads]);
 
+  useEffect(() => {
+    const timer = setInterval(() => {
+      if (typeof document !== "undefined" && document.visibilityState === "visible") {
+        void loadThreads(tab === "archived", true);
+      }
+    }, POLL_MS);
+    return () => clearInterval(timer);
+  }, [tab, loadThreads]);
+
   const markRead = useCallback(async (id: string) => {
     try {
       await apiJson<{ ok: true }>(`/api/messages/threads/${encodeURIComponent(id)}`, userId, { method: "PATCH", body: JSON.stringify({ action: "mark_read" }) });

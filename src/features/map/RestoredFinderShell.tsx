@@ -67,11 +67,11 @@ export function ExpandedRentalModalContent({ rental, photoIndex, onPhotoIndexCha
     {photos.length > 1 && <div className={styles.expandedThumbs}>{photos.map((url, i) => <button key={url + i} type="button" aria-label={`Show photo ${i + 1}`} aria-current={i === safeIndex} onClick={() => onPhotoIndexChange(i)}><Image src={url} alt="" width={96} height={64} unoptimized /></button>)}</div>}
     <div className={styles.expandedMeta}>
       <span className={styles.category}>{propertyTypes.find(({ value }) => value === (rental.propertyType ?? rental.type))?.label ?? rental.type.replaceAll(/[-_]/g, " ")}</span>
-      <span className={styles.verificationPill}>{rental.verificationStatus === "property_verified" ? "Verified property" : rental.verificationStatus === "unverified" ? "Pending verification" : "Verification status unknown"}</span>
+      <span className={styles.verificationPill}>{rental.verificationStatus === "property_verified" ? "Verified property" : rental.verificationStatus === "unverified" ? "Pending verification" : rental.verificationStatus ? `${rental.verificationStatus.replaceAll("_", " ")} listing` : "Verification status unknown"}</span>
     </div>
     <p className={styles.price}>{formatPrice(rental.price)}<span> / month · per {rental.basis}</span></p>
     <p>{rental.address ?? rental.locality}</p>
-    <p>{rental.locality}</p>
+    {rental.address && rental.address !== rental.locality && <p>{rental.locality}</p>}
     {specs.length > 0 && <ul className={styles.expandedSpecs} aria-label="Key specs">{specs.map((spec) => <li key={spec}>{spec}</li>)}</ul>}
     <p>{rental.description}</p>
     {rental.amenities.length > 0 && <ul className={styles.amenities} aria-label="Amenities">{rental.amenities.map((amenity, i) => <li key={amenity + "-" + i}>{amenity}</li>)}</ul>}
@@ -419,7 +419,7 @@ export function RestoredFinderShell({ rentalStatus: statusOverride, initialAccou
       <Button type="button" variant="ghost" className={styles.accountBack} onClick={() => { setAccountOpen(false); setAccountPrompt(null); setInitialError(null); setPendingInquiryId(null); }}>Continue browsing map</Button>
     </div>
   </Modal>
-  {expandedRental && <Modal surface="finder" open onClose={() => setExpandedRentalId(null)} title={expandedRental.title} description={`${expandedRental.address ?? expandedRental.locality}, ${expandedRental.locality}`} className={styles.expandedRentalDialog} closeControl={<button type="button" aria-label="Close dialog" className={styles.accountClose}><X size={18} aria-hidden="true" /></button>}>
+  {expandedRental && <Modal surface="finder" open onClose={() => setExpandedRentalId(null)} title={expandedRental.title} description={expandedRental.address && expandedRental.address !== expandedRental.locality ? `${expandedRental.address}, ${expandedRental.locality}` : expandedRental.locality} className={styles.expandedRentalDialog} closeControl={<button type="button" aria-label="Close dialog" className={styles.accountClose}><X size={18} aria-hidden="true" /></button>}>
     <ExpandedRentalModalContent rental={expandedRental} photoIndex={expandedPhotoIndex} onPhotoIndexChange={setExpandedPhotoIndex} canSave={canSaveRentals} saved={favoriteIds.includes(expandedRental.id)} onToggleSaved={toggleFavorite} canMessage={canMessageLandlord} onMessage={messageLandlord} />
   </Modal>}
   {inquiryRental && userId && <ListingInquiryModal key={inquiryRental.id} listingId={inquiryRental.id} listingTitle={inquiryRental.title} userId={userId} surface="finder" onClose={() => setInquiryListingId(null)} />}
