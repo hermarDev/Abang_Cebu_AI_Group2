@@ -61,6 +61,7 @@ export default async function LandlordDashboardPage() {
   ];
 
   const linkClass = "inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-border bg-card px-3 text-sm font-semibold hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring";
+  const hasApprovedSubmission = Boolean(submissions?.some(property => property.status === "approved"));
 
   return <LandlordWorkspaceLayout
     userId={user.id}
@@ -98,7 +99,7 @@ export default async function LandlordDashboardPage() {
       <p className="mb-1 text-xs font-bold uppercase tracking-[.15em] text-action">Your portfolio</p>
       <h2 id="properties-heading" className="text-xl font-bold sm:text-2xl">My properties</h2>
       {error ? <p role="alert" className="mt-4">Could not load your properties. Refresh the page to try again.</p>
-        : !listings?.length ? <div className="mt-4 rounded-3xl border border-border bg-card p-6"><h3 className="font-semibold">{submissions?.length ? "No published listings yet" : "No properties yet"}</h3><p className="mt-2 text-sm text-muted-foreground">{submissions?.length ? "Approved listings will appear here once published." : "Your properties will appear here."}</p></div>
+        : !listings?.length ? <div className="mt-4 rounded-3xl border border-border bg-card p-6"><h3 className="font-semibold">{hasApprovedSubmission ? "Published listings appear below" : submissions?.length ? "No published listings yet" : "No properties yet"}</h3><p className="mt-2 text-sm text-muted-foreground">{hasApprovedSubmission ? "Your approved properties are displayed in your submissions queue below." : submissions?.length ? "Approved listings will appear here once published." : "Your properties will appear here."}</p></div>
         : <ul className="mt-4 grid list-none gap-3 p-0">{listings.map(listing => <li key={listing.id} className="rounded-2xl border border-border bg-card p-4 sm:p-5">
           <h3 className="font-semibold">{listing.title}</h3>
           <p className="mt-1 text-sm text-muted-foreground">{listing.status === "published" ? listing.is_available ? "Published · Available" : "Published · Unavailable" : listing.status === "archived" ? "Archived" : "Draft"}</p>
