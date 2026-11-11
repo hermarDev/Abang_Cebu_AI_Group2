@@ -208,7 +208,7 @@ export function ResetPasswordForm({ isRecovery = false, onBackToLogin, embedded 
             </div>
           )}
 
-          <Button type="submit" variant="primary" fullWidth size="lg" disabled={loading} className="bg-action text-action-foreground hover:bg-action-hover">
+          <Button type="submit" variant="primary" fullWidth size="lg" disabled={loading}>
             {loading ? (isRecovery ? "Updating password..." : "Sending link...") : (isRecovery ? "Update Password" : "Send reset link")}
           </Button>
         </form>}

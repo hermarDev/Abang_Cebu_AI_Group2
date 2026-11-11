@@ -2,17 +2,17 @@
 :root {
   --background: #f8fafc;
   --foreground: #0f172a;
-  --primary: #0066d5;
+  --primary: #2563eb;
   --primary-foreground: #ffffff;
-  --primary-hover: #0052b0;
+  --primary-hover: #1d4ed8;
   --muted: #f1f5f9;
   --muted-foreground: #64748b;
   --border: #e2e8f0;
-  --ring: #3b82f6;
+  --ring: #2563eb;
   --popover: #ffffff;
   --popover-foreground: #0f172a;
   --accent: #e0f2fe;
-  --amber: #0066d5;
+  --amber: #b45309;
 
   /* Standardized radii tokens */
   --radius-sm: 6px;

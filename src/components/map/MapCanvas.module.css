@@ -179,8 +179,8 @@
   border: 1px solid rgb(15 39 66 / 14%);
   border-radius: 9999px;
   padding: 0.75rem 1rem;
-  background: #2563eb;
-  color: #fff;
+  background: var(--action, #2563eb);
+  color: var(--action-foreground, #fff);
   box-shadow: 0 4px 14px rgb(15 39 66 / 20%);
   font: inherit;
   font-size: 0.9375rem;
@@ -196,7 +196,7 @@
 
 .controlButton:focus-visible,
 .secondaryButton:focus-visible {
-  outline: 3px solid #f59e0b;
+  outline: 3px solid var(--ring, #2563eb);
   outline-offset: 3px;
 }
 
@@ -284,8 +284,8 @@
 .previewNote { margin: 0; border: 1px solid color-mix(in srgb, var(--warning) 35%, var(--border)); border-radius: 0.5rem; padding: 0.55rem; background: color-mix(in srgb, var(--warning) 12%, var(--card)); color: var(--warning); font-size: 0.75rem; line-height: 1.4; }
 .rentalResults > button { display: grid; gap: 0.15rem; min-height: 3.5rem; border: 1px solid var(--border); border-radius: 0.6rem; padding: 0.55rem 0.65rem; background: var(--card); color: var(--card-foreground); text-align: left; cursor: pointer; }
 .rentalResults > button span:nth-child(2) { color: var(--muted-foreground); font-size: 0.8rem; }
-.rentalResults > button strong { color: #2563eb; font-size: 0.85rem; }
-.rentalResults > button:focus-visible { outline: 3px solid #2563eb; outline-offset: 1px; }
+.rentalResults > button strong { color: var(--action, #2563eb); font-size: 0.85rem; }
+.rentalResults > button:focus-visible { outline: 3px solid var(--ring, #2563eb); outline-offset: 1px; }
 .rentalResults > button.selectedRental { border-color: var(--action); background: var(--accent); }
 
 .mapRoot :global(.rental-map-marker) {
