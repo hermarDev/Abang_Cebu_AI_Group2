@@ -361,6 +361,7 @@ describe("RestoredFinderShell", () => {
     for (const filter of [{ maxPrice: 3000 }, { propertyTypes: ["bedspace"] as RentalFilters["propertyTypes"] }, { aircon: true }]) {
       hooks.changeFilters?.({ ...DEFAULT_RENTAL_FILTERS, ...filter });
       expect(render()).toContain("No rentals match these filters");
+      expect(render()).toContain("Clear filters");
       expect(render()).not.toContain(rental.title);
     }
     hooks.changeFilters?.({ ...DEFAULT_RENTAL_FILTERS, maxPrice: 5000, propertyTypes: ["studio"], wifiAvailable: true });
