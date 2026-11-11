@@ -24,9 +24,26 @@ export async function requireActiveAdmin(request: Request) {
 type RpcResult = { data: unknown; error: { code?: string; message?: string } | null };
 type Rpc = (fn: string, args?: Record<string, unknown>) => Promise<RpcResult>;
 
-// Untyped RPC call (types/database.ts lacks the admin functions); a rejected call becomes an error result.
-export async function adminRpc(supabase: unknown, fn: string, args?: Record<string, unknown>): Promise<RpcResult> {
+export type KnownAdminRpc =
+  | "admin_list_properties"
+  | "admin_update_property_location"
+  | "admin_dashboard_overview"
+  | "admin_list_audit_logs"
+  | "admin_list_abuse_reports"
+  | "admin_get_abuse_report_detail"
+  | "admin_resolve_abuse_report"
+  | "review_property";
+
+// Safely typed RPC call with client interface validation; a rejected call becomes an error result.
+export async function adminRpc(
+  supabase: unknown,
+  fn: KnownAdminRpc | (string & {}),
+  args?: Record<string, unknown>,
+): Promise<RpcResult> {
   try {
+    if (!supabase || typeof supabase !== "object" || !("rpc" in supabase) || typeof (supabase as { rpc?: unknown }).rpc !== "function") {
+      return { data: null, error: { message: "Invalid RPC client instance" } };
+    }
     return await (supabase as { rpc: Rpc }).rpc(fn, args);
   } catch {
     return { data: null, error: { message: "rpc failed" } };

@@ -1,6 +1,6 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { searchPlaces } from "@/server/places/search-places";
-import { GET } from "./route";
+import { GET, placesSearchLimiter } from "./route";
 
 vi.mock("@/server/places/search-places", () => ({
   searchPlaces: vi.fn(),
@@ -8,7 +8,12 @@ vi.mock("@/server/places/search-places", () => ({
 
 const mockSearchPlaces = vi.mocked(searchPlaces);
 
+beforeEach(() => {
+  placesSearchLimiter.reset();
+});
+
 afterEach(() => {
+  placesSearchLimiter.reset();
   vi.clearAllMocks();
 });
 
@@ -47,5 +52,23 @@ describe("GET /api/places", () => {
 
     expect(response.status).toBe(503);
     expect(await response.json()).toEqual({ error: "Place search is temporarily unavailable. Please retry in a moment or choose a preset area." });
+  });
+
+  it("enforces rate limiting on aggressive place search queries and returns 429", async () => {
+    mockSearchPlaces.mockResolvedValue([]);
+    for (let i = 0; i < 30; i++) {
+      const res = await GET(new Request("http://localhost/api/places?q=Cebu", {
+        headers: { "X-Real-IP": "198.51.100.50" },
+      }));
+      expect(res.status).toBe(200);
+    }
+    const limited = await GET(new Request("http://localhost/api/places?q=Cebu", {
+      headers: { "X-Real-IP": "198.51.100.50" },
+    }));
+    expect(limited.status).toBe(429);
+    expect(limited.headers.get("Retry-After")).toBeTruthy();
+    expect(await limited.json()).toEqual({
+      error: "Too many place search requests. Please wait a moment before searching again.",
+    });
   });
 });

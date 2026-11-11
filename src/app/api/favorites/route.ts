@@ -1,9 +1,16 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+import { createRateLimiter } from "@/server/rate-limit";
 
 const noStoreHeaders = { "Cache-Control": "no-store" };
 const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const STORAGE_PATH_REGEX = /^[0-9a-f-]{36}\/[0-9a-f-]{36}\/[0-9a-f-]{36}\/[0-9a-f]{64}\.(jpg|png|webp)$/i;
+
+export const favoritesLimiter = createRateLimiter({
+  windowMs: 60 * 1000,
+  maxPerIp: 60,
+  maxPerActor: 30,
+});
 
 type SubmittedRentalRow = {
   id: string;
@@ -211,6 +218,13 @@ export async function POST(request: Request) {
   try {
     const session = await requireRenter(request);
     if ("response" in session) return session.response;
+    const limit = favoritesLimiter.checkDetailed(request, session.user.id);
+    if (!limit.allowed) {
+      return Response.json(
+        { error: "Too many favorites actions. Please wait a moment before trying again." },
+        { status: 429, headers: { ...noStoreHeaders, "Retry-After": String(limit.retryAfterSeconds) } },
+      );
+    }
     const listingId = await readListingId(request);
     if (!listingId) return Response.json({ error: "Choose a valid rental to save." }, { status: 400, headers: noStoreHeaders });
 
@@ -247,6 +261,13 @@ export async function DELETE(request: Request) {
   try {
     const session = await requireRenter(request);
     if ("response" in session) return session.response;
+    const limit = favoritesLimiter.checkDetailed(request, session.user.id);
+    if (!limit.allowed) {
+      return Response.json(
+        { error: "Too many favorites actions. Please wait a moment before trying again." },
+        { status: 429, headers: { ...noStoreHeaders, "Retry-After": String(limit.retryAfterSeconds) } },
+      );
+    }
     const listingId = await readListingId(request);
     if (!listingId) return Response.json({ error: "Choose a valid rental to remove." }, { status: 400, headers: noStoreHeaders });
 
