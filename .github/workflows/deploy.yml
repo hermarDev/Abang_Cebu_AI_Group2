@@ -38,6 +38,7 @@ jobs:
       - name: Await CI workflow completion
         env:
           GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
           TARGET_SHA: ${{ github.sha }}
         run: |
           set -euo pipefail
@@ -48,7 +49,7 @@ jobs:
 
           while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
             # Fetch recent CI runs for ci.yml
-            RUN_DATA=$(gh run list --workflow=ci.yml --json headSha,status,conclusion,databaseId --limit 20)
+            RUN_DATA=$(gh run list --repo "$GH_REPO" --workflow=ci.yml --json headSha,status,conclusion,databaseId --limit 20)
             MATCH=$(echo "$RUN_DATA" | jq -c --arg sha "$TARGET_SHA" '.[] | select(.headSha == $sha)' | head -n 1)
 
             if [ -n "$MATCH" ]; then

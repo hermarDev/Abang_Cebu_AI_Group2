@@ -44,9 +44,12 @@ export async function GET(request?: Request): Promise<Response> {
 
     const submittedQuery = typeof (supabase as { rpc?: unknown }).rpc === "function" ? supabase.rpc("get_public_submitted_rentals") : null;
     const [{ data, error }, submitted] = await Promise.all([listingsQuery, submittedQuery]);
-    if (error || !Array.isArray(data)) throw new Error("Rental read failed");
     // Submitted-property failures degrade to published listings only; they must not take down the map.
     const rawSubmittedRows = submitted && !submitted.error && Array.isArray(submitted.data) ? (submitted.data as unknown[]) : [];
+    const hasListingsError = Boolean(error || !Array.isArray(data));
+    if (hasListingsError && (!submitted || submitted.error || !rawSubmittedRows.length)) {
+      throw new Error("Rental read failed");
+    }
     const submittedRows = targetId
       ? rawSubmittedRows.filter(
           (r) =>
@@ -60,7 +63,7 @@ export async function GET(request?: Request): Promise<Response> {
     });
     const signed = await signPhotos(visibleSubmittedRows);
     const submittedRentals = visibleSubmittedRows.flatMap((row) => { try { return [mapSubmittedRental(row, signed)]; } catch { return []; } });
-    const publishedRentals = data.flatMap((row) => {
+    const publishedRentals = (Array.isArray(data) ? data : []).flatMap((row) => {
       try {
         return [mapListing(row)];
       } catch (err) {

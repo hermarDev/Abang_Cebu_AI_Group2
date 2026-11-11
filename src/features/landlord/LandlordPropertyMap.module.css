@@ -99,13 +99,13 @@
 
 .locationButton {
   border-radius: 9999px;
-  background: #2563eb;
-  color: #fff;
+  background: var(--action, #2563eb);
+  color: var(--action-foreground, #fff);
 }
 
 .zoomButton:focus-visible,
 .locationButton:focus-visible {
-  outline: 3px solid #f59e0b;
+  outline: 3px solid var(--ring, #2563eb);
   outline-offset: 3px;
 }
 
