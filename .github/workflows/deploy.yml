@@ -64,7 +64,10 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           build-args: |
-            NEXT_PUBLIC_SITE_URL=https://abangcebu.tech
+            NEXT_PUBLIC_SITE_URL=${{ vars.APP_URL || 'https://abangcebu.tech' }}
+            NEXT_PUBLIC_SUPABASE_URL=${{ vars.NEXT_PUBLIC_SUPABASE_URL }}
+            NEXT_PUBLIC_SUPABASE_ANON_KEY=${{ vars.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+            NEXT_PUBLIC_MAP_STYLE_URL=/styles/osm.json
 
   deploy-production:
     name: Deploy to Production EC2
