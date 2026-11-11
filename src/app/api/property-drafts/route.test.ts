@@ -8,6 +8,7 @@ vi.mock("@/lib/supabase/server", () => ({ createClient: async () => ({
     : { select: () => ({ eq: mocks.ownerFilter }) },
   rpc: mocks.rpc,
 }) }));
+import { propertyDraftsLimiter } from "@/server/api-limiters";
 import { GET, POST, PATCH } from "./route";
 
 const operationId = "12345678-1234-4234-8234-123456789abc";
@@ -18,6 +19,7 @@ function request(method: string, owner?: string, body?: unknown) {
 }
 beforeEach(() => {
   vi.resetAllMocks();
+  propertyDraftsLimiter.reset();
   mocks.getUser.mockResolvedValue({ data: { user: { id: "owner-b" } }, error: null });
   mocks.profile.mockResolvedValue({ data: { role: "landlord", is_suspended: false }, error: null });
   mocks.ownerFilter.mockReturnValue({ order: mocks.list });
@@ -79,5 +81,17 @@ describe("property draft account binding", () => {
   it("rejects invalid identifiers before invoking RPC", async () => {
     expect((await POST(request("POST", "owner-b", { operationId: "invalid", payload }))).status).toBe(400);
     expect(mocks.rpc).not.toHaveBeenCalled();
+  });
+  it("enforces rate limits on excessive draft mutations and returns 429", async () => {
+    for (let i = 0; i < 30; i++) {
+      const res = await POST(request("POST", "owner-b", { operationId, payload }));
+      expect(res.status).toBe(200);
+    }
+    const limited = await POST(request("POST", "owner-b", { operationId, payload }));
+    expect(limited.status).toBe(429);
+    expect(limited.headers.get("retry-after")).toBeTruthy();
+    expect(await limited.json()).toEqual({
+      error: "Too many draft actions. Please wait a moment before trying again.",
+    });
   });
 });

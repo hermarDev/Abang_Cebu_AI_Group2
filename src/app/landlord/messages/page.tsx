@@ -13,7 +13,10 @@ import { LandlordWorkspaceLayout } from "../dashboard/LandlordWorkspaceLayout";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Messages — AbangCebu", description: "Your conversations with renters." };
 
-export default async function LandlordMessagesPage({ searchParams }: { searchParams?: Promise<{ thread?: string | string[] }> } = {}) {
+export default async function LandlordMessagesPage(props: { searchParams?: Promise<{ thread?: string | string[] }> }): Promise<React.JSX.Element>;
+export default async function LandlordMessagesPage(): Promise<React.JSX.Element>;
+export default async function LandlordMessagesPage(props?: { searchParams?: Promise<{ thread?: string | string[] }> }): Promise<React.JSX.Element> {
+  const searchParams = props?.searchParams;
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError && isAuthRetryableFetchError(authError)) return <main><p role="alert">Your account could not be checked. Please refresh the page to try again.</p></main>;

@@ -1,13 +1,34 @@
 type Options = { windowMs: number; maxPerIp: number; maxPerActor: number };
 
 const MAX_TRACKED_KEYS = 10_000;
-const IPV4_REGEX = /^(?:\d{1,3}\.){3}\d{1,3}$/;
-const IPV6_REGEX = /^[0-9a-fA-F:]+$/;
+function isValidIpv4(ip: string): boolean {
+  const parts = ip.split(".");
+  if (parts.length !== 4) return false;
+  return parts.every((p) => {
+    if (!/^\d{1,3}$/.test(p)) return false;
+    const n = Number(p);
+    return n >= 0 && n <= 255;
+  });
+}
+
+function isValidIpv6(ip: string): boolean {
+  if (!/^[0-9a-fA-F:]+$/.test(ip)) return false;
+  const parts = ip.split("::");
+  if (parts.length > 2) return false;
+  if (parts.length === 2) {
+    const left = parts[0] ? parts[0].split(":") : [];
+    const right = parts[1] ? parts[1].split(":") : [];
+    if (left.length + right.length > 7) return false;
+    return [...left, ...right].every((s) => s.length >= 1 && s.length <= 4 && /^[0-9a-fA-F]+$/.test(s));
+  }
+  const segments = ip.split(":");
+  return segments.length === 8 && segments.every((s) => s.length >= 1 && s.length <= 4 && /^[0-9a-fA-F]+$/.test(s));
+}
 
 export function sanitizeIp(raw: string | null | undefined): string | null {
   if (!raw) return null;
   const trimmed = raw.trim();
-  if (IPV4_REGEX.test(trimmed) || IPV6_REGEX.test(trimmed)) {
+  if (isValidIpv4(trimmed) || isValidIpv6(trimmed)) {
     return trimmed;
   }
   return null;

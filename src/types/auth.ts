@@ -33,6 +33,8 @@ export interface RegisterPayload {
   phoneNumber?: string;
   /** Primary campus, office, or landmark of interest in Metro Cebu */
   preferredLandmark?: string;
+  /** Optional Cloudflare Turnstile CAPTCHA token */
+  turnstileToken?: string;
 }
 
 /**
@@ -278,6 +280,8 @@ export const SESSION_CONSTANTS = {
 export interface PasswordResetRequestPayload {
   /** Target user account email address */
   email: string;
+  /** Optional Cloudflare Turnstile CAPTCHA token for bot deterrence */
+  turnstileToken?: string;
   /** Optional post-verification redirect destination */
   redirectTo?: string;
 }
@@ -340,6 +344,7 @@ export enum AuthErrorCode {
   // Security & Abuse Prevention (403 / 409 / 429)
   PRIVILEGE_ESCALATION_ATTEMPT = 'PRIVILEGE_ESCALATION_ATTEMPT',
   RATE_LIMIT_EXCEEDED = 'RATE_LIMIT_EXCEEDED',
+  CAPTCHA_VERIFICATION_FAILED = 'CAPTCHA_VERIFICATION_FAILED',
   EMAIL_ALREADY_REGISTERED = 'EMAIL_ALREADY_REGISTERED',
   ACCOUNT_SUSPENDED = 'ACCOUNT_SUSPENDED',
 

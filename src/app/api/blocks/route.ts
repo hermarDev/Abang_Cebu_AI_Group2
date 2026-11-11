@@ -1,7 +1,5 @@
-import { createRateLimiter } from "@/server/rate-limit";
+import { blocksLimiter } from "@/server/api-limiters";
 import { limited, readJson, reply, requireMessagingUser, rpcFailure, uuidPattern } from "@/server/messaging-api";
-
-export const blocksLimiter = createRateLimiter({ windowMs: 60_000, maxPerIp: 20, maxPerActor: 20 });
 
 async function setBlock(request: Request) {
   try {
