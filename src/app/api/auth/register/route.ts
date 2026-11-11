@@ -31,7 +31,7 @@ function trackAttempt(store: Map<string, number[]>, key: string, limit: number, 
 }
 
 function hasExceededRateLimit(request: Request, email: string) {
-  const clientIp = request.headers.get("cf-connecting-ip") || (
+  const clientIp = request.headers.get("cf-connecting-ip") || request.headers.get("x-real-ip") || (
     process.env.NODE_ENV !== "production"
       ? request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "development"
       : undefined

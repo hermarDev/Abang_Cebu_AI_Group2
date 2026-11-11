@@ -34,8 +34,8 @@ function trackAttempt(store: Map<string, number[]>, key: string, limit: number, 
 }
 
 function hasExceededRateLimit(request: Request, email: string, now: number) {
-  // Production IP identity must come from the trusted Cloudflare proxy, never a client-controlled header.
-  const clientIp = request.headers.get("cf-connecting-ip") || (
+  // Production IP identity must come from a trusted proxy (Cloudflare or Caddy reverse proxy), never a spoofable client header.
+  const clientIp = request.headers.get("cf-connecting-ip") || request.headers.get("x-real-ip") || (
     process.env.NODE_ENV !== "production"
       ? request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "development"
       : undefined
