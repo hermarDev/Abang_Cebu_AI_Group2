@@ -5,7 +5,7 @@
 **Specialist Auditors:** Investigator, Architect, QA Specialist  
 **Target Repository:** `/home/hrmr/abang-cebu-ai`  
 **Git Branch / Commit:** `main` (`4d0864d`)  
-**Production Host:** AWS EC2 `ubuntu@abangcebu-main` (`100.113.204.110` / `54.173.30.154`)  
+**Production Host:** AWS EC2 `${DEPLOY_HOST}` (`${TAILSCALE_IP}` / `${PUBLIC_IP}`)  
 **Production Domain:** `abangcebu.tech`  
 **Status:** Complete Read-Only Investigation (Gate 1)
 
@@ -23,7 +23,7 @@ A comprehensive multi-agent investigation was executed across the AbangCebuAI ap
 | **Unit and Integration Tests** | `vitest run` (`pnpm test`) | 118 test files passed (1,048 / 1,048 tests) | **PASS** |
 | **Playwright E2E Tests** | `playwright test` (headless Chromium) | 189 / 189 scenarios passed | **PASS** |
 | **Next.js Production Build** | `next build` (Turbopack, Next 16.3.6) | 39 routes generated, 0 errors | **PASS** |
-| **Host Connectivity and SSH** | Tailscale SSH to `100.113.204.110` | 2 vCPU, 3.74GB RAM, 25GB free disk | **PASS** |
+| **Host Connectivity and SSH** | Tailscale SSH to `${DEPLOY_HOST}` | 2 vCPU, 3.74GB RAM, 25GB free disk | **PASS** |
 | **TLS Certificate Status** | Caddy ACME v2 Let's Encrypt | Valid certificates for `abangcebu.tech` and `www` | **PASS** |
 | **CrowdSec Host IPS** | `cscli` + `cs-firewall-bouncer` | Caddy log acquisition active, firewall bouncer active | **PASS** |
 | **Existing Containers** | Docker on EC2 | Clean isolation; no conflicts with OmniRoute/Redis | **PASS** |
@@ -74,7 +74,7 @@ A comprehensive multi-agent investigation was executed across the AbangCebuAI ap
 
 ### Phase 6 and 7: Docker, Host and Caddy Security Audit
 - **EC2 Instance:** Ubuntu 24.04.5 LTS, Kernel 6.8.0-1017-aws, 2 vCPUs, 3.74GB RAM, 25GB free disk.
-- **Coexistence:** OmniRoute and Redis are NOT currently running on `abangcebu-main` (they reside on `omniroute-ec2` 100.92.152.17). Zero port, network, or name collisions exist on `abangcebu-main`.
+- **Coexistence:** OmniRoute and Redis are NOT currently running on the AbangCebu production instance (they reside on a separate isolated instance `${OMNIROUTE_HOST}`). Zero port, network, or name collisions exist on the host.
 - **Caddy:** Native systemd service (`/usr/bin/caddy`), Let's Encrypt certificates valid, CrowdSec Caddy scenario acquisition active.
 - **UFW:** Ports 80, 443, and Tailscale open. Port 22 rate-limited.
 

@@ -1,0 +1,79 @@
+# Production Caddyfile for AbangCebu AI (abangcebu.tech)
+# Reference: docs/production/CADDY_PROXY_GUIDE.md
+#
+# Topology:
+#   Public Internet (Ports 80, 443)
+#        │
+#        ▼
+#   Caddy 2.x Reverse Proxy (TLS termination, Let's Encrypt / ZeroSSL)
+#   Overwrites client-supplied X-Forwarded-For and X-Real-IP with socket remote address
+#        │
+#        ▼ (Loopback 127.0.0.1:3000)
+#   Next.js Standalone Container (abangcebu-app)
+
+{
+    email noreply@abangcebu.tech
+    # Optional global options:
+    # admin off
+}
+
+# 1. Canonical Redirect: www to apex domain
+www.abangcebu.tech {
+    redir https://abangcebu.tech{uri} permanent
+}
+
+# 2. Main Production Site
+abangcebu.tech {
+    # Structured JSON access logging with rotation for CrowdSec acquisition
+    log {
+        output file /var/log/caddy/access.log {
+            roll_size 10mb
+            roll_keep 10
+            roll_keep_for 720h
+        }
+        format json
+    }
+
+    # Edge HTTP Security Headers
+    # Defense-in-depth complementing application headers in next.config.ts
+    header {
+        # Enforce HTTPS across domain and all subdomains (1 year)
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+
+        # Prevent MIME type sniffing
+        X-Content-Type-Options "nosniff"
+
+        # Frame restrictions - deny framing to defeat clickjacking
+        X-Frame-Options "DENY"
+
+        # Referrer control
+        Referrer-Policy "strict-origin-when-cross-origin"
+
+        # Hardware permissions restriction
+        Permissions-Policy "camera=(), microphone=(), geolocation=(self)"
+
+        # Hide server banner
+        -Server
+    }
+
+    # Strict Reverse Proxy to Next.js container bound to 127.0.0.1:3000
+    reverse_proxy 127.0.0.1:3000 {
+        # CRITICAL: Overwrite client-supplied proxy headers with socket remote address
+        # This prevents external clients from spoofing IP headers to bypass in-memory rate limiters
+        header_up Host {host}
+        header_up X-Real-IP {remote_host}
+        header_up X-Forwarded-For {remote_host}
+        header_up X-Forwarded-Proto {scheme}
+        header_up X-Forwarded-Host {host}
+
+        # WebSocket support for Next.js HMR / Realtime if needed
+        header_up Connection {>Connection}
+        header_up Upgrade {>Upgrade}
+
+        # Health check buffer
+        transport http {
+            response_header_timeout 60s
+            dial_timeout 5s
+        }
+    }
+}

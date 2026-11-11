@@ -1,7 +1,7 @@
 # AbangCebuAI — Production Deployment & Operations Runbook
 
 **Document Version:** 1.0.0  
-**Target Host:** AWS EC2 `ubuntu@abangcebu-main` (`100.113.204.110`)  
+**Target Host:** AWS EC2 `${DEPLOY_HOST}` (`${TAILSCALE_IP}`)  
 **Audience:** Lead DevOps Engineer, Systems Administrator, Release Manager
 
 ---
@@ -11,13 +11,13 @@
 Administrative access is strictly restricted to Tailscale. Ensure Tailscale is running on your local workstation.
 
 ```bash
-# Verify Tailscale connectivity
-tailscale ping 100.113.204.110
+# Verify Tailscale connectivity (use configured DEPLOY_HOST or TAILSCALE_IP)
+tailscale ping ${DEPLOY_HOST}
 
 # SSH to production instance
-ssh ubuntu@abangcebu-main
+ssh ubuntu@${DEPLOY_HOST}
 # Or by Tailscale IP:
-ssh ubuntu@100.113.204.110
+ssh ubuntu@${TAILSCALE_IP}
 ```
 
 ---
@@ -111,7 +111,7 @@ services:
 
 ### 3.2 Manual Deployment Procedure (CLI Fallback)
 ```bash
-ssh ubuntu@abangcebu-main
+ssh ubuntu@${DEPLOY_HOST}
 cd /opt/abangcebu
 
 # Authenticate to GHCR (if pulling private packages)
@@ -163,7 +163,16 @@ sudo cscli metrics
 
 ---
 
-## 5. Troubleshooting & Incident Recovery
+## 5. Security & Edge Configuration Runbooks
+
+For in-depth operational procedures, refer to:
+- **[Caddy Reverse Proxy & Edge Hardening Guide](CADDY_PROXY_GUIDE.md)**: Reverse proxy headers, TLS, canonical redirects, CrowdSec log format.
+- **[EC2 Host Security Runbook](HOST_SECURITY_RUNBOOK.md)**: Socket inspection, UFW firewall audit, Docker iptables loopback binding, SSH CIS baseline.
+- **[Infrastructure Monitoring & Logging Runbook](MONITORING_LOGGING_RUNBOOK.md)**: Resource telemetry, log rotation, CrowdSec alerts, SLOs.
+
+---
+
+## 6. Troubleshooting & Incident Recovery
 
 ### 5.1 Container Failing to Start / CrashLoopBackOff
 ```bash
