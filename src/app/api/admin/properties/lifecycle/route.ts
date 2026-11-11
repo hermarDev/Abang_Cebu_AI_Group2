@@ -17,12 +17,12 @@ export async function POST(request: Request) {
     const address = typeof input.streetAddress === "string" && input.streetAddress.trim() ? input.streetAddress.trim() : null;
     const barangay = typeof input.barangay === "string" && input.barangay.trim() ? input.barangay.trim() : null;
     const city = typeof input.city === "string" && input.city.trim() ? input.city.trim() : null;
-    if (lat === null || lon === null || !address || !city) return jsonError("Provide valid coordinates and address.", 400);
+    if (lat === null || lon === null || !address || !barangay || !city) return jsonError("Provide valid coordinates, address, and barangay.", 400);
     const { data, error } = await adminRpc(session.supabase, "admin_update_property_location", {
       p_property_id: input.propertyId,
       p_operation_id: input.operationId,
       p_street_address: address,
-      p_barangay: barangay ?? "",
+      p_barangay: barangay,
       p_city: city,
       p_latitude: lat,
       p_longitude: lon,

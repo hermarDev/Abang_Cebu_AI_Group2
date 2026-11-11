@@ -38,7 +38,17 @@ export async function POST(request: Request) {
   });
 
   if (error?.code === "23505" || error?.code === "40001") {
-    return reply("This draft changed or was already submitted. Reload the draft before submitting.", 409);
+    const isAlreadySubmitted = error?.message?.includes("this draft revision was already submitted");
+    if (isAlreadySubmitted) {
+      return Response.json(
+        { error: "This draft revision was already submitted.", code: "already_submitted" },
+        { status: 409, headers }
+      );
+    }
+    return Response.json(
+      { error: "This draft changed or was already submitted. Reload the draft before submitting.", code: "draft_conflict" },
+      { status: 409, headers }
+    );
   }
   if (error?.code === "22023") {
     return reply("The listing information is incomplete or invalid.", 400);

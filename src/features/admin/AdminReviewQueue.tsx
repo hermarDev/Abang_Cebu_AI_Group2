@@ -250,11 +250,29 @@ export function AdminReviewQueue({ userId, initialStatus = "pending", initialSea
     const timer = setTimeout(async () => {
       setProperties(null);
       setError(null);
-      const query = new URLSearchParams({ status, ...(search.trim() ? { search: search.trim() } : {}) });
-      const result = await adminCall<{ properties?: AdminProperty[] }>(`/api/admin/properties?${query}`, userId, undefined, abort.signal);
-      if (abort.signal.aborted) return;
-      if (result.ok) setProperties(Array.isArray(result.data.properties) ? result.data.properties : []);
-      else { setError(result.message); notify("error", "admin-properties-load", result.message); }
+      const all: AdminProperty[] = [];
+      let offset = 0;
+      const limit = 100;
+      while (!abort.signal.aborted) {
+        const query = new URLSearchParams({
+          status,
+          limit: String(limit),
+          offset: String(offset),
+          ...(search.trim() ? { search: search.trim() } : {}),
+        });
+        const result = await adminCall<{ properties?: AdminProperty[] }>(`/api/admin/properties?${query}`, userId, undefined, abort.signal);
+        if (abort.signal.aborted) return;
+        if (!result.ok) {
+          setError(result.message);
+          notify("error", "admin-properties-load", result.message);
+          return;
+        }
+        const batch = Array.isArray(result.data.properties) ? result.data.properties : [];
+        all.push(...batch);
+        if (batch.length < limit || all.length >= 1000) break;
+        offset += limit;
+      }
+      setProperties(all);
     }, search ? 300 : 0);
     return () => { clearTimeout(timer); abort.abort(); };
   }, [status, search, userId, reloadKey]);

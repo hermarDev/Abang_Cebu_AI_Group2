@@ -51,10 +51,12 @@ AS $$
     ORDER BY u.created_at ASC, u.id ASC LIMIT 1
   ) u ON true
   LEFT JOIN LATERAL (
-    SELECT s.* FROM public.property_submissions s WHERE s.property_id = p.id AND s.superseded_by IS NULL
+    SELECT s.* FROM public.property_submissions s
+    WHERE s.property_id = p.id AND s.superseded_by IS NULL
+      AND (s.review_status = 'approved' OR s.review_status IS NULL)
     ORDER BY s.created_at DESC LIMIT 1
   ) s ON true
-  WHERE p.status IN ('pending', 'approved') AND p.latitude IS NOT NULL AND p.longitude IS NOT NULL
+  WHERE p.status = 'approved' AND p.latitude IS NOT NULL AND p.longitude IS NOT NULL
   ORDER BY p.created_at DESC, p.id ASC
   LIMIT 200
 $$;

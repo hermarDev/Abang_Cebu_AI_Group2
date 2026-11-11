@@ -191,7 +191,7 @@ describe("ListPropertyForm", () => {
 
   it("handles HTTP 409 already submitted gracefully with a toast and redirects to /landlord/properties", async () => {
     hooks.save.mockResolvedValueOnce({ draftId: "draft-1", revision: 2 });
-    submitReplies.push({ status: 409, body: { error: "This draft changed or was already submitted. Reload the draft before submitting." } });
+    submitReplies.push({ status: 409, body: { error: "This draft revision was already submitted.", code: "already_submitted" } });
     await reachReviewStep();
 
     (button("Submit listing for review").props.onClick as () => void)();
@@ -200,6 +200,18 @@ describe("ListPropertyForm", () => {
     expect(notify).toHaveBeenCalledWith("success", "property-submission", "Submission already received");
     expect(hooks.push).toHaveBeenCalledWith("/landlord/properties");
     expect(button("Saving…")).toBeTruthy();
+  });
+
+  it("handles HTTP 409 draft conflict by remaining on form without redirecting", async () => {
+    hooks.save.mockResolvedValueOnce({ draftId: "draft-1", revision: 2 });
+    submitReplies.push({ status: 409, body: { error: "This draft changed or was already submitted. Reload the draft before submitting.", code: "draft_conflict" } });
+    await reachReviewStep();
+
+    (button("Submit listing for review").props.onClick as () => void)();
+    await settle();
+
+    expect(notify).toHaveBeenCalledWith("error", "property-submission", "This draft changed or was already submitted. Reload the draft before submitting.");
+    expect(hooks.push).not.toHaveBeenCalled();
   });
 
   it("redirects revisions to /landlord/properties on successful submission and keeps saving=true", async () => {

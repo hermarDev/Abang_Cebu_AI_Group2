@@ -54,7 +54,7 @@ export default async function LandlordMapPage({ searchParams }: { searchParams?:
   const [params, { data, error }, { data: submitted, error: propertiesError }, { data: submittedDrafts, error: submissionsError }] = await Promise.all([
     searchParams,
     supabase.from("listings")
-      .select("id,title,price,property_type,address,city,latitude,longitude,is_available,status")
+      .select("id,title,price,property_type,address,city,latitude,longitude,is_available,status,image_urls")
       .eq("owner_id", user.id)
       .order("created_at", { ascending: false })
       .limit(100),

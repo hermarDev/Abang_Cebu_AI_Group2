@@ -629,8 +629,8 @@ export function ListPropertyForm({ userId, restoreTarget }: { userId: string; re
       try { sessionStorage.setItem(storageKey, submissionOpRef.current); } catch { /* ignore storage errors */ }
       try {
         const res = await fetch("/api/landlord/properties", { method: "POST", headers: { "content-type": "application/json", "x-expected-user-id": userId }, body: JSON.stringify({ operationId: submissionOpRef.current, draftId: activeDraftId, expectedRevision: activeRevision }) });
-        const data: { propertyId?: string; status?: string; error?: string } | null = await res.json().catch(() => null);
-        if (res.status === 409 && /already submitted/i.test(data?.error ?? "")) {
+        const data: { propertyId?: string; status?: string; error?: string; code?: string } | null = await res.json().catch(() => null);
+        if (res.status === 409 && data?.code === "already_submitted") {
           // The server already holds this submission, so treat the retry as success instead of an error.
           submissionOpRef.current = null;
           try { sessionStorage.removeItem(storageKey); } catch { /* ignore */ }
@@ -759,7 +759,7 @@ export function ListPropertyForm({ userId, restoreTarget }: { userId: string; re
               </label>
               <label className="grid gap-1.5 text-sm font-medium">
                 <span>Floor area (sqm)</span>
-                <input className={input} name="floorAreaSqm" type="number" min="1" max="10000" placeholder="e.g. 45" value={floorAreaSqm} onChange={(e) => setFloorAreaSqm(e.target.value)} />
+                <input className={input} name="floorAreaSqm" type="number" min="1" max="9999" placeholder="e.g. 45" value={floorAreaSqm} onChange={(e) => setFloorAreaSqm(e.target.value)} />
               </label>
               <label className="grid gap-1.5 text-sm font-medium">
                 <span>Furnishing</span>

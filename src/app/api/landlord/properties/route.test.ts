@@ -39,10 +39,15 @@ describe("landlord property submission", () => {
     expect((await POST(request({ ...valid(), expectedRevision: 0 }))).status).toBe(400);
     expect(mocks.rpc).not.toHaveBeenCalled();
   });
-  it("maps stale and conflicting operations to 409", async () => {
-    mocks.rpc.mockResolvedValueOnce({ data: null, error: { code: "40001" } });
-    expect((await POST(request(valid()))).status).toBe(409);
-    mocks.rpc.mockResolvedValueOnce({ data: null, error: { code: "23505" } });
-    expect((await POST(request(valid()))).status).toBe(409);
+  it("maps stale and conflicting operations to 409 with distinct codes", async () => {
+    mocks.rpc.mockResolvedValueOnce({ data: null, error: { code: "23505", message: "this draft revision was already submitted" } });
+    const res1 = await POST(request(valid()));
+    expect(res1.status).toBe(409);
+    expect(await res1.json()).toEqual({ error: "This draft revision was already submitted.", code: "already_submitted" });
+
+    mocks.rpc.mockResolvedValueOnce({ data: null, error: { code: "40001", message: "draft changed or unavailable" } });
+    const res2 = await POST(request(valid()));
+    expect(res2.status).toBe(409);
+    expect(await res2.json()).toEqual({ error: "This draft changed or was already submitted. Reload the draft before submitting.", code: "draft_conflict" });
   });
 });

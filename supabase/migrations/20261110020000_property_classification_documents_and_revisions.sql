@@ -7,6 +7,11 @@ ALTER TABLE public.property_submissions
   ADD COLUMN IF NOT EXISTS document_applicability_decision text CHECK (document_applicability_decision IS NULL OR document_applicability_decision IN ('documents_verified', 'exemption_accepted', 'documents_required')),
   ADD COLUMN IF NOT EXISTS rejection_note text;
 
+UPDATE public.property_submissions s
+  SET review_status = CASE p.status WHEN 'approved' THEN 'approved' WHEN 'rejected' THEN 'rejected' ELSE 'pending' END
+  FROM public.properties p
+  WHERE p.id = s.property_id;
+
 -- 2. Extend admin_audit_logs action_type to allow property_location_corrected
 ALTER TABLE public.admin_audit_logs
   DROP CONSTRAINT IF EXISTS admin_audit_logs_action_type_check;
@@ -221,13 +226,10 @@ BEGIN
       UPDATE public.property_submissions SET superseded_by = p_operation_id
         WHERE owner_id = v_owner AND property_id = v_property AND operation_id <> p_operation_id AND superseded_by IS NULL;
     ELSIF v_existing_prop.status = 'approved' THEN
-      IF btrim(v_p->>'street_address') <> btrim(v_existing_prop.street_address)
-        OR btrim(v_p->>'barangay') <> btrim(v_existing_prop.barangay)
-        OR btrim(v_p->>'city') <> btrim(v_existing_prop.city)
-        OR abs((v_p->>'latitude')::numeric - v_existing_prop.latitude) >= 0.00001
-        OR abs((v_p->>'longitude')::numeric - v_existing_prop.longitude) >= 0.00001 THEN
-        RAISE EXCEPTION 'approved property location is locked and requires admin correction' USING ERRCODE = '22023';
-      END IF;
+      -- Location is admin-owned once approved; pin the snapshot to the live values.
+      v_draft.payload := pg_catalog.jsonb_set(v_draft.payload, '{property}', v_p || pg_catalog.jsonb_build_object(
+        'street_address', v_existing_prop.street_address, 'barangay', v_existing_prop.barangay, 'city', v_existing_prop.city,
+        'latitude', v_existing_prop.latitude, 'longitude', v_existing_prop.longitude));
       v_property := v_active_sub.property_id;
       -- Live listing remains visible to renters on the map while revision awaits Admin review
       INSERT INTO public.property_submissions(owner_id, operation_id, draft_id, expected_revision, property_id, snapshot_payload, snapshot_media, review_status)
