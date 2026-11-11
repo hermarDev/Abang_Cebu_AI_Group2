@@ -8,7 +8,10 @@ import { MessagingInbox } from "@/features/messages/MessagingInbox";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Messages — AbangCebu", description: "Your conversations with landlords." };
 
-export default async function MessagesPage({ searchParams }: { searchParams?: Promise<{ thread?: string | string[] }> } = {}) {
+export default async function MessagesPage(props: { searchParams?: Promise<{ thread?: string | string[] }> }): Promise<React.JSX.Element>;
+export default async function MessagesPage(): Promise<React.JSX.Element>;
+export default async function MessagesPage(props?: { searchParams?: Promise<{ thread?: string | string[] }> }): Promise<React.JSX.Element> {
+  const searchParams = props?.searchParams;
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) redirect("/login?next=%2Fmessages");

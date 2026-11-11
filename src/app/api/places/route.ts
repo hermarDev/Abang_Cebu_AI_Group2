@@ -1,11 +1,5 @@
+import { placesSearchLimiter } from "@/server/api-limiters";
 import { searchPlaces } from "@/server/places/search-places";
-import { createRateLimiter } from "@/server/rate-limit";
-
-export const placesSearchLimiter = createRateLimiter({
-  windowMs: 60 * 1000,
-  maxPerIp: 30,
-  maxPerActor: 30,
-});
 
 export async function GET(request: Request) {
   const headers = { "Cache-Control": "no-store" };

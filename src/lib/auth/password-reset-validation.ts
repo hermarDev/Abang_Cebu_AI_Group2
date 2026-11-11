@@ -1,8 +1,8 @@
 import { validatePasswordStrength } from "@/types/auth";
 
 export type ResetRequestValidation =
-  | { ok: true; email: string }
-  | { ok: false; status: 400 | 422; code: "VALIDATION_ERROR" };
+  | { ok: true; email: string; turnstileToken?: string }
+  | { ok: false; status: 400 | 422; code: "VALIDATION_ERROR" | "CAPTCHA_VERIFICATION_FAILED" };
 
 export function validateResetRequest(payload: unknown): ResetRequestValidation {
   if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
@@ -14,11 +14,18 @@ export function validateResetRequest(payload: unknown): ResetRequestValidation {
   if (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return { ok: false, status: 422, code: "VALIDATION_ERROR" };
   }
+  if (input.turnstileToken !== undefined && (typeof input.turnstileToken !== "string" || !input.turnstileToken.trim())) {
+    return { ok: false, status: 422, code: "VALIDATION_ERROR" };
+  }
   if (typeof input.redirectTo === "string" && input.redirectTo.length > 2048) {
     return { ok: false, status: 422, code: "VALIDATION_ERROR" };
   }
 
-  return { ok: true, email };
+  return {
+    ok: true,
+    email,
+    ...(typeof input.turnstileToken === "string" && input.turnstileToken.trim() ? { turnstileToken: input.turnstileToken.trim() } : {}),
+  };
 }
 
 export type ResetConfirmationValidation =

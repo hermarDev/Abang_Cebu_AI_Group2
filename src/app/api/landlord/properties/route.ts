@@ -1,5 +1,6 @@
 import { isAuthRetryableFetchError } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
+import { landlordSubmissionsLimiter } from "@/server/api-limiters";
 
 const headers = { "Cache-Control": "no-store" };
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -20,6 +21,13 @@ async function access(request: Request) {
 export async function POST(request: Request) {
   const session = await access(request);
   if ("response" in session && session.response) return session.response;
+  const limit = landlordSubmissionsLimiter.checkDetailed(request, session.user.id);
+  if (!limit.allowed) {
+    return Response.json(
+      { error: "Too many property submission attempts. Please wait a moment before trying again." },
+      { status: 429, headers: { ...headers, "Retry-After": String(limit.retryAfterSeconds) } },
+    );
+  }
   let body: unknown;
   try { body = await request.json(); } catch { return reply("Invalid submission request.", 400); }
   if (

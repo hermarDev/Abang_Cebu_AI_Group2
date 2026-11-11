@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { landlordSubmissionsLimiter } from "@/server/api-limiters";
 import { POST } from "./route";
 
 const mocks = vi.hoisted(() => ({
@@ -14,7 +15,10 @@ function request(body: unknown, user = "landlord-1") {
 }
 const valid = () => ({ operationId: "11111111-1111-4111-8111-111111111111", draftId: "22222222-2222-4222-8222-222222222222", expectedRevision: 1 });
 
-beforeEach(() => vi.clearAllMocks());
+beforeEach(() => {
+  vi.clearAllMocks();
+  landlordSubmissionsLimiter.reset();
+});
 
 describe("landlord property submission", () => {
   it("submits property draft to RPC and returns propertyId with pending status", async () => {
@@ -49,5 +53,19 @@ describe("landlord property submission", () => {
     const res2 = await POST(request(valid()));
     expect(res2.status).toBe(409);
     expect(await res2.json()).toEqual({ error: "This draft changed or was already submitted. Reload the draft before submitting.", code: "draft_conflict" });
+  });
+
+  it("enforces rate limits on excessive property submissions and returns 429", async () => {
+    mocks.rpc.mockResolvedValue({ data: { property_id: "prop-new-123" }, error: null });
+    for (let i = 0; i < 15; i++) {
+      const res = await POST(request(valid()));
+      expect(res.status).toBe(200);
+    }
+    const limited = await POST(request(valid()));
+    expect(limited.status).toBe(429);
+    expect(limited.headers.get("retry-after")).toBeTruthy();
+    expect(await limited.json()).toEqual({
+      error: "Too many property submission attempts. Please wait a moment before trying again.",
+    });
   });
 });

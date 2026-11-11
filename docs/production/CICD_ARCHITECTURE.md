@@ -3,7 +3,7 @@
 **Document Version:** 1.0.0  
 **CI Engine:** GitHub Actions (`ubuntu-latest`)  
 **Container Registry:** GitHub Container Registry (GHCR — `ghcr.io/hermardev/abangcebuai`)  
-**Deployment Target:** AWS EC2 (`100.113.204.110` via Tailscale SSH)  
+**Deployment Target:** AWS EC2 (`${DEPLOY_HOST}` via Tailscale SSH)  
 **Security Gate:** GitHub Environment `production` (Required Reviewer Approval)
 
 ---
@@ -39,14 +39,14 @@ The continuous delivery pipeline guarantees that **no untrusted or unreviewed co
 |                 |                                                                       |
 |                 v                                                                       |
 |        +-----------------+                                                              |
-|        |     Job 3:      |  --> [Tailscale Action -> SSH 100.113.204.110]               |
+|        |     Job 3:      |  --> [Tailscale Action -> SSH ${DEPLOY_HOST}]               |
 |        |  CD Production  |  --> [Pull Image -> Compose Update -> Health Check]          |
 |        +-----------------+                                                              |
 +-----------------------------------------------------------------------------------------+
                                           |
                                           v (Private WireGuard mesh)
                    +-----------------------------------------------+
-                   |             AWS EC2 (abangcebu-main)          |
+                   |             AWS EC2 (${DEPLOY_HOST})          |
                    |                                               |
                    |  +--------------------+   +----------------+  |
                    |  |   Caddy (Port 443) |-->| Docker (3000)  |  |
@@ -75,11 +75,11 @@ The continuous delivery pipeline guarantees that **no untrusted or unreviewed co
 - **Triggers:** Pushes to `main` branch or release tags (`v*`).
 - **Permissions:** `contents: read`, `packages: write`.
 - **Image Metadata:**
-  - Base Image: `ghcr.io/hermardev/abangcebuai`
+  - Base Image: `ghcr.io/hermardev/abang_cebu_ai_group2`
   - Tags:
-    - `ghcr.io/hermardev/abangcebuai:sha-<commit_sha>` (Immutable, traceable)
-    - `ghcr.io/hermardev/abangcebuai:latest` (Pointers only; never used for rollback)
-    - `ghcr.io/hermardev/abangcebuai:<semver_tag>` (When tagged)
+    - `ghcr.io/hermardev/abang_cebu_ai_group2:sha-<commit_sha>` (Immutable, traceable)
+    - `ghcr.io/hermardev/abang_cebu_ai_group2:latest` (Pointers only; never used for rollback)
+    - `ghcr.io/hermardev/abang_cebu_ai_group2:<semver_tag>` (When tagged)
 - **Caching:** Uses GitHub Actions Cache (`type=gha`) for fast multi-stage caching.
 
 ### 2.3 Job 3: Protected Production Deployment (`deploy`)
@@ -87,10 +87,10 @@ The continuous delivery pipeline guarantees that **no untrusted or unreviewed co
 - **Permissions:** `contents: read`, `packages: read`.
 - **Security Boundaries:**
   - Untrusted PRs cannot trigger this job.
-  - SSH to EC2 is restricted to the private Tailscale interface (`100.113.204.110`). No public SSH port is exposed.
+  - SSH to EC2 is restricted to the private Tailscale interface (`${DEPLOY_HOST}`). No public SSH port is exposed.
 - **Deployment Protocol:**
   1. Authenticate runner to Tailscale mesh via `tailscale/github-action@v2`.
-  2. SSH into `ubuntu@100.113.204.110` using private key.
+  2. SSH into `ubuntu@${DEPLOY_HOST}` using private key.
   3. Execute automated rollout script on EC2:
      ```bash
      cd /opt/abangcebu
@@ -109,17 +109,25 @@ The continuous delivery pipeline guarantees that **no untrusted or unreviewed co
 
 In the event of an undetected runtime regression after deployment:
 
-### 3.1 Fast Image Rollback (<60 seconds)
-Every deployment references an immutable commit SHA tag. To roll back to the previously known good release:
-1. In `/opt/abangcebu/docker-compose.yml`, update `image:` to the previous known good tag:
-   ```yaml
-   image: ghcr.io/hermardev/abangcebuai:sha-<previous_good_sha>
-   ```
-2. Restart container:
+### 3.1 Automated Pipeline Rollback (<45 seconds)
+If the post-deployment health check (`/api/health`) fails after 20 attempts in `deploy.yml`:
+1. The remote SSH step captures the previously running container image before starting the update.
+2. If the new container fails health checks, the script automatically triggers rollback to the previous healthy container image tag.
+3. The rolled-back container status is verified against `/api/health`.
+4. The GitHub Actions job exits with a failure code to notify engineers while keeping production traffic online on the restored healthy container.
+
+### 3.2 Manual CLI Rollback (<60 seconds)
+Every deployment references an immutable commit SHA tag. To roll back manually:
+1. Run the emergency rollback script on the host:
    ```bash
-   docker compose up -d abangcebu-app
+   /opt/abangcebu/scripts/rollback.sh sha-<previous_good_sha>
    ```
-3. Verify recovery via `/api/health`.
+2. Or via Docker Compose:
+   ```bash
+   cd /opt/abangcebu
+   IMAGE_TAG="sha-<previous_good_sha>" docker compose up -d --remove-orphans abangcebu-app
+   curl -f http://127.0.0.1:3000/api/health
+   ```
 
 ### 3.2 GitHub Actions Redeploy
 Alternatively, navigate to GitHub Actions ➔ Select the workflow run corresponding to the target commit ➔ Click **Re-run jobs** under the `production` deployment step.
@@ -128,6 +136,6 @@ Alternatively, navigate to GitHub Actions ➔ Select the workflow run correspond
 
 ## 4. Maintenance & Coexistence with OmniRoute
 
-- Host `abangcebu-main` (`100.113.204.110`) does not host OmniRoute/Redis (those run on `omniroute-ec2` `100.92.152.17`).
+- Host `${DEPLOY_HOST}` does not host OmniRoute/Redis (those run on a separate isolated instance `${OMNIROUTE_HOST}`).
 - All AbangCebu Docker resources use project name `abangcebu` and network `abangcebu_internal`.
-- Caddy is managed as a host systemd service and isolates reverse proxy routing.
+- Caddy is managed as a host systemd service and isolates reverse proxy routing. See [Caddy Reverse Proxy Guide](CADDY_PROXY_GUIDE.md) and [Host Security Runbook](HOST_SECURITY_RUNBOOK.md).

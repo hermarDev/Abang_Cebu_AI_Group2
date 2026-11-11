@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { PASSWORD_RESET_CALLBACK_PATH } from "@/lib/auth/password-reset";
 import { validateResetRequest } from "@/lib/auth/password-reset-validation";
 import { getClientIp } from "@/server/rate-limit";
+import { verifyTurnstileToken } from "@/server/turnstile";
 
 const genericSuccess = {
   success: true,
@@ -73,6 +74,16 @@ export async function POST(request: Request) {
       { success: false, error: { code: validation.code, message: "Enter valid password recovery details." } },
       { status: validation.status },
     );
+  }
+
+  if (process.env.TURNSTILE_SECRET_KEY) {
+    const turnstile = await verifyTurnstileToken(validation.turnstileToken, request);
+    if (!turnstile.valid) {
+      return NextResponse.json(
+        { success: false, error: { code: "CAPTCHA_VERIFICATION_FAILED", message: "Complete the security verification and try again." } },
+        { status: 403, headers: { "Cache-Control": "no-store" } },
+      );
+    }
   }
 
 

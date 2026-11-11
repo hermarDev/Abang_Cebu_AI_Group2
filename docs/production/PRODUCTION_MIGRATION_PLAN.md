@@ -26,7 +26,7 @@
 ### Phase A: Host System Preparation & Swap Provisioning
 - **Objective:** Prevent kernel OOM panics on the `t3.medium` EC2 instance by establishing swap memory and directory structure.
 - **Tasks:**
-  1. SSH to `ubuntu@abangcebu-main` over Tailscale.
+  1. SSH to `ubuntu@${DEPLOY_HOST}` over Tailscale.
   2. Verify existing memory and provision 2GB swapfile:
      ```bash
      sudo fallocate -l 2G /swapfile
@@ -139,13 +139,13 @@
   1. Update `.github/workflows/ci.yml` or add `deploy.yml`:
      - **Job 1 (ci):** Lint, typecheck, vitest, build.
      - **Job 2 (publish):** Trigger on release tag / approved main commit. Build Docker image with buildx cache, push to `ghcr.io/hermardev/abangcebuai:<sha>` and `latest`.
-     - **Job 3 (deploy):** Protected by GitHub Environment `production` (requires manual reviewer approval). Uses Tailscale Action to connect to `100.113.204.110`, pulls new image digest, updates compose, verifies `/api/health`.
+     - **Job 3 (deploy):** Protected by GitHub Environment `production` (requires manual reviewer approval). Uses Tailscale Action to connect to `${DEPLOY_HOST}`, pulls new image digest, updates compose, verifies `/api/health`.
 - **Acceptance Criteria:** Commits to feature branches run CI only. Merges to main trigger image publication. Deployments execute only after explicit approval in GitHub UI.
 
 ---
 
 ### Phase G: Protected Production Deployment & Health Verification
-- **Objective:** Deploy the verified container to `abangcebu-main` and verify service health.
+- **Objective:** Deploy the verified container to `${DEPLOY_HOST}` and verify service health.
 - **Tasks:**
   1. Trigger production deployment through approved workflow (or manual runbook during initial go-live).
   2. Execute `docker compose pull && docker compose up -d`.

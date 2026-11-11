@@ -1,7 +1,7 @@
 # AbangCebuAI — Production Environment Configuration Guide
 
 **Document Version:** 1.0.0  
-**Target Environment:** AWS EC2 (`abangcebu-main`), GitHub Actions CI/CD  
+**Target Environment:** AWS EC2 (`${DEPLOY_HOST}`), GitHub Actions CI/CD  
 **Security Classification:** Redacted Reference Specification (Contains NO actual secret values)
 
 ---
@@ -57,7 +57,7 @@ These secrets must be added under Environment `production`:
 
 | Secret Name | Purpose | Example / Format |
 |---|---|---|
-| `SSH_PRIVATE_KEY` | Ed25519 or RSA private key for `ubuntu@abangcebu-main` | PEM format private key |
+| `SSH_PRIVATE_KEY` | Ed25519 or RSA private key for `ubuntu@${DEPLOY_HOST}` | PEM format private key |
 | `TAILSCALE_AUTHKEY` | Ephemeral Tailscale auth key with tags `tag:ci` | `tskey-auth-...` |
 | `SUPABASE_SERVICE_ROLE_KEY` | Injected into production EC2 `.env` | `eyJhbGciOi...` |
 | `GROQ_API_KEY` | Injected into production EC2 `.env` | `gsk_...` |
@@ -67,7 +67,7 @@ These variables must be added under Environment `production`:
 
 | Variable Name | Purpose | Value |
 |---|---|---|
-| `DEPLOY_HOST` | Tailscale private hostname or IP of EC2 | `100.113.204.110` |
+| `DEPLOY_HOST` | Tailscale private hostname or IP of EC2 | `${DEPLOY_HOST}` (e.g. `100.x.y.z`) |
 | `DEPLOY_PATH` | Path on EC2 for docker-compose and app state | `/opt/abangcebu` |
 | `APP_URL` | Canonical HTTPS public web application URL | `https://abangcebu.tech` |
 | `NEXT_PUBLIC_SUPABASE_URL` | Public endpoint for Supabase | `https://<prod-id>.supabase.co` |

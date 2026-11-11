@@ -1,5 +1,6 @@
 import { isAuthRetryableFetchError } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
+import { propertyDraftsLimiter } from "@/server/api-limiters";
 import type { Json } from "@/types/database";
 
 const headers = { "Cache-Control": "no-store" };
@@ -42,6 +43,13 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   const session = await access(request);
   if ("response" in session && session.response) return session.response;
+  const limit = propertyDraftsLimiter.checkDetailed(request, session.user.id);
+  if (!limit.allowed) {
+    return Response.json(
+      { error: "Too many draft actions. Please wait a moment before trying again." },
+      { status: 429, headers: { ...headers, "Retry-After": String(limit.retryAfterSeconds) } },
+    );
+  }
   const body = await readBody(request);
   if (!body || typeof body.operationId !== "string" || !uuid.test(body.operationId) || !validPayload(body.payload)) return reply("Invalid draft request.", 400);
   const { data, error } = await session.supabase.rpc("save_property_draft", { p_operation_id: body.operationId, p_payload: body.payload });
@@ -55,6 +63,13 @@ export async function POST(request: Request) {
 export async function PATCH(request: Request) {
   const session = await access(request);
   if ("response" in session && session.response) return session.response;
+  const limit = propertyDraftsLimiter.checkDetailed(request, session.user.id);
+  if (!limit.allowed) {
+    return Response.json(
+      { error: "Too many draft actions. Please wait a moment before trying again." },
+      { status: 429, headers: { ...headers, "Retry-After": String(limit.retryAfterSeconds) } },
+    );
+  }
   const body = await readBody(request);
   if (!body || typeof body.draftId !== "string" || !uuid.test(body.draftId) || typeof body.operationId !== "string" || !uuid.test(body.operationId) || !Number.isSafeInteger(body.revision) || (body.revision as number) < 1 || !validPayload(body.payload)) return reply("Invalid draft request.", 400);
   const { data, error } = await session.supabase.rpc("update_property_draft", { p_draft_id: body.draftId, p_operation_id: body.operationId, p_expected_revision: body.revision as number, p_payload: body.payload });

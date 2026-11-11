@@ -1,7 +1,7 @@
 # AbangCebuAI — Production Deployment & Operations Runbook
 
 **Document Version:** 1.0.0  
-**Target Host:** AWS EC2 `ubuntu@abangcebu-main` (`100.113.204.110`)  
+**Target Host:** AWS EC2 `${DEPLOY_HOST}` (`${TAILSCALE_IP}`)  
 **Audience:** Lead DevOps Engineer, Systems Administrator, Release Manager
 
 ---
@@ -11,13 +11,13 @@
 Administrative access is strictly restricted to Tailscale. Ensure Tailscale is running on your local workstation.
 
 ```bash
-# Verify Tailscale connectivity
-tailscale ping 100.113.204.110
+# Verify Tailscale connectivity (use configured DEPLOY_HOST or TAILSCALE_IP)
+tailscale ping ${DEPLOY_HOST}
 
 # SSH to production instance
-ssh ubuntu@abangcebu-main
+ssh ubuntu@${DEPLOY_HOST}
 # Or by Tailscale IP:
-ssh ubuntu@100.113.204.110
+ssh ubuntu@${TAILSCALE_IP}
 ```
 
 ---
@@ -72,7 +72,7 @@ version: "3.8"
 
 services:
   abangcebu-app:
-    image: ghcr.io/hermardev/abangcebuai:latest
+    image: ghcr.io/hermardev/abang_cebu_ai_group2:${IMAGE_TAG:-latest}
     container_name: abangcebu-app
     restart: unless-stopped
     env_file:
@@ -111,7 +111,7 @@ services:
 
 ### 3.2 Manual Deployment Procedure (CLI Fallback)
 ```bash
-ssh ubuntu@abangcebu-main
+ssh ubuntu@${DEPLOY_HOST}
 cd /opt/abangcebu
 
 # Authenticate to GHCR (if pulling private packages)
@@ -163,7 +163,16 @@ sudo cscli metrics
 
 ---
 
-## 5. Troubleshooting & Incident Recovery
+## 5. Security & Edge Configuration Runbooks
+
+For in-depth operational procedures, refer to:
+- **[Caddy Reverse Proxy & Edge Hardening Guide](CADDY_PROXY_GUIDE.md)**: Reverse proxy headers, TLS, canonical redirects, CrowdSec log format.
+- **[EC2 Host Security Runbook](HOST_SECURITY_RUNBOOK.md)**: Socket inspection, UFW firewall audit, Docker iptables loopback binding, SSH CIS baseline.
+- **[Infrastructure Monitoring & Logging Runbook](MONITORING_LOGGING_RUNBOOK.md)**: Resource telemetry, log rotation, CrowdSec alerts, SLOs.
+
+---
+
+## 6. Troubleshooting & Incident Recovery
 
 ### 5.1 Container Failing to Start / CrashLoopBackOff
 ```bash
@@ -184,14 +193,19 @@ docker stats --no-stream
 ```
 
 ### 5.3 Rollback to Previous Release
-If an unexpected bug occurs:
+If an unexpected runtime regression occurs, automated rollback in `.github/workflows/deploy.yml` restores the previously running container automatically if health checks fail.
+
+For manual emergency rollback:
 ```bash
 cd /opt/abangcebu
 
-# Update docker-compose.yml to previous image tag:
-# image: ghcr.io/hermardev/abangcebuai:sha-<previous_commit_sha>
+# Option 1: Use the rollback helper script
+./rollback.sh sha-<previous_commit_sha>
 
-docker compose up -d abangcebu-app
+# Option 2: Direct Compose rollback
+export IMAGE_TAG="sha-<previous_commit_sha>"
+docker compose pull abangcebu-app
+docker compose up -d --remove-orphans abangcebu-app
 curl -f http://127.0.0.1:3000/api/health
 ```
 
