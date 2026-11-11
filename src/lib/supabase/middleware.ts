@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { createBoundedFetch } from "./fetch-timeout";
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
@@ -10,6 +11,7 @@ export async function updateSession(request: NextRequest) {
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "placeholder-anon-key";
 
   const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
+    global: { fetch: createBoundedFetch(6_000) },
     cookies: {
       getAll() {
         return request.cookies.getAll();

@@ -1,5 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { cache } from "react";
+import { createBoundedFetch } from "./fetch-timeout";
 
 /**
  * Creates a Supabase client for use in Server Components, Server Actions, and Route Handlers.
@@ -11,6 +13,7 @@ export async function createClient() {
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "placeholder-anon-key";
 
   return createServerClient(supabaseUrl, supabaseAnonKey, {
+    global: { fetch: createBoundedFetch(6_000) },
     cookies: {
       getAll() {
         return cookieStore.getAll();
@@ -28,3 +31,9 @@ export async function createClient() {
     },
   });
 }
+
+/** Request-scoped: layouts and pages calling this share one GoTrue round trip. */
+export const getCachedServerUser = cache(async () => {
+  const supabase = await createClient();
+  return supabase.auth.getUser();
+});

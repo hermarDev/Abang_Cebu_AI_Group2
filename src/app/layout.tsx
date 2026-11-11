@@ -33,6 +33,17 @@ export default function RootLayout({
           document.documentElement.classList.add(theme);
           document.documentElement.style.colorScheme = theme;
           document.documentElement.dataset.startup = "pending";
+          try {
+            const measure = performance.measure.bind(performance);
+            performance.measure = function (name, start, end) {
+              if (start && typeof start === "object") {
+                const s = start.start, e = start.end;
+                if ((typeof s === "number" && !(s >= 0 && isFinite(s))) || (typeof e === "number" && !(e >= 0 && isFinite(e)))) return;
+              }
+              try { return measure(name, start, end); }
+              catch (err) { if (!(err instanceof TypeError && /negative time stamp/i.test(err.message))) throw err; }
+            };
+          } catch {}
         })();` }} />
       </head>
       <body

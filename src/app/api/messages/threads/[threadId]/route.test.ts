@@ -56,6 +56,16 @@ describe("GET /api/messages/threads/[threadId]", () => {
     expect(mocks.profile).not.toHaveBeenCalled();
     expect(mocks.rpc).not.toHaveBeenCalled();
   });
+  it.each(["renter", "landlord"])("returns the same signed listingOwner for a %s viewer and never the viewer-relative counterpart", async (role) => {
+    mocks.profile.mockResolvedValue({ data: { role, is_suspended: false }, error: null });
+    const owner = { id: uuid, fullName: "abangcebu landlord", role: "landlord", avatarUrl: `${uuid}/o.png`, email: "o@x.com" };
+    const counterpart = role === "landlord" ? { id: uuid2, fullName: "abangcebu renter", role: "renter", avatarUrl: null } : owner;
+    mocks.rpc.mockResolvedValue({ data: { thread: { id: uuid, counterpart, listingOwner: owner }, messages: [], hasMore: false }, error: null });
+    mocks.signAvatar.mockImplementation(async (id: string) => `https://signed.example/${id}.png`);
+    const body = await (await CALL(headers())).json();
+    expect(body.thread.listingOwner).toEqual({ id: uuid, fullName: "abangcebu landlord", role: "landlord", avatarUrl: `https://signed.example/${uuid}.png` });
+    expect(JSON.stringify(body)).not.toContain("o@x.com");
+  });
   it("503 when the profile lookup fails", async () => {
     mocks.profile.mockResolvedValue({ data: null, error: { message: "x" } });
     expect((await CALL(headers())).status).toBe(503);

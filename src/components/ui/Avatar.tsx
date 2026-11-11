@@ -4,6 +4,9 @@ import {
   createContext,
   forwardRef,
   useContext,
+  useEffect,
+  useMemo,
+  useRef,
   useState,
   type HTMLAttributes,
   type ImgHTMLAttributes,
@@ -24,8 +27,13 @@ export const Avatar = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>
     const [imageLoaded, setImageLoaded] = useState(false);
     const [hasError, setHasError] = useState(false);
 
+    const value = useMemo(
+      () => ({ imageLoaded, setImageLoaded, hasError, setHasError }),
+      [imageLoaded, hasError]
+    );
+
     return (
-      <AvatarContext.Provider value={{ imageLoaded, setImageLoaded, hasError, setHasError }}>
+      <AvatarContext.Provider value={value}>
         <div
           ref={ref}
           className={cn(
@@ -45,13 +53,32 @@ Avatar.displayName = "Avatar";
 export const AvatarImage = forwardRef<HTMLImageElement, ImgHTMLAttributes<HTMLImageElement>>(
   ({ className, src, alt = "", onError, onLoad, ...props }, ref) => {
     const ctx = useContext(AvatarContext);
+    const imgRef = useRef<HTMLImageElement | null>(null);
+    const setImageLoaded = ctx?.setImageLoaded;
+    const setHasError = ctx?.setHasError;
+
+    // Cached/SSR-hydrated images can finish before React attaches onLoad; re-sync when src changes.
+    useEffect(() => {
+      const img = imgRef.current;
+      setHasError?.(false);
+      if (img?.complete) {
+        setImageLoaded?.(img.naturalWidth > 0);
+        setHasError?.(img.naturalWidth === 0);
+      } else {
+        setImageLoaded?.(false);
+      }
+    }, [src, setImageLoaded, setHasError]);
 
     if (!src || ctx?.hasError) return null;
 
     return (
       // eslint-disable-next-line @next/next/no-img-element
       <img
-        ref={ref}
+        ref={(node) => {
+          imgRef.current = node;
+          if (typeof ref === "function") ref(node);
+          else if (ref) ref.current = node;
+        }}
         src={src}
         alt={alt}
         className={cn(

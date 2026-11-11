@@ -35,6 +35,24 @@ export function startUnreadPolling({ refresh, win, doc }: { refresh: () => void;
   };
 }
 
+const inFlight = new Map<string, Promise<number>>();
+let channel: BroadcastChannel | null = null;
+
+/** Concurrent callers for one user (nav, workspace layout, drawer) share a single request; result is broadcast to other tabs. */
+function fetchUnreadShared(userId: string): Promise<number> {
+  const running = inFlight.get(userId);
+  if (running) return running;
+  const request = fetchUnreadMessageCount(userId)
+    .then((count) => {
+      if (!channel && typeof BroadcastChannel !== "undefined") channel = new BroadcastChannel("abangcebu:messages");
+      channel?.postMessage({ userId, count });
+      return count;
+    })
+    .finally(() => inFlight.delete(userId));
+  inFlight.set(userId, request);
+  return request;
+}
+
 export function useUnreadMessageCount(userId: string | null | undefined, enabled: boolean = true): { unreadCount: number; refresh: () => Promise<void> } {
   const [unreadCount, setUnreadCount] = useState(0);
   const latest = useRef(0);
@@ -44,7 +62,7 @@ export function useUnreadMessageCount(userId: string | null | undefined, enabled
     if (!active || !userId) return;
     const request = ++latest.current;
     try {
-      const count = await fetchUnreadMessageCount(userId);
+      const count = await fetchUnreadShared(userId);
       if (request === latest.current) setUnreadCount(count);
     } catch { /* keep last known count; the next poll retries */ }
   }, [active, userId]);
@@ -52,8 +70,10 @@ export function useUnreadMessageCount(userId: string | null | undefined, enabled
   useEffect(() => {
     if (!active) return;
     const stop = startUnreadPolling({ refresh: () => { void refresh(); }, win: window, doc: document });
-    return stop;
-  }, [active, refresh]);
+    const peer = typeof BroadcastChannel !== "undefined" ? new BroadcastChannel("abangcebu:messages") : null;
+    if (peer) peer.onmessage = ({ data }: MessageEvent<{ userId?: string; count?: number }>) => { if (data?.userId === userId && typeof data.count === "number") setUnreadCount(data.count); };
+    return () => { stop(); peer?.close(); };
+  }, [active, refresh, userId]);
 
   return { unreadCount: active ? unreadCount : 0, refresh };
 }

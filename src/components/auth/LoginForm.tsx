@@ -30,6 +30,7 @@ export function LoginForm({
   const [statusMessage, setStatusMessage] = useState<string | null>(initialStatusMessage ?? null);
   const [statusIsError, setStatusIsError] = useState(!initialStatusMessage);
   const [loading, setLoading] = useState(false);
+  const [redirectingLabel, setRedirectingLabel] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string }>({});
   const [submitted, setSubmitted] = useState(false);
   const emailError = (value: string) => !value.trim() ? "Enter your email address." : !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim()) ? "Enter a valid email address." : undefined;
@@ -55,17 +56,24 @@ export function LoginForm({
       if (!result.success) {
         setStatusIsError(true);
         setStatusMessage(result.message.replace(/^Sign in\b/i, "Log in"));
+        setLoading(false);
         return;
       }
-      setStatusIsError(false);
-      onSuccess?.();
       const next = new URLSearchParams(window.location.search).get("next");
-      router.replace(getPostLoginRedirect(next, result.role));
+      const destination = getPostLoginRedirect(next, result.role);
+      const isLandlordTarget = destination.startsWith("/landlord") || result.role === "landlord";
+      const label = isLandlordTarget ? "Signing in · Preparing your workspace…" : "Signing in · Loading map…";
+      // Stay in the loading state on success: the route is still loading after replace().
+      setRedirectingLabel(label);
+      setStatusIsError(false);
+      setStatusMessage(label);
+      onSuccess?.();
+      router.replace(destination);
       router.refresh();
     } catch {
       setStatusIsError(true);
       setStatusMessage("Log in is temporarily unavailable. Please try again.");
-    } finally {
+      setRedirectingLabel(null);
       setLoading(false);
     }
   };
@@ -157,8 +165,8 @@ export function LoginForm({
             </div>
           )}
 
-          <Button type="submit" variant="primary" fullWidth size="lg" disabled={loading}>
-            {loading ? "Logging in…" : "Log In"}
+          <Button type="submit" variant="primary" fullWidth size="lg" disabled={loading} aria-busy={loading}>
+            {redirectingLabel ?? (loading ? "Logging in…" : "Log In")}
           </Button>
 
           {!onRegister && (

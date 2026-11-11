@@ -7,9 +7,11 @@ import {
   AlertCircle,
   ArchiveRestore,
   Archive,
+  ArrowDown,
   ArrowLeft,
+  ArrowUp,
   Ban,
-  Building2,
+  ChevronRight,
   Clock,
   CornerUpLeft,
   Flag,
@@ -17,10 +19,9 @@ import {
   Image as ImageIcon,
   MessageSquare,
   MoreVertical,
-  Paperclip,
+  Plus,
   RefreshCw,
   Search,
-  SendHorizontal,
   X,
 } from "lucide-react";
 import { Badge } from "@/components/ui/Badge";
@@ -36,6 +37,7 @@ import {
   MessageAvatar,
   MessageContent,
   MessageFooter,
+  MessagePreviewContent,
   Bubble,
   BubbleAttachments,
   BubbleContent,
@@ -44,11 +46,13 @@ import {
   Marker,
   MarkerContent,
   MessageScroller,
+  attachmentPreviewLabel,
   type MessageScrollerHandle,
 } from "@/components/ui/chat";
 import { PropertyDetailsSheet } from "@/features/rentals/PropertyDetailsSheet";
 import { notify } from "@/components/ui/AppToaster";
 import { dispatchMessagesUpdated } from "./useUnreadMessageCount";
+import { createClient } from "@/lib/supabase/client";
 import {
   MESSAGE_MAX,
   REPORT_CATEGORIES,
@@ -72,6 +76,21 @@ import {
 } from "./messaging-client";
 
 export type { RentalThreadSummary } from "./messaging-client";
+export function handleRealtimeMessageInsert(
+  payload: { new?: { conversation_id?: string; sender_id?: string } | null },
+  userId: string,
+  selectedId: string | null,
+  onInactiveMessage: () => void
+): boolean {
+  const newMsg = payload.new;
+  if (!newMsg || newMsg.sender_id === userId) return false;
+  if (newMsg.conversation_id && newMsg.conversation_id !== selectedId) {
+    onInactiveMessage();
+    return true;
+  }
+  return false;
+}
+
 export type MessagingInboxProps = {
   userId: string;
   userRole: "renter" | "landlord";
@@ -204,6 +223,7 @@ function MessagingInboxInner({
   }, [selectedId]);
   const tabRef = useRef(tab);
   const listSeq = useRef(0);
+  const unreadSeenRef = useRef(new Map<string, number>());
   const olderLoaded = useRef(false);
   const alive = useRef(true);
   useEffect(() => {
@@ -223,9 +243,17 @@ function MessagingInboxInner({
   const [stagedAttachments, setStagedAttachments] = useState<StagedAttachment[]>([]);
   const [propertySheetOpen, setPropertySheetOpen] = useState(false);
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
+  const [showScrollBottom, setShowScrollBottom] = useState(false);
 
   const draft = (selectedId && drafts[selectedId]) || "";
   const outbox = (selectedId && outboxes[selectedId]) || NO_OUTBOX;
+
+  useEffect(() => {
+    const el = textareaRef.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${Math.min(el.scrollHeight, 128)}px`;
+  }, [draft]);
   const setDraft = (value: string) => {
     if (selectedId) retain((r) => ({ ...r, drafts: { ...r.drafts, [selectedId]: value } }));
   };
@@ -253,6 +281,11 @@ function MessagingInboxInner({
           userId
         );
         if (seq !== listSeq.current) return;
+        // A polled thread other than the open one gained unread messages: refresh nav badges now instead of on focus.
+        const seen = unreadSeenRef.current;
+        const arrived = quiet && next.some((t) => t.id !== selectedRef.current && t.unreadCount > (seen.get(t.id) ?? 0));
+        unreadSeenRef.current = new Map(next.map((t) => [t.id, t.unreadCount]));
+        if (arrived && alive.current) dispatchMessagesUpdated();
         setThreads(next.filter((t) => t.isArchived === archived));
         setListError(null);
       } catch (error) {
@@ -274,14 +307,49 @@ function MessagingInboxInner({
     void loadThreads(tab === "archived");
   }, [tab, loadThreads]);
 
+  const loadThreadsInFlightRef = useRef(false);
   useEffect(() => {
     const timer = setInterval(() => {
+      if (loadThreadsInFlightRef.current) return;
       if (typeof document !== "undefined" && document.visibilityState === "visible") {
-        void loadThreads(tab === "archived", true);
+        loadThreadsInFlightRef.current = true;
+        void loadThreads(tab === "archived", true).finally(() => { loadThreadsInFlightRef.current = false; });
       }
     }, POLL_MS);
     return () => clearInterval(timer);
   }, [tab, loadThreads]);
+
+  useEffect(() => {
+    if (!userId) return;
+    const supabase = createClient();
+    const channel = supabase
+      .channel(`realtime:messages:${userId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "rental_messages",
+        },
+        (payload) => {
+          if (!alive.current) return;
+          handleRealtimeMessageInsert(
+            payload as { new?: { conversation_id?: string; sender_id?: string } | null },
+            userId,
+            selectedRef.current,
+            () => {
+              dispatchMessagesUpdated();
+              void loadThreads(tabRef.current === "archived", true);
+            }
+          );
+        }
+      )
+      .subscribe();
+
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }, [userId, loadThreads]);
 
   const markRead = useCallback(
     async (id: string) => {
@@ -330,8 +398,10 @@ function MessagingInboxInner({
 
   useEffect(() => {
     if (!selectedId) return;
+    let activeThreadInFlight = false;
     const timer = setInterval(async () => {
-      if (document.visibilityState !== "visible") return;
+      if (activeThreadInFlight || document.visibilityState !== "visible") return;
+      activeThreadInFlight = true;
       const generation = generationRef.current;
       try {
         const data = await apiJson<ThreadDetailResponse>(
@@ -346,6 +416,8 @@ function MessagingInboxInner({
         if (hasNewIncoming || data.thread.unreadCount > 0) void markRead(selectedId);
       } catch {
         /* keep current view */
+      } finally {
+        activeThreadInFlight = false;
       }
     }, POLL_MS);
     return () => clearInterval(timer);
@@ -511,6 +583,7 @@ function MessagingInboxInner({
       senderId: m.senderId,
       senderName,
       body: m.body,
+      attachments: m.attachments,
     });
     textareaRef.current?.focus();
   }
@@ -545,7 +618,7 @@ function MessagingInboxInner({
       updateOutbox(threadId, (list) => list.filter((o) => o.operationId !== item.operationId));
       if (selectedRef.current === threadId) setMessages((current) => mergeMessages(current, [message]));
       patchThread(threadId, {
-        lastMessagePreview: (message.body || "📷 Photo").slice(0, 140),
+        lastMessagePreview: (message.body || attachmentPreviewLabel(message.attachments ?? item.attachments)).slice(0, 140),
         lastMessageAt: message.createdAt,
       });
       if (alive.current) dispatchMessagesUpdated();
@@ -686,11 +759,24 @@ function MessagingInboxInner({
   }
 
   return (
-    <div className="grid h-full min-h-[30rem] overflow-hidden rounded-2xl border border-border bg-card text-card-foreground shadow-xs lg:grid-cols-[340px_minmax(0,1fr)]">
+    <div className="grid h-full min-h-0 overflow-hidden rounded-none border-0 bg-card text-card-foreground shadow-none sm:rounded-2xl sm:border sm:border-border sm:shadow-xs lg:grid-cols-[340px_minmax(0,1fr)]">
       <aside
         aria-label="Conversations"
         className={`${selectedId ? "hidden lg:flex" : "flex"} min-h-0 flex-col border-border lg:border-r`}
       >
+        {userRole === "renter" && (
+          <div className="flex sm:hidden items-center justify-between border-b border-border px-3.5 py-3 bg-card">
+            <Link
+              href="/"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground"
+            >
+              <ArrowLeft size={16} aria-hidden="true" />
+              <span>Back to map</span>
+            </Link>
+            <h1 className="text-sm font-semibold text-foreground">Messages</h1>
+            <div className="w-16" aria-hidden="true" />
+          </div>
+        )}
         <div role="tablist" aria-label="Conversation filter" className="grid grid-cols-2 gap-1 border-b border-border p-2">
           {(["active", "archived"] as const).map((value) => {
             const isSelected = tab === value;
@@ -818,8 +904,8 @@ function MessagingInboxInner({
                             {t.counterpart.role}
                           </Badge>
                         </span>
-                        <span className="truncate text-xs text-muted-foreground">
-                          {t.lastMessagePreview ?? "No messages yet"}
+                        <span className="flex min-w-0 items-center gap-1.5 text-xs text-muted-foreground">
+                          <MessagePreviewContent text={t.lastMessagePreview} />
                         </span>
                         <span className="flex items-center justify-between gap-2 text-xs">
                           <Badge
@@ -868,9 +954,9 @@ function MessagingInboxInner({
           )
         ) : (
           <>
-            <header className="sticky top-0 z-10 grid gap-2 border-b border-border bg-card p-3 shadow-xs">
+            <header className="sticky top-0 z-10 grid gap-2 border-b border-border bg-card p-2.5 sm:p-3 shadow-xs">
               <div className="flex items-center justify-between gap-2">
-                <div className="flex min-w-0 items-center gap-2.5">
+                <div className="flex min-w-0 items-center gap-2 sm:gap-2.5">
                   <Button
                     variant="ghost"
                     size="sm"
@@ -890,13 +976,14 @@ function MessagingInboxInner({
                   </Avatar>
                   <div className="min-w-0">
                     <div className="flex items-center gap-1.5">
-                      <h2 className="truncate text-sm font-semibold">{thread.counterpart.fullName ?? "AbangCebu user"}</h2>
-                      <Badge variant="outline" className="px-1.5 py-0 text-[0.65rem] capitalize">
+                      <h2 className="truncate text-sm font-semibold text-foreground">{thread.counterpart.fullName ?? "AbangCebu user"}</h2>
+                      <Badge variant="outline" className="hidden sm:inline-flex px-1.5 py-0 text-[0.65rem] capitalize">
                         {thread.counterpart.role}
                       </Badge>
                     </div>
                     <p className="text-xs text-muted-foreground truncate">
-                      {thread.counterpart.isSuspended ? "Account suspended" : "Direct conversation"}
+                      <span className="sm:hidden capitalize">{thread.counterpart.role} · </span>
+                      {thread.counterpart.isSuspended ? "Account suspended" : "Property inquiry"}
                     </p>
                   </div>
                 </div>
@@ -956,162 +1043,192 @@ function MessagingInboxInner({
                 </div>
               </div>
 
-              <div className="flex items-center gap-2.5 rounded-xl border border-border/70 bg-muted/40 p-2 text-xs">
-                {thread.listingPhotoUrl || thread.listingThumbnailUrl ? (
-                  <Image
-                    src={thread.listingThumbnailUrl ?? thread.listingPhotoUrl ?? ""}
-                    alt=""
-                    width={36}
-                    height={36}
-                    unoptimized
-                    className="size-9 shrink-0 rounded-lg object-cover"
-                  />
-                ) : (
-                  <div className="grid size-9 shrink-0 place-items-center rounded-lg bg-muted text-muted-foreground">
-                    <Home size={16} aria-hidden="true" />
-                  </div>
-                )}
-                <div className="min-w-0 flex-1">
-                  <Link
-                    href={listingHref(thread, userRole)}
-                    className={`font-semibold text-foreground truncate block hover:underline ${focusRing}`}
-                  >
-                    {thread.listingTitle}
-                  </Link>
-                  {thread.listingPrice != null && (
-                    <span className="text-muted-foreground">₱{Number(thread.listingPrice).toLocaleString("en-PH")}/month</span>
-                  )}
-                </div>
-                <Button
+              <div className="group flex w-full items-center gap-2.5 rounded-xl border border-border/70 bg-muted/40 p-2 text-left transition hover:bg-muted/70 focus-within:ring-2 focus-within:ring-action/20">
+                <button
                   type="button"
-                  variant="outline"
-                  size="sm"
                   onClick={() => setPropertySheetOpen(true)}
-                  className="shrink-0 h-8 gap-1.5 text-xs font-semibold"
+                  className="flex items-center gap-2.5 min-w-0 flex-1 text-left focus:outline-hidden cursor-pointer"
                   aria-label={`View property details for ${thread.listingTitle}`}
                 >
-                  <Building2 size={13} aria-hidden="true" />
-                  <span>Property details</span>
-                </Button>
-                <Badge
-                  variant={listingBadgeLabel(thread) === "Published · Available" ? "default" : "secondary"}
-                  className="shrink-0 text-[0.65rem] px-2 py-0.5"
-                >
-                  {listingBadgeLabel(thread)}
-                </Badge>
+                  {thread.listingPhotoUrl || thread.listingThumbnailUrl ? (
+                    <Image
+                      src={thread.listingThumbnailUrl ?? thread.listingPhotoUrl ?? ""}
+                      alt=""
+                      width={40}
+                      height={40}
+                      unoptimized
+                      className="size-10 shrink-0 rounded-lg object-cover"
+                    />
+                  ) : (
+                    <div className="grid size-10 shrink-0 place-items-center rounded-lg bg-muted text-muted-foreground">
+                      <Home size={18} aria-hidden="true" />
+                    </div>
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <h3 className="font-semibold text-xs sm:text-sm text-foreground truncate group-hover:text-action transition-colors">
+                      {thread.listingTitle}
+                    </h3>
+                    <p className="text-[0.75rem] text-muted-foreground truncate">
+                      {thread.listingPrice != null ? (
+                        <span>₱{Number(thread.listingPrice).toLocaleString("en-PH")}/month · </span>
+                      ) : null}
+                      <span className="text-muted-foreground/90 font-medium">View property details</span>
+                    </p>
+                  </div>
+                </button>
+                <div className="flex items-center gap-2 shrink-0">
+                  <Badge
+                    variant={listingBadgeLabel(thread) === "Published · Available" ? "default" : "secondary"}
+                    className="hidden sm:inline-flex text-[0.65rem] px-2 py-0.5"
+                  >
+                    {listingBadgeLabel(thread)}
+                  </Badge>
+                  <Link
+                    href={listingHref(thread, userRole)}
+                    className="hidden sm:inline-flex text-xs font-semibold text-muted-foreground hover:text-foreground hover:underline px-1"
+                    title="Open on map"
+                  >
+                    Map
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => setPropertySheetOpen(true)}
+                    className="p-1 text-muted-foreground hover:text-foreground cursor-pointer"
+                    aria-label={`Open details drawer for ${thread.listingTitle}`}
+                  >
+                    <ChevronRight size={18} className="text-muted-foreground shrink-0 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+                  </button>
+                </div>
               </div>
             </header>
 
-            <MessageScroller
-              ref={scrollerRef}
-              onScrollBottomChange={(atBottom) => {
-                stickToBottom.current = atBottom;
-              }}
-              className="p-3"
-            >
-              {hasMore && (
-                <div className="mb-3 grid">
-                  <Button variant="outline" size="sm" disabled={loadingOlder} onClick={() => void loadOlder()}>
-                    {loadingOlder ? "Loading…" : "Load older messages"}
-                  </Button>
-                </div>
-              )}
-              {detailLoading && !messages.length ? (
-                <div className="grid gap-3" role="status" aria-label="Loading messages">
-                  {[0, 1, 2].map((i) => (
-                    <Skeleton key={i} className={`h-14 ${i % 2 ? "ml-auto w-2/3" : "w-3/4"}`} />
-                  ))}
-                </div>
-              ) : detailError && !messages.length ? (
-                <p role="alert" className="text-sm">
-                  {detailError}
-                </p>
-              ) : (
-                <ol className="grid gap-2 list-none p-0 m-0">
-                  {messageElements}
-                  {outbox.map((o) => (
-                    <Message key={o.operationId} mine>
-                      <MessageContent mine>
-                        <BubbleGroup>
-                          <div
-                            className={`rounded-2xl px-3.5 py-2 text-sm leading-relaxed ${
-                              o.status === "sending"
-                                ? "border border-border bg-card/80 text-muted-foreground animate-pulse"
-                                : "border border-destructive/40 bg-destructive/10 text-foreground"
-                            }`}
-                          >
-                            {o.replyTo && (
-                              <BubbleQuote
-                                author={o.replyTo.senderName}
-                                body={o.replyTo.body}
-                                mine={true}
-                                isUnavailable={o.replyTo.isUnavailable}
-                              />
-                            )}
-                            {o.attachments && o.attachments.length > 0 && (
-                              <BubbleAttachments
-                                attachments={o.attachments}
-                                onPhotoClick={(idx) => {
-                                  const url = o.attachments?.[idx]?.url;
-                                  if (url) setLightboxUrl(url);
-                                }}
-                              />
-                            )}
-                            {o.body && <BubbleContent>{o.body}</BubbleContent>}
-                            {o.status === "sending" ? (
-                              <div className="mt-1 flex items-center gap-1.5 text-[0.7rem] text-muted-foreground">
-                                <Clock size={12} className="animate-spin" aria-hidden="true" />
-                                <span>Sending…</span>
-                              </div>
-                            ) : (
-                              <div
-                                role="alert"
-                                className="mt-1.5 flex items-center justify-between gap-3 text-xs text-destructive"
-                              >
-                                <span className="flex items-center gap-1">
-                                  <AlertCircle size={13} aria-hidden="true" />
-                                  <span>Message wasn&apos;t sent</span>
-                                </span>
-                                <div className="flex items-center gap-1.5">
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="min-h-8 h-8 px-2 text-xs border-destructive/30 hover:bg-destructive/10"
-                                    onClick={() => void deliver(o)}
-                                  >
-                                    Retry
-                                  </Button>
-                                  <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="sm"
-                                    aria-label="Dismiss unsent message"
-                                    className="min-h-8 h-8 px-2 text-xs text-muted-foreground hover:text-foreground"
-                                    onClick={() => {
-                                      if (selectedId) {
-                                        updateOutbox(selectedId, (list) =>
-                                          list.filter((item) => item.operationId !== o.operationId)
-                                        );
-                                      }
-                                    }}
-                                  >
-                                    Dismiss
-                                  </Button>
+            <div className="relative flex-1 min-h-0 flex flex-col">
+              <MessageScroller
+                ref={scrollerRef}
+                onScrollBottomChange={(atBottom) => {
+                  stickToBottom.current = atBottom;
+                  setShowScrollBottom(!atBottom);
+                }}
+                className="p-3"
+              >
+                {hasMore && (
+                  <div className="mb-3 grid">
+                    <Button variant="outline" size="sm" disabled={loadingOlder} onClick={() => void loadOlder()}>
+                      {loadingOlder ? "Loading…" : "Load older messages"}
+                    </Button>
+                  </div>
+                )}
+                {detailLoading && !messages.length ? (
+                  <div className="grid gap-3" role="status" aria-label="Loading messages">
+                    {[0, 1, 2].map((i) => (
+                      <Skeleton key={i} className={`h-14 ${i % 2 ? "ml-auto w-2/3" : "w-3/4"}`} />
+                    ))}
+                  </div>
+                ) : detailError && !messages.length ? (
+                  <p role="alert" className="text-sm">
+                    {detailError}
+                  </p>
+                ) : (
+                  <ol className="grid gap-2 list-none p-0 m-0">
+                    {messageElements}
+                    {outbox.map((o) => (
+                      <Message key={o.operationId} mine>
+                        <MessageContent mine>
+                          <BubbleGroup>
+                            <Bubble
+                              mine={true}
+                              hasAttachmentOnly={Boolean(o.attachments && o.attachments.length > 0 && !o.body && !o.replyTo)}
+                              className={
+                                o.status === "sending"
+                                  ? "border border-border bg-card/80 text-muted-foreground animate-pulse"
+                                  : "border border-destructive/40 bg-destructive/10 text-foreground"
+                              }
+                            >
+                              {o.replyTo && (
+                                <BubbleQuote
+                                  author={o.replyTo.senderName}
+                                  body={o.replyTo.body}
+                                  attachments={o.replyTo.attachments}
+                                  mine={true}
+                                  isUnavailable={o.replyTo.isUnavailable}
+                                />
+                              )}
+                              {o.attachments && o.attachments.length > 0 && (
+                                <BubbleAttachments
+                                  attachments={o.attachments}
+                                  onPhotoClick={(idx) => {
+                                    const url = o.attachments?.[idx]?.url;
+                                    if (url) setLightboxUrl(url);
+                                  }}
+                                />
+                              )}
+                              {o.body && <BubbleContent>{o.body}</BubbleContent>}
+                              {o.status === "sending" ? (
+                                <div className="mt-1 flex items-center gap-1.5 text-[0.7rem] text-muted-foreground">
+                                  <Clock size={12} className="animate-spin" aria-hidden="true" />
+                                  <span>Sending…</span>
                                 </div>
-                              </div>
-                            )}
-                          </div>
-                        </BubbleGroup>
-                      </MessageContent>
-                    </Message>
-                  ))}
-                </ol>
+                              ) : (
+                                <div
+                                  role="alert"
+                                  className="mt-1.5 flex items-center justify-between gap-3 text-xs text-destructive"
+                                >
+                                  <span className="flex items-center gap-1">
+                                    <AlertCircle size={13} aria-hidden="true" />
+                                    <span>Message wasn&apos;t sent</span>
+                                  </span>
+                                  <div className="flex items-center gap-1.5">
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      className="min-h-8 h-8 px-2 text-xs border-destructive/30 hover:bg-destructive/10"
+                                      onClick={() => void deliver(o)}
+                                    >
+                                      Retry
+                                    </Button>
+                                    <Button
+                                      type="button"
+                                      variant="ghost"
+                                      size="sm"
+                                      aria-label="Dismiss unsent message"
+                                      className="min-h-8 h-8 px-2 text-xs text-muted-foreground hover:text-foreground"
+                                      onClick={() => {
+                                        if (selectedId) {
+                                          updateOutbox(selectedId, (list) =>
+                                            list.filter((item) => item.operationId !== o.operationId)
+                                          );
+                                        }
+                                      }}
+                                    >
+                                      Dismiss
+                                    </Button>
+                                  </div>
+                                </div>
+                              )}
+                            </Bubble>
+                          </BubbleGroup>
+                        </MessageContent>
+                      </Message>
+                    ))}
+                  </ol>
+                )}
+              </MessageScroller>
+
+              {showScrollBottom && (
+                <button
+                  type="button"
+                  aria-label="Scroll to latest messages"
+                  onClick={() => scrollerRef.current?.scrollToBottom(true)}
+                  className="absolute bottom-4 right-4 z-20 flex size-9 items-center justify-center rounded-full bg-card/95 text-foreground border border-border shadow-lg backdrop-blur-xs transition hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring cursor-pointer"
+                >
+                  <ArrowDown size={17} aria-hidden="true" />
+                </button>
               )}
-            </MessageScroller>
+            </div>
 
             <form
               onSubmit={send}
-              className="grid gap-2 border-t border-border bg-card p-3 pb-[calc(.75rem+env(safe-area-inset-bottom))]"
+              className="grid gap-2 border-t border-border bg-card p-2 sm:p-3 pb-[calc(.6rem+env(safe-area-inset-bottom))]"
               onDragOver={(e) => e.preventDefault()}
               onDrop={handleDrop}
             >
@@ -1130,8 +1247,12 @@ function MessagingInboxInner({
                       <span className="font-semibold text-foreground">
                         Replying to {replyingTo.senderId === userId ? "yourself" : replyingTo.senderName}
                       </span>
-                      <p className="m-0 text-muted-foreground truncate max-w-xs sm:max-w-md">
-                        {replyingTo.body || "📷 Photo"}
+                      <p className="m-0 flex min-w-0 items-center gap-1.5 text-muted-foreground max-w-xs sm:max-w-md">
+                        <MessagePreviewContent
+                          text={replyingTo.body}
+                          attachments={replyingTo.attachments}
+                          fallbackToAttachment
+                        />
                       </p>
                     </div>
                   </div>
@@ -1204,7 +1325,7 @@ function MessagingInboxInner({
                 </div>
               )}
 
-              <div className="relative flex items-center rounded-2xl border border-input bg-card shadow-2xs transition-all focus-within:border-action focus-within:ring-2 focus-within:ring-action/20">
+              <div className="flex items-end gap-2">
                 <Button
                   type="button"
                   variant="ghost"
@@ -1213,9 +1334,9 @@ function MessagingInboxInner({
                   title="Attach photos"
                   disabled={!thread.canSend || stagedAttachments.length >= 5}
                   onClick={() => fileInputRef.current?.click()}
-                  className="ml-1 size-8 min-h-8 p-0 text-muted-foreground hover:text-foreground focus-visible:outline-ring cursor-pointer"
+                  className="size-10 min-h-10 shrink-0 rounded-full bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground p-0 flex items-center justify-center cursor-pointer"
                 >
-                  <Paperclip size={17} aria-hidden="true" />
+                  <Plus size={20} aria-hidden="true" />
                 </Button>
                 <input
                   ref={fileInputRef}
@@ -1225,27 +1346,29 @@ function MessagingInboxInner({
                   onChange={handleFileInputChange}
                   className="sr-only"
                 />
-                <label htmlFor="message-composer" className="sr-only">
-                  Message
-                </label>
-                <textarea
-                  ref={textareaRef}
-                  id="message-composer"
-                  value={draft}
-                  onChange={(e) => setDraft(e.target.value)}
-                  onPaste={handlePaste}
-                  disabled={!thread.canSend}
-                  maxLength={MESSAGE_MAX}
-                  rows={1}
-                  placeholder={thread.canSend ? "Write a message…" : "Messaging is not available"}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
-                      e.preventDefault();
-                      e.currentTarget.form?.requestSubmit();
-                    }
-                  }}
-                  className="min-h-11 max-h-36 w-full resize-none border-0 bg-transparent py-2.5 pl-2 pr-12 text-sm text-foreground placeholder:text-muted-foreground focus:outline-hidden disabled:cursor-not-allowed disabled:opacity-50"
-                />
+                <div className="relative flex-1 flex items-center rounded-2xl border border-input bg-muted/30 shadow-2xs transition-all focus-within:border-action focus-within:bg-card focus-within:ring-2 focus-within:ring-action/20">
+                  <label htmlFor="message-composer" className="sr-only">
+                    Message
+                  </label>
+                  <textarea
+                    ref={textareaRef}
+                    id="message-composer"
+                    value={draft}
+                    onChange={(e) => setDraft(e.target.value)}
+                    onPaste={handlePaste}
+                    disabled={!thread.canSend}
+                    maxLength={MESSAGE_MAX}
+                    rows={1}
+                    placeholder={thread.canSend ? "Message…" : "Messaging is not available"}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
+                        e.preventDefault();
+                        e.currentTarget.form?.requestSubmit();
+                      }
+                    }}
+                    className="min-h-10 max-h-32 w-full resize-none border-0 bg-transparent py-2.5 px-3.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-hidden disabled:cursor-not-allowed disabled:opacity-50"
+                  />
+                </div>
                 <Button
                   type="submit"
                   size="sm"
@@ -1257,16 +1380,16 @@ function MessagingInboxInner({
                     stagedAttachments.some((a) => a.status === "uploading")
                   }
                   aria-label={sending ? "Sending message…" : "Send message"}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 size-8 min-h-8 rounded-full p-0 flex items-center justify-center bg-action text-action-foreground hover:bg-action-hover disabled:opacity-40"
+                  className="size-10 min-h-10 shrink-0 rounded-full p-0 flex items-center justify-center bg-action text-action-foreground hover:bg-action-hover disabled:opacity-40 cursor-pointer"
                 >
                   {sending ? (
-                    <Clock size={15} className="animate-spin" aria-hidden="true" />
+                    <Clock size={16} className="animate-spin" aria-hidden="true" />
                   ) : (
-                    <SendHorizontal size={15} aria-hidden="true" />
+                    <ArrowUp size={18} strokeWidth={2.5} aria-hidden="true" />
                   )}
                 </Button>
               </div>
-              <div className="flex items-center justify-between px-1 text-[0.7rem] text-muted-foreground">
+              <div className="hidden sm:flex items-center justify-between px-1 text-[0.7rem] text-muted-foreground">
                 <span>Enter to send · Shift+Enter for new line</span>
                 <span>
                   {draft.length} / {MESSAGE_MAX}
@@ -1375,16 +1498,29 @@ export function MessageItem({
   const [swipeOffset, setSwipeOffset] = useState(0);
   const touchStartRef = useRef<{ x: number; y: number } | null>(null);
   const swipingRef = useRef(false);
+  const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
     swipingRef.current = false;
+    longPressTimerRef.current = setTimeout(() => {
+      if (!swipingRef.current && onReply) {
+        if (typeof navigator !== "undefined" && navigator.vibrate) navigator.vibrate(25);
+        onReply(m);
+      }
+    }, 550);
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
     if (!touchStartRef.current) return;
     const dx = e.touches[0].clientX - touchStartRef.current.x;
     const dy = e.touches[0].clientY - touchStartRef.current.y;
+    if (Math.abs(dx) > 10 || Math.abs(dy) > 10) {
+      if (longPressTimerRef.current) {
+        clearTimeout(longPressTimerRef.current);
+        longPressTimerRef.current = null;
+      }
+    }
 
     if (!swipingRef.current) {
       if (Math.abs(dy) > Math.abs(dx)) return;
@@ -1401,6 +1537,10 @@ export function MessageItem({
   };
 
   const handleTouchEnd = () => {
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
     if (swipeOffset >= 60 && onReply) {
       onReply(m);
     }
@@ -1443,11 +1583,15 @@ export function MessageItem({
                 }}
                 className="max-w-full"
               >
-                <Bubble mine={mine}>
+                <Bubble
+                  mine={mine}
+                  hasAttachmentOnly={Boolean(m.attachments && m.attachments.length > 0 && !m.body && !m.replyTo)}
+                >
                   {m.replyTo && (
                     <BubbleQuote
                       author={m.replyTo.senderName}
                       body={m.replyTo.body}
+                      attachments={m.replyTo.attachments}
                       mine={mine}
                       isUnavailable={m.replyTo.isUnavailable}
                       onJump={() => onJumpToMessage?.(m.replyTo!.id)}
@@ -1492,7 +1636,10 @@ export function MessageItem({
             </div>
           </BubbleGroup>
           <MessageFooter className={mine ? "justify-end" : "justify-start"}>
-            <time dateTime={m.createdAt}>{formatMessageTime(m.createdAt)}</time>
+            <time dateTime={m.createdAt}>
+              {formatMessageTime(m.createdAt)}
+              {mine ? " · Sent" : ""}
+            </time>
           </MessageFooter>
         </MessageContent>
       </Message>

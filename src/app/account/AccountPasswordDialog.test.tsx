@@ -17,4 +17,12 @@ describe("account security card", () => {
     expect(html).toContain('placeholder="Enter phone number"');
     expect(html).not.toContain('type="password"');
   });
+  it("renders the Session logout with a divider and destructive styling", () => {
+    const html = renderToStaticMarkup(<AccountSettingsForm profile={{ fullName: "Test User", phoneNumber: null, email: "test@example.invalid", role: "renter", avatarUrl: null }} />);
+    const session = html.slice(html.indexOf('aria-labelledby="session-heading"'));
+    expect(session).toContain('role="separator"');
+    expect(session).toContain('href="/auth/logout"');
+    expect(session).toContain("text-destructive");
+    expect(session).toContain("lucide-log-out");
+  });
 });

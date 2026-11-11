@@ -20,6 +20,12 @@ describe("PropertyDetailsContent", () => {
       avatarUrl: "https://example.com/avatar.jpg",
       role: "landlord",
     },
+    listingOwner: {
+      id: "landlord-1",
+      fullName: "Carlos Mendoza",
+      avatarUrl: "https://example.com/avatar.jpg",
+      role: "landlord",
+    },
     unreadCount: 0,
     isArchived: false,
     isBlocked: false,
@@ -50,5 +56,48 @@ describe("PropertyDetailsContent", () => {
 
     expect(html).toContain("Manage in property map");
     expect(html).toContain('href="/landlord/map?selected=prop-123"');
+  });
+
+  describe("Listed by", () => {
+    const renterProfile = { id: "renter-1", fullName: "Rina Renter", avatarUrl: "https://example.com/renter.jpg", role: "renter" as const };
+    const landlordThreadForLandlordViewer: RentalThreadSummary = {
+      ...sampleThread,
+      // A landlord viewing their own listing: the chat counterpart is the renter.
+      counterpart: renterProfile,
+    };
+
+    it("shows the listing owner for a landlord viewer even when the chat counterpart is the renter", () => {
+      const html = renderToStaticMarkup(
+        <PropertyDetailsContent thread={landlordThreadForLandlordViewer} userRole="landlord" />
+      );
+      expect(html).toContain("Listed by");
+      expect(html).toContain("Carlos Mendoza");
+      expect(html).toContain("landlord");
+      expect(html).not.toContain("Rina Renter");
+      expect(html).not.toContain("renter.jpg");
+    });
+
+    it("renders identical Listed by content for renter and landlord viewers", () => {
+      const listedBy = (html: string) => html.slice(html.indexOf("Listed by"), html.indexOf("mt-auto"));
+      const asRenter = renderToStaticMarkup(<PropertyDetailsContent thread={sampleThread} userRole="renter" />);
+      const asLandlord = renderToStaticMarkup(<PropertyDetailsContent thread={landlordThreadForLandlordViewer} userRole="landlord" />);
+      expect(listedBy(asLandlord)).toBe(listedBy(asRenter));
+    });
+
+    it("never substitutes the counterpart when the owner profile is missing", () => {
+      const html = renderToStaticMarkup(
+        <PropertyDetailsContent thread={{ ...landlordThreadForLandlordViewer, listingOwner: null }} userRole="landlord" />
+      );
+      expect(html).toContain("Landlord unavailable");
+      expect(html).not.toContain("Rina Renter");
+    });
+
+    it("hides Listed by when the server did not send listingOwner instead of falling back to counterpart", () => {
+      const { listingOwner: _omit, ...legacy } = landlordThreadForLandlordViewer;
+      void _omit;
+      const html = renderToStaticMarkup(<PropertyDetailsContent thread={legacy} userRole="landlord" />);
+      expect(html).not.toContain("Listed by");
+      expect(html).not.toContain("Rina Renter");
+    });
   });
 });

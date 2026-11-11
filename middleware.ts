@@ -1,7 +1,11 @@
-import { type NextRequest } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 import { updateSession } from "@/lib/supabase/middleware";
 
 export async function middleware(request: NextRequest) {
+  // Route handlers verify their own session; cookie-less visitors have nothing to refresh.
+  if (request.nextUrl.pathname.startsWith("/api/") || !request.cookies.getAll().some(({ name }) => name.startsWith("sb-"))) {
+    return NextResponse.next({ request });
+  }
   return await updateSession(request);
 }
 

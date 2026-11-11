@@ -207,26 +207,28 @@ export function PropertyDetailsContent({
         </div>
       )}
 
-      {/* Landlord card */}
-      {thread.counterpart && (
+      {/* Listed by: always the listing owner, never the viewer or the chat counterpart. */}
+      {thread.listingOwner !== undefined && (
         <div className="rounded-xl border border-border bg-card p-3">
           <p className="text-[0.68rem] font-bold uppercase tracking-wider text-muted-foreground mb-2">
             Listed by
           </p>
           <div className="flex items-center gap-3">
             <Avatar className="size-10">
-              {thread.counterpart.avatarUrl ? (
-                <AvatarImage src={thread.counterpart.avatarUrl} alt={thread.counterpart.fullName ?? "Landlord"} />
+              {thread.listingOwner?.avatarUrl ? (
+                <AvatarImage src={thread.listingOwner.avatarUrl} alt={thread.listingOwner.fullName ?? "Landlord"} />
               ) : null}
               <AvatarFallback className="text-xs font-semibold">
-                {(thread.counterpart.fullName ?? "L").slice(0, 2).toUpperCase()}
+                {(thread.listingOwner?.fullName ?? "L").slice(0, 2).toUpperCase()}
               </AvatarFallback>
             </Avatar>
             <div className="min-w-0 flex-1">
-              <p className="font-semibold text-foreground truncate">{thread.counterpart.fullName ?? "Landlord"}</p>
-              <span className="inline-flex items-center rounded-full border border-border px-1.5 py-0 text-[0.65rem] capitalize text-muted-foreground">
-                {thread.counterpart.role}
-              </span>
+              <p className="font-semibold text-foreground truncate">{thread.listingOwner ? (thread.listingOwner.fullName ?? "Landlord") : "Landlord unavailable"}</p>
+              {thread.listingOwner && (
+                <span className="inline-flex items-center rounded-full border border-border px-1.5 py-0 text-[0.65rem] capitalize text-muted-foreground">
+                  {thread.listingOwner.role}
+                </span>
+              )}
             </div>
           </div>
         </div>
