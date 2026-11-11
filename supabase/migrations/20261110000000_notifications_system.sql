@@ -135,7 +135,7 @@ DECLARE
   v_admin_id uuid;
   v_body text;
 BEGIN
-  v_body := 'New report submitted under ' || NEW.category || '.';
+  v_body := 'New report submitted under ' || COALESCE(NEW.category, 'general') || '.';
   FOR v_admin_id IN
     SELECT id FROM public.profiles WHERE role = 'admin' AND NOT is_suspended
   LOOP
