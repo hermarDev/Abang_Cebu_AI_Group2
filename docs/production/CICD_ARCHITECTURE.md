@@ -3,7 +3,7 @@
 **Document Version:** 1.0.0  
 **CI Engine:** GitHub Actions (`ubuntu-latest`)  
 **Container Registry:** GitHub Container Registry (GHCR — `ghcr.io/hermardev/abangcebuai`)  
-**Deployment Target:** AWS EC2 (`100.113.204.110` via Tailscale SSH)  
+**Deployment Target:** AWS EC2 (`${DEPLOY_HOST}` via Tailscale SSH)  
 **Security Gate:** GitHub Environment `production` (Required Reviewer Approval)
 
 ---
@@ -39,14 +39,14 @@ The continuous delivery pipeline guarantees that **no untrusted or unreviewed co
 |                 |                                                                       |
 |                 v                                                                       |
 |        +-----------------+                                                              |
-|        |     Job 3:      |  --> [Tailscale Action -> SSH 100.113.204.110]               |
+|        |     Job 3:      |  --> [Tailscale Action -> SSH ${DEPLOY_HOST}]               |
 |        |  CD Production  |  --> [Pull Image -> Compose Update -> Health Check]          |
 |        +-----------------+                                                              |
 +-----------------------------------------------------------------------------------------+
                                           |
                                           v (Private WireGuard mesh)
                    +-----------------------------------------------+
-                   |             AWS EC2 (abangcebu-main)          |
+                   |             AWS EC2 (${DEPLOY_HOST})          |
                    |                                               |
                    |  +--------------------+   +----------------+  |
                    |  |   Caddy (Port 443) |-->| Docker (3000)  |  |
@@ -87,10 +87,10 @@ The continuous delivery pipeline guarantees that **no untrusted or unreviewed co
 - **Permissions:** `contents: read`, `packages: read`.
 - **Security Boundaries:**
   - Untrusted PRs cannot trigger this job.
-  - SSH to EC2 is restricted to the private Tailscale interface (`100.113.204.110`). No public SSH port is exposed.
+  - SSH to EC2 is restricted to the private Tailscale interface (`${DEPLOY_HOST}`). No public SSH port is exposed.
 - **Deployment Protocol:**
   1. Authenticate runner to Tailscale mesh via `tailscale/github-action@v2`.
-  2. SSH into `ubuntu@100.113.204.110` using private key.
+  2. SSH into `ubuntu@${DEPLOY_HOST}` using private key.
   3. Execute automated rollout script on EC2:
      ```bash
      cd /opt/abangcebu
@@ -128,6 +128,6 @@ Alternatively, navigate to GitHub Actions ➔ Select the workflow run correspond
 
 ## 4. Maintenance & Coexistence with OmniRoute
 
-- Host `abangcebu-main` (`100.113.204.110`) does not host OmniRoute/Redis (those run on `omniroute-ec2` `100.92.152.17`).
+- Host `${DEPLOY_HOST}` does not host OmniRoute/Redis (those run on a separate isolated instance `${OMNIROUTE_HOST}`).
 - All AbangCebu Docker resources use project name `abangcebu` and network `abangcebu_internal`.
-- Caddy is managed as a host systemd service and isolates reverse proxy routing.
+- Caddy is managed as a host systemd service and isolates reverse proxy routing. See [Caddy Reverse Proxy Guide](CADDY_PROXY_GUIDE.md) and [Host Security Runbook](HOST_SECURITY_RUNBOOK.md).
