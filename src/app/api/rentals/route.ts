@@ -58,7 +58,17 @@ export async function GET(request?: Request) {
     });
     const signed = await signPhotos(visibleSubmittedRows);
     const submittedRentals = visibleSubmittedRows.flatMap((row) => { try { return [mapSubmittedRental(row, signed)]; } catch { return []; } });
-    const rentals = [...submittedRentals, ...data.map(mapListing)];
+    const publishedRentals = data.flatMap((row) => {
+      try {
+        return [mapListing(row)];
+      } catch (err) {
+        if (err instanceof Error && err.message === "Invalid listing") {
+          return [];
+        }
+        throw err;
+      }
+    });
+    const rentals = [...submittedRentals, ...publishedRentals];
     return Response.json({ rentals: rentals.filter((r, i) => rentals.findIndex((o) => o.id === r.id) === i) }, { headers });
   } catch {
     return Response.json({ error: "Rental listings are temporarily unavailable. Please try again later." }, { status: 503, headers });

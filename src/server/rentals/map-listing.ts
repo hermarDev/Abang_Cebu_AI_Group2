@@ -25,6 +25,12 @@ function choice<const T extends string>(value: unknown, choices: readonly T[]): 
   return value as T;
 }
 
+function parseDescription(value: unknown): string {
+  if (value == null) return "No description provided.";
+  if (typeof value !== "string") throw new Error("Invalid listing");
+  return value.trim() || "No description provided.";
+}
+
 export function mapListing(value: unknown): RentalResult {
   if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("Invalid listing");
   const row = value as Record<string, unknown>;
@@ -41,7 +47,7 @@ export function mapListing(value: unknown): RentalResult {
   if (maxOccupants !== null && !Number.isInteger(maxOccupants)) throw new Error("Invalid listing");
 
   return {
-    id: text(row.id), title: text(row.title), address: row.address == null ? text(row.city) : text(row.address), imageUrls: Array.isArray(row.image_urls) ? row.image_urls.filter((url): url is string => typeof url === "string" && /^https?:\/\//i.test(url)) : [], description: row.description == null ? "" : text(row.description),
+    id: text(row.id), title: text(row.title), address: row.address == null ? text(row.city) : text(row.address), imageUrls: Array.isArray(row.image_urls) ? row.image_urls.filter((url): url is string => typeof url === "string" && /^https?:\/\//i.test(url)) : [], description: parseDescription(row.description),
     locality: text(row.city), coordinates: [number(row.longitude, -180, 180), number(row.latitude, -90, 90)],
     price: number(row.price, 0, Number.MAX_SAFE_INTEGER), type: propertyType, propertyType,
     basis: propertyType === "bedspace" ? "bed" : "room", available: true, distanceMeters: null,
@@ -105,7 +111,7 @@ export function mapSubmittedRental(value: unknown, signedUrlsByPath: ReadonlyMap
 
   return {
     id: text(row.id), title: text(row.title), address: row.address == null ? text(row.city) : text(row.address), imageUrls,
-    description: row.description == null ? "" : text(row.description), locality: text(row.city),
+    description: parseDescription(row.description), locality: text(row.city),
     coordinates: [number(row.longitude, -180, 180), number(row.latitude, -90, 90)], price: number(row.price, 0, Number.MAX_SAFE_INTEGER),
     type: propertyType, propertyType, basis: rentalType === "bedspace" ? "bed" : "room", available: true, distanceMeters: null,
     area: row.floor_area_sqm == null ? 0 : number(row.floor_area_sqm, 0, Number.MAX_SAFE_INTEGER), tone: "sage",

@@ -45,6 +45,22 @@ describe("GET /api/rentals", () => {
     expect(JSON.stringify(body)).not.toContain("private-owner");
   });
 
+  it("filters out invalid listings safely instead of crashing the feed", async () => {
+    query.limit.mockResolvedValue({
+      data: [
+        { id: "invalid-1", title: "", price: 1000, status: "published", is_available: true, currency: "PHP", rental_period: "monthly" },
+        { id: "valid-1", title: "Valid Room", description: "   ", city: "Cebu City", longitude: 123.9, latitude: 10.3, price: 3000, currency: "PHP", rental_period: "monthly", property_type: "bedspace", status: "published", is_available: true },
+      ],
+      error: null,
+    });
+    const response = await GET();
+    expect(response.status).toBe(200);
+    const body = await response.json();
+    expect(body.rentals).toHaveLength(1);
+    expect(body.rentals[0].id).toBe("valid-1");
+    expect(body.rentals[0].description).toBe("No description provided.");
+  });
+
   it.each([
     { data: null, error: { message: "secret token internal SQL owner@email.test" } },
     { data: null, error: null },
