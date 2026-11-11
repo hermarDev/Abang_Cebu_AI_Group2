@@ -1,6 +1,6 @@
 services:
   abangcebu-app:
-    image: ghcr.io/hermardev/abangcebuai:latest
+    image: ghcr.io/hermardev/abang_cebu_ai_group2:${IMAGE_TAG:-latest}
     container_name: abangcebu-app
     restart: unless-stopped
     env_file:
