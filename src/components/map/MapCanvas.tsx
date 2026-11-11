@@ -89,9 +89,10 @@ type MapCanvasProps = {
   enablePinDrop?: boolean;
   pinCoordinates?: [number, number] | null;
   onPinChange?: (coordinates: [number, number]) => void;
+  locationPicker?: boolean;
 };
 
-export function MapCanvas({ selectedPlace, selectedRentalId, onSelectRental, rentals = [], dataStatus = "error", filters: externalFilters, onFiltersChange, locationQuery: externalLocationQuery, onLocationQueryChange, searchRadiusKm: externalSearchRadiusKm, onSearchRadiusKmChange, onSearchCenterChange, resolvedTheme = "light", assistantControlsTarget, savedRentalIds, canSaveRentals = false, onToggleFavorite, onExpandRental, canMessageLandlord = false, onMessageLandlord, decorative = false, showAttribution = true, enablePinDrop = false, pinCoordinates, onPinChange }: MapCanvasProps) {
+export function MapCanvas({ selectedPlace, selectedRentalId, onSelectRental, rentals = [], dataStatus = "error", filters: externalFilters, onFiltersChange, locationQuery: externalLocationQuery, onLocationQueryChange, searchRadiusKm: externalSearchRadiusKm, onSearchRadiusKmChange, onSearchCenterChange, resolvedTheme = "light", assistantControlsTarget, savedRentalIds, canSaveRentals = false, onToggleFavorite, onExpandRental, canMessageLandlord = false, onMessageLandlord, decorative = false, showAttribution = true, enablePinDrop = false, pinCoordinates, onPinChange, locationPicker = false }: MapCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [selectedRental, setSelectedRental] = useState<string | null>(null);
   const activeSelectedRental = selectedRentalId !== undefined ? selectedRentalId : selectedRental;
@@ -119,7 +120,8 @@ export function MapCanvas({ selectedPlace, selectedRentalId, onSelectRental, ren
   const searchRadiusKm = externalSearchRadiusKm ?? internalSearchRadiusKm;
   const setSearchRadiusKm = onSearchRadiusKmChange ?? setInternalSearchRadiusKm;
   const searchRadiusMeters = searchRadiusKm * 1000;
-  const externallyControlled = externalFilters !== undefined || enablePinDrop;
+  const isLocationPicker = Boolean(locationPicker || enablePinDrop || pinCoordinates !== undefined || onPinChange !== undefined);
+  const externallyControlled = externalFilters !== undefined || isLocationPicker;
   const visibleRentals = useMemo(() => searchPreviewRentals(rentals, { ...filters, radiusKm: searchRadiusKm }, externallyControlled ? "" : locationQuery, searchCenter) as RentalResult[], [rentals, filters, locationQuery, searchCenter, searchRadiusKm, externallyControlled]);
   const markerGroups = useMemo(() => groupRentalsByCoordinates(visibleRentals), [visibleRentals]);
   const onSelectRentalRef = useRef(onSelectRental ?? setSelectedRental);
@@ -324,22 +326,34 @@ export function MapCanvas({ selectedPlace, selectedRentalId, onSelectRental, ren
     if (!map || !enablePinDrop) return;
     const handleClick = (event: { lngLat: { lng: number; lat: number } }) => onPinChangeRef.current?.([event.lngLat.lng, event.lngLat.lat]);
     map.on("click", handleClick);
-    return () => { map.off("click", handleClick); pinMarkerRef.current?.remove(); pinMarkerRef.current = null; };
+    return () => { map.off("click", handleClick); };
   }, [enablePinDrop, mapStatus]);
 
   useEffect(() => {
     const map = mapRef.current;
-    if (!map || !enablePinDrop) return;
+    if (!map || (!isLocationPicker && !enablePinDrop)) return;
     if (!pinCoordinates) { pinMarkerRef.current?.remove(); pinMarkerRef.current = null; return; }
     if (!pinMarkerRef.current) {
-      const marker = new Marker({ draggable: true, color: "#2563eb" }).setLngLat(pinCoordinates).addTo(map);
-      marker.on("dragend", () => {
-        const position = marker.getLngLat();
-        onPinChangeRef.current?.([position.lng, position.lat]);
-      });
+      const marker = new Marker({ draggable: Boolean(enablePinDrop), color: "#2563eb" }).setLngLat(pinCoordinates).addTo(map);
+      if (enablePinDrop) {
+        marker.on("dragend", () => {
+          const position = marker.getLngLat();
+          onPinChangeRef.current?.([position.lng, position.lat]);
+        });
+      }
       pinMarkerRef.current = marker;
-    } else pinMarkerRef.current.setLngLat(pinCoordinates);
-  }, [enablePinDrop, pinCoordinates, mapStatus]);
+    } else {
+      pinMarkerRef.current.setLngLat(pinCoordinates);
+      pinMarkerRef.current.setDraggable(Boolean(enablePinDrop));
+    }
+  }, [isLocationPicker, enablePinDrop, pinCoordinates, mapStatus]);
+
+  useEffect(() => {
+    return () => {
+      pinMarkerRef.current?.remove();
+      pinMarkerRef.current = null;
+    };
+  }, []);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -448,7 +462,7 @@ export function MapCanvas({ selectedPlace, selectedRentalId, onSelectRental, ren
     rentalMarkersRef.current = [];
     rentalPopupRef.current?.remove();
     rentalPopupRef.current = null;
-    if (decorative || enablePinDrop) return;
+    if (decorative || isLocationPicker) return;
     for (const group of markerGroups) {
       const element = document.createElement("button");
       const titles = group.rentals.map((rental) => rental.title);
@@ -496,7 +510,7 @@ export function MapCanvas({ selectedPlace, selectedRentalId, onSelectRental, ren
     const onStyleLoad = () => updateArea();
     map.on("style.load", onStyleLoad);
     return () => { map.off("style.load", onStyleLoad); };
-  }, [decorative, enablePinDrop, markerGroups, visibleRentals, searchCenter, searchRadiusMeters, mapStatus, openRentalPopup]);
+  }, [decorative, isLocationPicker, markerGroups, visibleRentals, searchCenter, searchRadiusMeters, mapStatus, openRentalPopup]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -521,7 +535,7 @@ export function MapCanvas({ selectedPlace, selectedRentalId, onSelectRental, ren
 
   useEffect(() => {
     const map = mapRef.current;
-    if (!map || mapStatus !== "ready" || decorative || enablePinDrop) return;
+    if (!map || mapStatus !== "ready" || decorative || isLocationPicker) return;
     const updatePreview = () => {
       if (!map.isStyleLoaded()) return;
       const center = map.getCenter();
@@ -541,7 +555,7 @@ export function MapCanvas({ selectedPlace, selectedRentalId, onSelectRental, ren
       map.off("move", updatePreview);
       map.off("style.load", updatePreview);
     };
-  }, [mapStatus, isDragging, areaDirty, searchRadiusMeters, decorative, enablePinDrop]);
+  }, [mapStatus, isDragging, areaDirty, searchRadiusMeters, decorative, isLocationPicker]);
 
   const mapControls = (
     <div className={[styles.mapControls, externallyControlled && styles.controlledControls, assistantControlsTarget && styles.assistantControls].filter(Boolean).join(" ")} role="group" aria-label="Map controls">
@@ -566,7 +580,7 @@ export function MapCanvas({ selectedPlace, selectedRentalId, onSelectRental, ren
   );
 
   return (
-    <section className={styles.mapRoot} style={enablePinDrop ? { height: "100%", minHeight: 0 } : undefined} aria-label={decorative ? "Cebu map background" : enablePinDrop ? "Property location map" : "Rental map"}>
+    <section className={styles.mapRoot} style={isLocationPicker ? { height: "100%", minHeight: 0 } : undefined} aria-label={decorative ? "Cebu map background" : isLocationPicker ? "Property location map" : "Rental map"}>
       <div
         ref={containerRef}
         className={styles.mapCanvas}
@@ -582,13 +596,13 @@ export function MapCanvas({ selectedPlace, selectedRentalId, onSelectRental, ren
         </div>
       )}
 
-      {!decorative && !enablePinDrop && isDragging && mapStatus === "ready" && (
+      {!decorative && !isLocationPicker && isDragging && mapStatus === "ready" && (
         <>
           <span data-map-drag-target aria-hidden="true" className={styles.dragTarget} />
           <div role="status" className={`${styles.searchAreaButton} ${styles.dragFeedback}`}>Move map to choose an area</div>
         </>
       )}
-      {!decorative && !enablePinDrop && areaDirty && !isDragging && mapStatus === "ready" && (
+      {!decorative && !isLocationPicker && areaDirty && !isDragging && mapStatus === "ready" && (
         <button type="button" aria-label="Search this area" className={styles.searchAreaButton} onClick={() => {
           const map = mapRef.current;
           map?.stop();
@@ -665,7 +679,7 @@ export function MapCanvas({ selectedPlace, selectedRentalId, onSelectRental, ren
         {statusMessage}
       </div>}
 
-      {!decorative && !enablePinDrop && popupPortalTarget && activePopupRental && createPortal((() => {
+      {!decorative && !isLocationPicker && popupPortalTarget && activePopupRental && createPortal((() => {
         const photos = activePopupRental.imageUrls ?? [];
         const photoCount = photos.length;
         const safePhotoIdx = photoCount > 0 ? Math.min(Math.max(popupPhotoIndex, 0), photoCount - 1) : 0;
@@ -788,7 +802,7 @@ export function MapCanvas({ selectedPlace, selectedRentalId, onSelectRental, ren
           </article>
         );
       })(), popupPortalTarget)}
-      {!decorative && !enablePinDrop && (assistantControlsTarget ? createPortal(mapControls, assistantControlsTarget) : mapControls)}
+      {!decorative && !isLocationPicker && (assistantControlsTarget ? createPortal(mapControls, assistantControlsTarget) : mapControls)}
     </section>
   );
 }
