@@ -109,3 +109,13 @@ it("validates budget ordering and supported numeric bounds", () => {
   expect(getBudgetError({ ...DEFAULT_RENTAL_FILTERS, maxPrice: 50_001 })).toBe("Enter a monthly budget between ₱0 and ₱50,000.");
   expect(getBudgetError({ ...DEFAULT_RENTAL_FILTERS, minPrice: 4_000, maxPrice: 5_000 })).toBe("");
 });
+
+it("suppresses visible scrollbars while preserving scroll container behavior in filters modal", async () => {
+  const { readFileSync } = await import("node:fs");
+  const css = readFileSync("src/features/rentals/RentalFilterDialog.module.css", "utf8");
+  expect(css).toContain("scrollbar-width: none;");
+  expect(css).toContain("-ms-overflow-style: none;");
+  expect(css).toContain("::-webkit-scrollbar");
+  expect(css).toContain("display: none;");
+  expect(css).toContain("overflow-y: auto;");
+});
