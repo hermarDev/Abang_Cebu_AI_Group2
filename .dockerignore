@@ -1,0 +1,12 @@
+.git
+.github
+.next
+node_modules
+.env*
+!*.example
+docs
+tests
+coverage
+*.md
+.superpowers
+.claude
