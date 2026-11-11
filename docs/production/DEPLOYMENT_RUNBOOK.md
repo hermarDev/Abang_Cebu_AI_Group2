@@ -72,7 +72,7 @@ version: "3.8"
 
 services:
   abangcebu-app:
-    image: ghcr.io/hermardev/abangcebuai:latest
+    image: ghcr.io/hermardev/abang_cebu_ai_group2:${IMAGE_TAG:-latest}
     container_name: abangcebu-app
     restart: unless-stopped
     env_file:
@@ -184,14 +184,19 @@ docker stats --no-stream
 ```
 
 ### 5.3 Rollback to Previous Release
-If an unexpected bug occurs:
+If an unexpected runtime regression occurs, automated rollback in `.github/workflows/deploy.yml` restores the previously running container automatically if health checks fail.
+
+For manual emergency rollback:
 ```bash
 cd /opt/abangcebu
 
-# Update docker-compose.yml to previous image tag:
-# image: ghcr.io/hermardev/abangcebuai:sha-<previous_commit_sha>
+# Option 1: Use the rollback helper script
+./rollback.sh sha-<previous_commit_sha>
 
-docker compose up -d abangcebu-app
+# Option 2: Direct Compose rollback
+export IMAGE_TAG="sha-<previous_commit_sha>"
+docker compose pull abangcebu-app
+docker compose up -d --remove-orphans abangcebu-app
 curl -f http://127.0.0.1:3000/api/health
 ```
 
