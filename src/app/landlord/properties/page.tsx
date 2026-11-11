@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
+import { BrandLogo } from "@/components/brand";
 import { isAuthRetryableFetchError } from "@supabase/supabase-js";
 import { notFound, redirect } from "next/navigation";
 import { MapPinned } from "lucide-react";
@@ -45,8 +45,7 @@ export default async function LandlordPropertiesPage() {
       propertiesCount={properties.length}
       brand={
         <Link href="/landlord/dashboard" aria-label="AbangCebu landlord workspace" className="flex min-w-0 items-center gap-3">
-          <Image src="/icons/main_Logo.png" alt="AbangCebu" width={299} height={100} unoptimized className="h-auto w-24 dark:hidden sm:w-32" loading="eager" />
-          <Image src="/icons/main_Logo_Light.png" alt="" width={299} height={100} unoptimized className="hidden h-auto w-24 dark:block sm:w-32" loading="eager" />
+          <BrandLogo className="h-auto w-24 sm:w-32" />
           <span className="hidden border-l border-border pl-3 text-sm font-semibold text-muted-foreground md:block">Landlord workspace</span>
         </Link>
       }

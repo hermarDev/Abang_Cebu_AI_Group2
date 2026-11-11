@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { BrandLogo } from "@/components/brand";
 import { formatPrice } from "@/features/rentals/search";
 import { ArrowLeft, Bookmark, Building2, MapPin, MessageSquare, Trash2 } from "lucide-react";
 import { notify } from "@/components/ui/AppToaster";
@@ -148,8 +149,7 @@ function SavedRentalsSession({ userId }: { userId: string }) {
           <Link href="/" className="inline-flex min-h-11 items-center gap-2 rounded-lg px-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
             <ArrowLeft size={18} aria-hidden="true" /> Back to map
           </Link>
-          <Image src="/icons/main_Logo.png" alt="AbangCebu" width={299} height={100} className="h-auto w-28 dark:hidden sm:w-32" loading="eager" />
-          <Image src="/icons/main_Logo_Light.png" alt="" width={299} height={100} className="hidden h-auto w-28 dark:block sm:w-32" loading="eager" />
+          <BrandLogo className="h-auto w-28 sm:w-32" />
         </header>
 
         <section className="relative z-10 mx-auto mt-5 w-full max-w-5xl">

@@ -13,6 +13,15 @@ const manrope = localFont({ src: "../../public/fonts/manrope-latin-wght-normal.w
 export const metadata: Metadata = {
   title: "AbangCebu — Find a Place in Cebu",
   description: "Geospatial rental and property discovery platform in Cebu",
+  icons: {
+    icon: [
+      { url: "/icon.svg", type: "image/svg+xml" },
+      { url: "/favicon.ico", sizes: "any" },
+    ],
+    apple: [
+      { url: "/apple-icon.png", sizes: "180x180", type: "image/png" },
+    ],
+  },
 };
 
 export default function RootLayout({
