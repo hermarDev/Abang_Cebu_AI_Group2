@@ -1,9 +1,14 @@
-import { readJson, reply, requireMessagingUser, rpcFailure, uuidPattern } from "@/server/messaging-api";
+import { createRateLimiter } from "@/server/rate-limit";
+import { limited, readJson, reply, requireMessagingUser, rpcFailure, uuidPattern } from "@/server/messaging-api";
+
+export const blocksLimiter = createRateLimiter({ windowMs: 60_000, maxPerIp: 20, maxPerActor: 20 });
 
 async function setBlock(request: Request) {
   try {
     const session = await requireMessagingUser(request);
     if (session.response) return session.response;
+    const limit = limited(blocksLimiter, request, session.user.id);
+    if (limit) return limit;
     const blocking = request.method === "POST";
     const body = await readJson(request);
     const targetUserId = typeof body.targetUserId === "string" || blocking ? body.targetUserId : new URL(request.url).searchParams.get("targetUserId");

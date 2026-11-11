@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { validateRegistration } from "@/lib/auth/validation";
+import { getClientIp } from "@/server/rate-limit";
 import type { RegisterSuccessResponse } from "@/types/auth";
 
 const registrationAccepted: RegisterSuccessResponse = {
@@ -31,11 +32,7 @@ function trackAttempt(store: Map<string, number[]>, key: string, limit: number, 
 }
 
 function hasExceededRateLimit(request: Request, email: string) {
-  const clientIp =
-    request.headers.get("cf-connecting-ip") ||
-    request.headers.get("x-real-ip") ||
-    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-    (process.env.NODE_ENV !== "production" ? "development" : undefined);
+  const clientIp = getClientIp(request);
   if (!clientIp) return true;
   const now = Date.now();
   const ipLimited = trackAttempt(attemptsByIp, clientIp, 5, now);

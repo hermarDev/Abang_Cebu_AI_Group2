@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { PASSWORD_RESET_CALLBACK_PATH } from "@/lib/auth/password-reset";
 import { validateResetRequest } from "@/lib/auth/password-reset-validation";
+import { getClientIp } from "@/server/rate-limit";
 
 const genericSuccess = {
   success: true,
@@ -35,11 +36,7 @@ function trackAttempt(store: Map<string, number[]>, key: string, limit: number, 
 
 function hasExceededRateLimit(request: Request, email: string, now: number) {
   // Production IP identity must come from a trusted proxy (Cloudflare or Caddy reverse proxy), never a spoofable client header.
-  const clientIp =
-    request.headers.get("cf-connecting-ip") ||
-    request.headers.get("x-real-ip") ||
-    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-    (process.env.NODE_ENV !== "production" ? "development" : undefined);
+  const clientIp = getClientIp(request);
   if (!clientIp) return true;
 
   const ipLimited = trackAttempt(attemptsByIp, clientIp, IP_ATTEMPT_LIMIT, now);

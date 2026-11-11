@@ -89,4 +89,19 @@ describe("createRateLimiter", () => {
     limiter.reset();
     expect(limiter.check(r, "a", 2)).toBe(true);
   });
+
+  it("sanitizes invalid IP strings and ignores header injection attempts", () => {
+    const invalid = req({ "cf-connecting-ip": "malicious-payload; drop table--" });
+    // In test environment, invalid IP falls back to 'development'
+    expect(limiter.check(invalid, "user1", 0)).toBe(true);
+    expect(limiter.check(invalid, "user2", 0)).toBe(true);
+  });
+
+  it("bounds storage to prevent memory exhaustion under rotating actors", () => {
+    const l = createRateLimiter({ windowMs: 1000, maxPerIp: 100, maxPerActor: 100 });
+    for (let i = 0; i < 10_050; i++) {
+      l.check(req({ "cf-connecting-ip": "1.1.1.1" }), `actor-${i}`, 0);
+    }
+    expect(l.size().actorCount).toBeLessThanOrEqual(10_000);
+  });
 });

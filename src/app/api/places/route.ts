@@ -1,10 +1,25 @@
 import { searchPlaces } from "@/server/places/search-places";
+import { createRateLimiter } from "@/server/rate-limit";
+
+export const placesSearchLimiter = createRateLimiter({
+  windowMs: 60 * 1000,
+  maxPerIp: 30,
+  maxPerActor: 30,
+});
 
 export async function GET(request: Request) {
-  const query = new URL(request.url).searchParams.get("q")?.trim() ?? "";
   const headers = { "Cache-Control": "no-store" };
+  const query = new URL(request.url).searchParams.get("q")?.trim() ?? "";
   if (query.length < 3 || query.length > 120) {
     return Response.json({ error: "Enter 3–120 characters to search Cebu." }, { status: 400, headers });
+  }
+
+  const { allowed, retryAfterSeconds } = placesSearchLimiter.checkDetailed(request, "search");
+  if (!allowed) {
+    return Response.json(
+      { error: "Too many place search requests. Please wait a moment before searching again." },
+      { status: 429, headers: { ...headers, "Retry-After": String(retryAfterSeconds) } },
+    );
   }
 
   try {
