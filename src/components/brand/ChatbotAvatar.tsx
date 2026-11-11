@@ -7,7 +7,7 @@ export interface ChatbotAvatarProps extends React.SVGProps<SVGSVGElement> {
 
 export function ChatbotAvatar({
   size = 48,
-  className = "h-12 w-12",
+  className = "",
   style,
   ...props
 }: ChatbotAvatarProps) {

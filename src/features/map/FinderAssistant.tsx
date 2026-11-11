@@ -561,7 +561,7 @@ export function FinderAssistant({ open, onOpenChange: setOpen, onSearch, onFilte
     {open && <div ref={onControlsTargetChange} className={styles.assistantControlsSlot} />}
     {open && <section className={styles.chatPanel} aria-label="AbangCebu assistant">
       <header className={styles.chatHeader}>
-        <ChatbotAvatar size={36} className="h-9 w-9" />
+        <ChatbotAvatar size={36} className="h-9 w-9" aria-hidden="true" />
         <div className={styles.chatIdentity}><b>AbangCebu assistant</b><span>{authenticated ? "Your Cebu rental chats" : "Cebu rental help"}</span></div>
         <div className={styles.chatHeaderActions}>
           <button type="button" onClick={() => { setHistoryOpen((value) => !value); setPendingDeleteId(null); }} aria-label={historyOpen ? "Back to current chat" : "Open chat history"} aria-pressed={historyOpen}><History size={17} /></button>
@@ -593,7 +593,7 @@ export function FinderAssistant({ open, onOpenChange: setOpen, onSearch, onFilte
                 <ProfileAvatar url={currentUserPhoto} name={currentUserName} className={styles.chatUserAvatar} />
               </div>
               : <div key={`${message.role}-${index}`} className={styles.chatAssistantMessage}>
-                <ChatbotAvatar size={24} className="h-6 w-6" />
+                <ChatbotAvatar size={24} className="h-6 w-6" aria-hidden="true" />
                 <div className={styles.chatAssistantReply}>{renderReply(message.content)}</div>
               </div>;
           })}

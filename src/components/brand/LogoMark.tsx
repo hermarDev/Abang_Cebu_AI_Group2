@@ -7,7 +7,7 @@ export interface LogoMarkProps extends React.SVGProps<SVGSVGElement> {
 
 export function LogoMark({
   size = 32,
-  className = "h-auto w-8",
+  className = "",
   style,
   ...props
 }: LogoMarkProps) {

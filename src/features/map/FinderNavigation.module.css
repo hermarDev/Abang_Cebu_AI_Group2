@@ -158,7 +158,7 @@
   outline-offset: 2px;
 }
 
-.dialog :where(.mainNavigation, .brandRow, .mapButton, .accountAction) svg {
+.dialog :where(.mainNavigation, .mapButton, .accountAction) svg {
   width: 20px;
   height: 20px;
   flex-shrink: 0;

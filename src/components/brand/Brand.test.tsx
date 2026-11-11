@@ -44,4 +44,9 @@ describe("Brand Components Suite", () => {
     expect(html).toContain('height="56"');
     expect(html).toContain('class="h-14 w-14"');
   });
+
+  it("renders ChatbotAvatar with aria-hidden when passed", () => {
+    const html = renderToStaticMarkup(<ChatbotAvatar size={24} aria-hidden="true" />);
+    expect(html).toContain('aria-hidden="true"');
+  });
 });
