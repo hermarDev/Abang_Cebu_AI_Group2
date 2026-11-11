@@ -10,6 +10,7 @@ import { AppearanceControls } from "@/features/map/AppearanceControls";
 import { useFinderTheme } from "@/features/map/useFinderTheme";
 import { useUnreadMessageCount } from "@/features/messages/useUnreadMessageCount";
 import { useNotificationCenter } from "@/features/notifications/useNotificationCenter";
+import { NotificationsModal } from "@/features/notifications/NotificationsModal";
 
 const links = [
   { href: "/landlord/dashboard", label: "Dashboard", Icon: LayoutDashboard },
@@ -25,6 +26,7 @@ export function LandlordMobileNav({ userId = null, unreadCount: providedUnread, 
   const unreadNotifications = providedNotifications ?? polledNotifications;
   const unreadCount = providedUnread ?? polledUnread;
   const [open, setOpen] = useState(false);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
   const { preference, resolvedTheme, setPreference } = useFinderTheme();
   const itemClass = "flex min-h-14 min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-lg px-0.5 text-[.65rem] font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring";
 
@@ -41,8 +43,7 @@ export function LandlordMobileNav({ userId = null, unreadCount: providedUnread, 
         type="button"
         onClick={() => {
           setOpen(false);
-          const bell = document.querySelector<HTMLButtonElement>('header button[aria-label^="Notifications"]');
-          bell?.click();
+          setNotificationsOpen(true);
         }}
         className="mt-4 flex min-h-11 w-full items-center gap-3 rounded-lg px-3 text-sm font-medium hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
       >
@@ -60,5 +61,10 @@ export function LandlordMobileNav({ userId = null, unreadCount: providedUnread, 
       <div className="my-2 h-px bg-border/80" role="separator" />
       <LogoutLink onClick={() => setOpen(false)} iconSize={19} className="flex w-full gap-3" />
     </Modal>
+    <NotificationsModal
+      userId={userId}
+      open={notificationsOpen}
+      onClose={() => setNotificationsOpen(false)}
+    />
   </>;
 }

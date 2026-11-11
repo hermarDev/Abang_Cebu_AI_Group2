@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -12,6 +12,7 @@ import {
   MapPinned,
   Pencil,
 } from "lucide-react";
+import { cn } from "@/components/ui/cn";
 import type { LandlordManagedProperty } from "@/server/landlord-properties";
 import { PropertyDetailsSheet } from "@/features/rentals/PropertyDetailsSheet";
 import type { RentalResult } from "@/contracts/preview";
@@ -52,8 +53,17 @@ export function LandlordPropertiesClient({ properties }: { properties: LandlordM
   const searchParams = useSearchParams();
   const rawStatus = (searchParams?.get("status") || "all").toLowerCase() as TabKey;
   const initialTab: TabKey = TABS.some((t) => t.key === rawStatus) ? rawStatus : "all";
+  const highlightId = searchParams?.get("highlight") || null;
   const [activeTab, setActiveTab] = useState<TabKey>(initialTab);
   const [selectedProperty, setSelectedProperty] = useState<LandlordManagedProperty | null>(null);
+
+  useEffect(() => {
+    if (!highlightId) return;
+    const el = document.getElementById(`property-${highlightId}`);
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, [highlightId]);
 
   // Counts per tab
   const counts = useMemo(() => {
@@ -175,7 +185,11 @@ export function LandlordPropertiesClient({ properties }: { properties: LandlordM
           {filtered.map((property) => (
             <article
               key={property.id}
-              className="group relative flex flex-col gap-4 rounded-2xl border border-border bg-card p-4 transition hover:border-action/40 hover:shadow-sm sm:flex-row sm:items-center sm:justify-between"
+              id={`property-${property.id}`}
+              className={cn(
+                "group relative flex flex-col gap-4 rounded-2xl border bg-card p-4 transition hover:border-action/40 hover:shadow-sm sm:flex-row sm:items-center sm:justify-between",
+                highlightId === property.id ? "border-action ring-2 ring-action/20" : "border-border"
+              )}
             >
               {/* Thumbnail + info */}
               <div className="flex min-w-0 flex-1 items-start gap-3.5 sm:items-center">

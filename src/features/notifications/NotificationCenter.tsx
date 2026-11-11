@@ -58,6 +58,7 @@ export interface NotificationCenterProps {
   onMarkAllAsRead: () => void;
   onClose?: () => void;
   className?: string;
+  userRole?: "renter" | "landlord" | "admin" | null;
 }
 
 export function NotificationCenter({
@@ -70,6 +71,7 @@ export function NotificationCenter({
   onMarkAllAsRead,
   onClose,
   className,
+  userRole,
 }: NotificationCenterProps) {
   const [filter, setFilter] = useState<"all" | "unread">("all");
   const router = useRouter();
@@ -121,40 +123,42 @@ export function NotificationCenter({
           )}
         </div>
 
-        {/* Filter chips */}
-        <div className="flex items-center gap-2" role="group" aria-label="Notification filters">
-          <button
-            type="button"
-            aria-pressed={filter === "all"}
-            onClick={() => setFilter("all")}
-            className={cn(
-              "px-3 py-1 rounded-full text-xs font-medium transition-colors",
-              filter === "all"
-                ? "bg-action text-action-foreground"
-                : "bg-muted/60 text-muted-foreground hover:text-foreground hover:bg-muted"
-            )}
-          >
-            All
-          </button>
-          <button
-            type="button"
-            aria-pressed={filter === "unread"}
-            onClick={() => setFilter("unread")}
-            className={cn(
-              "px-3 py-1 rounded-full text-xs font-medium transition-colors flex items-center gap-1.5",
-              filter === "unread"
-                ? "bg-action text-action-foreground"
-                : "bg-muted/60 text-muted-foreground hover:text-foreground hover:bg-muted"
-            )}
-          >
-            Unread
-            {unreadCount > 0 && (
-              <span className="inline-flex items-center justify-center h-4 min-w-4 px-1 rounded-full bg-action-foreground/20 text-[10px]">
-                {unreadCount}
-              </span>
-            )}
-          </button>
-        </div>
+        {/* Filter chips - visible only when notifications exist */}
+        {notifications.length > 0 && (
+          <div className="flex items-center gap-2" role="group" aria-label="Notification filters">
+            <button
+              type="button"
+              aria-pressed={filter === "all"}
+              onClick={() => setFilter("all")}
+              className={cn(
+                "px-3 py-1 rounded-full text-xs font-medium transition-colors",
+                filter === "all"
+                  ? "bg-action text-action-foreground"
+                  : "bg-muted/60 text-muted-foreground hover:text-foreground hover:bg-muted"
+              )}
+            >
+              All
+            </button>
+            <button
+              type="button"
+              aria-pressed={filter === "unread"}
+              onClick={() => setFilter("unread")}
+              className={cn(
+                "px-3 py-1 rounded-full text-xs font-medium transition-colors flex items-center gap-1.5",
+                filter === "unread"
+                  ? "bg-action text-action-foreground"
+                  : "bg-muted/60 text-muted-foreground hover:text-foreground hover:bg-muted"
+              )}
+            >
+              Unread
+              {unreadCount > 0 && (
+                <span className="inline-flex items-center justify-center h-4 min-w-4 px-1 rounded-full bg-action-foreground/20 text-[10px]">
+                  {unreadCount}
+                </span>
+              )}
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Notification List */}
@@ -189,11 +193,17 @@ export function NotificationCenter({
             <div className="w-12 h-12 rounded-full bg-muted/60 flex items-center justify-center text-muted-foreground">
               <Bell size={20} aria-hidden="true" />
             </div>
-            <p className="text-sm font-medium">You’re all caught up!</p>
+            <p className="text-sm font-medium">
+              {notifications.length === 0 ? "No notifications yet" : "You’re all caught up!"}
+            </p>
             <p className="text-xs text-muted-foreground">
-              {filter === "unread"
-                ? "You’ve read all your notifications."
-                : "New messages, inquiries, and listing updates will appear here."}
+              {notifications.length === 0
+                ? userRole === "landlord"
+                  ? "New inquiries, renter messages, and listing reviews will appear here."
+                  : userRole === "admin"
+                  ? "New user reports, listing review submissions, and system alerts will appear here."
+                  : "New landlord replies, inquiry updates, and rental alerts will appear here."
+                : "You’ve read all your notifications."}
             </p>
           </div>
         ) : (

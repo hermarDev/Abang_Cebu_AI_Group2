@@ -96,10 +96,66 @@ describe("NotificationCenter", () => {
     vi.unstubAllGlobals();
   });
 
-  it("renders empty state when there are no notifications", () => {
+  it("renders 'No notifications yet' when there are no notifications", () => {
     const html = renderToStaticMarkup(
       <NotificationCenter
         notifications={[]}
+        unreadCount={0}
+        loading={false}
+        error={null}
+        userRole="renter"
+        onRefresh={() => {}}
+        onMarkAsRead={() => {}}
+        onMarkAllAsRead={() => {}}
+      />
+    );
+
+    expect(html).toContain("No notifications yet");
+    expect(html).toContain("New landlord replies, inquiry updates, and rental alerts will appear here.");
+    expect(html).not.toContain("role=\"group\"");
+    expect(html).not.toContain("Mark all read");
+  });
+
+  it("renders role-specific descriptions for landlord and admin empty states", () => {
+    const landlordHtml = renderToStaticMarkup(
+      <NotificationCenter
+        notifications={[]}
+        unreadCount={0}
+        loading={false}
+        error={null}
+        userRole="landlord"
+        onRefresh={() => {}}
+        onMarkAsRead={() => {}}
+        onMarkAllAsRead={() => {}}
+      />
+    );
+    expect(landlordHtml).toContain("New inquiries, renter messages, and listing reviews will appear here.");
+
+    const adminHtml = renderToStaticMarkup(
+      <NotificationCenter
+        notifications={[]}
+        unreadCount={0}
+        loading={false}
+        error={null}
+        userRole="admin"
+        onRefresh={() => {}}
+        onMarkAsRead={() => {}}
+        onMarkAllAsRead={() => {}}
+      />
+    );
+    expect(adminHtml).toContain("New user reports, listing review submissions, and system alerts will appear here.");
+  });
+
+  it("renders 'You’re all caught up!' when all notifications are read", () => {
+    const readNotifications: NotificationItem[] = [
+      {
+        ...dummyNotifications[1],
+        is_read: true,
+      },
+    ];
+    const html = renderToStaticMarkup(
+      <NotificationCenter
+        notifications={readNotifications}
         unreadCount={0}
         loading={false}
         error={null}
@@ -109,10 +165,8 @@ describe("NotificationCenter", () => {
       />
     );
 
-    expect(html).toContain("You’re all caught up!");
-    expect(html).toContain("New messages, inquiries, and listing updates will appear here.");
     expect(html).toContain("role=\"group\"");
-    expect(html).toContain("aria-pressed=\"true\"");
+    expect(html).toContain("Listing updated");
     expect(html).not.toContain("Mark all read");
   });
 

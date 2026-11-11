@@ -107,7 +107,7 @@ export function LandlordWorkspaceLayout({ brand, actions, children, userId = nul
           {brand}
         </div>
         <div className="flex shrink-0 items-center gap-2">
-          <NotificationBell userId={userId} />
+          <NotificationBell userId={userId} userRole="landlord" />
           {actions}
         </div>
       </div>

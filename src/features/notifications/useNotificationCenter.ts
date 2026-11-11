@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
 import type { NotificationItem } from "@/types/database";
 
 export const NOTIFICATION_POLL_MS = 30_000;
@@ -44,13 +45,14 @@ interface Shared {
   inFlight: Promise<FetchNotificationsResponse> | null;
   abort: AbortController | null;
   listeners: Set<(data: FetchNotificationsResponse) => void>;
+  realtimeChannel: unknown | null;
 }
 const shared = new Map<string, Shared>();
 let channel: BroadcastChannel | null = null;
 
 function entry(userId: string): Shared {
   let item = shared.get(userId);
-  if (!item) shared.set(userId, (item = { data: null, at: 0, inFlight: null, abort: null, listeners: new Set() }));
+  if (!item) shared.set(userId, (item = { data: null, at: 0, inFlight: null, abort: null, listeners: new Set(), realtimeChannel: null }));
   return item;
 }
 
@@ -91,9 +93,47 @@ function subscribe(userId: string, listener: (data: FetchNotificationsResponse) 
       if (data?.userId && data.data) publish(data.userId, data.data);
     };
   }
+
+  // Realtime postgres_changes subscription per user
+  if (!item.realtimeChannel && typeof window !== "undefined") {
+    try {
+      const supabase = createClient();
+      item.realtimeChannel = supabase
+        .channel(`realtime:notifications:${userId}`)
+        .on(
+          "postgres_changes",
+          {
+            event: "*",
+            schema: "public",
+            table: "notifications",
+            filter: `recipient_id=eq.${userId}`,
+          },
+          () => {
+            void loadNotifications(userId, { force: true });
+            dispatchNotificationsUpdated();
+          }
+        )
+        .subscribe();
+    } catch {
+      // Graceful fallback to polling if realtime fails (offline or test mock)
+    }
+  }
+
   return () => {
     item.listeners.delete(listener);
-    if (item.listeners.size === 0) item.abort?.abort();
+    if (item.listeners.size === 0) {
+      item.abort?.abort();
+      if (item.realtimeChannel) {
+        try {
+          const supabase = createClient();
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          void supabase.removeChannel(item.realtimeChannel as any);
+        } catch {
+          // ignore
+        }
+        item.realtimeChannel = null;
+      }
+    }
   };
 }
 

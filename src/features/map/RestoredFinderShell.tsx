@@ -332,7 +332,7 @@ export function RestoredFinderShell({ rentalStatus: statusOverride, initialAccou
     <MapSearch className={styles.headerSearch} disabled={false} onSelect={setSelectedPlace} />
   </header>
   {authenticated ? <div className={styles.headerUserActions}>
-    <NotificationBell userId={userId} />
+    <NotificationBell userId={userId} userRole={userRole} />
     <AccountMenu displayName={displayName} avatarUrl={avatarUrl} role={userRole ?? "Renter"} variant="header" />
   </div> : <button className={styles.signIn} aria-label="Open account dialog" onClick={() => setAccountOpen(true)}><LogIn size={19} aria-hidden="true" /><span>Log in</span></button>}
   <QuickFilters filters={filters} onChange={setFilters} onOpenFilters={() => setAdvancedOpen(true)} mapRadius={mapRadius} onRadiusChange={setMapRadius} />
@@ -438,7 +438,7 @@ export function RestoredFinderShell({ rentalStatus: statusOverride, initialAccou
     />
   )}
   {inquiryRental && userId && <ListingInquiryModal key={inquiryRental.id} listingId={inquiryRental.id} listingTitle={inquiryRental.title} userId={userId} surface="finder" onClose={() => setInquiryListingId(null)} />}
-  <NotificationsModal userId={userId} open={notificationsOpen} onClose={() => setNotificationsOpen(false)} />
+  <NotificationsModal userId={userId} userRole={userRole} open={notificationsOpen} onClose={() => setNotificationsOpen(false)} />
   {canUseRentalAssistant && !helpOpen && <button type="button" className={styles.chatLauncher} aria-label="Open rental assistant" title="Rental assistant" onClick={() => setHelpOpen(true)}><ChatbotAvatar size={48} className="h-12 w-12" /></button>}
   {canUseRentalAssistant && helpOpen && <button type="button" className={styles.assistantBackdrop} style={{ backdropFilter: "blur(3px)", WebkitBackdropFilter: "blur(3px)" }} aria-label="Close AbangCebu assistant" tabIndex={-1} onClick={() => setHelpOpen(false)} />}
   {canUseRentalAssistant && <FinderAssistant open={helpOpen} onOpenChange={setHelpOpen} onSearch={() => document.querySelector<HTMLInputElement>('input[role="combobox"]')?.focus()} onFilters={() => setAdvancedOpen(true)} onControlsTargetChange={setAssistantControlsTarget} onSignIn={() => { setHelpOpen(false); setAccountOpen(true); }} authenticated={authenticated} userId={userId} displayName={displayName} profilePhotoUrl={avatarUrl} />}</div></main>;
