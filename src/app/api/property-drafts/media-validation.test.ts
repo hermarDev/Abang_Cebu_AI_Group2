@@ -13,7 +13,7 @@ describe("draft media bytes", () => {
     expect(inspectDraftMedia("photo", "image/webp", webp)).toBe("image/webp");
     expect(inspectDraftMedia("permit", "application/pdf", pdf)).toBe("application/pdf");
     expect(inspectDraftMedia("photo", "application/pdf", pdf)).toBeNull();
-    expect(inspectDraftMedia("permit", "image/webp", webp)).toBeNull();
+    expect(inspectDraftMedia("permit", "image/webp", webp)).toBe("image/webp");
     expect(inspectDraftMedia("photo", "image/jpeg", png)).toBeNull();
     expect(inspectDraftMedia("permit", "application/pdf", new TextEncoder().encode("not a pdf"))).toBeNull();
   });

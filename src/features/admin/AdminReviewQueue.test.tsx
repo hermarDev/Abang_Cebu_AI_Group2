@@ -67,3 +67,28 @@ describe("AdminReviewQueue", () => {
     expect(await submitReviewAction("admin-a", ctx("reject"), "x")).toMatchObject({ ok: false });
   });
 });
+
+import { reviewChecklist } from "./AdminReviewQueue";
+
+describe("reviewChecklist", () => {
+  it("flags missing fields correctly", () => {
+    const empty = reviewChecklist({ id: "p-empty", status: "pending" });
+    expect(empty.find((c) => c.label === "Address")?.ok).toBe(false);
+    expect(empty.find((c) => c.label === "Location pin")?.ok).toBe(false);
+    expect(empty.find((c) => c.label === "Monthly rent")?.ok).toBe(false);
+    expect(empty.find((c) => c.label === "Photos")?.ok).toBe(false);
+    expect(empty.find((c) => c.label === "Permit documents")?.ok).toBe(false);
+
+    const full = reviewChecklist({
+      id: "p-full", status: "pending",
+      streetAddress: "123 Main",
+      city: "Cebu City",
+      latitude: 10.3,
+      longitude: 123.9,
+      monthlyRent: 8000,
+      photoUrls: ["https://x/p1.jpg"],
+      permitUrls: ["https://x/permit.pdf"],
+    });
+    expect(full.every((c) => c.ok)).toBe(true);
+  });
+});

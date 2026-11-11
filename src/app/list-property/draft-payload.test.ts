@@ -12,7 +12,7 @@ describe("property draft payload", () => {
       title: "House", description: "A room to rent", propertyType: "house", rentalType: "private_room",
       price: "5000", address: "Sample street", barangay: "Sample barangay", city: "Cebu City",
       bathroomType: "shared", maxOccupants: "2", amenities: ["wifi", "aircon"],
-      permitApplicability: "required", permitNumber: "P-001", permitLgu: "Cebu City", permitExpiresOn: "2027-01-01", permitNotRequiredConfirmed: false,
+      permitApplicability: "required", permitNumber: "P-001", permitLgu: "Cebu City", permitExpiresOn: "2027-01-01", permitNotRequiredConfirmed: false, tenantPolicy: "any",
       location: { id: "osm-node-1", name: "Sample", detail: "Cebu", coordinates: [123.9, 10.3] as [number, number] },
     };
     expect(restoreDraftValues(createDraftPayload(values))).toEqual(values);
@@ -34,8 +34,29 @@ describe("property draft payload", () => {
     expect(restored.price).toBe("5000");
     expect(restored.location).toBeNull();
   });
-  it("does not discard legacy coordinates that lack a selected-place label", () => {
-    expect(() => restoreDraftValues({ property: { latitude: 10.3, longitude: 123.9 }, unit: {} })).toThrow("Unsupported property draft");
+  it("round-trips tenant policy and defaults legacy drafts to anyone", () => {
+    const values = { title: "", description: "", propertyType: "", rentalType: "", price: "", address: "", barangay: "", city: "", bathroomType: "", maxOccupants: "", amenities: [], permitApplicability: "", permitNotRequiredConfirmed: false, location: null, tenantPolicy: "female_only" };
+    const payload = createDraftPayload(values);
+    expect(payload.unit).toMatchObject({ tenant_policy: "female_only" });
+    expect(restoreDraftValues(payload).tenantPolicy).toBe("female_only");
+    expect(restoreDraftValues({ property: {}, unit: {} }).tenantPolicy).toBe("any");
+    expect(() => restoreDraftValues({ property: {}, unit: { tenant_policy: "invalid" } })).toThrow("Unsupported property draft");
+  });
+  it("defaults omitted legacy permit inputs when creating new payloads", () => {
+    const values = { title: "", description: "", propertyType: "", rentalType: "", price: "", address: "", barangay: "", city: "", bathroomType: "", maxOccupants: "", amenities: [], permitApplicability: "", permitNotRequiredConfirmed: false, tenantPolicy: "any", location: null };
+    const payload = createDraftPayload(values);
+    expect(payload.property).toMatchObject({ permit_number: "", permit_lgu: "", permit_expires_on: "" });
+    expect(() => restoreDraftValues(JSON.parse(JSON.stringify(payload)))).not.toThrow();
+  });
+  it("accepts null or missing legacy permit text fields", () => {
+    const restored = restoreDraftValues({ property: { permit_number: null, permit_lgu: null, permit_expires_on: null }, unit: {} });
+    expect(restored).toMatchObject({ permitNumber: "", permitLgu: "", permitExpiresOn: "" });
+    expect(createDraftPayload(restored).property).toMatchObject({ permit_number: "", permit_lgu: "", permit_expires_on: "" });
+  });
+  it("restores and retains legacy coordinates without place metadata", () => {
+    const restored = restoreDraftValues({ property: { latitude: 10.3, longitude: 123.9, permit_number: "P-123", permit_lgu: "Cebu", permit_expires_on: "2027-01-01" }, unit: {} });
+    expect(restored.location?.coordinates).toEqual([123.9, 10.3]);
+    expect(createDraftPayload(restored).property).toMatchObject({ latitude: 10.3, longitude: 123.9, permit_number: "P-123", permit_lgu: "Cebu", permit_expires_on: "2027-01-01" });
   });
   it("rejects unsupported option values and duplicated amenities", () => {
     const draft = createDraftPayload({ title: "", description: "", propertyType: "house", rentalType: "private_room", price: "", address: "", barangay: "", city: "", bathroomType: "", maxOccupants: "", amenities: [], permitApplicability: "", permitNumber: "", permitLgu: "", permitExpiresOn: "", permitNotRequiredConfirmed: false, location: null });
@@ -51,8 +72,42 @@ describe("property draft payload", () => {
   it("round-trips an incomplete draft without fabricating a location or declaration", () => {
     const values = {
       title: "", description: "", propertyType: "", rentalType: "", price: "", address: "", barangay: "", city: "",
-      bathroomType: "", maxOccupants: "", amenities: [], permitApplicability: "", permitNumber: "", permitLgu: "", permitExpiresOn: "", permitNotRequiredConfirmed: false, location: null,
+      bathroomType: "", maxOccupants: "", amenities: [], permitApplicability: "", permitNumber: "", permitLgu: "", permitExpiresOn: "", permitNotRequiredConfirmed: false, tenantPolicy: "any", location: null,
     };
     expect(restoreDraftValues(createDraftPayload(values))).toEqual(values);
+  });
+  it("round-trips conditional unit specs, permit exemption reason, and document categories via preserved", () => {
+    const values = {
+      title: "Condo", description: "Studio unit with balcony", propertyType: "condominium", rentalType: "entire_place",
+      price: "15000", address: "IT Park", barangay: "Apas", city: "Cebu City",
+      bathroomType: "private", maxOccupants: "2", amenities: ["wifi", "aircon"],
+      permitApplicability: "not_required", permitNumber: "", permitLgu: "", permitExpiresOn: "", permitNotRequiredConfirmed: true, tenantPolicy: "any", location: null,
+      preserved: {
+        property: {
+          permit_exemption_reason: "Individual residential condo owner leasing unit.",
+          document_categories: JSON.stringify({ "deed.pdf": "ownership_title" }),
+        },
+        unit: {
+          bedrooms: 0,
+          bathrooms: 1,
+          floor_area_sqm: 32,
+          furnished_status: "furnished",
+        },
+        emptyPermitConfirmation: false,
+      },
+    };
+    const payload = createDraftPayload(values);
+    expect(payload.property).toMatchObject({
+      permit_exemption_reason: "Individual residential condo owner leasing unit.",
+      document_categories: JSON.stringify({ "deed.pdf": "ownership_title" }),
+    });
+    expect(payload.unit).toMatchObject({
+      bedrooms: 0,
+      bathrooms: 1,
+      floor_area_sqm: 32,
+      furnished_status: "furnished",
+    });
+    const restored = restoreDraftValues(payload);
+    expect(restored).toEqual(values);
   });
 });

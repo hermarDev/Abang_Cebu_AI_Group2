@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
+import { Building2, ShieldAlert } from "lucide-react";
 import { Alert } from "@/components/ui/Alert";
 import { notify } from "@/components/ui/AppToaster";
 import { Badge } from "@/components/ui/Badge";
@@ -13,7 +15,6 @@ import { Select } from "@/components/ui/Select";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { AdminReasonField } from "./AdminReasonField";
 import { adminCall, newOperationId, reasonProblem } from "./admin-api";
-
 export type AdminAccount = {
   id: string;
   fullName?: string | null;
@@ -34,28 +35,54 @@ export async function submitAccountChange(userId: string, { account, suspend, op
   return result.ok ? { ok: true as const, account: { ...account, isSuspended: suspend } } : result;
 }
 
-export function AccountRow({ account, onAction }: { account: AdminAccount; onAction: (account: AdminAccount) => void }) {
-  return <li className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card p-4">
-    <div className="min-w-0">
-      <p className="m-0 break-words font-semibold">{account.fullName?.trim() || "Unnamed account"}</p>
-      <p className="m-0 mt-1 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-        <Badge variant="outline">{cap(account.role)}</Badge>
-        <Badge variant={account.isSuspended ? "destructive" : "default"}>{account.isSuspended ? "Suspended" : "Active"}</Badge>
-        <span>{account.propertyCount ?? 0} properties ({account.livePropertyCount ?? 0} live)</span>
-        <span>{account.openReportCount ?? 0} open reports</span>
-      </p>
+export function AccountRow({ account, onAction, onInspect }: { account: AdminAccount; onAction: (account: AdminAccount) => void; onInspect?: (account: AdminAccount) => void }) {
+  const initials = (account.fullName?.trim() || "U").slice(0, 2).toUpperCase();
+  return <li className="grid gap-3 rounded-xl border border-border bg-card p-4 transition hover:border-action/30 sm:flex sm:flex-wrap sm:items-center sm:justify-between">
+    <div className="flex items-center gap-3 min-w-0 flex-1">
+      <span className="grid size-10 shrink-0 place-items-center rounded-full bg-action/10 text-xs font-bold text-action">
+        {initials}
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="m-0 break-words font-semibold text-foreground">{account.fullName?.trim() || "Unnamed account"}</p>
+        <div className="m-0 mt-1 flex flex-wrap items-center gap-2 text-xs sm:text-sm text-muted-foreground">
+          <Badge variant="outline">{cap(account.role)}</Badge>
+          <Badge variant={account.isSuspended ? "destructive" : "default"}>{account.isSuspended ? "Suspended" : "Active"}</Badge>
+          <span>{account.propertyCount ?? 0} properties ({account.livePropertyCount ?? 0} live)</span>
+          <span>{account.openReportCount ?? 0} open reports</span>
+        </div>
+      </div>
     </div>
-    {account.role === "admin" ? <span className="text-sm text-muted-foreground">Protected admin</span>
-      : <Button size="sm" variant={account.isSuspended ? "outline" : "destructive"} onClick={() => onAction(account)}>{account.isSuspended ? "Reinstate account" : "Suspend account"}</Button>}
+    <div className="flex items-center gap-2 pt-2 border-t border-border/60 sm:border-t-0 sm:pt-0 sm:shrink-0">
+      {onInspect && (
+        <Button size="sm" variant="outline" onClick={() => onInspect(account)} aria-label={`Inspect account ${account.fullName || account.id}`}>
+          Inspect account
+        </Button>
+      )}
+      {account.role === "admin" ? (
+        <span className="text-sm font-medium text-muted-foreground px-2">Protected admin</span>
+      ) : (
+        <Button size="sm" variant={account.isSuspended ? "outline" : "destructive"} onClick={() => onAction(account)}>
+          {account.isSuspended ? "Reinstate account" : "Suspend account"}
+        </Button>
+      )}
+    </div>
   </li>;
 }
 
 const known = (options: { value: string }[], value?: string) => (options.some((o) => o.value === value) ? value! : "");
 
+const sortOptions = [
+  { value: "name_asc", label: "Name (A–Z)" },
+  { value: "properties_desc", label: "Most properties" },
+  { value: "reports_desc", label: "Most reports" },
+];
+
 export function AdminAccountsManager({ userId, initialRole, initialStatus }: { userId: string; initialRole?: string; initialStatus?: string }) {
   const [role, setRole] = useState(known(roleOptions, initialRole));
   const [status, setStatus] = useState(known(statusOptions, initialStatus));
   const [search, setSearch] = useState("");
+  const [sortBy, setSortBy] = useState("name_asc");
+  const [inspectingAccount, setInspectingAccount] = useState<AdminAccount | null>(null);
   const [page, setPage] = useState(1);
   const pageSize = 10;
   const [accounts, setAccounts] = useState<AdminAccount[] | null>(null);
@@ -98,21 +125,29 @@ export function AdminAccountsManager({ userId, initialRole, initialStatus }: { u
   }
 
   const name = dialog?.account.fullName?.trim() || "this account";
+  const sortedAccounts = accounts
+    ? [...accounts].sort((a, b) => {
+        if (sortBy === "properties_desc") return (b.propertyCount ?? 0) - (a.propertyCount ?? 0);
+        if (sortBy === "reports_desc") return (b.openReportCount ?? 0) - (a.openReportCount ?? 0);
+        return (a.fullName || "").localeCompare(b.fullName || "");
+      })
+    : [];
   const totalPages = accounts ? Math.max(1, Math.ceil(accounts.length / pageSize)) : 1;
   const validPage = Math.min(page, totalPages);
-  const paginatedAccounts = accounts ? accounts.slice((validPage - 1) * pageSize, validPage * pageSize) : [];
+  const paginatedAccounts = sortedAccounts.slice((validPage - 1) * pageSize, validPage * pageSize);
 
   return <section aria-label="Account management" className="grid gap-4">
-    <div className="grid gap-3 sm:grid-cols-[12rem_12rem_minmax(0,1fr)]">
+    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[10rem_10rem_11rem_minmax(0,1fr)]">
       <Select aria-label="Filter by role" options={roleOptions} value={role} onValueChange={(val) => { setRole(val); setPage(1); }} />
       <Select aria-label="Filter by status" options={statusOptions} value={status} onValueChange={(val) => { setStatus(val); setPage(1); }} />
+      <Select aria-label="Sort accounts" options={sortOptions} value={sortBy} onValueChange={(val) => { setSortBy(val); setPage(1); }} />
       <Input type="search" aria-label="Search accounts" placeholder="Search account name…" value={search} onChange={(event) => { setSearch(event.target.value); setPage(1); }} />
     </div>
     {error ? <Alert variant="error">{error} <Button size="sm" variant="outline" onClick={() => setReloadKey((k) => k + 1)}>Retry</Button></Alert>
       : accounts === null ? <div className="grid gap-3">{[0, 1, 2].map((i) => <Skeleton key={i} className="h-20" />)}</div>
       : accounts.length === 0 ? <Empty>No accounts match these filters.</Empty>
       : <>
-          <ul className="m-0 grid list-none gap-3 p-0">{paginatedAccounts.map((account) => <AccountRow key={account.id} account={account} onAction={open} />)}</ul>
+          <ul className="m-0 grid list-none gap-3 p-0">{paginatedAccounts.map((account) => <AccountRow key={account.id} account={account} onAction={open} onInspect={setInspectingAccount} />)}</ul>
           <Pagination currentPage={page} totalPages={totalPages} totalItems={accounts.length} pageSize={pageSize} onPageChange={setPage} />
         </>}
     <Modal open={!!dialog} onClose={close} title={dialog?.suspend ? "Suspend account" : "Reinstate account"} description={dialog?.suspend ? `${cap(name)} will be signed out of admin-managed features. This is recorded in the audit log.` : `${cap(name)} will regain access. This is recorded in the audit log.`} className="max-h-[calc(100dvh-2rem)] overflow-y-auto">
@@ -125,6 +160,61 @@ export function AdminAccountsManager({ userId, initialRole, initialStatus }: { u
           <Button variant={dialog?.suspend ? "destructive" : "primary"} onClick={confirm} disabled={saving || invalid}>{saving ? "Saving…" : dialog?.suspend ? "Suspend account" : "Reinstate account"}</Button>
         </div>
       </div>
+    </Modal>
+
+    <Modal
+      open={Boolean(inspectingAccount)}
+      onClose={() => setInspectingAccount(null)}
+      title="Account profile inspection"
+      description={inspectingAccount?.fullName || inspectingAccount?.id}
+      className="max-h-[calc(100dvh-2rem)] max-w-lg overflow-y-auto"
+    >
+      {inspectingAccount && (
+        <div className="space-y-4 text-sm">
+          <div className="rounded-xl border border-border bg-card p-4 space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="font-semibold text-foreground">{inspectingAccount.fullName?.trim() || "Unnamed account"}</span>
+              <div className="flex gap-1.5">
+                <Badge variant="outline">{cap(inspectingAccount.role)}</Badge>
+                <Badge variant={inspectingAccount.isSuspended ? "destructive" : "default"}>
+                  {inspectingAccount.isSuspended ? "Suspended" : "Active"}
+                </Badge>
+              </div>
+            </div>
+            <p className="m-0 font-mono text-xs text-muted-foreground break-all">ID: {inspectingAccount.id}</p>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div className="rounded-xl border border-border p-3">
+              <p className="m-0 text-xs text-muted-foreground">Portfolio</p>
+              <p className="m-0 mt-1 text-xl font-bold">{inspectingAccount.propertyCount ?? 0}</p>
+              <p className="m-0 text-xs text-muted-foreground">{inspectingAccount.livePropertyCount ?? 0} live</p>
+            </div>
+            <div className="rounded-xl border border-border p-3">
+              <p className="m-0 text-xs text-muted-foreground">Abuse reports</p>
+              <p className="m-0 mt-1 text-xl font-bold">{inspectingAccount.openReportCount ?? 0}</p>
+              <p className="m-0 text-xs text-muted-foreground">Open reports</p>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap gap-2 pt-2 border-t border-border">
+            {inspectingAccount.role === "landlord" && (
+              <Link
+                href={`/admin/reviews?search=${encodeURIComponent(inspectingAccount.fullName || "")}`}
+                className="inline-flex min-h-9 items-center justify-center gap-1.5 rounded-lg border border-border px-3 text-xs font-semibold hover:bg-muted"
+              >
+                <Building2 size={14} aria-hidden="true" /> View properties
+              </Link>
+            )}
+            <Link
+              href="/admin/audit"
+              className="inline-flex min-h-9 items-center justify-center gap-1.5 rounded-lg border border-border px-3 text-xs font-semibold hover:bg-muted"
+            >
+              <ShieldAlert size={14} aria-hidden="true" /> View audit history
+            </Link>
+          </div>
+        </div>
+      )}
     </Modal>
   </section>;
 }

@@ -1,3 +1,4 @@
+import { isAuthRetryableFetchError } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import type { Json } from "@/types/database";
 
@@ -8,6 +9,7 @@ const reply = (error: string, status: number) => Response.json({ error }, { stat
 async function access(request: Request) {
   const supabase = await createClient();
   const { data: { user }, error } = await supabase.auth.getUser();
+  if (error && isAuthRetryableFetchError(error)) return { response: reply("Your account could not be checked. Please try again.", 503) } as const;
   if (error || !user) return { response: reply("Sign in to access property drafts.", 401) } as const;
   if (request.headers.get("x-expected-user-id") !== user.id) {
     return { response: reply("Your account changed. Please refresh and try again.", 409) } as const;
