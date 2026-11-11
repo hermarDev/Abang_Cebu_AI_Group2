@@ -94,6 +94,15 @@ export default function MapSearch({ onSelect, disabled, className, embedded = fa
 
   const searchControl = (
     <>
+      <button
+        className={styles.searchButton}
+        type={embedded ? "button" : "submit"}
+        aria-label="Search"
+        disabled={disabled || query.trim().length < 3}
+        onClick={embedded ? runSearch : undefined}
+      >
+        <Search size={18} aria-hidden="true" />
+      </button>
       <input
         ref={inputRef}
         className={styles.searchInput}
@@ -126,15 +135,6 @@ export default function MapSearch({ onSelect, disabled, className, embedded = fa
           <X size={16} aria-hidden="true" />
         </button>
       )}
-      <button
-        className={styles.searchButton}
-        type={embedded ? "button" : "submit"}
-        aria-label="Search"
-        disabled={disabled || query.trim().length < 3}
-        onClick={embedded ? runSearch : undefined}
-      >
-        <Search size={20} aria-hidden="true" />
-      </button>
     </>
   );
 

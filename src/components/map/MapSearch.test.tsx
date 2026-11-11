@@ -15,6 +15,13 @@ it("renders an accessible place-search combobox and submit control", () => {
   expect(html).toContain('placeholder="Search places or an address"');
   expect(html).not.toContain("Metro Cebu");
   expect(html).toContain("Search");
+
+  // Search button is positioned on the left side before the input
+  const searchBtnIndex = html.indexOf('aria-label="Search"');
+  const inputIndex = html.indexOf('role="combobox"');
+  expect(searchBtnIndex).toBeGreaterThan(-1);
+  expect(inputIndex).toBeGreaterThan(-1);
+  expect(searchBtnIndex).toBeLessThan(inputIndex);
 });
 
 it("adds IME-safe keyboard controls, clearing, and retry for place lookup errors", () => {
