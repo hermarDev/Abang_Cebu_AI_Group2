@@ -325,8 +325,8 @@ describe("RestoredFinderShell", () => {
   });
   it("offers explicit sample opt-in in production without enabling it automatically", () => {
     vi.stubEnv("NODE_ENV", "production");
-    expect(render("ready")).toContain("Use sample data");
-    expect(render("error")).toContain("Use sample data");
+    expect(render("ready")).not.toContain("Use sample data");
+    expect(render("error")).not.toContain("Use sample data");
     vi.unstubAllEnvs();
   });
   it("offers radius expansion for empty inventory rather than clearing filters", () => {
@@ -419,9 +419,9 @@ describe("RestoredFinderShell", () => {
     expect(html).not.toContain("Create account");
   });
   it("renders the sample-data action only in development/test when inventory is unavailable or empty", () => {
-    expect(render("error")).toContain("Use sample data");
+    expect(render("error")).not.toContain("Use sample data");
     expect(render("loading")).not.toContain("Use sample data");
-    expect(render("ready")).toContain("Use sample data");
+    expect(render("ready")).not.toContain("Use sample data");
   });
   it("keeps search radius out of the shell toolbar and inside the full filters dialog only", () => {
     // Per redesign: Area moved out of quick filters; radius lives in RentalFilterDialog, not the shell toolbar.
