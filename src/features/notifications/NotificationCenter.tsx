@@ -122,9 +122,11 @@ export function NotificationCenter({
         </div>
 
         {/* Filter chips */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2" role="tablist" aria-label="Notification filters">
           <button
             type="button"
+            role="tab"
+            aria-selected={filter === "all"}
             onClick={() => setFilter("all")}
             className={cn(
               "px-3 py-1 rounded-full text-xs font-medium transition-colors",
@@ -137,6 +139,8 @@ export function NotificationCenter({
           </button>
           <button
             type="button"
+            role="tab"
+            aria-selected={filter === "unread"}
             onClick={() => setFilter("unread")}
             className={cn(
               "px-3 py-1 rounded-full text-xs font-medium transition-colors flex items-center gap-1.5",
@@ -183,15 +187,15 @@ export function NotificationCenter({
             </button>
           </div>
         ) : filtered.length === 0 ? (
-          <div className="flex flex-col items-center justify-center p-10 text-center gap-2">
+          <div className="flex flex-col items-center justify-center p-10 text-center gap-2" role="status">
             <div className="w-12 h-12 rounded-full bg-muted/60 flex items-center justify-center text-muted-foreground">
-              <Bell size={20} />
+              <Bell size={20} aria-hidden="true" />
             </div>
-            <p className="text-sm font-medium">No notifications yet</p>
+            <p className="text-sm font-medium">You’re all caught up!</p>
             <p className="text-xs text-muted-foreground">
               {filter === "unread"
-                ? "You've read all your notifications."
-                : "We'll notify you when inquiries, messages, or updates arrive."}
+                ? "You’ve read all your notifications."
+                : "New messages, inquiries, and listing updates will appear here."}
             </p>
           </div>
         ) : (
