@@ -10,10 +10,11 @@ import { NotificationCenter } from "./NotificationCenter";
 
 export interface NotificationBellProps {
   userId?: string | null;
+  userRole?: "renter" | "landlord" | "admin" | null;
   className?: string;
 }
 
-export function NotificationBell({ userId, className }: NotificationBellProps) {
+export function NotificationBell({ userId, userRole, className }: NotificationBellProps) {
   const [open, setOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
@@ -76,6 +77,7 @@ export function NotificationBell({ userId, className }: NotificationBellProps) {
             unreadCount={unreadCount}
             loading={loading}
             error={error}
+            userRole={userRole}
             onRefresh={() => void refresh(true)}
             onMarkAsRead={markAsRead}
             onMarkAllAsRead={markAllAsRead}
@@ -95,6 +97,7 @@ export function NotificationBell({ userId, className }: NotificationBellProps) {
           unreadCount={unreadCount}
           loading={loading}
           error={error}
+          userRole={userRole}
           onRefresh={() => void refresh(true)}
           onMarkAsRead={markAsRead}
           onMarkAllAsRead={markAllAsRead}

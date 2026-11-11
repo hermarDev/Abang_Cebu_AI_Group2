@@ -6,12 +6,14 @@ import { useNotificationCenter } from "./useNotificationCenter";
 
 export interface NotificationsModalProps {
   userId?: string | null;
+  userRole?: "renter" | "landlord" | "admin" | null;
   open: boolean;
   onClose: () => void;
 }
 
 interface NotificationsModalContentProps {
   userId: string;
+  userRole?: "renter" | "landlord" | "admin" | null;
   onClose: () => void;
 }
 
@@ -21,7 +23,7 @@ interface NotificationsModalContentProps {
  * Mounting on open ensures `useNotificationCenter` initializes directly from the
  * existing shared user notification cache, preventing empty-list flicker.
  */
-function NotificationsModalContent({ userId, onClose }: NotificationsModalContentProps) {
+function NotificationsModalContent({ userId, userRole, onClose }: NotificationsModalContentProps) {
   const {
     notifications,
     unreadCount,
@@ -39,6 +41,7 @@ function NotificationsModalContent({ userId, onClose }: NotificationsModalConten
       unreadCount={unreadCount}
       loading={loading}
       error={error}
+      userRole={userRole}
       onRefresh={() => void refresh(true)}
       onMarkAsRead={markAsRead}
       onMarkAllAsRead={markAllAsRead}
@@ -56,7 +59,7 @@ function NotificationsModalContent({ userId, onClose }: NotificationsModalConten
  * @param props - Component configuration properties including userId, open state, and close callback.
  * @returns The rendered modal dialog or null if no user is authenticated or dialog is closed.
  */
-export function NotificationsModal({ userId, open, onClose }: NotificationsModalProps) {
+export function NotificationsModal({ userId, userRole, open, onClose }: NotificationsModalProps) {
   if (!userId || !open) return null;
 
   return (
@@ -68,7 +71,7 @@ export function NotificationsModal({ userId, open, onClose }: NotificationsModal
       hideTitle
       className="p-0 max-w-md w-full max-h-[min(90dvh,38rem)] flex flex-col overflow-hidden rounded-2xl"
     >
-      <NotificationsModalContent userId={userId} onClose={onClose} />
+      <NotificationsModalContent userId={userId} userRole={userRole} onClose={onClose} />
     </Modal>
   );
 }
