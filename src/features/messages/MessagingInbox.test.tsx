@@ -1,6 +1,6 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
-import { MessageItem, MessagingInbox } from "./MessagingInbox";
+import { MessageItem, MessagingInbox, handleRealtimeMessageInsert } from "./MessagingInbox";
 import {
   composerBlockedReason,
   listingBadgeLabel,
@@ -42,6 +42,30 @@ describe("MessagingInbox rendering", () => {
     expect(html).toContain('placeholder="Search conversations…"');
   });
 
+  it("replaces emoji attachment previews with Lucide icons in both renter and landlord conversation lists", () => {
+    const sampleThreads = [
+      thread({ id: "t-photo", lastMessagePreview: "📷 Photo" }),
+      thread({ id: "t-video", lastMessagePreview: "🎥 Video" }),
+      thread({ id: "t-voice", lastMessagePreview: "🎤 Voice message" }),
+      thread({ id: "t-file", lastMessagePreview: "📎 Attachment" }),
+    ];
+    for (const userRole of ["renter", "landlord"] as const) {
+      const html = render({ userRole, initialThreads: sampleThreads });
+      expect(html).not.toContain("📷");
+      expect(html).not.toContain("🎥");
+      expect(html).not.toContain("🎤");
+      expect(html).not.toContain("📎");
+      expect(html).toContain("lucide-image");
+      expect(html).toContain("lucide-video");
+      expect(html).toContain("lucide-mic");
+      expect(html).toContain("lucide-paperclip");
+      expect(html).toContain('<span class="truncate">Photo</span>');
+      expect(html).toContain('<span class="truncate">Video</span>');
+      expect(html).toContain('<span class="truncate">Voice message</span>');
+      expect(html).toContain('<span class="truncate">Attachment</span>');
+    }
+  });
+
   it("opens the property context banner with the role-specific link and thread actions", () => {
     const renter = render({ initialThreads: [thread()], initialThreadId: "t1" });
     expect(renter).toContain('href="/?selected=l1"');
@@ -65,6 +89,9 @@ describe("MessagingInbox rendering", () => {
   it("renders the modern inline composer with send icon and helper text", () => {
     const html = render({ initialThreads: [thread()], initialThreadId: "t1" });
     expect(html).toContain('aria-label="Send message"');
+    expect(html).toContain('aria-label="Attach photos"');
+    expect(html).toContain("lucide-plus");
+    expect(html).toContain("lucide-arrow-up");
     expect(html).toContain("Enter to send · Shift+Enter for new line");
     expect(html).toContain("0 / 2000");
   });
@@ -170,5 +197,65 @@ describe("MessageItem reply and attachments UI", () => {
     expect(html).toContain("Here is the property photo");
     expect(html).toContain("living_room.webp");
     expect(html).toContain("Reply");
+
+    const sentHtml = renderToStaticMarkup(
+      <MessageItem
+        message={{ ...item, body: "", replyTo: null, attachments: item.attachments }}
+        mine={true}
+        onReport={() => {}}
+      />
+    );
+    expect(sentHtml).toContain("· Sent");
+    expect(sentHtml).toContain("p-0.5 overflow-hidden");
+  });
+});
+
+describe("handleRealtimeMessageInsert", () => {
+  it("dispatches update when new message arrives in an inactive thread", () => {
+    const onInactive = vi.fn();
+    const result = handleRealtimeMessageInsert(
+      { new: { conversation_id: "thread-2", sender_id: "counterpart-user" } },
+      "current-user",
+      "thread-1",
+      onInactive
+    );
+    expect(result).toBe(true);
+    expect(onInactive).toHaveBeenCalledTimes(1);
+  });
+
+  it("dispatches update when no thread is selected (inbox list view)", () => {
+    const onInactive = vi.fn();
+    const result = handleRealtimeMessageInsert(
+      { new: { conversation_id: "thread-1", sender_id: "counterpart-user" } },
+      "current-user",
+      null,
+      onInactive
+    );
+    expect(result).toBe(true);
+    expect(onInactive).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not dispatch when message is from current user", () => {
+    const onInactive = vi.fn();
+    const result = handleRealtimeMessageInsert(
+      { new: { conversation_id: "thread-2", sender_id: "current-user" } },
+      "current-user",
+      "thread-1",
+      onInactive
+    );
+    expect(result).toBe(false);
+    expect(onInactive).not.toHaveBeenCalled();
+  });
+
+  it("does not dispatch when message arrives in the currently active thread", () => {
+    const onInactive = vi.fn();
+    const result = handleRealtimeMessageInsert(
+      { new: { conversation_id: "thread-1", sender_id: "counterpart-user" } },
+      "current-user",
+      "thread-1",
+      onInactive
+    );
+    expect(result).toBe(false);
+    expect(onInactive).not.toHaveBeenCalled();
   });
 });

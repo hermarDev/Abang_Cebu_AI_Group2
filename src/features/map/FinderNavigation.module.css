@@ -1,6 +1,6 @@
 .dialog {
-  --nav-blue: #1d4ed8;
-  --nav-selected: #eff6ff;
+  --nav-blue: var(--action);
+  --nav-selected: color-mix(in srgb, var(--action) 12%, transparent);
   position: fixed;
   inset: 0 auto 0 0;
   width: min(320px, calc(100vw - 32px));
@@ -70,6 +70,11 @@
 
 .mainNavigation {
   display: grid;
+  gap: 16px;
+}
+
+.section {
+  display: grid;
   gap: 4px;
 }
 
@@ -101,8 +106,8 @@
   min-width: 22px;
   border-radius: 999px;
   padding: 1px 7px;
-  background: var(--nav-blue);
-  color: #fff;
+  background: var(--action);
+  color: var(--action-foreground);
   font-size: 12px;
   font-weight: 700;
   line-height: 20px;
@@ -110,22 +115,8 @@
 }
 
 .currentPage {
-  background: var(--nav-selected);
-  color: var(--nav-blue);
-  font-weight: 700;
-}
-
-.support {
-  display: grid;
-  gap: 4px;
-  border-top: 1px solid var(--border);
-  padding-top: 12px;
-}
-
-.support h2 {
-  margin: 0 0 4px 12px;
-  color: var(--muted-foreground);
-  font-size: 13px;
+  background: color-mix(in srgb, var(--action) 12%, transparent);
+  color: var(--action);
   font-weight: 700;
 }
 
@@ -139,14 +130,14 @@
 
 .accountAction {
   display: flex;
-  min-height: 50px;
+  min-height: 48px;
   align-items: center;
   gap: 8px;
   border: 1px solid transparent;
-  border-radius: 8px;
-  padding: 8px 12px;
-  background: #2563eb;
-  color: #ffffff;
+  border-radius: 12px;
+  padding: 8px 16px;
+  background: var(--action);
+  color: var(--action-foreground);
   text-decoration: none;
   justify-content: center;
   cursor: pointer;
@@ -154,11 +145,12 @@
   font-size: 14px;
   font-weight: 650;
   text-align: left;
+  transition: background-color 150ms ease;
 }
 
 .accountAction:hover,
 .accountAction:focus-visible {
-  background: #1d4ed8;
+  background: var(--action-hover);
 }
 
 .dialog :is(button, a, input):focus-visible {
@@ -166,16 +158,11 @@
   outline-offset: 2px;
 }
 
-.dialog svg {
+.dialog :where(.mainNavigation, .brandRow, .mapButton, .accountAction) svg {
   width: 20px;
   height: 20px;
   flex-shrink: 0;
   stroke-width: 1.75;
-}
-
-:global(.dark) .dialog {
-  --nav-blue: #93c5fd;
-  --nav-selected: #172f50;
 }
 
 .mapButton {

@@ -15,6 +15,12 @@ const AVATAR_TYPES = {
   "image/webp": "webp",
 } as const;
 
+const AVATAR_REVALIDATE_PATHS = ["/account", "/", "/landlord/dashboard", "/landlord/properties", "/landlord/messages", "/admin/dashboard", "/admin/reviews", "/admin/accounts", "/admin/reports", "/admin/audit"] as const;
+
+function revalidateAccountSurfaces() {
+  for (const path of AVATAR_REVALIDATE_PATHS) revalidatePath(path);
+}
+
 export type AvatarActionResult = { success: boolean; message: string; avatarUrl?: string | null };
 
 export type AccountActionResult = {
@@ -66,7 +72,7 @@ export async function updateAccountProfile(formData: FormData): Promise<AccountA
 
   if (error || !data) return { success: false, message: "We couldn’t save your details. Please try again." };
 
-  revalidatePath("/account");
+  revalidateAccountSurfaces();
   return { success: true, message: "Your account details were saved.", profile: { fullName, phoneNumber } };
 }
 export async function updateAccountAvatar(formData: FormData): Promise<AvatarActionResult> {
@@ -102,8 +108,7 @@ export async function updateAccountAvatar(formData: FormData): Promise<AvatarAct
     await createAdminClient().storage.from(PROFILE_AVATAR_BUCKET).remove([oldPath]);
   }
   const avatarUrl = await signProfileAvatar(user.id, avatarPath);
-  revalidatePath("/account");
-  revalidatePath("/");
+  revalidateAccountSurfaces();
   return { success: true, message: "Your profile photo was updated.", avatarUrl };
 }
 
@@ -122,8 +127,7 @@ export async function removeAccountAvatar(): Promise<AvatarActionResult> {
   if (oldPath && oldPath.startsWith(`${user.id}/`) && /^[0-9a-f-]+\/[\w-]+\.(?:jpg|png|webp)$/i.test(oldPath)) {
     await createAdminClient().storage.from(PROFILE_AVATAR_BUCKET).remove([oldPath]);
   }
-  revalidatePath("/account");
-  revalidatePath("/");
+  revalidateAccountSurfaces();
   return { success: true, message: "Your profile photo was removed.", avatarUrl: null };
 }
 

@@ -1,4 +1,5 @@
 import { createBrowserClient } from "@supabase/ssr";
+import { createBoundedFetch } from "./fetch-timeout";
 
 /**
  * Creates a Supabase client for use in Client Components ('use client').
@@ -8,5 +9,5 @@ export function createClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://placeholder.supabase.co";
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "placeholder-anon-key";
 
-  return createBrowserClient(supabaseUrl, supabaseAnonKey);
+  return createBrowserClient(supabaseUrl, supabaseAnonKey, { global: { fetch: createBoundedFetch(6_000) } });
 }

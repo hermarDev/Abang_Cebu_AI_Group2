@@ -4,10 +4,13 @@ import { useState, type ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChevronLeft, ChevronRight, ClipboardCheck, Ellipsis, Flag, LayoutDashboard, LogOut, ScrollText, UserRound, Users } from "lucide-react";
+import { Bell, ChevronLeft, ChevronRight, ClipboardCheck, Ellipsis, Flag, LayoutDashboard, ScrollText, UserRound, Users } from "lucide-react";
+import { AccountMenu } from "@/components/ui/AccountMenu";
+import { LogoutLink } from "@/components/ui/LogoutLink";
 import { Modal } from "@/components/ui/Modal";
 import { AppearanceControls } from "@/features/map/AppearanceControls";
 import { useFinderTheme } from "@/features/map/useFinderTheme";
+import { NotificationBell } from "@/features/notifications/NotificationBell";
 
 const linkGroups = [
   { label: "Moderation", links: [
@@ -49,18 +52,40 @@ function AdminMobileNav({ pathname }: { pathname: string }) {
       <button type="button" aria-label="More admin options" aria-expanded={open} onClick={() => setOpen(true)} className={`${itemClass} text-muted-foreground hover:text-foreground`}><Ellipsis size={20} aria-hidden="true" /><span>More</span></button>
     </nav>
     <Modal open={open} onClose={() => setOpen(false)} title="More admin options" className="max-h-[calc(100dvh-2rem)] overflow-y-auto">
+      <button
+        type="button"
+        onClick={() => {
+          setOpen(false);
+          const bell = document.querySelector<HTMLButtonElement>('header button[aria-label^="Notifications"]');
+          bell?.click();
+        }}
+        className={`flex min-h-11 w-full items-center gap-3 rounded-lg px-3 text-sm font-medium hover:bg-muted ${focusRing}`}
+      >
+        <Bell size={19} aria-hidden="true" />
+        Notifications
+      </button>
       <Link href="/admin/audit" onClick={() => setOpen(false)} className={`flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium hover:bg-muted ${focusRing}`}><ScrollText size={19} aria-hidden="true" />Audit log</Link>
-      <Link href="/account" className={`flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium hover:bg-muted ${focusRing}`}><UserRound size={19} aria-hidden="true" />Account settings</Link>
+      <Link href="/account" onClick={() => setOpen(false)} className={`flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium hover:bg-muted ${focusRing}`}><UserRound size={19} aria-hidden="true" />Account settings</Link>
       <div className="my-3"><ThemeControls expanded /></div>
-      <Link href="/auth/logout" className={`flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium hover:bg-muted ${focusRing}`}><LogOut size={19} aria-hidden="true" />Log out</Link>
+      <div className="my-2 h-px bg-border/80" role="separator" />
+      <LogoutLink onClick={() => setOpen(false)} iconSize={19} className="flex w-full gap-3" />
     </Modal>
   </>;
 }
 
-export function AdminWorkspaceLayout({ displayName, title, subtitle, actions, children }: { userId?: string; displayName?: string | null; title?: string; subtitle?: string; actions?: ReactNode; children: ReactNode }) {
+export interface AdminWorkspaceLayoutProps {
+  userId?: string;
+  displayName?: string | null;
+  avatarUrl?: string | null;
+  title?: string;
+  subtitle?: string;
+  actions?: ReactNode;
+  children: ReactNode;
+}
+
+export function AdminWorkspaceLayout({ userId, displayName, avatarUrl, title, subtitle, actions, children }: AdminWorkspaceLayoutProps) {
   const pathname = usePathname() ?? "";
   const [expanded, setExpanded] = useState(true);
-  const headerLink = `inline-flex min-h-11 min-w-11 items-center justify-center sm:justify-start gap-2 rounded-lg px-2 sm:px-3 text-sm font-semibold hover:bg-muted ${focusRing}`;
 
   return <main className="min-h-[100dvh] bg-gradient-to-br from-action/5 via-background to-muted/70 pt-16 pb-[calc(5rem+env(safe-area-inset-bottom))] text-foreground lg:pb-0">
     <header className="fixed inset-x-0 top-0 z-40 border-b border-border/80 bg-background/90 shadow-sm backdrop-blur-lg">
@@ -71,9 +96,9 @@ export function AdminWorkspaceLayout({ displayName, title, subtitle, actions, ch
           <span className="hidden border-l border-border pl-3 text-sm font-semibold text-muted-foreground md:block">AbangCebu · Admin</span>
         </Link>
         <div className="flex shrink-0 items-center gap-1 sm:gap-2">
-          {displayName && <span className="hidden max-w-40 truncate text-sm text-muted-foreground xl:block" title={displayName}>{displayName}</span>}
-          <Link href="/account" aria-label="Account settings" title="Account settings" className={headerLink}><UserRound size={17} aria-hidden="true" /><span className="hidden sm:inline">Account settings</span></Link>
-          <Link href="/auth/logout" aria-label="Log out" title="Log out" className={headerLink}><LogOut size={17} aria-hidden="true" /><span className="hidden sm:inline">Log out</span></Link>
+          {actions}
+          <NotificationBell userId={userId} />
+          <AccountMenu displayName={displayName} avatarUrl={avatarUrl} role="Admin" variant="header" />
         </div>
       </div>
     </header>

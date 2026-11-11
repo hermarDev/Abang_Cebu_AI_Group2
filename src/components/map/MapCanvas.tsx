@@ -230,6 +230,12 @@ export function MapCanvas({ selectedPlace, selectedRentalId, onSelectRental, ren
     }
 
     mapRef.current = map;
+    // Sprite atlas lacks some icons (e.g. wood-pattern); a transparent pixel silences the warning.
+    if (typeof map.on === "function" && typeof map.hasImage === "function" && typeof map.addImage === "function") {
+      map.on("styleimagemissing", ({ id }) => {
+        if (!map.hasImage(id)) map.addImage(id, { width: 1, height: 1, data: new Uint8Array(4) });
+      });
+    }
 
     if (showAttribution) {
       map.addControl(new AttributionControl({

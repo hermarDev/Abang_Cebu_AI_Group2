@@ -2,7 +2,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/Avatar";
 import { Message, MessageAvatar, MessageContent, MessageFooter } from "./Message";
-import { Bubble, BubbleAttachments, BubbleContent, BubbleGroup, BubbleQuote } from "./Bubble";
+import { Bubble, BubbleAttachments, BubbleContent, BubbleGroup, BubbleQuote, MessagePreviewContent, parseAttachmentPreview } from "./Bubble";
 import { Marker, MarkerContent } from "./Marker";
 import { MessageScroller } from "./MessageScroller";
 
@@ -105,8 +105,67 @@ describe("Chat primitives", () => {
     expect(html).toContain("Hello! Is the property still available?");
   });
 
-  it("renders message attachments grid", () => {
-    const html = renderToStaticMarkup(
+  it("replaces emoji attachment indicators in BubbleQuote and MessagePreviewContent with Lucide icons", () => {
+    const emptyQuote = renderToStaticMarkup(
+      <Bubble mine={false}>
+        <BubbleQuote author="Maria" body="" mine={false} />
+      </Bubble>
+    );
+    expect(emptyQuote).toContain("lucide-image");
+    expect(emptyQuote).toContain("Photo");
+    expect(emptyQuote).not.toContain("📷");
+
+    const emojiQuote = renderToStaticMarkup(
+      <Bubble mine>
+        <BubbleQuote author="Maria" body="📷 Photo" mine />
+      </Bubble>
+    );
+    expect(emojiQuote).toContain("lucide-image");
+    expect(emojiQuote).toContain("Photo");
+    expect(emojiQuote).not.toContain("📷");
+
+    const videoPreview = renderToStaticMarkup(
+      <MessagePreviewContent text="" attachments={[{ mimeType: "video/mp4" }]} fallbackToAttachment />
+    );
+    expect(videoPreview).toContain("lucide-video");
+    expect(videoPreview).toContain("Video");
+
+    const voicePreview = renderToStaticMarkup(
+      <MessagePreviewContent text="" attachments={[{ mimeType: "audio/ogg" }]} fallbackToAttachment />
+    );
+    expect(voicePreview).toContain("lucide-mic");
+    expect(voicePreview).toContain("Voice message");
+
+    const filePreview = renderToStaticMarkup(
+      <MessagePreviewContent text="" attachments={[{ mimeType: "application/pdf" }]} fallbackToAttachment />
+    );
+    expect(filePreview).toContain("lucide-paperclip");
+    expect(filePreview).toContain("Attachment");
+
+    expect(parseAttachmentPreview("📷 Photo")).toEqual({ kind: "photo", text: "Photo" });
+    expect(parseAttachmentPreview("🎥 Room tour")).toEqual({ kind: "video", text: "Room tour" });
+    expect(parseAttachmentPreview("🎤 Voice message")).toEqual({ kind: "voice", text: "Voice message" });
+    expect(parseAttachmentPreview("📎 lease.pdf")).toEqual({ kind: "file", text: "lease.pdf" });
+    expect(parseAttachmentPreview("Is it still available?")).toEqual({ kind: null, text: "Is it still available?" });
+  });
+
+  it("renders message attachments grid with proper dimensions for single and multiple items", () => {
+    const single = renderToStaticMarkup(
+      <Bubble mine hasAttachmentOnly>
+        <BubbleAttachments
+          attachments={[
+            { id: "att-1", url: "https://example.test/img1.jpg", fileName: "IMG_1.jpg", fileSize: 1000, mimeType: "image/jpeg" },
+          ]}
+        />
+      </Bubble>
+    );
+
+    expect(single).toContain("grid-cols-1");
+    expect(single).toContain("w-64 sm:w-72");
+    expect(single).toContain("aspect-4/3 min-h-36");
+    expect(single).toContain("p-0.5 overflow-hidden");
+
+    const multi = renderToStaticMarkup(
       <Bubble mine={false}>
         <BubbleAttachments
           attachments={[
@@ -117,8 +176,10 @@ describe("Chat primitives", () => {
       </Bubble>
     );
 
-    expect(html).toContain("grid-cols-2");
-    expect(html).toContain("img1.jpg");
-    expect(html).toContain("img2.jpg");
+    expect(multi).toContain("grid-cols-2");
+    expect(multi).toContain("w-72 sm:w-80");
+    expect(multi).toContain("aspect-square min-h-24");
+    expect(multi).toContain("img1.jpg");
+    expect(multi).toContain("img2.jpg");
   });
 });

@@ -41,6 +41,7 @@ export interface PropertyDetailsSheetProps {
   onToggleSaved?: (id: string) => void;
   canMessage?: boolean;
   onMessage?: (id: string) => void;
+  side?: "right" | "bottom";
 }
 
 const PROPERTY_TYPE_NAMES: Record<string, string> = {
@@ -316,31 +317,33 @@ export function PropertyDetailsSheetBody({
         )}
       </div>
 
-      {/* Landlord Card (if counterpart from thread is available) */}
-      {thread?.counterpart && (
+      {/* Listed by: always the listing owner, never the viewer or the chat counterpart. */}
+      {thread && thread.listingOwner !== undefined && (
         <div className="rounded-xl border border-border bg-card p-3 mt-1">
           <p className="text-[0.65rem] font-bold uppercase tracking-wider text-muted-foreground mb-2 m-0">
             Listed by
           </p>
           <div className="flex items-center gap-3">
             <Avatar className="size-10">
-              {thread.counterpart.avatarUrl ? (
+              {thread.listingOwner?.avatarUrl ? (
                 <AvatarImage
-                  src={thread.counterpart.avatarUrl}
-                  alt={thread.counterpart.fullName ?? "Landlord"}
+                  src={thread.listingOwner.avatarUrl}
+                  alt={thread.listingOwner.fullName ?? "Landlord"}
                 />
               ) : null}
               <AvatarFallback className="text-xs font-semibold">
-                {(thread.counterpart.fullName ?? "L").slice(0, 2).toUpperCase()}
+                {(thread.listingOwner?.fullName ?? "L").slice(0, 2).toUpperCase()}
               </AvatarFallback>
             </Avatar>
             <div className="min-w-0 flex-1">
               <p className="font-semibold text-foreground truncate m-0">
-                {thread.counterpart.fullName ?? "Landlord"}
+                {thread.listingOwner ? (thread.listingOwner.fullName ?? "Landlord") : "Landlord unavailable"}
               </p>
-              <span className="inline-flex items-center rounded-full border border-border px-1.5 py-0 text-[0.65rem] capitalize text-muted-foreground">
-                {thread.counterpart.role}
-              </span>
+              {thread.listingOwner && (
+                <span className="inline-flex items-center rounded-full border border-border px-1.5 py-0 text-[0.65rem] capitalize text-muted-foreground">
+                  {thread.listingOwner.role}
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -419,6 +422,7 @@ export function PropertyDetailsSheet({
   onToggleSaved,
   canMessage = false,
   onMessage,
+  side,
 }: PropertyDetailsSheetProps) {
   const [fetched, setFetched] = useState<{ id: string; rental: RentalResult | null }>({
     id: "",
@@ -472,13 +476,24 @@ export function PropertyDetailsSheet({
     />
   );
 
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const check = () => setIsMobile(window.innerWidth < 640);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
+
+  const effectiveSide = side ?? (isMobile ? "bottom" : "right");
+
   return (
     <Sheet
       open={open}
       onClose={onClose}
       title={title}
       description={address}
-      side="right"
+      side={effectiveSide}
       footer={footer}
       className="w-full sm:max-w-md lg:max-w-lg"
     >

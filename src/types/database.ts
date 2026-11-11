@@ -366,3 +366,29 @@ export type AssistantConversationUpdate = Database['public']['Tables']['assistan
 export type KycVerification = Database['public']['Tables']['kyc_verifications']['Row'];
 export type KycVerificationInsert = Database['public']['Tables']['kyc_verifications']['Insert'];
 export type KycVerificationUpdate = Database['public']['Tables']['kyc_verifications']['Update'];
+
+export type NotificationType =
+  | 'message'
+  | 'inquiry'
+  | 'listing_update'
+  | 'listing_review'
+  | 'listing_pending'
+  | 'report'
+  | 'security';
+
+export type NotificationEntityType = 'conversation' | 'property' | 'report' | 'account';
+
+export interface NotificationItem {
+  id: string;
+  recipient_id: string;
+  actor_id: string | null;
+  type: NotificationType;
+  title: string;
+  body: string;
+  link: string;
+  entity_type: NotificationEntityType | null;
+  entity_id: string | null;
+  is_read: boolean;
+  read_at: string | null;
+  created_at: string;
+}

@@ -64,7 +64,7 @@ describe("landlord dashboard", () => {
     expect(html).toContain("Landlord tools");
     expect(html).toContain('aria-label="Landlord mobile navigation"');
     expect(html).toContain('aria-label="More landlord options"');
-    expect(html).toContain('aria-label="Listing form"');
+    expect(html).toContain('aria-label="Add property"');
     expect(html).toContain("My properties");
     expect(html).toContain("Total properties");
     expect(html).toContain("Welcome back, Landlord");
@@ -74,7 +74,7 @@ describe("landlord dashboard", () => {
     expect(html).toContain("Changes requested");
     expect(html).toContain("Submitted and waiting for review");
     expect(html).toContain("Rejected with notes");
-    expect(html).toContain("Open listing form");
+    expect(html).toContain("Add property");
     expect(html).toContain("Submitted properties");
     expect(html).toContain("Submitted room");
     expect(html).toContain("Pending review");
@@ -86,7 +86,7 @@ describe("landlord dashboard", () => {
     expect(html).toContain("Your portfolio");
     expect(html).toContain("Test property");
     expect(html).toContain("Draft");
-    expect(html).toContain('aria-label="Listing form"');
+    expect(html).toContain('aria-label="Add property"');
     expect(html).toContain('href="/list-property"');
     expect(html).not.toContain("The listing form is a preview");
     expect(html).toContain('href="/landlord/map?selected=property-a"');
@@ -181,5 +181,30 @@ describe("landlord dashboard", () => {
     const html = renderToStaticMarkup(await LandlordDashboardPage());
     expect(html).toContain("Could not load your properties");
     expect(html).not.toContain("No properties yet");
+  });
+  it("shows needs-attention triage with filtered links and a view-all link", async () => {
+    const html = renderToStaticMarkup(await LandlordDashboardPage());
+    const section = html.match(/<section id="needs-attention"[\s\S]*?<\/section>/)?.[0] ?? "";
+    expect(section).toContain('href="/landlord/properties?status=rejected"');
+    expect(section).toContain('href="/landlord/properties?status=draft"');
+    expect(section).toContain('href="/landlord/properties?status=pending"');
+    expect(section).toContain("1 submission requires updates");
+    expect(section).toContain("1 incomplete draft in portfolio");
+    expect(section).toContain("1 property awaiting review");
+    expect(section).not.toContain("Permit image unreadable.");
+    expect(html).toContain('href="/landlord/properties">View all properties');
+  });
+  it("omits needs-attention when nothing requires action", async () => {
+    mocks.listings.mockResolvedValueOnce({ data: [], error: null });
+    mocks.properties.mockResolvedValueOnce({ data: [{ id: "property-c", title: "Approved flat", status: "approved" }], error: null });
+    expect(renderToStaticMarkup(await LandlordDashboardPage())).not.toContain('id="needs-attention"');
+  });
+  it("renders enriched metadata for listings and submissions", async () => {
+    mocks.listings.mockResolvedValueOnce({ data: [{ id: "listing-a", title: "Test property", status: "published", is_available: true, price: 8000, address: "5 Osmeña Blvd", city: "Cebu City", property_type: "condo", image_urls: null }], error: null });
+    mocks.properties.mockResolvedValueOnce({ data: [{ id: "property-c", title: "Approved flat", status: "approved", street_address: "9 Mango Ave", city: "Cebu City", property_type: "apartment" }], error: null });
+    mocks.units.mockResolvedValueOnce({ data: [{ property_id: "property-c", is_available: true, monthly_rent: 15000 }], error: null });
+    const html = renderToStaticMarkup(await LandlordDashboardPage());
+    expect(html).toContain("5 Osmeña Blvd, Cebu City · condo · ₱8,000/mo");
+    expect(html).toContain("9 Mango Ave, Cebu City · apartment · ₱15,000/mo");
   });
 });

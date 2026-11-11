@@ -189,6 +189,13 @@ describe("property draft media", () => {
 });
 
 describe("property draft media restore", () => {
+  it("signs a valid private WebP permit", async () => {
+    const operation = "22222222-2222-4222-8222-222222222222";
+    mocks.media.mockResolvedValueOnce({ data: [{ operation_id: operation, kind: "permit", content_type: "image/webp", size_bytes: 12, content_sha256: sha, object_path: `landlord-1/11111111-1111-4111-8111-111111111111/${operation}/${sha}.webp` }], error: null });
+    const response = await GET(new Request("http://localhost/api/property-drafts/media?draftId=11111111-1111-4111-8111-111111111111", { headers: { "x-expected-user-id": "landlord-1" } }));
+    expect(response.status).toBe(200);
+    expect((await response.json()).media[0]).toMatchObject({ kind: "permit", contentType: "image/webp" });
+  });
   it("refuses to sign metadata pointing to another owner's object", async () => {
     mocks.media.mockResolvedValueOnce({ data: [{ operation_id: "22222222-2222-4222-8222-222222222222", kind: "photo", content_type: "image/jpeg", size_bytes: 7, content_sha256: sha, object_path: "other-owner/private.jpg" }], error: null });
     const req = new Request("http://localhost/api/property-drafts/media?draftId=11111111-1111-4111-8111-111111111111", { headers: { "x-expected-user-id": "landlord-1" } });

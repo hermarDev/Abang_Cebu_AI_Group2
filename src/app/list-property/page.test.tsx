@@ -1,7 +1,8 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const mocks = vi.hoisted(() => ({ getUser: vi.fn(), profile: vi.fn(), redirect: vi.fn(), notFound: vi.fn() }));
+const mocks = vi.hoisted(() => ({ getUser: vi.fn(), profile: vi.fn(), redirect: vi.fn(), notFound: vi.fn(), signAvatar: vi.fn() }));
+vi.mock("@/lib/profile-avatar", () => ({ signProfileAvatar: mocks.signAvatar }));
 vi.mock("@/lib/supabase/server", () => ({ createClient: async () => ({ auth: { getUser: mocks.getUser }, from: () => ({ select: () => ({ eq: () => ({ maybeSingle: mocks.profile }) }) }) }) }));
 vi.mock("next/navigation", () => ({ redirect: mocks.redirect, notFound: mocks.notFound, useRouter: () => ({ refresh: vi.fn() }), usePathname: () => "/list-property" }));
 import ListPropertyPage from "./page";
@@ -12,7 +13,8 @@ describe("property form preview", () => {
     mocks.redirect.mockImplementation(() => { throw new Error("redirect"); });
     mocks.notFound.mockImplementation(() => { throw new Error("not found"); });
     mocks.getUser.mockResolvedValue({ data: { user: { id: "landlord-a" } }, error: null });
-    mocks.profile.mockResolvedValue({ data: { role: "landlord", is_suspended: false }, error: null });
+    mocks.profile.mockResolvedValue({ data: { full_name: "Lana Landlord", avatar_url: null, role: "landlord", is_suspended: false }, error: null });
+    mocks.signAvatar.mockResolvedValue(null);
   });
   it("requires an active landlord", async () => {
     mocks.getUser.mockResolvedValueOnce({ data: { user: null }, error: null });
@@ -25,7 +27,8 @@ describe("property form preview", () => {
     const html = renderToStaticMarkup(await ListPropertyPage({ searchParams: Promise.resolve({}) }));
     expect(html).toContain("Save a draft at any step");
     expect(html).not.toContain("not available yet");
-    expect(html).toMatch(/<a[^>]*aria-label="Back to dashboard"[^>]*><svg[^>]*lucide-arrow-left/);
+    expect(html).toMatch(/<a[^>]*aria-label="Back to My properties"[^>]*href="\/landlord\/properties"[^>]*><svg[^>]*lucide-arrow-left/);
+    expect(html).not.toContain("Back to dashboard");
     expect(html).toContain("First rental unit");
     expect(html).toContain('name="propertyType"');
     expect(html).toContain('name="rentalType"');
@@ -34,7 +37,12 @@ describe("property form preview", () => {
     expect(html).toContain("Monthly rent (PHP)");
     expect(html).toContain("Property details");
     expect(html).toContain("Save draft");
-    expect(html).not.toContain('aria-label="Landlord mobile navigation"');
+    expect(html).toContain('aria-label="Landlord workspace"');
+    expect(html).toContain('aria-label="Landlord mobile navigation"');
+    expect(html).toMatch(/<a[^>]*aria-current="page"[^>]*href="\/list-property"|<a[^>]*href="\/list-property"[^>]*aria-current="page"/);
+    expect(html.match(/<main/g)).toHaveLength(1);
+    expect(html).toContain("max-w-4xl");
+    expect(mocks.signAvatar).toHaveBeenCalledWith("landlord-a", null);
     expect(html).toContain("Tenant preference");
   });
 });

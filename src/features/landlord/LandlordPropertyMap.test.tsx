@@ -69,6 +69,13 @@ describe("LandlordPropertyMap", () => {
     expect(html).not.toContain("Next photo");
     expect(html).not.toContain("Edit submission");
   });
+  it("keeps popup actions reachable: status row and divider sit above the actions, and the mobile sheet collapses on open", () => {
+    expect(source).toContain("styles.popupStatusRow");
+    expect(source).toContain("content.append(closeBtn, topRow, statusRow, divider, actions)");
+    expect(source).toContain('popup.on("open"');
+    expect(source).toContain("setPanelCollapsed(true)");
+    expect(source).toContain("popupViewPadding()");
+  });
   it("renders panel collapse and fit all properties controls", () => {
     const html = renderToStaticMarkup(<LandlordPropertyMap properties={properties} />);
     expect(html).toContain('aria-label="Collapse properties panel"');

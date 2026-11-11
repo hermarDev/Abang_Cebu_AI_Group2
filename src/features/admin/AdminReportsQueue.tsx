@@ -43,9 +43,9 @@ export const submitReportDecision = (userId: string, { report, decision, operati
   });
 
 export function ReportRow({ report, onInspect, onDecide }: { report: AdminReport; onInspect: (report: AdminReport) => void; onDecide: (report: AdminReport, decision: Decision) => void }) {
-  return <li className="grid gap-3 rounded-xl border border-border bg-card p-4">
+  return <li className="grid gap-3 rounded-xl border border-border bg-card p-4 transition hover:border-action/30">
     <div className="flex flex-wrap items-center gap-2">
-      <Badge variant="outline">{label(report.category)}</Badge>
+      <Badge variant={report.category === "harassment" || report.category === "scam" || report.category === "safety" ? "destructive" : "outline"}>{label(report.category)}</Badge>
       <Badge variant={isClosed(report.status) ? "secondary" : "warning"}>{label(report.status)}</Badge>
       <span className="text-sm text-muted-foreground">{label(report.targetType)} report · {formatAdminDate(report.createdAt)}</span>
     </div>

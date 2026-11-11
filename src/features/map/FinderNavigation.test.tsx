@@ -46,3 +46,69 @@ it("hides the unread badge at zero and the messages link from guests and landlor
     expect(html).not.toContain('href="/messages"');
   }
 });
+
+it("renders structured semantic section headers, MessageSquare icon, and sidebar AccountMenu", () => {
+  const html = renderToStaticMarkup(
+    <FinderNavigation
+      open
+      authenticated
+      userRole="renter"
+      userId="renter-1"
+      displayName="Maria Santos"
+      avatarUrl="https://example.com/avatar.jpg"
+      onClose={() => {}}
+      preference="system"
+      resolvedTheme="light"
+      onPreferenceChange={() => {}}
+      onAccount={() => {}}
+      onHelp={() => {}}
+    />
+  );
+  expect(html).toContain("Rentals");
+  expect(html).toContain("Communication");
+  expect(html).toContain("Assistance");
+  expect(html).toContain("Support");
+  expect(html).not.toContain('aria-label="Account"');
+  expect(html.match(/href="\/account"/g)).toHaveLength(1);
+  expect(html).toContain("lucide-message-square");
+  expect(html).toContain("Maria Santos");
+  expect(html).toContain("Renter");
+  expect(html).toContain('src="https://example.com/avatar.jpg"');
+  expect(html).toContain("Account settings");
+  expect(html).toContain('href="/auth/logout"');
+  expect(html).toContain("Log out");
+});
+
+it("shows workspace section header for landlord and admin", () => {
+  const landlordHtml = renderToStaticMarkup(
+    <FinderNavigation
+      open
+      authenticated
+      userRole="landlord"
+      onClose={() => {}}
+      preference="system"
+      resolvedTheme="light"
+      onPreferenceChange={() => {}}
+      onAccount={() => {}}
+      onHelp={() => {}}
+    />
+  );
+  expect(landlordHtml).toContain("Workspace");
+  expect(landlordHtml).toContain("Landlord workspace");
+
+  const adminHtml = renderToStaticMarkup(
+    <FinderNavigation
+      open
+      authenticated
+      userRole="admin"
+      onClose={() => {}}
+      preference="system"
+      resolvedTheme="light"
+      onPreferenceChange={() => {}}
+      onAccount={() => {}}
+      onHelp={() => {}}
+    />
+  );
+  expect(adminHtml).toContain("Workspace");
+  expect(adminHtml).toContain("Admin workspace");
+});

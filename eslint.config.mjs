@@ -15,6 +15,8 @@ const eslintConfig = defineConfig([
     "public/maplibre-gl/**",
     "playwright-report/**",
     "test-results/**",
+    ".superpowers/**",
+    ".worktrees/**",
   ]),
 ]);
 

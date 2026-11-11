@@ -17,12 +17,37 @@ const valid = () => ({ operationId: "11111111-1111-4111-8111-111111111111", draf
 beforeEach(() => vi.clearAllMocks());
 
 describe("landlord property submission", () => {
-  it("keeps submission unavailable while the workflow is preview-only", async () => {
+  it("submits property draft to RPC and returns propertyId with pending status", async () => {
+    mocks.rpc.mockResolvedValueOnce({ data: { property_id: "prop-new-123" }, error: null });
     const response = await POST(request(valid()));
-    if (!response) throw new Error("missing response");
-    expect(response.status).toBe(503);
-    expect(await response.json()).toEqual({ error: "Listing submission is unavailable in preview." });
-    expect(mocks.getUser).not.toHaveBeenCalled();
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ propertyId: "prop-new-123", status: "pending" });
+    expect(mocks.rpc).toHaveBeenCalledWith("submit_property_from_draft", {
+      p_operation_id: "11111111-1111-4111-8111-111111111111",
+      p_draft_id: "22222222-2222-4222-8222-222222222222",
+      p_expected_revision: 1,
+    });
+  });
+  it("rejects non-landlord or suspended users", async () => {
+    mocks.profile.mockResolvedValueOnce({ data: { role: "renter", is_suspended: false }, error: null });
+    expect((await POST(request(valid()))).status).toBe(403);
+    mocks.profile.mockResolvedValueOnce({ data: { role: "landlord", is_suspended: true }, error: null });
+    expect((await POST(request(valid()))).status).toBe(403);
+  });
+  it("rejects account mismatch and malformed requests without submitting", async () => {
+    expect((await POST(request(valid(), "other"))).status).toBe(409);
+    expect((await POST(request({ ...valid(), expectedRevision: 0 }))).status).toBe(400);
     expect(mocks.rpc).not.toHaveBeenCalled();
+  });
+  it("maps stale and conflicting operations to 409 with distinct codes", async () => {
+    mocks.rpc.mockResolvedValueOnce({ data: null, error: { code: "23505", message: "this draft revision was already submitted" } });
+    const res1 = await POST(request(valid()));
+    expect(res1.status).toBe(409);
+    expect(await res1.json()).toEqual({ error: "This draft revision was already submitted.", code: "already_submitted" });
+
+    mocks.rpc.mockResolvedValueOnce({ data: null, error: { code: "40001", message: "draft changed or unavailable" } });
+    const res2 = await POST(request(valid()));
+    expect(res2.status).toBe(409);
+    expect(await res2.json()).toEqual({ error: "This draft changed or was already submitted. Reload the draft before submitting.", code: "draft_conflict" });
   });
 });

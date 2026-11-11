@@ -14,6 +14,8 @@ export type RentalThreadSummary = {
   listingThumbnailUrl?: string | null;
   listingPhotoUrl?: string | null;
   counterpart: ThreadCounterpart;
+  /** The listing's owner (landlord). Independent of the viewer; `counterpart` is the other chat participant and must not be used for "Listed by". `null` = owner profile missing; `undefined` = older server response. */
+  listingOwner?: ThreadCounterpart | null;
   unreadCount: number;
   isArchived: boolean;
   isBlocked: boolean;
@@ -38,6 +40,7 @@ export type RentalQuotedMessage = {
   senderName: string;
   body: string;
   isUnavailable?: boolean;
+  attachments?: RentalMessageAttachment[];
 };
 export type RentalMessageItem = {
   id: string;
