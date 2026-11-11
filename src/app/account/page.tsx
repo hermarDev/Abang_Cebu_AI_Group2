@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
+import { BrandLogo } from "@/components/brand";
 import { ArrowLeft } from "lucide-react";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
@@ -32,8 +32,7 @@ export default async function AccountPage() {
         <Link href={profile?.role === "admin" ? "/admin/dashboard" : profile?.role === "landlord" ? "/landlord/dashboard" : "/"} className="inline-flex min-h-11 items-center gap-2 rounded-lg px-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
           <ArrowLeft size={18} aria-hidden="true" /> {profile?.role === "admin" ? "Back to admin workspace" : profile?.role === "landlord" ? "Back to workspace" : "Back to map"}
         </Link>
-        <Image src="/icons/main_Logo.png" alt="AbangCebu" width={299} height={100} className="h-auto w-32 dark:hidden" loading="eager" />
-        <Image src="/icons/main_Logo_Light.png" alt="" width={299} height={100} className="hidden h-auto w-32 dark:block" loading="eager" />
+        <BrandLogo className="h-auto w-32" />
       </header>
 
       <div className="relative z-10 mx-auto mt-8 w-full max-w-5xl">

@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
+import { BrandLogo } from "@/components/brand";
 import {
   Search,
   Bookmark,
@@ -99,14 +99,9 @@ export function FinderNavigation({
     >
       <div className={styles.content}>
         <div className={styles.brandRow}>
-          <Image
-            src={resolvedTheme === "dark" ? "/icons/main_Logo_Light.png" : "/icons/main_Logo.png"}
-            unoptimized
-            alt="AbangCebu"
-            width={299}
-            height={100}
-            loading="eager"
-            className={styles.logo}
+          <BrandLogo
+            theme={resolvedTheme}
+            className={`${styles.logo} h-auto w-32`}
           />
           <p>Find your next home in Cebu</p>
         </div>

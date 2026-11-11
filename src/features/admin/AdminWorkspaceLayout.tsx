@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import Image from "next/image";
 import Link from "next/link";
+import { BrandLogo } from "@/components/brand";
 import { usePathname } from "next/navigation";
 import { Bell, ChevronLeft, ChevronRight, ClipboardCheck, Ellipsis, Flag, LayoutDashboard, ScrollText, UserRound, Users } from "lucide-react";
 import { AccountMenu } from "@/components/ui/AccountMenu";
@@ -91,8 +91,7 @@ export function AdminWorkspaceLayout({ userId, displayName, avatarUrl, title, su
     <header className="fixed inset-x-0 top-0 z-40 border-b border-border/80 bg-background/90 shadow-sm backdrop-blur-lg">
       <div className="mx-auto flex min-h-16 max-w-[1920px] items-center justify-between gap-2 px-3 sm:gap-3 sm:px-6 lg:px-8">
         <Link href="/admin/dashboard" aria-label="AbangCebu admin workspace" className="flex min-w-0 items-center gap-3">
-          <Image src="/icons/main_Logo.png" alt="AbangCebu" width={299} height={100} unoptimized className="h-auto w-24 dark:hidden sm:w-32" loading="eager" />
-          <Image src="/icons/main_Logo_Light.png" alt="" width={299} height={100} unoptimized className="hidden h-auto w-24 dark:block sm:w-32" loading="eager" />
+          <BrandLogo className="h-auto w-24 sm:w-32" />
           <span className="hidden border-l border-border pl-3 text-sm font-semibold text-muted-foreground md:block">AbangCebu · Admin</span>
         </Link>
         <div className="flex shrink-0 items-center gap-1 sm:gap-2">

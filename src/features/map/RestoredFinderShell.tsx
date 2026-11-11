@@ -13,6 +13,7 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { RentalFilterDialog } from "@/features/rentals/RentalFilterDialog";
 import Image from "next/image";
 import Link from "next/link";
+import { BrandLogo, ChatbotAvatar } from "@/components/brand";
 import { FinderAssistant } from "./FinderAssistant";
 import { NotificationsModal } from "@/features/notifications/NotificationsModal";
 import { Building2, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, CircleAlert, Info, LogIn, Menu, MessageSquare, Pencil, Search, X } from "lucide-react";
@@ -327,7 +328,7 @@ export function RestoredFinderShell({ rentalStatus: statusOverride, initialAccou
 
   return <main className={styles.app} data-nav-open={false} data-theme={activeTheme} data-results-hidden={resultsHidden} data-results-collapsed={resultsHidden} data-sheet-position={sheetPositions[sheetIndex]} style={{ "--results-sheet-height": sheetHeights[sheetIndex], "--mobile-sheet-peek-height": sheetHeights[sheetIndex] } as React.CSSProperties}><FinderNavigation authenticated={authenticated} userRole={userRole} userId={userId} displayName={displayName} avatarUrl={avatarUrl} open={drawerOpen} preference={preference} resolvedTheme={activeTheme} onPreferenceChange={setPreference} onClose={closeNavigation} onAccount={() => { setDrawerOpen(false); setAccountOpen(true); }} onHelp={() => { setDrawerOpen(false); setHelpOpen(true); }} onNotifications={() => { setDrawerOpen(false); setNotificationsOpen(true); }} /><div className={styles.workspace}><header className={styles.header}>
     <button ref={menuTrigger} className={styles.iconButton} aria-label="Open menu" aria-expanded={drawerOpen} aria-controls="finder-navigation" onClick={() => setDrawerOpen((value) => !value)}><Menu size={21} /></button>
-    <Link href="/" aria-label="AbangCebu home"><Image src={activeTheme === "dark" ? "/icons/main_Logo_Light.png" : "/icons/main_Logo.png"} unoptimized alt="AbangCebu" width={299} height={100} loading="eager" style={{ height: "auto" }} /></Link>
+    <Link href="/" aria-label="AbangCebu home"><BrandLogo theme={activeTheme} className="h-7 w-auto sm:h-8" /></Link>
     <MapSearch className={styles.headerSearch} disabled={false} onSelect={setSelectedPlace} />
   </header>
   {authenticated ? <div className={styles.headerUserActions}>
@@ -438,7 +439,7 @@ export function RestoredFinderShell({ rentalStatus: statusOverride, initialAccou
   )}
   {inquiryRental && userId && <ListingInquiryModal key={inquiryRental.id} listingId={inquiryRental.id} listingTitle={inquiryRental.title} userId={userId} surface="finder" onClose={() => setInquiryListingId(null)} />}
   <NotificationsModal userId={userId} open={notificationsOpen} onClose={() => setNotificationsOpen(false)} />
-  {canUseRentalAssistant && !helpOpen && <button type="button" className={styles.chatLauncher} aria-label="Open rental assistant" title="Rental assistant" onClick={() => setHelpOpen(true)}><Image src="/icons/chatbot_logo.png" alt="" width={48} height={48} /></button>}
+  {canUseRentalAssistant && !helpOpen && <button type="button" className={styles.chatLauncher} aria-label="Open rental assistant" title="Rental assistant" onClick={() => setHelpOpen(true)}><ChatbotAvatar size={48} className="h-12 w-12" /></button>}
   {canUseRentalAssistant && helpOpen && <button type="button" className={styles.assistantBackdrop} style={{ backdropFilter: "blur(3px)", WebkitBackdropFilter: "blur(3px)" }} aria-label="Close AbangCebu assistant" tabIndex={-1} onClick={() => setHelpOpen(false)} />}
   {canUseRentalAssistant && <FinderAssistant open={helpOpen} onOpenChange={setHelpOpen} onSearch={() => document.querySelector<HTMLInputElement>('input[role="combobox"]')?.focus()} onFilters={() => setAdvancedOpen(true)} onControlsTargetChange={setAssistantControlsTarget} onSignIn={() => { setHelpOpen(false); setAccountOpen(true); }} authenticated={authenticated} userId={userId} displayName={displayName} profilePhotoUrl={avatarUrl} />}</div></main>;
 }
