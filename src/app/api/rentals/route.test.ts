@@ -132,5 +132,15 @@ describe("GET /api/rentals", () => {
       const body = await (await GET()).json();
       expect(body.rentals[0].imageUrls).toEqual([]);
     });
+
+    it("degrades to submitted properties when listings query has an error", async () => {
+      query.limit.mockResolvedValue({ data: null, error: { message: "Listings unavailable" } });
+      rpc.mockResolvedValue({ data: [row("p1", "approved", [photo])], error: null });
+      const response = await GET();
+      expect(response.status).toBe(200);
+      const body = await response.json();
+      expect(body.rentals).toHaveLength(1);
+      expect(body.rentals[0].id).toBe("p1");
+    });
   });
 });

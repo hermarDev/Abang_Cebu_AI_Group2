@@ -25,7 +25,7 @@ import { LogoutLink } from "@/components/ui/LogoutLink";
 import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
 import { notify } from "@/components/ui/AppToaster";
-import { QuickFilters, propertyTypes } from "./FinderQuickFilters";
+import { QuickFilters, getActiveFilterCount, propertyTypes } from "./FinderQuickFilters";
 import { RentalCard } from "@/features/listings/RentalCard";
 import { ListingInquiryModal } from "@/features/messages/ListingInquiryModal";
 import { PropertyDetailsSheet } from "@/features/rentals/PropertyDetailsSheet";
@@ -311,8 +311,27 @@ export function RestoredFinderShell({ rentalStatus: statusOverride, initialAccou
   const canSaveRentals = !usingSamples && (!authenticated || userRole === "renter") && (!authenticated || favoritesLoaded);
   const noInventory = rentals.length === 0;
   const canUseRentalAssistant = !authenticated || userRole === "renter";
-  const title = rentalStatus === "loading" ? "Loading rentals…" : rentalStatus === "error" ? "Couldn’t load rentals" : noInventory ? "No rentals found" : "No rentals match these filters";
-  const statusMessage = rentalStatus === "loading" ? "Checking the configured rental data service…" : rentalStatus === "error" ? "Live listings could not be loaded. No sample properties are shown." : noInventory ? "Try adjusting your search, expanding the search area, or browsing another location." : "Try clearing filters or expanding your search radius.";
+  const hasActiveFilters = getActiveFilterCount(filters) > 0;
+  const title = rentalStatus === "loading"
+    ? "Loading rentals…"
+    : rentalStatus === "error"
+    ? "Couldn’t load rentals"
+    : noInventory
+    ? "No rentals found"
+    : hasActiveFilters
+    ? "No rentals match these filters"
+    : mapRadius < 10
+    ? `No rentals within ${mapRadius} km`
+    : "No rentals found in this area";
+  const statusMessage = rentalStatus === "loading"
+    ? "Checking the configured rental data service…"
+    : rentalStatus === "error"
+    ? "Live listings could not be loaded. Please check your connection and try again."
+    : noInventory
+    ? "Try adjusting your search, expanding the search area, or browsing another location."
+    : hasActiveFilters
+    ? "Try clearing filters or expanding your search radius."
+    : "There are rentals available nearby in Metro Cebu. Expand your search area to discover them.";
   const changeCategory = (category: typeof listingCategories[number]) => {
     setFilters((current) => ({ ...current, propertyTypes: category.types }));
   };
@@ -377,8 +396,8 @@ export function RestoredFinderShell({ rentalStatus: statusOverride, initialAccou
         {favoriteFeedback && <p className={styles.favoriteFeedback} data-kind={favoriteFeedback.includes("saved to your list") || favoriteFeedback.includes("removed from your saved list") ? "success" : "error"} role={favoriteFeedback.includes("saved to your list") || favoriteFeedback.includes("removed from your saved list") ? "status" : "alert"}>{favoriteFeedback}</p>}
         {usingSamples && <div className={listingStyles.sampleNotice} role="status"><b>Sample data is on</b><p>Fictional, unverified rentals. These are not real offers.</p><button type="button" onClick={() => { setSampleMode(false); setSelectedRentalId(null); }}>Return to live data</button></div>}
         {rentalStatus === "loading" && <div className={listingStyles.loadingState} role="status"><div aria-hidden="true" data-testid="rental-loading-skeletons" className={listingStyles.skeletons}>{[0, 1, 2].map((index) => <div key={index} className={listingStyles.skeleton}><Skeleton className="h-24 w-full" /><Skeleton className="h-5 w-3/4" /><Skeleton className="h-4 w-1/2" /></div>)}</div><b>Loading rentals…</b><p>Checking the configured rental data service…</p><span className={listingStyles.srOnly}>Loading rentals…</span></div>}
-        {rentalStatus === "error" ? <div className={listingStyles.emptyState} role="alert"><div className={listingStyles.emptyIcon}><Building2 size={24} aria-hidden="true" /></div><b>Couldn’t load rentals</b><p>{statusMessage}</p><div className={listingStyles.emptyActions}>{statusOverride === undefined && <button type="button" className={listingStyles.secondaryButton} onClick={() => { setInventory({ status: "loading", rentals: [] }); setRequest((value) => value + 1); }}>Try again</button>}</div></div>
-          : rentalStatus === "ready" && visibleRentals.length === 0 ? <div className={listingStyles.emptyState}><div className={listingStyles.emptyIcon}><Building2 size={24} aria-hidden="true" /></div><b>{title}</b><p>{statusMessage}</p><div className={listingStyles.emptyActions}>{mapRadius < 10 && <button type="button" className={listingStyles.expandButton} onClick={() => setMapRadius(mapRadius < 3 ? 3 : mapRadius < 5 ? 5 : 10)}><Search size={16} aria-hidden="true" />Expand search</button>}{!noInventory && <button type="button" className={listingStyles.linkButton} onClick={() => setFilters(DEFAULT_RENTAL_FILTERS)}>Clear filters</button>}</div></div>
+        {rentalStatus === "error" ? <div className={listingStyles.emptyState} role="alert"><div className={listingStyles.emptyIcon}><Building2 size={24} aria-hidden="true" /></div><b>Couldn’t load rentals</b><p>{statusMessage}</p><div className={listingStyles.emptyActions}>{statusOverride === undefined && <button type="button" className={listingStyles.expandButton} onClick={() => { setInventory({ status: "loading", rentals: [] }); setRequest((value) => value + 1); }}>Try again</button>}</div></div>
+          : rentalStatus === "ready" && visibleRentals.length === 0 ? <div className={listingStyles.emptyState}><div className={listingStyles.emptyIcon}><Building2 size={24} aria-hidden="true" /></div><b>{title}</b><p>{statusMessage}</p><div className={listingStyles.emptyActions}>{mapRadius < 10 && <button type="button" className={listingStyles.expandButton} onClick={() => setMapRadius(mapRadius < 3 ? 3 : mapRadius < 5 ? 5 : 10)}><Search size={16} aria-hidden="true" />Expand search</button>}{hasActiveFilters && <button type="button" className={listingStyles.linkButton} onClick={() => setFilters(DEFAULT_RENTAL_FILTERS)}>Clear filters</button>}</div></div>
             : rentalStatus === "ready" ? <ul className={`${styles.rentalList} ${listingStyles.rentalList}`}>{visibleRentals.map((rental) => <li key={rental.id}><RentalCard rental={rental} selected={selectedRentalId === rental.id} onSelect={setSelectedRentalId} saved={favoriteIds.includes(rental.id)} canSave={canSaveRentals} onToggleSaved={toggleFavorite} onExpand={openExpandedRental} canMessage={canMessageLandlord} onMessage={messageLandlord} /></li>)}</ul> : null}
       </div>
       <footer className={listingStyles.radiusFooter}><span>Search area: <b>{mapRadius} km radius</b></span><button type="button" aria-label="Edit search radius" onClick={() => setAdvancedOpen(true)}><span className={listingStyles.srOnly}>Edit search radius</span><Pencil size={16} aria-hidden="true" /></button></footer>
