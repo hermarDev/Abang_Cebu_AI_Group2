@@ -58,7 +58,7 @@ export function ReportRow({ report, onInspect, onDecide }: { report: AdminReport
     <div className="flex flex-wrap gap-2">
       <Button size="sm" variant="outline" onClick={() => onInspect(report)}>Inspect evidence</Button>
       {!isClosed(report.status) && <>
-        <Button size="sm" variant="destructive" onClick={() => onDecide(report, "resolved")}>Resolve</Button>
+        <Button size="sm" variant="primary" onClick={() => onDecide(report, "resolved")}>Resolve</Button>
         <Button size="sm" variant="outline" onClick={() => onDecide(report, "dismissed")}>Dismiss</Button>
       </>}
     </div>
@@ -158,7 +158,7 @@ export function AdminReportsQueue({ userId, initialStatus }: { userId: string; i
         {dialogError && <Alert variant="error">{dialogError}</Alert>}
         <div className="flex flex-wrap justify-end gap-2">
           <Button variant="outline" onClick={close} disabled={saving}>Cancel</Button>
-          <Button variant={resolving ? "destructive" : "primary"} onClick={confirm} disabled={saving || reasonProblem(note, 5) !== null}>{saving ? "Saving…" : resolving ? "Resolve" : "Dismiss"}</Button>
+          <Button variant={resolving && suspend ? "destructive" : "primary"} onClick={confirm} disabled={saving || reasonProblem(note, 5) !== null}>{saving ? "Saving…" : resolving ? "Resolve" : "Dismiss"}</Button>
         </div>
       </div>
     </Modal>
