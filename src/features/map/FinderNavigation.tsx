@@ -31,6 +31,7 @@ export interface FinderNavigationProps {
   onPreferenceChange: (preference: "light" | "dark" | "system") => void;
   onAccount: () => void;
   onHelp: () => void;
+  onNotifications?: () => void;
   authenticated?: boolean;
   userRole?: UserRole | null;
   userId?: string | null;
@@ -50,6 +51,7 @@ export function FinderNavigation({
   onPreferenceChange,
   onAccount,
   onHelp,
+  onNotifications,
   authenticated = false,
   userRole = null,
   userId = null,
@@ -174,8 +176,7 @@ export function FinderNavigation({
                 className={styles.navItem}
                 onClick={() => {
                   onClose();
-                  const bell = document.querySelector<HTMLButtonElement>('button[aria-label^="Notifications"]');
-                  bell?.click();
+                  onNotifications?.();
                 }}
               >
                 <Bell aria-hidden="true" />
