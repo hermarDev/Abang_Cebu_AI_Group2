@@ -43,6 +43,7 @@ import { ListPropertyForm } from "./ListPropertyForm";
 
 type Element = ReactElement<Record<string, unknown>>;
 const fields: Record<string, string> = {};
+let formProps: Partial<React.ComponentProps<typeof ListPropertyForm>> = {};
 
 // Minimal stand-in for the <form> DOM node: every step panel is valid and fields read from `fields`.
 const fakeForm = {
@@ -70,7 +71,7 @@ function text(node: ReactNode): string {
 function render() {
   hooks.cursor = 0;
   hooks.refCursor = 0;
-  const tree = ListPropertyForm({ userId: "landlord-a" });
+  const tree = ListPropertyForm({ userId: "landlord-a", ...formProps });
   walk(tree, (el) => { if (el.type === "form") (el.props.ref as { current: unknown }).current = fakeForm; });
   return tree;
 }
@@ -96,6 +97,7 @@ let submissions: Array<{ operationId: string; draftId: string; expectedRevision:
 let submitReplies: Array<{ status: number; body: unknown }>;
 
 beforeEach(() => {
+  formProps = {};
   hooks.values = [];
   hooks.refs = [];
   hooks.push.mockReset();
@@ -125,6 +127,20 @@ describe("ListPropertyForm", () => {
     expect(text(render())).toContain("Step 1 of 5");
     expect(find((el) => el.props["aria-label"] === "Step 1: Property details").props["aria-current"]).toBe("step");
     expect(button("Save draft")).toBeTruthy();
+  });
+
+  it("shows completed-step checkmarks, section Edit buttons and the pending review callout", async () => {
+    await reachReviewStep();
+    const tree = render();
+    expect(find((el) => el.props["aria-label"] === "Edit property details")).toBeTruthy();
+    for (const label of ["Edit location", "Edit amenities and photos", "Edit business permit"]) expect(find((el) => el.props["aria-label"] === label)).toBeTruthy();
+    expect(text(tree)).toContain("What happens next:");
+    expect(text(tree)).toContain("pending review");
+    let checks = 0;
+    walk(tree, (el) => { if (el.props["aria-label"]?.toString().startsWith("Step ")) walk(el.props.children as ReactNode, (c) => { if (c.props.size === 13) checks++; }); });
+    expect(checks).toBe(4);
+    (find((el) => el.props["aria-label"] === "Edit location").props.onClick as () => void)();
+    expect(text(render())).toContain("Step 2 of 5");
   });
 
   it("renders the interactive drag-and-drop photo dropzone with accessible label", () => {
@@ -171,5 +187,44 @@ describe("ListPropertyForm", () => {
     expect(submissions[1].operationId).toBe(submissions[0].operationId);
     expect(submissions[1]).toMatchObject({ draftId: "draft-1", expectedRevision: 2 });
     expect(hooks.push).toHaveBeenCalledWith("/landlord/map?selected=prop-1");
+  });
+
+  it("handles HTTP 409 already submitted gracefully with a toast and redirects to /landlord/properties", async () => {
+    hooks.save.mockResolvedValueOnce({ draftId: "draft-1", revision: 2 });
+    submitReplies.push({ status: 409, body: { error: "This draft revision was already submitted.", code: "already_submitted" } });
+    await reachReviewStep();
+
+    (button("Submit listing for review").props.onClick as () => void)();
+    await settle();
+
+    expect(notify).toHaveBeenCalledWith("success", "property-submission", "Submission already received");
+    expect(hooks.push).toHaveBeenCalledWith("/landlord/properties");
+    expect(button("Saving…")).toBeTruthy();
+  });
+
+  it("handles HTTP 409 draft conflict by remaining on form without redirecting", async () => {
+    hooks.save.mockResolvedValueOnce({ draftId: "draft-1", revision: 2 });
+    submitReplies.push({ status: 409, body: { error: "This draft changed or was already submitted. Reload the draft before submitting.", code: "draft_conflict" } });
+    await reachReviewStep();
+
+    (button("Submit listing for review").props.onClick as () => void)();
+    await settle();
+
+    expect(notify).toHaveBeenCalledWith("error", "property-submission", "This draft changed or was already submitted. Reload the draft before submitting.");
+    expect(hooks.push).not.toHaveBeenCalled();
+  });
+
+  it("redirects revisions to /landlord/properties on successful submission and keeps saving=true", async () => {
+    formProps = { restoreTarget: { draftId: "draft-rev-1", revision: "2" } };
+    hooks.save.mockResolvedValueOnce({ draftId: "draft-rev-1", revision: 2 });
+    submitReplies.push({ status: 200, body: { propertyId: "prop-rev-1", status: "pending" } });
+    await reachReviewStep();
+
+    (button("Submit listing for review").props.onClick as () => void)();
+    await settle();
+
+    expect(notify).toHaveBeenCalledWith("success", "property-submission", "Listing submitted for review. Status: pending.");
+    expect(hooks.push).toHaveBeenCalledWith("/landlord/properties");
+    expect(button("Saving…")).toBeTruthy();
   });
 });

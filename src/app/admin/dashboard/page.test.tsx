@@ -1,12 +1,13 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const mocks = vi.hoisted(() => ({ getUser: vi.fn(), profile: vi.fn(), rpc: vi.fn(), redirect: vi.fn(), notFound: vi.fn() }));
+const mocks = vi.hoisted(() => ({ sign: vi.fn(), getUser: vi.fn(), profile: vi.fn(), rpc: vi.fn(), redirect: vi.fn(), notFound: vi.fn() }));
 vi.mock("@/lib/supabase/server", () => ({ createClient: async () => ({
   auth: { getUser: mocks.getUser },
   rpc: mocks.rpc,
   from: () => ({ select: () => ({ eq: () => ({ maybeSingle: mocks.profile }) }) }),
 }) }));
+vi.mock("@/lib/profile-avatar", () => ({ signProfileAvatar: mocks.sign }));
 vi.mock("next/navigation", () => ({ redirect: mocks.redirect, notFound: mocks.notFound, usePathname: () => "/admin/dashboard" }));
 import AdminDashboardPage from "./page";
 
@@ -21,6 +22,13 @@ describe("admin dashboard", () => {
     mocks.getUser.mockResolvedValue({ data: { user: { id: "admin-a" } }, error: null });
     mocks.profile.mockResolvedValue({ data: { role: "admin", is_suspended: false, full_name: "Ada Admin" }, error: null });
     mocks.rpc.mockResolvedValue({ data: overview, error: null });
+    mocks.sign.mockResolvedValue("https://example.test/admin.png");
+  });
+  it("signs the admin avatar and passes it to the layout", async () => {
+    mocks.profile.mockResolvedValueOnce({ data: { role: "admin", is_suspended: false, full_name: "Ada Admin", avatar_url: "admin-a/a.png" }, error: null });
+    const jsx = await AdminDashboardPage();
+    expect(mocks.sign).toHaveBeenCalledWith("admin-a", "admin-a/a.png");
+    expect(jsx.props.avatarUrl).toBe("https://example.test/admin.png");
   });
   it("redirects guests and denies other roles and suspended administrators", async () => {
     mocks.getUser.mockResolvedValueOnce({ data: { user: null }, error: null });

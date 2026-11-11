@@ -3,10 +3,11 @@
 import { useEffect, useRef, useState, useTransition, type ChangeEvent, type FormEvent } from "react";
 import { Camera, Eye, EyeOff, KeyRound, LogOut, Mail, ShieldCheck, UserRound, X, ZoomIn } from "lucide-react";
 import Image from "next/image";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { notify } from "@/components/ui/AppToaster";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { LogoutLink } from "@/components/ui/LogoutLink";
 import { Modal } from "@/components/ui/Modal";
 import { PasswordRequirements } from "@/components/auth/PasswordRequirements";
 import { normalizePhilippineAccountMobile } from "@/lib/phone-number";
@@ -129,6 +130,14 @@ export function AccountSettingsForm({ profile }: { profile: AccountProfile }) {
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [profileResult, setProfileResult] = useState<AccountActionResult | null>(null);
   const [avatarResult, setAvatarResult] = useState<AvatarActionResult | null>(null);
+  // Tests render this without an App Router context; refresh is best-effort there.
+  let router: ReturnType<typeof useRouter> | null = null;
+  try {
+    // eslint-disable-next-line react-hooks/rules-of-hooks -- always called; try/catch only guards missing router context in tests
+    router = useRouter();
+  } catch {
+    router = null;
+  }
   const [profilePending, startProfileTransition] = useTransition();
   const [avatarPending, startAvatarTransition] = useTransition();
   const avatarInput = useRef<HTMLInputElement>(null);
@@ -177,6 +186,7 @@ export function AccountSettingsForm({ profile }: { profile: AccountProfile }) {
       setAvatarResult(result.success ? null : result);
       if (result.success) {
         notify("success", "account-avatar-updated", result.message);
+        router?.refresh();
         setAvatarUrl(result.avatarUrl ?? null);
         setAvatarPreview(result.avatarUrl ?? null);
         setAvatarFile(null);
@@ -198,6 +208,7 @@ export function AccountSettingsForm({ profile }: { profile: AccountProfile }) {
       setRemovePhotoOpen(false);
       if (result.success) {
         notify("success", "account-avatar-removed", result.message);
+        router?.refresh();
         setAvatarUrl(null);
         setAvatarPreview(null);
         setAvatarFile(null);
@@ -214,7 +225,10 @@ export function AccountSettingsForm({ profile }: { profile: AccountProfile }) {
       try {
         const result = await updateAccountProfile(formData);
         setProfileResult(result.success ? null : result);
-        if (result.success) notify("success", "account-profile-saved", result.message);
+        if (result.success) {
+          notify("success", "account-profile-saved", result.message);
+          router?.refresh();
+        }
         if (result.success && result.profile) {
           const savedPhoneNumber = displayPhone(result.profile.phoneNumber);
           setFullName(result.profile.fullName);
@@ -237,7 +251,7 @@ export function AccountSettingsForm({ profile }: { profile: AccountProfile }) {
         <div className="mb-5 flex flex-wrap items-center gap-4 rounded-xl border border-border bg-muted/50 p-4">
           {avatarPreview
             ? <button type="button" aria-label="View profile photo" title="View full-size profile photo" onClick={() => setAvatarPreviewOpen(true)} className="group relative grid size-16 shrink-0 cursor-zoom-in place-items-center overflow-visible rounded-full border border-border bg-card text-muted-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
-              <Image src={avatarPreview} alt="" width={64} height={64} unoptimized className="size-full rounded-full object-cover" />
+              <Image src={avatarPreview} alt="" width={64} height={64} unoptimized loading="eager" className="size-full rounded-full object-cover" />
               <span className="absolute bottom-0 right-0 grid size-6 translate-x-1 translate-y-1 place-items-center rounded-full border border-border bg-card text-action shadow-sm"><ZoomIn size={14} aria-hidden="true" /></span>
             </button>
             : <div className="grid size-16 shrink-0 place-items-center overflow-hidden rounded-full border border-border bg-card text-muted-foreground"><UserRound size={26} aria-hidden="true" /></div>}
@@ -310,9 +324,8 @@ export function AccountSettingsForm({ profile }: { profile: AccountProfile }) {
           <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-accent text-accent-foreground"><LogOut size={20} aria-hidden="true" /></span>
           <div><h2 id="session-heading" className="text-base font-semibold">Session</h2><p className="mt-1 text-sm text-muted-foreground">Log out of your AbangCebu account on this device.</p></div>
         </div>
-        <Link href="/auth/logout" className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg border border-border bg-card px-4 text-sm font-semibold text-card-foreground hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
-          <LogOut size={17} aria-hidden="true" /> Log out
-        </Link>
+        <div className="my-4 h-px bg-border/80" role="separator" />
+        <LogoutLink className="w-full" />
       </section>
       <p className="px-1 text-sm leading-relaxed text-muted-foreground">Need help with your account? <a className="font-medium text-action hover:underline" href="mailto:support@abangcebu.ai">Contact support</a>.</p>
     </aside>

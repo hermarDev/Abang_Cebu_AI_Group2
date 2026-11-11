@@ -1,3 +1,4 @@
+import { isAuthRetryableFetchError } from "@supabase/supabase-js";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { signProfileAvatar } from "@/lib/profile-avatar";
@@ -14,6 +15,7 @@ export const reply = (body: unknown, status: number, extra: Record<string, strin
 export async function requireMessagingUser(request: Request, roles: readonly string[] = ["renter", "landlord"]) {
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError && isAuthRetryableFetchError(authError)) return { response: reply({ error: "Your account could not be checked. Please try again." }, 503) } as const;
   if (authError || !user) return { response: reply({ error: "Sign in to access messages." }, 401) } as const;
   if (request.headers.get("x-expected-user-id") !== user.id) {
     return { response: reply({ error: "Your account changed. Please refresh and try again." }, 409) } as const;
@@ -111,9 +113,15 @@ export function rpcFailure(code: string | undefined, map: Record<string, number>
   return reply({ error }, status);
 }
 
-type Thread = Record<string, unknown> & { listingPhotoPath?: unknown; counterpart?: Record<string, unknown> & { id?: string; avatarUrl?: unknown } };
+type Thread = Record<string, unknown> & { listingPhotoPath?: unknown; counterpart?: Record<string, unknown> & { id?: string; avatarUrl?: unknown }; listingOwner?: (Record<string, unknown> & { id?: string; avatarUrl?: unknown }) | null };
 
 /** Signs listing thumbnails + counterpart avatars; strips raw paths and any contact fields. */
+async function sanitizeProfile(profile: (Record<string, unknown> & { id?: string; avatarUrl?: unknown }) | null | undefined) {
+  const { email: _e, phone_number: _p, phoneNumber: _n, phone: _ph, avatarUrl, ...safe } = profile ?? {};
+  void _e; void _p; void _n; void _ph;
+  return { ...safe, avatarUrl: typeof profile?.id === "string" ? await signProfileAvatar(profile.id, typeof avatarUrl === "string" ? avatarUrl : null) : null };
+}
+
 export async function enrichThreads(threads: Thread[]) {
   const paths = [...new Set(threads.map((t) => t.listingPhotoPath).filter((p): p is string => typeof p === "string" && DRAFT_MEDIA_PATH.test(p)))];
   const signed = new Map<string, string>();
@@ -126,16 +134,15 @@ export async function enrichThreads(threads: Thread[]) {
     }
   }
   return Promise.all(threads.map(async (t) => {
-    const { listingPhotoPath, counterpart, ...rest } = t;
+    const { listingPhotoPath, counterpart, listingOwner, ...rest } = t;
     const photo = typeof listingPhotoPath === "string" ? listingPhotoPath : null;
-    const { email: _e, phone_number: _p, phoneNumber: _n, phone: _ph, avatarUrl, ...safeCounterpart } = counterpart ?? {};
-    void _e; void _p; void _n; void _ph;
     const signedPhoto = photo && /^https:\/\//i.test(photo) ? photo : photo ? (signed.get(photo) ?? null) : null;
     return {
       ...rest,
       listingThumbnailUrl: signedPhoto,
       listingPhotoUrl: signedPhoto,
-      counterpart: { ...safeCounterpart, avatarUrl: typeof counterpart?.id === "string" ? await signProfileAvatar(counterpart.id, typeof avatarUrl === "string" ? avatarUrl : null) : null },
+      counterpart: await sanitizeProfile(counterpart),
+      ...(listingOwner === undefined ? {} : { listingOwner: listingOwner === null ? null : await sanitizeProfile(listingOwner) }),
     };
   }));
 }

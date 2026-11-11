@@ -167,6 +167,15 @@ async function main() {
     const afterRelease = await second.evaluate(async () => (await new window.BrowserDraftIntentRepository().listPending("owner-d"))[0]);
     assert.equal(afterRelease.values.title, "newer edit", "A late release acknowledgement must preserve newer edits");
     assert.equal(afterRelease.files[0].released, true);
+    const releaseRetry = await first.evaluate(async () => {
+      const repo = new window.BrowserDraftIntentRepository();
+      const saved = (await repo.listPending("owner-d"))[0];
+      await window.releaseDraftUpload(saved, "file-op", repo, async () => new Response(JSON.stringify({ state: "released" }), { status: 200 }));
+      return { version: saved.storageVersion, released: saved.files[0].released };
+    });
+    assert.equal(releaseRetry.released, true);
+    const afterRetry = await second.evaluate(async () => (await new window.BrowserDraftIntentRepository().listPending("owner-d"))[0]);
+    assert.equal(releaseRetry.version, afterRetry.storageVersion, "An idempotent release retry must use the current version");
     const staleDeletion = await second.evaluate(async () => {
       const repo = new window.BrowserDraftIntentRepository();
       const item = (await repo.listPending("owner-d"))[0];

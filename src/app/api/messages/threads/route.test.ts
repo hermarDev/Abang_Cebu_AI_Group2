@@ -66,6 +66,19 @@ describe("GET /api/messages/threads", () => {
     expect(mocks.rpc).not.toHaveBeenCalled();
   });
 
+  it("keeps listingOwner independent of the viewer-relative counterpart, signs its avatar and strips contact fields", async () => {
+    const owner = { id: uuid, fullName: "abangcebu landlord", role: "landlord", avatarUrl: `${uuid}/o.png`, email: "owner@x.com", phone_number: "0918" };
+    const renterAsCounterpart = { id: uuid2, fullName: "abangcebu renter", role: "renter", avatarUrl: null };
+    mocks.rpc.mockResolvedValue({ data: [thread({ counterpart: renterAsCounterpart, listingOwner: owner }), thread({ counterpart: renterAsCounterpart, listingOwner: null }), thread({ counterpart: renterAsCounterpart })], error: null });
+    mocks.signAvatar.mockImplementation(async (id: string) => `https://signed.example/${id}.png`);
+    const { threads } = await (await get(headers())).json();
+    expect(threads[0].listingOwner).toEqual({ id: uuid, fullName: "abangcebu landlord", role: "landlord", avatarUrl: `https://signed.example/${uuid}.png` });
+    expect(threads[0].counterpart.fullName).toBe("abangcebu renter");
+    expect(threads[1].listingOwner).toBeNull();
+    expect(threads[2]).not.toHaveProperty("listingOwner");
+    expect(JSON.stringify(threads)).not.toMatch(/owner@x\.com|0918/);
+  });
+
   it("signs thumbnails and avatars and leaks no contact details or raw paths", async () => {
     mocks.rpc.mockResolvedValue({ data: [thread(), thread({ id: uuid2, listingPhotoPath: "https://cdn.example/p.jpg" }), thread({ listingPhotoPath: "../etc/passwd" })], error: null });
     mocks.createSignedUrls.mockResolvedValue({ data: [{ path, signedUrl: "https://signed.example/t.jpg" }], error: null });

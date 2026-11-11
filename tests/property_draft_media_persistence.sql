@@ -32,10 +32,14 @@ DO $$ DECLARE a uuid; b uuid; r jsonb; op uuid; i integer; BEGIN
  op := 'dddddddd-0000-4000-8000-000000000001';
  PERFORM public.prepare_property_draft_media(a, op, 'permit', 'application/pdf', 7, repeat('b',64), 'aaaaaaaa-0000-4000-8000-000000000001/' || a || '/' || op || '/' || repeat('b',64) || '.pdf', 'permit.pdf');
  PERFORM public.prepare_property_draft_media(b, op, 'permit', 'application/pdf', 7, repeat('b',64), 'aaaaaaaa-0000-4000-8000-000000000001/' || b || '/' || op || '/' || repeat('b',64) || '.pdf', 'permit.pdf');
- op := 'dddddddd-0000-4000-8000-000000000002';
+ FOR i IN 2..5 LOOP
+   op := ('dddddddd-0000-4000-8000-' || lpad(i::text, 12, '0'))::uuid;
+   PERFORM public.prepare_property_draft_media(a, op, 'permit', 'application/pdf', 7, repeat('b',64), 'aaaaaaaa-0000-4000-8000-000000000001/' || a || '/' || op || '/' || repeat('b',64) || '.pdf', 'permit.pdf');
+ END LOOP;
+ op := 'dddddddd-0000-4000-8000-000000000006';
  BEGIN
    PERFORM public.prepare_property_draft_media(a, op, 'permit', 'application/pdf', 7, repeat('b',64), 'aaaaaaaa-0000-4000-8000-000000000001/' || a || '/' || op || '/' || repeat('b',64) || '.pdf', 'permit.pdf');
-   RAISE EXCEPTION 'second permit accepted';
+   RAISE EXCEPTION 'sixth permit accepted';
  EXCEPTION WHEN program_limit_exceeded THEN NULL; END;
  BEGIN PERFORM public.prepare_property_draft_media(a,'cccccccc-0000-4000-8000-000000000001','permit','application/pdf',7,repeat('a',64),'aaaaaaaa-0000-4000-8000-000000000001/' || a || '/cccccccc-0000-4000-8000-000000000001/' || repeat('a',64) || '.pdf', 'permit.pdf'); RAISE EXCEPTION 'changed intent accepted'; EXCEPTION WHEN unique_violation THEN NULL; END;
 END $$;

@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { AccountMenu } from "@/components/ui/AccountMenu";
 import { FinderNavigation } from "./FinderNavigation";
+import { NotificationBell } from "@/features/notifications/NotificationBell";
 import { getResolvedTheme, useFinderTheme } from "./useFinderTheme";
 import type { RentalResult } from "@/contracts/preview";
 import { SAMPLE_RENTALS } from "@/features/listings/preview-rentals";
@@ -12,11 +14,12 @@ import { RentalFilterDialog } from "@/features/rentals/RentalFilterDialog";
 import Image from "next/image";
 import Link from "next/link";
 import { FinderAssistant } from "./FinderAssistant";
-import { Building2, ChevronDown, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, CircleAlert, Info, LogIn, LogOut, MapPinned, Menu, MessageSquare, Pencil, Search, User, X } from "lucide-react";
+import { Building2, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, CircleAlert, Info, LogIn, MapPinned, Menu, MessageSquare, Pencil, Search, X } from "lucide-react";
 import { AccountAccessContent, type AccountMode } from "@/components/auth/AccountAccessContent";
 import MapSearch from "@/components/map/MapSearch";
 import type { PlaceResult } from "@/lib/search/places";
 import MapCanvasLoader from "@/components/map/MapCanvasLoader";
+import { LogoutLink } from "@/components/ui/LogoutLink";
 import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
 import { notify } from "@/components/ui/AppToaster";
@@ -320,23 +323,15 @@ export function RestoredFinderShell({ rentalStatus: statusOverride, initialAccou
     if (typeof requestAnimationFrame === "function") requestAnimationFrame(() => collapseTrigger.current?.focus());
   };
 
-  return <main className={styles.app} data-nav-open={false} data-theme={activeTheme} data-results-hidden={resultsHidden} data-results-collapsed={resultsHidden} data-sheet-position={sheetPositions[sheetIndex]} style={{ "--results-sheet-height": sheetHeights[sheetIndex], "--mobile-sheet-peek-height": sheetHeights[sheetIndex] } as React.CSSProperties}><FinderNavigation authenticated={authenticated} userRole={userRole} userId={userId} open={drawerOpen} preference={preference} resolvedTheme={activeTheme} onPreferenceChange={setPreference} onClose={closeNavigation} onAccount={() => { setDrawerOpen(false); setAccountOpen(true); }} onHelp={() => { setDrawerOpen(false); setHelpOpen(true); }} /><div className={styles.workspace}><header className={styles.header}>
+  return <main className={styles.app} data-nav-open={false} data-theme={activeTheme} data-results-hidden={resultsHidden} data-results-collapsed={resultsHidden} data-sheet-position={sheetPositions[sheetIndex]} style={{ "--results-sheet-height": sheetHeights[sheetIndex], "--mobile-sheet-peek-height": sheetHeights[sheetIndex] } as React.CSSProperties}><FinderNavigation authenticated={authenticated} userRole={userRole} userId={userId} displayName={displayName} avatarUrl={avatarUrl} open={drawerOpen} preference={preference} resolvedTheme={activeTheme} onPreferenceChange={setPreference} onClose={closeNavigation} onAccount={() => { setDrawerOpen(false); setAccountOpen(true); }} onHelp={() => { setDrawerOpen(false); setHelpOpen(true); }} /><div className={styles.workspace}><header className={styles.header}>
     <button ref={menuTrigger} className={styles.iconButton} aria-label="Open menu" aria-expanded={drawerOpen} aria-controls="finder-navigation" onClick={() => setDrawerOpen((value) => !value)}><Menu size={21} /></button>
     <Link href="/" aria-label="AbangCebu home"><Image src={activeTheme === "dark" ? "/icons/main_Logo_Light.png" : "/icons/main_Logo.png"} unoptimized alt="AbangCebu" width={299} height={100} loading="eager" style={{ height: "auto" }} /></Link>
     <MapSearch className={styles.headerSearch} disabled={false} onSelect={setSelectedPlace} />
   </header>
-  {authenticated ? <details className={styles.accountMenu}>
-    <summary className={styles.signIn} aria-label={displayName ? `Account options for ${displayName}` : "Account options"}>
-      {avatarUrl
-        ? <Image src={avatarUrl} alt="" width={28} height={28} unoptimized className={styles.accountAvatar} />
-        : <User size={17} aria-hidden="true" />}
-      <span>Account</span><ChevronDown size={15} aria-hidden="true" />
-    </summary>
-    <div className={styles.accountMenuPopover}>
-      <Link href="/account"><User size={17} aria-hidden="true" /><span>Account settings</span></Link>
-      <Link href="/auth/logout"><LogOut size={17} aria-hidden="true" /><span>Log out</span></Link>
-    </div>
-  </details> : <button className={styles.signIn} aria-label="Open account dialog" onClick={() => setAccountOpen(true)}><LogIn size={19} aria-hidden="true" /><span>Log in</span></button>}
+  {authenticated ? <div className={styles.headerUserActions}>
+    <NotificationBell userId={userId} />
+    <AccountMenu displayName={displayName} avatarUrl={avatarUrl} role={userRole ?? "Renter"} variant="header" />
+  </div> : <button className={styles.signIn} aria-label="Open account dialog" onClick={() => setAccountOpen(true)}><LogIn size={19} aria-hidden="true" /><span>Log in</span></button>}
   <QuickFilters filters={filters} onChange={setFilters} onOpenFilters={() => setAdvancedOpen(true)} mapRadius={mapRadius} onRadiusChange={setMapRadius} />
   <div className={styles.mapStage}><div ref={mapViewport} className={styles.mapViewport}><MapCanvasLoader selectedRentalId={selectedRentalId} onSelectRental={revealRental} rentals={rentals} selectedPlace={selectedPlace} dataStatus={rentalStatus} filters={filters} onFiltersChange={setFilters} locationQuery={locationQuery} onLocationQueryChange={setLocationQuery} searchRadiusKm={mapRadius} onSearchRadiusKmChange={setMapRadius} onSearchCenterChange={setSearchCenter} resolvedTheme={activeTheme} assistantControlsTarget={assistantControlsTarget} savedRentalIds={favoriteIds} canSaveRentals={canSaveRentals} onToggleFavorite={toggleFavorite} onExpandRental={openExpandedRental} canMessageLandlord={canMessageLandlord} onMessageLandlord={messageLandlord} /></div>
     <div className={listingStyles.sampleMapNotice} role="status" hidden={!usingSamples}><b>SAMPLE RENTALS · NOT REAL OFFERS</b><button type="button" onClick={() => { setSampleMode(false); setSelectedRentalId(null); }}>Return to live data</button></div>
@@ -419,7 +414,7 @@ export function RestoredFinderShell({ rentalStatus: statusOverride, initialAccou
           <span>{accountPrompt}</span>
         </div>
       )}
-      {authenticated ? <section className={styles.accountContent}><h2 className={styles.accountHeading}>Your account</h2><p>Manage your profile and security.</p><div className="mt-5 grid gap-3"><Link href="/account" className="inline-flex min-h-11 items-center justify-center rounded-lg bg-action px-4 text-sm font-semibold text-action-foreground hover:bg-action-hover">Account settings</Link><Link href="/auth/logout" className="inline-flex min-h-11 items-center justify-center rounded-lg border border-border bg-card px-4 text-sm font-semibold text-card-foreground hover:bg-muted">Log out</Link></div></section> : <AccountAccessContent mode={accountMode} onModeChange={setAccountMode} isRecovery={isRecovery} statusMessage={initialStatusMessage} onLoginSuccess={() => { setAccountOpen(false); setAccountPrompt(null); setInitialError(null); }} />}
+      {authenticated ? <section className={styles.accountContent}><h2 className={styles.accountHeading}>Your account</h2><p>Manage your profile and security.</p><div className="mt-5 grid gap-3"><Link href="/account" className="inline-flex min-h-11 items-center justify-center rounded-lg bg-action px-4 text-sm font-semibold text-action-foreground hover:bg-action-hover">Account settings</Link><div className="my-1 h-px bg-border/80" role="separator" /><LogoutLink className="w-full justify-center" /></div></section> : <AccountAccessContent mode={accountMode} onModeChange={setAccountMode} isRecovery={isRecovery} statusMessage={initialStatusMessage} onLoginSuccess={() => { setAccountOpen(false); setAccountPrompt(null); setInitialError(null); }} />}
     </div>
     <div className={styles.accountFooter}>
       {accountMode === "sign-in" && !authenticated && <span>Don’t have an account? <button type="button" onClick={() => { focusAccountHeading.current = true; setAccountMode("sign-up"); setInitialError(null); }}>Register</button></span>}

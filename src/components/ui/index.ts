@@ -17,3 +17,7 @@ export type { SkeletonProps } from "./Skeleton";
 export { Avatar, AvatarImage, AvatarFallback } from "./Avatar";
 export { Sheet } from "./Sheet";
 export type { SheetProps } from "./Sheet";
+export { AccountMenu } from "./AccountMenu";
+export type { AccountMenuProps } from "./AccountMenu";
+export { LogoutLink, logoutLinkClass } from "./LogoutLink";
+export type { LogoutLinkProps } from "./LogoutLink";

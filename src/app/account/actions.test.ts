@@ -1,17 +1,32 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const fixture = vi.hoisted(() => ({
-  profile: { full_name: "Test User", phone_number: null as string | null },
+  profile: { full_name: "Test User", phone_number: null as string | null, avatar_url: null as string | null },
   update: vi.fn(),
   updateUser: vi.fn(async () => ({ error: null })),
   signIn: vi.fn(async () => ({ data: { user: { id: "user-1" } }, error: null })),
   user: { id: "user-1", email: "test@example.invalid", identities: [{ provider: "email" }] } as { id: string; email: string; identities?: { provider: string }[] } | null,
+  upload: vi.fn(async () => ({ error: null })),
+  remove: vi.fn(async () => ({ error: null })),
+  signProfileAvatar: vi.fn(async () => "https://example.test/signed.png"),
 }));
 
 vi.mock("@supabase/supabase-js", () => ({ createClient: () => ({ auth: { signInWithPassword: fixture.signIn } }) }));
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
-vi.mock("@/lib/supabase/admin", () => ({ createAdminClient: vi.fn() }));
-vi.mock("@/lib/profile-avatar", () => ({ PROFILE_AVATAR_BUCKET: "avatars", signProfileAvatar: vi.fn() }));
+vi.mock("@/lib/supabase/admin", () => ({
+  createAdminClient: () => ({
+    storage: {
+      from: () => ({
+        upload: fixture.upload,
+        remove: fixture.remove,
+      }),
+    },
+  }),
+}));
+vi.mock("@/lib/profile-avatar", () => ({
+  PROFILE_AVATAR_BUCKET: "avatars",
+  signProfileAvatar: fixture.signProfileAvatar,
+}));
 vi.mock("@/lib/supabase/server", () => ({
   createClient: async () => ({
     auth: { getUser: async () => ({ data: { user: fixture.user }, error: null }), updateUser: fixture.updateUser },
@@ -28,7 +43,8 @@ vi.mock("@/lib/supabase/server", () => ({
   }),
 }));
 
-import { updateAccountPassword, updateAccountProfile } from "./actions";
+import { revalidatePath } from "next/cache";
+import { removeAccountAvatar, updateAccountAvatar, updateAccountPassword, updateAccountProfile } from "./actions";
 
 describe("account password safety gate", () => {
   it("rejects invalid new passwords before contacting the provider", async () => {
@@ -133,7 +149,7 @@ function form(phone: string) {
 }
 
 describe("account Philippine mobile number", () => {
-  beforeEach(() => { fixture.profile = { full_name: "Test User", phone_number: null }; fixture.update.mockClear(); });
+  beforeEach(() => { fixture.profile = { full_name: "Test User", phone_number: null, avatar_url: null }; fixture.update.mockClear(); });
 
   it.each(["09123456789", "9123456789", "+639123456789", "912 345 6789"])("saves %s in E.164", async (number) => {
     const result = await updateAccountProfile(form(number));
@@ -158,9 +174,45 @@ describe("account Philippine mobile number", () => {
     expect(fixture.profile.phone_number).toBeNull();
   });
 
-  it.each(["+14155552671", "0212345678", "12345", "91234567890", "912abc3456789"])("rejects %s without writing", async (number) => {
+  it.each(["+141****2671", "0212345678", "12345", "91234567890", "912abc3456789"])("rejects %s without writing", async (number) => {
     const result = await updateAccountProfile(form(number));
     expect(result.success).toBe(false);
     expect(fixture.update).not.toHaveBeenCalled();
+  });
+});
+
+describe("account avatar actions", () => {
+  beforeEach(() => {
+    fixture.profile = { full_name: "Test User", phone_number: null, avatar_url: "user-1/old.png" };
+    fixture.upload.mockClear();
+    fixture.remove.mockClear();
+    fixture.signProfileAvatar.mockClear();
+    vi.mocked(revalidatePath).mockClear();
+  });
+
+  it("updates avatar and revalidates account, home, landlord, and all admin routes", async () => {
+    const file = new File([new Uint8Array([137, 80, 78, 71])], "avatar.png", { type: "image/png" });
+    const data = new FormData();
+    data.set("avatar", file);
+
+    const result = await updateAccountAvatar(data);
+    expect(result.success).toBe(true);
+    expect(result.avatarUrl).toBe("https://example.test/signed.png");
+    expect(revalidatePath).toHaveBeenCalledWith("/account");
+    expect(revalidatePath).toHaveBeenCalledWith("/");
+    for (const path of ["/landlord/dashboard", "/landlord/properties", "/landlord/messages", "/admin/dashboard", "/admin/reviews", "/admin/accounts", "/admin/reports", "/admin/audit"]) {
+      expect(revalidatePath).toHaveBeenCalledWith(path);
+    }
+  });
+
+  it("removes avatar and revalidates account, home, landlord, and all admin routes", async () => {
+    const result = await removeAccountAvatar();
+    expect(result.success).toBe(true);
+    expect(result.avatarUrl).toBeNull();
+    expect(revalidatePath).toHaveBeenCalledWith("/account");
+    expect(revalidatePath).toHaveBeenCalledWith("/");
+    for (const path of ["/landlord/dashboard", "/landlord/properties", "/landlord/messages", "/admin/dashboard", "/admin/reviews", "/admin/accounts", "/admin/reports", "/admin/audit"]) {
+      expect(revalidatePath).toHaveBeenCalledWith(path);
+    }
   });
 });

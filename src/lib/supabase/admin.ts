@@ -1,5 +1,6 @@
 import "server-only";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
+import { createBoundedFetch } from "./fetch-timeout";
 
 export function createAdminClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -9,6 +10,7 @@ export function createAdminClient() {
   }
 
   return createSupabaseClient(supabaseUrl, serviceRoleKey, {
+    global: { fetch: createBoundedFetch(8_000) },
     auth: {
       autoRefreshToken: false,
       persistSession: false,

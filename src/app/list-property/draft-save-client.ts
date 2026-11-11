@@ -128,6 +128,8 @@ export async function executeDraftSave(
   await repository.completeDraft(intent.ownerId, draftId, revision);
   for (const fileIntent of intent.files) {
     if (fileIntent.released) throw new Error("This upload was released. Your file is still stored locally and needs recovery.");
+    const digest = await crypto.subtle.digest("SHA-256", await fileIntent.file.arrayBuffer());
+    const sha256 = Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
     const body = new FormData();
     body.set("draftId", draftId);
     body.set("operationId", fileIntent.operationId);
@@ -139,6 +141,8 @@ export async function executeDraftSave(
       body,
     });
     if (!response.ok) throw new Error(response.status === 409 ? "This file conflicts with an earlier upload." : "One or more files could not be saved.");
+    const acknowledgement: unknown = await response.json();
+    if (!acknowledgement || typeof acknowledgement !== "object" || !("sha256" in acknowledgement) || acknowledgement.sha256 !== sha256 || !("sizeBytes" in acknowledgement) || acknowledgement.sizeBytes !== fileIntent.file.size || !("contentType" in acknowledgement) || acknowledgement.contentType !== fileIntent.file.type) throw new Error("File integrity could not be confirmed. Retry the same upload.");
   }
 
   await repository.deletePending(intent.ownerId, intent.id, intent.storageVersion ?? 0);

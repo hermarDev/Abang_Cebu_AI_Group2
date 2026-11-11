@@ -6,7 +6,7 @@ export function inspectDraftMedia(kind: "photo" | "permit", mime: string, bytes:
   const webp = starts([0x52, 0x49, 0x46, 0x46]) && bytes.length >= 12 && bytes[8] === 0x57 && bytes[9] === 0x45 && bytes[10] === 0x42 && bytes[11] === 0x50;
   const pdf = starts([0x25, 0x50, 0x44, 0x46, 0x2d]);
   if ((mime === "image/png" && png) || (mime === "image/jpeg" && jpeg) ||
-      (kind === "photo" && mime === "image/webp" && webp) ||
+      (mime === "image/webp" && webp) ||
       (kind === "permit" && mime === "application/pdf" && pdf)) return mime;
   return null;
 }
