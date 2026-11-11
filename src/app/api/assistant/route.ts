@@ -138,6 +138,8 @@ export async function POST(request: Request) {
         ? `Current published, available rentals matching the user's recent request: ${JSON.stringify(inventory.rentals)}`
         : "No listing lookup is needed for this general message.";
     const systemMessage = `${assistantInstructions}\n\n${inventoryContext}`;
+    const model = process.env.GROQ_MODEL?.trim() || "llama-3.3-70b-versatile";
+    const isGroq = GROQ_CHAT_COMPLETIONS_URL.includes("groq.com") || /^(?:groq\/|llama|mixtral|gemma)/i.test(model);
     const upstream = await fetch(GROQ_CHAT_COMPLETIONS_URL, {
       method: "POST",
       headers: {
@@ -145,12 +147,11 @@ export async function POST(request: Request) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: process.env.GROQ_MODEL?.trim() || "openai/gpt-oss-120b",
+        model,
         messages: [{ role: "system", content: systemMessage }, ...messages],
         max_completion_tokens: 1200,
         temperature: 0.6,
-        reasoning_effort: "medium",
-        include_reasoning: false,
+        ...(!isGroq ? { reasoning_effort: "medium", include_reasoning: false } : {}),
       }),
       cache: "no-store",
       signal: AbortSignal.timeout(30_000),

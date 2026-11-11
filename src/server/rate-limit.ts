@@ -7,7 +7,9 @@ export function createRateLimiter({ windowMs, maxPerIp, maxPerActor }: Options) 
 
   const clientIp = (request: Request) =>
     request.headers.get("cf-connecting-ip") ||
-    (process.env.NODE_ENV !== "production" ? request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() : undefined) ||
+    request.headers.get("x-real-ip") ||
+    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    (process.env.NODE_ENV !== "production" ? "development" : undefined) ||
     "unknown-ip";
 
   const recent = (store: Map<string, number[]>, key: string, now: number) => {

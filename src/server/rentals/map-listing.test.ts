@@ -47,6 +47,10 @@ describe("mapListing", () => {
     expect(mapListing({ ...listing, property_type: "bedspace" }).basis).toBe("bed");
   });
 
+  it.each([null, "", "   "])("defaults empty or whitespace description (%j) to 'No description provided.'", (description) => {
+    expect(mapListing({ ...listing, description }).description).toBe("No description provided.");
+  });
+
   it.each([null, [], "listing"])("rejects a non-record %j", (value) => {
     expect(() => mapListing(value)).toThrow();
   });

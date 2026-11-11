@@ -6,7 +6,7 @@ export async function GET(request: Request) {
   const url = new URL(request.url);
   const code = url.searchParams.get("code");
   const type = url.searchParams.get("type");
-  const next = url.searchParams.get("next") || "/search";
+  const next = url.searchParams.get("next") || "/";
 
   if (!code) {
     return NextResponse.redirect(new URL("/login?error=invalid_auth_link", url.origin));
@@ -22,7 +22,7 @@ export async function GET(request: Request) {
       const target = type === "recovery" ? "/login?error=expired_recovery_link" : "/login?error=expired_auth_link";
       return NextResponse.redirect(new URL(target, url.origin));
     }
-    return NextResponse.redirect(new URL(type === "recovery" ? next : isSafeRedirectUrl(next) ? next : "/search", url.origin));
+    return NextResponse.redirect(new URL(type === "recovery" ? next : isSafeRedirectUrl(next) ? next : "/", url.origin));
   } catch {
     const target = type === "recovery" ? "/login?error=expired_recovery_link" : "/login?error=auth_callback_failed";
     return NextResponse.redirect(new URL(target, url.origin));

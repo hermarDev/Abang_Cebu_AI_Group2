@@ -68,13 +68,15 @@ describe("createRateLimiter", () => {
     expect(l.check(req(), "d", 0)).toBe(false);
   });
 
-  it("ignores x-forwarded-for in production", () => {
+  it("accepts x-real-ip and x-forwarded-for in production when cf-connecting-ip is missing", () => {
     const prev = process.env.NODE_ENV;
     (process.env as Record<string, string>).NODE_ENV = "production";
     try {
       const l = createRateLimiter({ windowMs: 1000, maxPerIp: 1, maxPerActor: 10 });
-      expect(l.check(req({ "x-forwarded-for": "9.9.9.9" }), "a", 0)).toBe(true);
-      expect(l.check(req({ "x-forwarded-for": "7.7.7.7" }), "b", 0)).toBe(false);
+      expect(l.check(req({ "x-real-ip": "9.9.9.9" }), "a", 0)).toBe(true);
+      expect(l.check(req({ "x-real-ip": "9.9.9.9" }), "b", 0)).toBe(false);
+      expect(l.check(req({ "x-forwarded-for": "7.7.7.7" }), "c", 0)).toBe(true);
+      expect(l.check(req({ "x-forwarded-for": "7.7.7.7" }), "d", 0)).toBe(false);
     } finally {
       (process.env as Record<string, string>).NODE_ENV = prev as string;
     }

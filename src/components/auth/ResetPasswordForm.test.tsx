@@ -119,6 +119,8 @@ describe("ResetPasswordForm", () => {
     for (const label of ["8–72 characters", "Uppercase letter", "Lowercase letter", "Number", "Symbol"]) expect(html).toContain(label);
     expect(html).toContain('name="newPassword"');
     expect(html).toContain('name="confirmPassword"');
+    expect(html).toContain('placeholder="Enter your new password"');
+    expect(html).toContain('placeholder="Confirm your new password"');
     expect(html).toContain('autoComplete="new-password"');
     expect(html).toContain('maxLength="72"');
     expect(html).not.toContain("Email Address");
