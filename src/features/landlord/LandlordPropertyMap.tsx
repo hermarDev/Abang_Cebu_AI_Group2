@@ -70,6 +70,9 @@ const POPUP_OFFSETS = {
   right: [-18, -18] as [number, number],
 };
 
+// From 768px the properties panel floats over the map's left 410px; keep popups out from under it.
+const popupViewPadding = () => ({ top: 0, right: 0, bottom: 0, left: window.matchMedia("(min-width: 768px)").matches ? 410 : 0 });
+
 function dedupeImageUrls(urls?: string[]): string[] {
   if (!Array.isArray(urls)) return [];
   const seen = new Set<string>();
@@ -150,12 +153,18 @@ function makePopup(property: LandlordPropertyMapItem, onExpand?: (id: string) =>
   basis.textContent = "/month";
   priceRow.append(price, basis);
 
+  metaCol.append(title, location, priceRow);
+  topRow.append(photoWrapper, metaCol);
+
+  const statusRow = document.createElement("div");
+  statusRow.className = styles.popupStatusRow;
   const status = document.createElement("span");
   status.className = `${styles.statusPill} ${getStatusTone(property)}`;
   status.textContent = getListingStatus(property);
+  statusRow.append(status);
 
-  metaCol.append(title, location, priceRow, status);
-  topRow.append(photoWrapper, metaCol);
+  const divider = document.createElement("hr");
+  divider.className = styles.popupDivider;
 
   const actions = document.createElement("div");
   actions.className = styles.popupActions;
@@ -177,7 +186,7 @@ function makePopup(property: LandlordPropertyMapItem, onExpand?: (id: string) =>
     actions.append(edit);
   }
 
-  content.append(closeBtn, topRow, actions);
+  content.append(closeBtn, topRow, statusRow, divider, actions);
   return content;
 }
 
@@ -238,6 +247,12 @@ export function LandlordPropertyMap({ properties, loadError = false, initialSele
         attributionControl: false,
       });
       mapRef.current = map;
+      // Sprite atlas lacks some icons (e.g. wood-pattern); a transparent pixel silences the warning.
+      if (typeof map.on === "function" && typeof map.hasImage === "function" && typeof map.addImage === "function") {
+        map.on("styleimagemissing", ({ id }) => {
+          if (!map.hasImage(id)) map.addImage(id, { width: 1, height: 1, data: new Uint8Array(4) });
+        });
+      }
 
       const attributionControl = new AttributionControl({
         compact: true,
@@ -274,6 +289,8 @@ export function LandlordPropertyMap({ properties, loadError = false, initialSele
 
         const popup = new Popup({ offset: POPUP_OFFSETS, maxWidth: "none", closeButton: false, closeOnClick: false });
         popup.setDOMContent(makePopup(property, openExpanded, () => popup.remove()));
+        // The mobile bottom sheet paints over the popup and would hide its actions, so tuck it away.
+        popup.on("open", () => { if (window.matchMedia("(max-width: 767px)").matches) setPanelCollapsed(true); });
         const marker = new Marker({ element: markerElement, anchor: "bottom" })
           .setLngLat([property.longitude, property.latitude])
           .setPopup(popup)
@@ -294,7 +311,7 @@ export function LandlordPropertyMap({ properties, loadError = false, initialSele
         const selectedIndex = initialSelectedId ? properties.findIndex((property) => property.id === initialSelectedId) : -1;
         if (selectedIndex >= 0) {
           const selected = properties[selectedIndex];
-          map.easeTo({ center: [selected.longitude, selected.latitude], offset: [0, 75], zoom: 15, duration: 0 });
+          map.easeTo({ center: [selected.longitude, selected.latitude], offset: [0, 75], padding: popupViewPadding(), zoom: 15, duration: 0 });
           markerRefs.current[selectedIndex]?.togglePopup();
         } else if (properties.length > 1 && !bounds.isEmpty()) {
           const isMobile = window.matchMedia("(max-width: 767px)").matches;
@@ -304,7 +321,7 @@ export function LandlordPropertyMap({ properties, loadError = false, initialSele
             duration: 0,
           });
         } else if (properties.length === 1) {
-          map.easeTo({ center: [properties[0].longitude, properties[0].latitude], offset: [0, 75], zoom: 14.5, duration: 0 });
+          map.easeTo({ center: [properties[0].longitude, properties[0].latitude], offset: [0, 75], padding: popupViewPadding(), zoom: 14.5, duration: 0 });
           markerRefs.current[0]?.togglePopup();
         }
       };
@@ -363,7 +380,7 @@ export function LandlordPropertyMap({ properties, loadError = false, initialSele
 
   function focusProperty(property: LandlordPropertyMapItem) {
     setSelectedId(property.id);
-    mapRef.current?.flyTo({ center: [property.longitude, property.latitude], offset: [0, 75], zoom: 15, duration: 600 });
+    mapRef.current?.flyTo({ center: [property.longitude, property.latitude], offset: [0, 75], padding: popupViewPadding(), zoom: 15, duration: 600 });
     const markerIndex = properties.findIndex((item) => item.id === property.id);
     markerRefs.current.forEach((m, idx) => {
       if (idx !== markerIndex && m.getPopup()?.isOpen()) m.togglePopup();
@@ -484,7 +501,7 @@ export function LandlordPropertyMap({ properties, loadError = false, initialSele
               </button>
               <div className={styles.propertyActions} data-single-action={!property.editHref || undefined}>
                 <button type="button" className={styles.cardPrimaryAction} aria-label={"Expand " + property.title} onClick={() => openExpanded(property.id)}><span>View details</span></button>
-                {property.editHref && <Link href={property.editHref} className={styles.secondaryLink}>Edit submission</Link>}
+                {property.editHref && <Link href={property.editHref} className={styles.secondaryLink}>{property.status === "approved" || property.status === "published" ? "Edit listing" : "Edit submission"}</Link>}
               </div>
               </div>)}
             </div>
@@ -520,6 +537,6 @@ export function ExpandedPropertyView({ property, photoIndex, onPhotoIndexChange 
     <p className={styles.expandText}>{property.address}, {property.city}</p>
     {property.description && <p className={styles.expandText}>{property.description}</p>}
     {property.amenities?.length ? <ul className={styles.amenities}>{property.amenities.map((amenity) => <li key={amenity}>{amenity}</li>)}</ul> : null}
-    {property.editHref && <Link href={property.editHref} className={styles.secondaryLink}>Edit submission</Link>}
+    {property.editHref && <Link href={property.editHref} className={styles.secondaryLink}>{property.status === "approved" || property.status === "published" ? "Edit listing" : "Edit submission"}</Link>}
   </div>;
 }

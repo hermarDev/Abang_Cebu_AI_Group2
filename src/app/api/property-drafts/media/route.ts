@@ -31,7 +31,7 @@ export async function GET(request: Request) {
   const media = [];
   for (const row of data ?? []) {
     if (!row || typeof row !== "object" || typeof row.operation_id !== "string" || !uuid.test(row.operation_id) || typeof row.content_sha256 !== "string" || !/^[0-9a-f]{64}$/.test(row.content_sha256) || (row.kind !== "photo" && row.kind !== "permit") || typeof row.size_bytes !== "number" || !Number.isSafeInteger(row.size_bytes) || row.size_bytes < 1 || row.size_bytes > 10485760) return reply("Listing files could not be loaded. Please retry.", 503);
-    const extension = row.content_type === "application/pdf" && row.kind === "permit" ? "pdf" : row.content_type === "image/png" ? "png" : row.content_type === "image/webp" && row.kind === "photo" ? "webp" : row.content_type === "image/jpeg" ? "jpg" : null;
+    const extension = row.content_type === "application/pdf" && row.kind === "permit" ? "pdf" : row.content_type === "image/png" ? "png" : row.content_type === "image/webp" ? "webp" : row.content_type === "image/jpeg" ? "jpg" : null;
     if (!extension || row.object_path !== `${session.user.id}/${draftId}/${row.operation_id}/${row.content_sha256}.${extension}`) return reply("Listing files could not be loaded. Please retry.", 503);
     try {
       const { data: signed, error: signError } = await createAdminClient().storage.from("property-draft-media").createSignedUrl(row.object_path, 300);

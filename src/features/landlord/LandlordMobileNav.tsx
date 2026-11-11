@@ -3,22 +3,26 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Ellipsis, Headset, HousePlus, LayoutDashboard, MapPinned, MessageSquare, UserRound } from "lucide-react";
+import { Bell, Building2, Ellipsis, Headset, HousePlus, LayoutDashboard, MapPinned, MessageSquare, UserRound } from "lucide-react";
+import { LogoutLink } from "@/components/ui/LogoutLink";
 import { Modal } from "@/components/ui/Modal";
 import { AppearanceControls } from "@/features/map/AppearanceControls";
 import { useFinderTheme } from "@/features/map/useFinderTheme";
 import { useUnreadMessageCount } from "@/features/messages/useUnreadMessageCount";
+import { useNotificationCenter } from "@/features/notifications/useNotificationCenter";
 
 const links = [
   { href: "/landlord/dashboard", label: "Dashboard", Icon: LayoutDashboard },
-  { href: "/landlord/map", label: "Map", Icon: MapPinned },
+  { href: "/landlord/properties", label: "Properties", Icon: Building2 },
   { href: "/list-property", label: "Add listing", Icon: HousePlus },
   { href: "/account", label: "Account", Icon: UserRound },
 ];
 
-export function LandlordMobileNav({ userId = null, unreadCount: providedUnread }: { userId?: string | null; unreadCount?: number } = {}) {
+export function LandlordMobileNav({ userId = null, unreadCount: providedUnread, unreadNotifications: providedNotifications }: { userId?: string | null; unreadCount?: number; unreadNotifications?: number } = {}) {
   const pathname = usePathname();
   const { unreadCount: polledUnread } = useUnreadMessageCount(userId, Boolean(userId) && providedUnread === undefined);
+  const { unreadCount: polledNotifications } = useNotificationCenter(userId, Boolean(userId) && providedNotifications === undefined);
+  const unreadNotifications = providedNotifications ?? polledNotifications;
   const unreadCount = providedUnread ?? polledUnread;
   const [open, setOpen] = useState(false);
   const { preference, resolvedTheme, setPreference } = useFinderTheme();
@@ -33,9 +37,28 @@ export function LandlordMobileNav({ userId = null, unreadCount: providedUnread }
     </nav>
     <Modal open={open} onClose={() => setOpen(false)} title="More landlord options" className="max-h-[calc(100dvh-2rem)] overflow-y-auto">
       <AppearanceControls preference={preference} resolvedTheme={resolvedTheme} onPreferenceChange={setPreference} expanded />
-      <Link href="/landlord/messages" onClick={() => setOpen(false)} className="mt-4 flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"><MessageSquare size={19} aria-hidden="true" />Messages{unreadCount > 0 && <span aria-label={`${unreadCount} unread messages`} className="ml-auto rounded-full bg-action px-1.5 text-xs font-bold leading-5 text-action-foreground">{unreadCount > 99 ? "99+" : unreadCount}</span>}</Link>
-      <a href="mailto:support@abangcebu.ai" className="flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"><Headset size={19} aria-hidden="true" />Contact support</a>
-      <Link href="/auth/logout" className="flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">Log out</Link>
+      <button
+        type="button"
+        onClick={() => {
+          setOpen(false);
+          const bell = document.querySelector<HTMLButtonElement>('header button[aria-label^="Notifications"]');
+          bell?.click();
+        }}
+        className="mt-4 flex min-h-11 w-full items-center gap-3 rounded-lg px-3 text-sm font-medium hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+      >
+        <Bell size={19} aria-hidden="true" />
+        Notifications
+        {unreadNotifications > 0 && (
+          <span aria-label={`${unreadNotifications} unread notifications`} className="ml-auto rounded-full bg-destructive px-1.5 text-xs font-bold leading-5 text-destructive-foreground">
+            {unreadNotifications > 99 ? "99+" : unreadNotifications}
+          </span>
+        )}
+      </button>
+      <Link href="/landlord/map" onClick={() => setOpen(false)} className="flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"><MapPinned size={19} aria-hidden="true" />Property map</Link>
+      <Link href="/landlord/messages" onClick={() => setOpen(false)} className="flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"><MessageSquare size={19} aria-hidden="true" />Messages{unreadCount > 0 && <span aria-label={`${unreadCount} unread messages`} className="ml-auto rounded-full bg-action px-1.5 text-xs font-bold leading-5 text-action-foreground">{unreadCount > 99 ? "99+" : unreadCount}</span>}</Link>
+      <a href="mailto:support@abangcebu.ai" onClick={() => setOpen(false)} className="flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"><Headset size={19} aria-hidden="true" />Contact support</a>
+      <div className="my-2 h-px bg-border/80" role="separator" />
+      <LogoutLink onClick={() => setOpen(false)} iconSize={19} className="flex w-full gap-3" />
     </Modal>
   </>;
 }

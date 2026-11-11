@@ -24,12 +24,44 @@ const unitTypesByPropertyType: Record<string, readonly string[]> = {
   apartment: ["entire_place", "private_room", "shared_room", "bedspace"],
   condominium: ["entire_place", "private_room", "shared_room", "bedspace"],
   house: ["entire_place", "private_room", "shared_room", "bedspace"],
-  townhouse: ["entire_place", "private_room"],
+  townhouse: ["entire_place", "private_room", "shared_room", "bedspace"],
   commercial: ["entire_place"],
-  boarding_house: ["private_room", "shared_room", "bedspace"],
+  boarding_house: ["entire_place", "private_room", "shared_room", "bedspace"],
 };
 const allUnitTypes = ["entire_place", "private_room", "shared_room", "bedspace"] as const;
 const unitTypeLabels: Record<string, string> = { entire_place: "Entire place", private_room: "Private room", shared_room: "Shared room", bedspace: "Bedspace" };
+
+function getCityGuidance(city: string) {
+  const norm = (city || "").trim().toLowerCase();
+  if (norm.includes("mandaue")) {
+    return {
+      cityName: "Mandaue City",
+      text: "Mandaue City typically looks for a City Business Permit / Mayor's Permit or Barangay Business Clearance, accompanied by Fire Safety Inspection Certificate (FSIC) and Sanitary Permit. For individual residential owners leasing rooms or units, a proof of ownership (Tax Declaration or Transfer Certificate of Title) or authorization letter is commonly reviewed.",
+    };
+  }
+  if (norm.includes("lapu-lapu") || norm.includes("lapu lapu")) {
+    return {
+      cityName: "Lapu-Lapu City",
+      text: "Lapu-Lapu City verification standardly accepts the Mayor's Business Permit, Barangay Clearance for Leasing, and Fire Safety Inspection Certificate. Condominium and subdivision rentals may also provide HOA clearance or Land Title / Tax Declaration.",
+    };
+  }
+  if (norm.includes("talisay")) {
+    return {
+      cityName: "Talisay City",
+      text: "Talisay City guidelines recognize business permits issued by the City Hall or Barangay Clearance alongside sanitary and fire certificates. For residential accommodations, ownership proof (Tax Declaration / Deed) is also accepted.",
+    };
+  }
+  if (norm.includes("cebu")) {
+    return {
+      cityName: "Cebu City",
+      text: "Cebu City typically reviews the Mayor's Business Permit and Barangay Clearance for commercial/commercial-residential rentals, or Fire Safety Inspection Certificate (FSIC). Individual property owners offering residential rooms or houses may provide a Tax Declaration or Proof of Ownership if commercial registration is not required.",
+    };
+  }
+  return {
+    cityName: city.trim() || "Metro Cebu LGU",
+    text: "Local Government Units across Cebu typically verify rental listings through a Mayor's / Business Permit, Barangay Clearance, Fire Safety Inspection Certificate (FSIC), or Sanitary Permit. Individual residential landlords may provide ownership proof (Tax Declaration, Deed of Sale, or HOA authorization) when commercial permits are not applicable.",
+  };
+}
 
 const amenities = [
   ["wifi", "Wi-Fi"], ["aircon", "Air conditioning"], ["cooking", "Cooking allowed"], ["laundry", "Laundry area"],
@@ -62,9 +94,11 @@ function PermitThumbnail({ file, className = "size-12 rounded object-cover" }: {
   return <img ref={image} alt="" className={className} />;
 }
 
+const fileSize = (bytes: number) => bytes >= 1024 * 1024 ? `${(bytes / 1024 / 1024).toFixed(1)} MB` : `${Math.max(1, Math.round(bytes / 1024))} KB`;
+
 const sameFiles = (a: File[], b: File[]) => a.length === b.length && a.every((f, i) => f.name === b[i].name && f.size === b[i].size && f.type === b[i].type);
 
-export function ListPropertyForm({ userId, restoreTarget }: { userId: string; restoreTarget?: { draftId: string; revision: string } | null }) {
+export function ListPropertyForm({ userId, restoreTarget }: { userId: string; restoreTarget?: { draftId: string; revision: string; lockedLocation?: boolean } | null }) {
   const { resolvedTheme } = useFinderTheme();
   let router: ReturnType<typeof useRouter> | null = null;
   // The standalone notification harness renders this form without Next's app router, where useRouter throws.
@@ -79,14 +113,24 @@ export function ListPropertyForm({ userId, restoreTarget }: { userId: string; re
   useEffect(() => () => { locationRequest.current++; }, []);
   const preservedDraftValues = useRef<ReturnType<typeof restoreDraftValues>["preserved"]>(undefined);
   const legacyPermit = useRef({ permitNumber: "", permitLgu: "", permitExpiresOn: "" });
+  const isLocationLocked = Boolean(restoreTarget?.lockedLocation);
   const [step, setStep] = useState(0);
   const [maxVisitedStep, setMaxVisitedStep] = useState(0);
   const [review, setReview] = useState<ListingReview | null>(null);
   const [location, setLocation] = useState<PlaceResult | null>(null);
   const [address, setAddress] = useState("");
+  const [city, setCity] = useState("Cebu City");
+  const [bedrooms, setBedrooms] = useState("");
+  const [bathrooms, setBathrooms] = useState("");
+  const [floorAreaSqm, setFloorAreaSqm] = useState("");
+  const [furnishedStatus, setFurnishedStatus] = useState("");
   const [photos, setPhotos] = useState<File[]>([]);
   const [isDraggingPhotos, setIsDraggingPhotos] = useState(false);
   const [permitPhotos, setPermitPhotos] = useState<File[]>([]);
+  const [documentCategories, setDocumentCategories] = useState<Record<string, string>>({});
+  const [permitExemptionReason, setPermitExemptionReason] = useState("");
+  const [isDraggingPermits, setIsDraggingPermits] = useState(false);
+  const [permitError, setPermitError] = useState("");
   const permitSelectionBusy = useRef(false);
   const [permitNotRequiredConfirmed, setPermitNotRequiredConfirmed] = useState(false);
   const [confirmedMedia, setConfirmedMedia] = useState<Array<{ operationId: string; sha256: string; kind: "photo" | "permit" }>>([]);
@@ -101,6 +145,7 @@ export function ListPropertyForm({ userId, restoreTarget }: { userId: string; re
   const [dirty, setDirty] = useState(false);
   const [formEdits, setFormEdits] = useState(0);
   const [propertyType, setPropertyType] = useState("");
+  const [rentalType, setRentalType] = useState("");
   const [drafts, setDrafts] = useState<Array<{ id: string; revision: unknown; payload: unknown }> | null>(null);
   const [draftError, setDraftError] = useState("");
 
@@ -146,11 +191,27 @@ export function ListPropertyForm({ userId, restoreTarget }: { userId: string; re
       }
       form.querySelectorAll<HTMLInputElement>('input[name="amenities"]').forEach((input) => { input.checked = values.amenities.includes(input.value); });
       setPropertyType((values as unknown as Record<string, string>).propertyType ?? "");
+      setRentalType((values as unknown as Record<string, string>).rentalType ?? "");
       setAddress(values.address);
+      setCity(values.city || "Cebu City");
+      setBedrooms(String(values.preserved?.unit?.bedrooms ?? ""));
+      setBathrooms(String(values.preserved?.unit?.bathrooms ?? ""));
+      setFloorAreaSqm(String(values.preserved?.unit?.floor_area_sqm ?? ""));
+      setFurnishedStatus(String(values.preserved?.unit?.furnished_status ?? ""));
       manuallyEdited.current = { address: Boolean(values.address), barangay: Boolean(values.barangay), city: Boolean(values.city) };
       setLocation(values.location);
       if (values.permitApplicability === "not_required" || values.permitNotRequiredConfirmed) setPermitNotRequiredConfirmed(true);
       else setPermitNotRequiredConfirmed(false);
+      if (typeof values.preserved?.property?.permit_exemption_reason === "string") {
+        setPermitExemptionReason(values.preserved.property.permit_exemption_reason);
+      } else {
+        setPermitExemptionReason("");
+      }
+      if (typeof values.preserved?.property?.document_categories === "string") {
+        try { setDocumentCategories(JSON.parse(values.preserved.property.document_categories)); } catch { setDocumentCategories({}); }
+      } else {
+        setDocumentCategories({});
+      }
       preservedDraftValues.current = values.preserved;
       restoredValuesRef.current = values;
       setSavedSnapshot(null);
@@ -209,12 +270,32 @@ export function ListPropertyForm({ userId, restoreTarget }: { userId: string; re
     if (!form) throw new Error("form unavailable");
     const value = (name: string) => form.querySelector<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>(`[name="${name}"]`)?.value ?? "";
     const permitApplicabilityCalculated = permitPhotos.length > 0 ? "required" : permitNotRequiredConfirmed ? "not_required" : "";
+
+    const preservedUnit: Record<string, string | number | null> = { ...(preservedDraftValues.current?.unit ?? {}) };
+    const bedroomsVal = value("bedrooms");
+    if (bedroomsVal !== "") preservedUnit.bedrooms = Number(bedroomsVal);
+    const bathroomsVal = value("bathrooms");
+    if (bathroomsVal !== "") preservedUnit.bathrooms = Number(bathroomsVal);
+    const floorAreaVal = value("floorAreaSqm");
+    if (floorAreaVal !== "") preservedUnit.floor_area_sqm = Number(floorAreaVal);
+    const furnishedVal = value("furnishedStatus");
+    if (furnishedVal !== "") preservedUnit.furnished_status = furnishedVal;
+
+    const preservedProp: Record<string, string | number | null> = { ...(preservedDraftValues.current?.property ?? {}) };
+    if (permitExemptionReason.trim()) preservedProp.permit_exemption_reason = permitExemptionReason.trim();
+    if (Object.keys(documentCategories).length > 0) preservedProp.document_categories = JSON.stringify(documentCategories);
+
     return {
       title: value("title"), description: value("description"), propertyType: value("propertyType"), rentalType: value("rentalType"), price: value("price"),
       address, barangay: value("barangay"), city: value("city"), bathroomType: value("bathroomType"), maxOccupants: value("maxOccupants"),
       amenities: Array.from(form.querySelectorAll<HTMLInputElement>('input[name="amenities"]:checked')).map((input) => input.value),
       permitApplicability: permitApplicabilityCalculated, ...legacyPermit.current,
-      permitNotRequiredConfirmed, location, preserved: preservedDraftValues.current,
+      permitNotRequiredConfirmed, location,
+      preserved: {
+        property: preservedProp,
+        unit: preservedUnit,
+        emptyPermitConfirmation: preservedDraftValues.current?.emptyPermitConfirmation ?? false,
+      },
       tenantPolicy: value("tenantPolicy") || "any",
     };
   }
@@ -281,26 +362,27 @@ export function ListPropertyForm({ userId, restoreTarget }: { userId: string; re
     }
   }
 
-  async function selectPermitPhotos(input: HTMLInputElement) {
-    const next = Array.from(input.files ?? []);
-    input.value = "";
+  async function selectPermitPhotos(next: File[]) {
     if (!next.length) return;
     fileEdits.current++;
-    if (permitSelectionBusy.current) { setNotice({ success: false, text: "Please wait for the current file check." }); return; }
+    if (permitSelectionBusy.current) { setPermitError("Please wait for the current file check."); return; }
     const initialEdits = fileEdits.current;
     const all = [...permitPhotos, ...next];
     if (all.length > 5 || next.some((file) => file.size === 0 || file.size > 10 * 1024 * 1024 || !["application/pdf", "image/jpeg", "image/png", "image/webp"].includes(file.type))) {
-      setNotice({ success: false, text: "Choose up to 5 different JPG, PNG, WebP or PDF files, each no larger than 10 MB. Your previous selection was kept." });
+      setPermitError("Choose up to 5 different JPG, PNG, WebP or PDF files, each no larger than 10 MB. Your previous selection was kept.");
       return;
     }
     permitSelectionBusy.current = true;
     try {
+      // Content hash, not filename: same-named documents are allowed, identical files are not.
       const digests = await Promise.all(all.map(async (file) => Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", await file.arrayBuffer())), (byte) => byte.toString(16).padStart(2, "0")).join("")));
-      if (fileEdits.current !== initialEdits) { setNotice({ success: false, text: "Files changed while checking. Your current selection was kept; choose the files again." }); return; }
-      if (new Set(digests).size !== digests.length) { setNotice({ success: false, text: "Choose different permit files. Your previous selection was kept." }); return; }
+      if (fileEdits.current !== initialEdits) { setPermitError("Files changed while checking. Your current selection was kept; choose the files again."); return; }
+      if (new Set(digests).size !== digests.length) { setPermitError("Choose different permit files. Your previous selection was kept."); return; }
       setPermitPhotos(all);
+      setDirty(true);
+      setPermitError("");
       setNotice(null);
-    } catch { setNotice({ success: false, text: "Files could not be checked. Your previous selection was kept." }); }
+    } catch { setPermitError("Files could not be checked. Your previous selection was kept."); }
     finally { permitSelectionBusy.current = false; }
   }
 
@@ -381,11 +463,15 @@ export function ListPropertyForm({ userId, restoreTarget }: { userId: string; re
       if (!response.ok) throw new Error("media load failed");
       const body: unknown = await response.json();
       if (!body || typeof body !== "object" || !("media" in body) || !Array.isArray(body.media)) throw new Error("bad media response");
-      const files: File[] = [];
-      const permits: File[] = [];
-      const restoredMeta: Array<{ operationId: string; sha256: string; kind: "photo" | "permit" }> = [];
+      let photoCount = 0;
+      let permitCount = 0;
       for (const item of body.media) {
         if (!item || typeof item !== "object" || !("kind" in item) || (item.kind !== "photo" && item.kind !== "permit") || !("signedUrl" in item) || typeof item.signedUrl !== "string" || !("sizeBytes" in item) || typeof item.sizeBytes !== "number" || !Number.isSafeInteger(item.sizeBytes) || item.sizeBytes < 1 || item.sizeBytes > 10 * 1024 * 1024 || !("sha256" in item) || typeof item.sha256 !== "string" || !/^[0-9a-f]{64}$/.test(item.sha256)) throw new Error("invalid media entry");
+        if (item.kind === "photo") photoCount++;
+        else permitCount++;
+        if (photoCount > 6 || permitCount > 5) throw new Error("too many saved files");
+      }
+      const restored = await Promise.all(body.media.map(async (item) => {
         const fileResponse = await fetch(item.signedUrl);
         if (!fileResponse.ok) throw new Error("media download failed");
         const blob = await fileResponse.blob();
@@ -395,11 +481,12 @@ export function ListPropertyForm({ userId, restoreTarget }: { userId: string; re
         const contentType = String((item as { contentType?: string }).contentType ?? blob.type);
         const name = restoredMediaName(item.sha256, contentType, (item as { originalName?: unknown }).originalName);
         const file = new File([blob], name, { type: contentType });
-        if (item.kind === "photo") files.push(file);
-        else permits.push(file);
-        restoredMeta.push({ operationId: item.operationId, sha256: item.sha256, kind: item.kind });
-        if (files.length > 6 || permits.length > 5) throw new Error("too many saved files");
-      }
+        return { kind: item.kind, file, meta: { operationId: item.operationId, sha256: item.sha256, kind: item.kind } };
+      }));
+      // Promise.all preserves input order, so photos/permits keep the saved order.
+      const files = restored.filter((entry) => entry.kind === "photo").map((entry) => entry.file);
+      const permits = restored.filter((entry) => entry.kind === "permit").map((entry) => entry.file);
+      const restoredMeta = restored.map((entry) => entry.meta);
       if (fileEdits.current !== initialFileEdits) {
         setDraftError("Saved files were not restored because your file selection changed. Your current files were kept.");
         return;
@@ -509,6 +596,7 @@ export function ListPropertyForm({ userId, restoreTarget }: { userId: string; re
     for (const index of [0, 1, 2, 3]) { if (!validateStep(index)) { setStep(index); return; } }
     setSaving(true);
     setDraftError("");
+    let keepSaving = false;
     try {
       let activeDraftId = draftId;
       let activeRevision = revision;
@@ -542,6 +630,18 @@ export function ListPropertyForm({ userId, restoreTarget }: { userId: string; re
       try {
         const res = await fetch("/api/landlord/properties", { method: "POST", headers: { "content-type": "application/json", "x-expected-user-id": userId }, body: JSON.stringify({ operationId: submissionOpRef.current, draftId: activeDraftId, expectedRevision: activeRevision }) });
         const data: { propertyId?: string; status?: string; error?: string } | null = await res.json().catch(() => null);
+        if (res.status === 409 && /already submitted/i.test(data?.error ?? "")) {
+          // The server already holds this submission, so treat the retry as success instead of an error.
+          submissionOpRef.current = null;
+          try { sessionStorage.removeItem(storageKey); } catch { /* ignore */ }
+          setDraftError("");
+          setDirty(false);
+          notify("success", "property-submission", "Submission already received");
+          keepSaving = true;
+          if (router && typeof router.push === "function") router.push("/landlord/properties");
+          else if (typeof window !== "undefined") window.history.pushState(null, "", "/landlord/properties");
+          return;
+        }
         if (!res.ok || !data?.propertyId) {
           if (res.status === 400 || res.status === 409) {
             submissionOpRef.current = null;
@@ -559,7 +659,9 @@ export function ListPropertyForm({ userId, restoreTarget }: { userId: string; re
         notify("success", "property-submission", statusText);
         setDirty(false);
         try { sessionStorage.removeItem(autosaveKey); } catch { /* storage blocked: nothing to clear */ }
-        const targetUrl = `/landlord/map?selected=${encodeURIComponent(data.propertyId)}`;
+        const targetUrl = restoreTarget ? "/landlord/properties" : `/landlord/map?selected=${encodeURIComponent(data.propertyId)}`;
+        // Stay in the saving state until the destination route mounts; the form unmounts on navigation.
+        keepSaving = true;
         if (router && typeof router.push === "function") router.push(targetUrl);
         else if (typeof window !== "undefined") window.history.pushState(null, "", targetUrl);
       } catch {
@@ -567,24 +669,27 @@ export function ListPropertyForm({ userId, restoreTarget }: { userId: string; re
         setDraftError(errMsg);
         notify("error", "property-submission", errMsg);
       }
-    } finally { setSaving(false); }
+    } finally { if (!keepSaving) setSaving(false); }
   }
 
   const selectedAmenities = review?.amenities ?? [];
   const price = Number(review?.price ?? "");
-  const section = "grid gap-4 rounded-2xl border border-border/80 bg-card/95 p-4 shadow-sm backdrop-blur-sm sm:p-6";
-  const input = "min-h-11 rounded-lg border border-border bg-card px-3 font-normal";
+  const section = "grid gap-4 rounded-2xl border border-border bg-card p-4 shadow-xs sm:p-6";
+  const input = "min-h-11 w-full rounded-lg border border-border bg-background px-3 text-sm font-normal text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring";
 
   return <form ref={formRef} noValidate onSubmit={submit} onChange={(event) => { if (event.target instanceof HTMLInputElement && event.target.type === "file" && event.target.name !== "permitPhotos") fileEdits.current++; setDirty(true); setFormEdits((count) => count + 1); }} className="grid scroll-mt-20 gap-4">
     {draftError && <p role="alert" className="m-0 rounded-xl border border-destructive/40 bg-destructive/10 p-3 text-sm text-foreground">{draftError}</p>}
-    {drafts && drafts.length > 0 && <section aria-label="Saved drafts" className={section}><h2 className="m-0 font-semibold">Saved drafts</h2>{drafts.map((draft) => {
-      let title = "Untitled draft";
-      try { title = restoreDraftValues(draft.payload).title || title; } catch { /* Keep unsupported drafts visible. */ }
-      return <button type="button" className="min-h-11 rounded-lg border border-border px-3 text-left" key={draft.id} onClick={() => restoreDraft(draft)}>Restore {title}</button>;
-    })}</section>}
+    {drafts && drafts.length > 0 && <section aria-label="Saved drafts" className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border bg-muted/40 px-4 py-2.5">
+      <div className="flex items-center gap-2"><FileText size={16} className="shrink-0 text-action" aria-hidden="true" /><h2 className="m-0 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Saved drafts</h2></div>
+      <div className="flex flex-wrap gap-2">{drafts.map((draft) => {
+        let title = "Untitled draft";
+        try { title = restoreDraftValues(draft.payload).title || title; } catch { /* Keep unsupported drafts visible. */ }
+        return <button type="button" className="min-h-9 rounded-lg border border-border bg-card px-3 text-xs font-semibold text-foreground hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring" key={draft.id} onClick={() => restoreDraft(draft)}>Restore {title}</button>;
+      })}</div>
+    </section>}
     {notice && <p role={notice.success ? "status" : "alert"} className={notice.success ? "m-0 rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3 text-sm text-foreground" : "m-0 rounded-xl border border-destructive/40 bg-destructive/10 p-3 text-sm text-foreground"}>{notice.text}</p>}
 
-    <section className="rounded-2xl border border-border/80 bg-card/95 p-4 shadow-sm backdrop-blur-sm sm:p-5" aria-label="Listing progress">
+    <section className="rounded-2xl border border-border bg-card p-4 shadow-xs sm:p-5" aria-label="Listing progress">
       <div className="mb-3 flex items-center justify-between gap-3 text-sm">
         <span className="font-semibold">Step {step + 1} of {steps.length}</span>
         <span className="text-right text-muted-foreground">{steps[step]}</span>
@@ -592,7 +697,7 @@ export function ListPropertyForm({ userId, restoreTarget }: { userId: string; re
       <div className="h-2 overflow-hidden rounded-full bg-muted" role="progressbar" aria-label="Listing progress" aria-valuemin={1} aria-valuemax={steps.length} aria-valuenow={step + 1}>
         <div className="h-full rounded-full bg-action transition-[width] duration-200" style={{ width: `${((step + 1) / steps.length) * 100}%` }} />
       </div>
-      <ol className="mt-3 hidden grid-cols-5 gap-2 text-center text-[0.7rem] sm:grid">
+      <ol className="mt-3 grid grid-cols-5 gap-1.5 text-center text-xs sm:gap-2">
         {steps.map((label, index) => {
           const isCurrent = step === index;
           const isAccessible = index <= maxVisitedStep || index === step + 1;
@@ -605,11 +710,12 @@ export function ListPropertyForm({ userId, restoreTarget }: { userId: string; re
                 aria-current={isCurrent ? "step" : undefined}
                 aria-label={`Step ${index + 1}: ${label}`}
                 className={clsx(
-                  "w-full rounded-lg px-2 py-1.5 font-medium transition-colors text-left sm:text-center",
-                  isCurrent ? "font-semibold text-action bg-action/10" : isAccessible ? "text-foreground hover:bg-muted cursor-pointer" : "text-muted-foreground/60 cursor-not-allowed"
+                  "flex min-h-9 w-full items-center justify-center gap-1 rounded-lg px-1.5 py-1.5 font-medium transition-colors",
+                  isCurrent ? "bg-action/10 font-semibold text-action" : isAccessible ? "cursor-pointer text-foreground hover:bg-muted" : "cursor-not-allowed text-muted-foreground/60"
                 )}
               >
-                {label}
+                {index < step && <Check size={13} className="shrink-0 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />}
+                <span className="sm:hidden">{index + 1}</span><span className="hidden truncate sm:inline">{label}</span>
               </button>
             </li>
           );
@@ -621,14 +727,51 @@ export function ListPropertyForm({ userId, restoreTarget }: { userId: string; re
       <section className={section} aria-labelledby="property-details-heading">
         <div className="flex items-start gap-3"><span className="grid size-11 shrink-0 place-items-center rounded-xl bg-accent text-action"><MapPin size={19} aria-hidden="true" /></span><div><h2 id="property-details-heading" className="m-0 text-lg font-semibold">Property details</h2><p className="mb-0 mt-1 text-sm text-muted-foreground">Tell renters what makes your place a good fit.</p></div></div>
         <label className="grid gap-1.5 text-sm font-medium"><span>Property name</span><input className={input} name="title" required maxLength={200} placeholder="e.g. Mabolo Studio near IT Park" /></label>
-        <label className="grid gap-1.5 text-sm font-medium"><span>Description</span><textarea className="min-h-28 rounded-lg border border-border bg-card p-3 font-normal" name="description" required minLength={20} maxLength={4000} placeholder="Describe the space, included features, and helpful renter details." /></label>
+        <label className="grid gap-1.5 text-sm font-medium"><span>Description</span><span className="text-xs font-normal text-muted-foreground">Minimum 20 characters describing layout, inclusions, and house rules.</span><textarea className="min-h-28 w-full rounded-lg border border-border bg-background p-3 text-sm font-normal text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring" name="description" required minLength={20} maxLength={4000} placeholder="Describe the space, included features, and helpful renter details." /></label>
         <label className="grid gap-1.5 text-sm font-medium"><span>Property type</span><select className={input} name="propertyType" value={propertyType} required onChange={(event) => { const next = event.target.value; setPropertyType(next); const allowed = unitTypesByPropertyType[next] ?? allUnitTypes; const rental = formRef.current?.elements.namedItem("rentalType") as HTMLSelectElement | null; if (rental && allowed && !allowed.includes(rental.value)) rental.value = allowed[0]; }}><option value="" disabled>Select a property type</option>{propertyTypes.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
-        <fieldset className="grid gap-4 rounded-xl border border-border p-4 sm:grid-cols-2">
+        <fieldset className="grid gap-4 rounded-xl border border-border bg-muted/20 p-4 sm:grid-cols-2">
           <legend className="px-1 text-sm font-semibold">First rental unit</legend>
           <p className="m-0 text-sm text-muted-foreground sm:col-span-2">Add the type and monthly rent for the first unit at this property.</p>
-          <label className="grid gap-1.5 text-sm font-medium"><span>Unit type</span><select className={input} name="rentalType" defaultValue="" required>{(unitTypesByPropertyType[propertyType] ?? allUnitTypes).map((value) => <option key={value} value={value}>{unitTypeLabels[value]}</option>)}<option value="" disabled>Select a unit type</option></select></label>
-          <label className="grid gap-1.5 text-sm font-medium"><span>Monthly rent (PHP)</span><input className={input} name="price" type="number" min="1" max="10000000" step="1" required placeholder="e.g. 12000" /></label>
+          <label className="grid gap-1.5 text-sm font-medium"><span>Unit type</span><select className={input} name="rentalType" value={rentalType} onChange={(e) => setRentalType(e.target.value)} required>{(unitTypesByPropertyType[propertyType] ?? allUnitTypes).map((value) => <option key={value} value={value}>{unitTypeLabels[value]}</option>)}<option value="" disabled>Select a unit type</option></select></label>
+          <label className="grid gap-1.5 text-sm font-medium"><span>Monthly rent (PHP)</span><div className="relative flex items-center"><span className="pointer-events-none absolute left-3 text-sm font-semibold text-muted-foreground" aria-hidden="true">₱</span><input className={clsx(input, "pl-7")} name="price" type="number" min="1" max="10000000" step="1" required placeholder="e.g. 12000" /></div></label>
           <label className="grid gap-1.5 text-sm font-medium sm:col-span-2"><span>Tenant preference</span><select className={input} name="tenantPolicy" defaultValue="any"><option value="any">All / Anyone welcome</option><option value="female_only">Female only / Ladies only</option><option value="male_only">Male only</option><option value="mixed">Mixed / Co-ed</option></select></label>
+          {rentalType === "entire_place" && (
+            <div className="grid gap-4 border-t border-border/60 pt-2 sm:col-span-2 sm:grid-cols-2">
+              <label className="grid gap-1.5 text-sm font-medium">
+                <span>Bedrooms</span>
+                <select className={input} name="bedrooms" value={bedrooms} onChange={(e) => setBedrooms(e.target.value)}>
+                  <option value="">Select bedrooms</option>
+                  <option value="0">Studio / 0 BR</option>
+                  <option value="1">1 bedroom</option>
+                  <option value="2">2 bedrooms</option>
+                  <option value="3">3 bedrooms</option>
+                  <option value="4">4+ bedrooms</option>
+                </select>
+              </label>
+              <label className="grid gap-1.5 text-sm font-medium">
+                <span>Bathrooms</span>
+                <select className={input} name="bathrooms" value={bathrooms} onChange={(e) => setBathrooms(e.target.value)}>
+                  <option value="">Select bathrooms</option>
+                  <option value="1">1 bathroom</option>
+                  <option value="2">2 bathrooms</option>
+                  <option value="3">3+ bathrooms</option>
+                </select>
+              </label>
+              <label className="grid gap-1.5 text-sm font-medium">
+                <span>Floor area (sqm)</span>
+                <input className={input} name="floorAreaSqm" type="number" min="1" max="10000" placeholder="e.g. 45" value={floorAreaSqm} onChange={(e) => setFloorAreaSqm(e.target.value)} />
+              </label>
+              <label className="grid gap-1.5 text-sm font-medium">
+                <span>Furnishing</span>
+                <select className={input} name="furnishedStatus" value={furnishedStatus} onChange={(e) => setFurnishedStatus(e.target.value)}>
+                  <option value="">Select furnishing</option>
+                  <option value="unfurnished">Unfurnished</option>
+                  <option value="semi_furnished">Semi-furnished</option>
+                  <option value="furnished">Fully furnished</option>
+                </select>
+              </label>
+            </div>
+          )}
         </fieldset>
       </section>
     </div>
@@ -636,19 +779,26 @@ export function ListPropertyForm({ userId, restoreTarget }: { userId: string; re
     <div className="grid gap-4" data-step-panel="1" hidden={step !== 1} style={step === 1 ? undefined : { display: "none" }}>
       <section className={section} aria-labelledby="property-location-heading">
         <div className="flex items-start gap-3"><span className="grid size-11 shrink-0 place-items-center rounded-xl bg-accent text-action"><MapPin size={19} aria-hidden="true" /></span><div><h2 id="property-location-heading" className="m-0 text-lg font-semibold">Address and map location</h2><p className="mb-0 mt-1 text-sm text-muted-foreground">Select the property location, then confirm its full address.</p></div></div>
-        <div className="grid gap-1.5 text-sm font-medium"><span>Find the location</span><MapSearch embedded className="!relative !top-auto !left-auto !z-[4] !w-full" disabled={false} onSelect={(place) => { void choosePin(place.coordinates, place); }} /></div>
-        {step === 1 && <div className="relative h-80 overflow-hidden rounded-xl"><MapCanvasLoader selectedPlace={location} resolvedTheme={resolvedTheme} enablePinDrop pinCoordinates={location?.coordinates} onPinChange={(coordinates) => { void choosePin(coordinates); }} /></div>}
-        {location && <><p className="m-0 flex items-start gap-1.5 text-sm text-emerald-700 dark:text-emerald-400"><Check size={16} aria-hidden="true" /> Selected: {[location.name, location.detail].filter(Boolean).join(", ")}</p><button type="button" className="min-h-11 w-fit underline" onClick={() => { locationRequest.current++; clearAutomaticLocation(); setLocation(null); setDirty(true); }}>Clear pin</button></>}
-        <label className="grid gap-1.5 text-sm font-medium"><span>Complete property address</span><input className={input} name="address" value={address} onChange={(event) => { manuallyEdited.current.address = true; setAddress(event.target.value); }} required maxLength={1000} placeholder="House/building, street, barangay" /></label>
-        <label className="grid gap-1.5 text-sm font-medium"><span>Barangay</span><input className={input} name="barangay" onChange={() => { manuallyEdited.current.barangay = true; }} required maxLength={200} placeholder="Enter barangay" /></label>
-        <label className="grid gap-1.5 text-sm font-medium"><span>City or municipality</span><input className={input} name="city" onChange={() => { manuallyEdited.current.city = true; }} required maxLength={200} defaultValue="Cebu City" /></label>
+        {isLocationLocked && (
+          <div role="note" className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3.5 text-xs leading-relaxed text-amber-900 dark:text-amber-200">
+            <strong className="font-semibold">Approved location locked:</strong> This listing is already published. Street address, barangay, city, and map pin are locked and can only be corrected by an Administrator.
+          </div>
+        )}
+        <div className="grid gap-1.5 text-sm font-medium"><span>Find the location</span><MapSearch embedded className="!relative !top-auto !left-auto !z-[4] !w-full" disabled={isLocationLocked} onSelect={(place) => { if (!isLocationLocked) void choosePin(place.coordinates, place); }} /></div>
+        {step === 1 && <div className="relative h-80 overflow-hidden rounded-xl"><MapCanvasLoader selectedPlace={location} resolvedTheme={resolvedTheme} enablePinDrop={!isLocationLocked} pinCoordinates={location?.coordinates} onPinChange={(coordinates) => { if (!isLocationLocked) void choosePin(coordinates); }} /></div>}
+        {location && <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3.5 py-2.5"><p className="m-0 flex items-center gap-1.5 text-sm font-medium text-emerald-800 dark:text-emerald-300"><Check size={16} aria-hidden="true" /> Selected: {[location.name, location.detail].filter(Boolean).join(", ")}</p>{!isLocationLocked && <button type="button" className="min-h-9 rounded-lg px-2.5 text-xs font-semibold text-emerald-800 underline hover:bg-emerald-500/20 dark:text-emerald-300" onClick={() => { locationRequest.current++; clearAutomaticLocation(); setLocation(null); setDirty(true); }}>Clear pin</button>}</div>}
+        <div className="grid gap-4 sm:grid-cols-2">
+        <label className="grid gap-1.5 text-sm font-medium sm:col-span-2"><span>Complete property address</span><input className={clsx(input, isLocationLocked && "cursor-not-allowed bg-muted/50 text-muted-foreground")} name="address" value={address} readOnly={isLocationLocked} onChange={(event) => { if (!isLocationLocked) { manuallyEdited.current.address = true; setAddress(event.target.value); } }} required maxLength={1000} placeholder="House/building, street, barangay" /></label>
+        <label className="grid gap-1.5 text-sm font-medium"><span>Barangay</span><input className={clsx(input, isLocationLocked && "cursor-not-allowed bg-muted/50 text-muted-foreground")} name="barangay" readOnly={isLocationLocked} onChange={() => { if (!isLocationLocked) manuallyEdited.current.barangay = true; }} required maxLength={200} placeholder="Enter barangay" /></label>
+        <label className="grid gap-1.5 text-sm font-medium"><span>City or municipality</span><input className={clsx(input, isLocationLocked && "cursor-not-allowed bg-muted/50 text-muted-foreground")} name="city" readOnly={isLocationLocked} onChange={() => { if (!isLocationLocked) manuallyEdited.current.city = true; }} required maxLength={200} defaultValue="Cebu City" /></label>
+        </div>
       </section>
     </div>
 
     <div className="grid gap-4" data-step-panel="2" hidden={step !== 2} style={step === 2 ? undefined : { display: "none" }}>
       <section className={section} aria-labelledby="property-amenities-heading">
         <div className="flex items-start gap-3"><span className="grid size-11 shrink-0 place-items-center rounded-xl bg-accent text-action"><Check size={19} aria-hidden="true" /></span><div><h2 id="property-amenities-heading" className="m-0 text-lg font-semibold">Amenities and details</h2><p className="mb-0 mt-1 text-sm text-muted-foreground">Select the amenities available to renters.</p></div></div>
-        <fieldset className="grid gap-2 border-0 p-0 sm:grid-cols-2"><legend className="mb-2 text-sm font-medium">Amenities</legend>{amenities.map(([value, label]) => <label className="flex min-h-11 items-center gap-2 rounded-lg border border-border px-3 text-sm" key={value}><input className="size-4 accent-blue-600" type="checkbox" name="amenities" value={value} /><span>{label}</span></label>)}</fieldset>
+        <fieldset className="grid gap-2 border-0 p-0 sm:grid-cols-2"><legend className="mb-2 text-sm font-medium">Amenities</legend>{amenities.map(([value, label]) => <label className="flex min-h-11 cursor-pointer items-center gap-2.5 rounded-xl border border-border bg-background px-3 text-sm transition-colors hover:bg-muted/40 has-[:checked]:border-action has-[:checked]:bg-action/5 has-[:checked]:font-medium" key={value}><input className="size-4 accent-blue-600" type="checkbox" name="amenities" value={value} /><span>{label}</span></label>)}</fieldset>
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="grid gap-1.5 text-sm font-medium"><span>Bathroom</span><select className={input} name="bathroomType" defaultValue=""><option value="">Not specified</option><option value="private">Private</option><option value="shared">Shared</option></select></label>
           <label className="grid gap-1.5 text-sm font-medium"><span>Maximum occupants</span><input className={input} name="maxOccupants" type="number" min="1" max="1000" placeholder="Optional" /></label>
@@ -739,11 +889,13 @@ export function ListPropertyForm({ userId, restoreTarget }: { userId: string; re
                 <div key={`${photo.name}-${index}`} className="group relative flex flex-col items-center overflow-hidden rounded-xl border border-border bg-card p-2">
                   <div className="relative aspect-square w-full overflow-hidden rounded-lg bg-muted">
                     <PermitThumbnail file={photo} className="size-full object-cover" />
+                    {index === 0 && <span className="absolute left-1.5 top-1.5 rounded bg-action px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-action-foreground shadow-xs">Cover photo</span>}
                   </div>
                   <span className="mt-1.5 w-full truncate text-center text-xs text-muted-foreground">{photo.name}</span>
+                  <span className="text-[11px] text-muted-foreground">{fileSize(photo.size)}</span>
                   <button
                     type="button"
-                    className="mt-1 min-h-8 w-full rounded border border-border/80 px-2 text-xs font-medium text-destructive hover:bg-destructive/10"
+                    className="mt-1.5 min-h-11 w-full rounded-lg border border-border/80 px-2 text-xs font-semibold text-destructive hover:bg-destructive/10"
                     aria-label={`Remove ${photo.name}`}
                     onClick={() => {
                       fileEdits.current++;
@@ -771,25 +923,121 @@ export function ListPropertyForm({ userId, restoreTarget }: { userId: string; re
           </div>
         </div>
         <p className="m-0 text-xs text-muted-foreground">Accepted: Mayor’s Permit, Barangay Clearance, Fire Safety (FSIC), Sanitary Permit, or Tax Declaration / Deed (PDF, JPG, PNG, WebP up to 10 MB each, max 5 files).</p>
-        <label className="relative inline-flex min-h-11 w-fit cursor-pointer items-center gap-2 overflow-hidden rounded-lg border border-border bg-card px-4 text-sm font-semibold">
-          <Upload size={17} aria-hidden="true" /> Choose permit files
-          <input className="absolute inset-0 h-full w-full cursor-pointer opacity-0" name="permitPhotos" type="file" accept="application/pdf,image/jpeg,image/png,image/webp" multiple onChange={(event) => { void selectPermitPhotos(event.currentTarget); }} />
-        </label>
+        {(() => {
+          const guidance = getCityGuidance(city);
+          return (
+            <div className="rounded-xl border border-border bg-muted/30 p-3.5 text-xs text-muted-foreground">
+              <p className="m-0 font-semibold text-foreground">{guidance.cityName} verification guidance</p>
+              <p className="mb-0 mt-1 leading-relaxed">{guidance.text}</p>
+            </div>
+          );
+        })()}
+        <div
+          onDragOver={(e) => { e.preventDefault(); setIsDraggingPermits(true); }}
+          onDragEnter={(e) => { e.preventDefault(); setIsDraggingPermits(true); }}
+          onDragLeave={(e) => { e.preventDefault(); if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setIsDraggingPermits(false); }}
+          onDrop={(e) => { e.preventDefault(); setIsDraggingPermits(false); void selectPermitPhotos(Array.from(e.dataTransfer?.files ?? [])); }}
+          className={`relative flex flex-col items-center justify-center rounded-2xl border-2 border-dashed p-6 text-center transition focus-within:ring-2 focus-within:ring-action/40 ${
+            isDraggingPermits ? "border-action bg-action/10 ring-2 ring-action/20" : "border-border/80 bg-card/60 hover:border-action/60 hover:bg-muted/30"
+          }`}
+          aria-label="Drag and drop permit upload area"
+        >
+          <label className="flex cursor-pointer flex-col items-center gap-2">
+            <div className="grid size-12 place-items-center rounded-xl bg-action/10 text-action"><Upload size={22} aria-hidden="true" /></div>
+            <div className="space-y-0.5">
+              <p className="m-0 text-sm font-semibold text-foreground"><span className="text-action underline underline-offset-2">Click to browse</span> or drag and drop permit files here</p>
+              <p className="m-0 text-xs text-muted-foreground">PDF, JPG, PNG, or WebP up to 10 MB each (max 5 files)</p>
+            </div>
+            <input className="sr-only" name="permitPhotos" type="file" accept="application/pdf,image/jpeg,image/png,image/webp" multiple aria-describedby={permitError ? "permit-upload-error" : undefined} onChange={(event) => { const input = event.currentTarget; const files = Array.from(input.files ?? []); input.value = ""; void selectPermitPhotos(files); }} />
+          </label>
+        </div>
+        {permitError && <p id="permit-upload-error" role="alert" className="m-0 rounded-xl border border-destructive/40 bg-destructive/10 p-3 text-sm text-foreground">{permitError}</p>}
         {permitPhotos.length > 0 && (
-          <ul className="m-0 grid gap-2 p-0 sm:grid-cols-2">
+          <ul className="m-0 grid min-w-0 list-none gap-2 p-0 sm:grid-cols-2" aria-label="Selected permit files">
             {permitPhotos.map((file, index) => (
-              <li key={`${file.name}-${index}`} className="flex items-center gap-2 rounded-lg border border-border p-2">
-                {file.type.startsWith("image/") ? <PermitThumbnail file={file} /> : <FileText size={24} aria-hidden="true" />}
-                <span className="min-w-0 flex-1 truncate text-sm">{file.name}</span>
-                <button type="button" className="min-h-11 px-3 text-destructive" aria-label={`Remove ${file.name}`} onClick={() => { fileEdits.current++; setDirty(true); setPermitPhotos((files) => files.filter((_, i) => i !== index)); }}>Remove</button>
+              <li key={`${file.name}-${index}`} className="flex min-w-0 flex-col gap-2 rounded-lg border border-border bg-card p-3 sm:flex-row sm:items-center">
+                <div className="flex min-w-0 flex-1 items-center gap-2">
+                  {file.type.startsWith("image/") ? <PermitThumbnail file={file} className="size-12 shrink-0 rounded object-cover" /> : <span className="grid size-12 shrink-0 place-items-center rounded bg-muted text-muted-foreground"><FileText size={22} aria-hidden="true" /></span>}
+                  <div className="min-w-0 flex-1">
+                    <span className="block truncate text-sm font-medium">{file.name}</span>
+                    <span className="block text-xs text-muted-foreground">{fileSize(file.size)} · {savedSnapshot?.permits.includes(file) ? "Saved" : saving ? "Uploading…" : "Not saved yet"}</span>
+                  </div>
+                </div>
+                <div className="flex flex-wrap items-center gap-2 sm:shrink-0">
+                  <select
+                    aria-label={`Category for ${file.name}`}
+                    value={documentCategories[file.name] ?? "mayors_permit"}
+                    onChange={(e) => {
+                      const next = e.target.value;
+                      setDocumentCategories((prev) => ({ ...prev, [file.name]: next }));
+                      setDirty(true);
+                    }}
+                    className="h-8 rounded-md border border-border bg-background px-2 text-xs font-normal text-foreground"
+                  >
+                    <option value="mayors_permit">Business / Mayor&apos;s Permit</option>
+                    <option value="barangay_clearance">Barangay Clearance</option>
+                    <option value="fire_sanitary">Fire Safety (FSIC) / Sanitary</option>
+                    <option value="ownership_title">Ownership Title / Tax Dec</option>
+                    <option value="other_verification">Other Verification</option>
+                  </select>
+                  <label className="inline-flex min-h-8 cursor-pointer items-center rounded-md border border-border bg-card px-2.5 text-xs font-semibold text-foreground hover:bg-muted" aria-label={`Replace ${file.name}`}>
+                    Replace
+                    <input
+                      type="file"
+                      accept="application/pdf,image/jpeg,image/png,image/webp"
+                      className="sr-only"
+                      onChange={(event) => {
+                        const rep = event.target.files?.[0];
+                        event.target.value = "";
+                        if (!rep) return;
+                        if (rep.size === 0 || rep.size > 10 * 1024 * 1024 || !["application/pdf", "image/jpeg", "image/png", "image/webp"].includes(rep.type)) {
+                          setPermitError("Replacement file must be a JPG, PNG, WebP or PDF up to 10 MB.");
+                          return;
+                        }
+                        fileEdits.current++;
+                        setPermitPhotos((prev) => {
+                          const copy = [...prev];
+                          copy[index] = rep;
+                          return copy;
+                        });
+                        if (documentCategories[file.name]) {
+                          setDocumentCategories((prev) => {
+                            const next = { ...prev, [rep.name]: prev[file.name] };
+                            delete next[file.name];
+                            return next;
+                          });
+                        }
+                        setDirty(true);
+                        setPermitError("");
+                      }}
+                    />
+                  </label>
+                  <button type="button" className="min-h-8 shrink-0 rounded px-2.5 text-xs font-semibold text-destructive hover:bg-destructive/10" aria-label={`Remove ${file.name}`} onClick={() => { fileEdits.current++; setDirty(true); setPermitError(""); setPermitPhotos((files) => files.filter((_, i) => i !== index)); }}>Remove</button>
+                </div>
               </li>
             ))}
           </ul>
         )}
-        <label className="flex items-start gap-2 rounded-xl border border-border bg-muted/30 p-3 text-sm leading-relaxed">
+        <label className="flex cursor-pointer items-start gap-2.5 rounded-xl border border-border bg-muted/30 p-3.5 text-sm leading-relaxed transition-colors hover:bg-muted/50 has-[:checked]:border-action has-[:checked]:bg-action/5">
           <input className="mt-1 size-4 shrink-0 accent-blue-600" type="checkbox" name="permitNotRequiredConfirmed" value="yes" checked={permitNotRequiredConfirmed} onChange={(event) => { if (preservedDraftValues.current) preservedDraftValues.current.emptyPermitConfirmation = false; setPermitNotRequiredConfirmed(event.target.checked); setNotice(null); }} />
           <span>This property is an individual residential room, house, or condo exempt from commercial business permits.</span>
         </label>
+        <div className="grid gap-1.5 pt-1">
+          <label className="grid gap-1 text-xs font-medium text-foreground">
+            <span>Unavailable document explanation or exemption details</span>
+            <textarea
+              className="min-h-20 w-full rounded-xl border border-border bg-background p-3 text-xs font-normal text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+              name="permitExemptionReason"
+              maxLength={1000}
+              value={permitExemptionReason}
+              onChange={(e) => {
+                setPermitExemptionReason(e.target.value);
+                setDirty(true);
+              }}
+              placeholder="Optional: Explain why any specific document is unavailable, pending renewal, or exempt (e.g. Individual homeowner renting one bedroom, commercial permit exempt under local ordinance)."
+            />
+          </label>
+        </div>
       </section>
     </div>
 
@@ -797,19 +1045,25 @@ export function ListPropertyForm({ userId, restoreTarget }: { userId: string; re
       <section className={section} aria-labelledby="listing-review-heading">
         <div className="flex items-start gap-3"><span className="grid size-11 shrink-0 place-items-center rounded-xl bg-accent text-action"><Check size={19} aria-hidden="true" /></span><div><h2 id="listing-review-heading" className="m-0 text-lg font-semibold">Review your listing</h2><p className="mb-0 mt-1 text-sm text-muted-foreground">Check the details before sending your property for review.</p></div></div>
         <dl className="grid gap-3 sm:grid-cols-2">
-          <div className="rounded-xl border border-border p-3"><dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Property</dt><dd className="mb-0 mt-1 font-semibold">{review?.title || "Not provided"}</dd><dd className="mb-0 mt-1 text-sm text-muted-foreground">{propertyTypes.find(([value]) => value === review?.propertyType)?.[1] ?? "Type not selected"} · {({ entire_place: "Entire place", private_room: "Private room", shared_room: "Shared room", bedspace: "Bedspace" } as Record<string, string>)[review?.rentalType ?? ""] ?? "Unit type not selected"}</dd></div>
+          <div className="rounded-xl border border-border p-3"><div className="flex items-center justify-between gap-2"><dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Property</dt><button type="button" className="text-xs font-semibold text-action hover:underline" aria-label="Edit property details" onClick={() => jumpToStep(0)}>Edit</button></div><dd className="mb-0 mt-1 font-semibold">{review?.title || "Not provided"}</dd><dd className="mb-0 mt-1 text-sm text-muted-foreground">{propertyTypes.find(([value]) => value === review?.propertyType)?.[1] ?? "Type not selected"} · {({ entire_place: "Entire place", private_room: "Private room", shared_room: "Shared room", bedspace: "Bedspace" } as Record<string, string>)[review?.rentalType ?? ""] ?? "Unit type not selected"}</dd></div>
           <div className="rounded-xl border border-border p-3"><dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Monthly rent</dt><dd className="mb-0 mt-1 font-semibold">{price > 0 ? `₱${price.toLocaleString("en-PH")}` : "Not provided"}</dd></div>
           <div className="rounded-xl border border-border p-3"><dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Tenant preference</dt><dd className="mb-0 mt-1 text-sm">{review?.tenantPolicy === "female_only" ? "Female only / Ladies only" : review?.tenantPolicy === "male_only" ? "Male only" : review?.tenantPolicy === "mixed" ? "Mixed / Co-ed" : "All / Anyone welcome"}</dd></div>
-          <div className="rounded-xl border border-border p-3"><dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Business permit</dt><dd className="mb-0 mt-1 text-sm">{permitPhotos.length > 0 ? `Required · ${permitPhotos.length} file${permitPhotos.length === 1 ? "" : "s"}: ${permitPhotos.map((file) => file.name).join(", ")}` : "Declared not required"}</dd></div>
-          <div className="rounded-xl border border-border p-3 sm:col-span-2"><dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Location</dt><dd className="mb-0 mt-1 font-medium">{address || "Address not provided"}</dd><dd className="mb-0 mt-1 text-sm text-muted-foreground">{[review?.barangay, review?.city].filter(Boolean).join(", ")}</dd></div>
-          <div className="rounded-xl border border-border p-3 sm:col-span-2"><dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Amenities</dt><dd className="mb-0 mt-1 text-sm">{selectedAmenities.length ? selectedAmenities.join(", ") : "No amenities selected"}</dd></div>
-          <div className="rounded-xl border border-border p-3 sm:col-span-2"><dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Photos</dt><dd className="mb-0 mt-1 text-sm">{photos.length ? `${photos.length} photo${photos.length === 1 ? "" : "s"} selected` : "No photos added"}</dd></div>
+          <div className="rounded-xl border border-border p-3"><div className="flex items-center justify-between gap-2"><dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Business permit</dt><button type="button" className="text-xs font-semibold text-action hover:underline" aria-label="Edit business permit" onClick={() => jumpToStep(3)}>Edit</button></div><dd className="mb-0 mt-1 text-sm">{permitPhotos.length > 0 ? `Required · ${permitPhotos.length} file${permitPhotos.length === 1 ? "" : "s"}: ${permitPhotos.map((file) => file.name).join(", ")}` : "Declared not required"}</dd></div>
+          <div className="rounded-xl border border-border p-3 sm:col-span-2"><div className="flex items-center justify-between gap-2"><dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Location</dt><button type="button" className="text-xs font-semibold text-action hover:underline" aria-label="Edit location" onClick={() => jumpToStep(1)}>Edit</button></div><dd className="mb-0 mt-1 font-medium">{address || "Address not provided"}</dd><dd className="mb-0 mt-1 text-sm text-muted-foreground">{[review?.barangay, review?.city].filter(Boolean).join(", ")}</dd></div>
+          <div className="rounded-xl border border-border p-3 sm:col-span-2"><div className="flex items-center justify-between gap-2"><dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Amenities</dt><button type="button" className="text-xs font-semibold text-action hover:underline" aria-label="Edit amenities and photos" onClick={() => jumpToStep(2)}>Edit</button></div><dd className="mb-0 mt-1 text-sm">{selectedAmenities.length ? selectedAmenities.join(", ") : "No amenities selected"}</dd></div>
+          <div className="rounded-xl border border-border p-3 sm:col-span-2"><dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Photos</dt><dd className="mb-0 mt-1 text-sm">{photos.length ? `${photos.length} photo${photos.length === 1 ? "" : "s"} selected` : "No photos added"}{photos.length > 0 && <div className="mt-2 flex flex-wrap gap-2">{photos.map((photo, index) => <PermitThumbnail key={`${photo.name}-${index}`} file={photo} className="size-12 rounded-lg border border-border object-cover" />)}</div>}</dd></div>
           {review?.description && <div className="rounded-xl border border-border p-3 sm:col-span-2"><dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Description</dt><dd className="mb-0 mt-1 whitespace-pre-wrap text-sm">{review.description}</dd></div>}
         </dl>
+        {isLocationLocked && (
+          <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3.5 text-xs leading-relaxed text-emerald-950 dark:text-emerald-200">
+            <strong className="font-semibold">Your published listing stays live:</strong> Renters will continue to view your currently active listing on the map. Once an administrator approves this revision, your changes will automatically update on the live listing.
+          </div>
+        )}
+        <div className="rounded-xl border border-border bg-muted/30 p-3.5 text-xs leading-relaxed text-muted-foreground"><strong className="font-semibold text-foreground">What happens next:</strong> Submitted listings enter <span className="font-semibold text-foreground">pending review</span>. Once verified by an administrator, your property will appear on the public rental map. Uploaded permit documents remain private.</div>
       </section>
     </div>
 
-    <div className="sticky bottom-0 z-20 -mx-1 flex flex-col gap-3 rounded-2xl border border-border/80 bg-card/95 p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] shadow-lg backdrop-blur-sm sm:flex-row sm:items-center sm:justify-between sm:p-4 sm:pb-4">
+    <div className="sticky bottom-[calc(4.25rem+env(safe-area-inset-bottom))] lg:bottom-0 z-20 -mx-1 flex flex-col gap-3 rounded-2xl border border-border bg-card p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] shadow-lg sm:flex-row sm:items-center sm:justify-between sm:p-4 sm:pb-4">
       <p className="m-0 hidden text-sm text-muted-foreground sm:block sm:text-left">{step === steps.length - 1 ? "Review & submit" : `${steps.length - step - 1} step${steps.length - step - 1 === 1 ? "" : "s"} remaining`}{saving ? " · Saving…" : dirty ? " · Unsaved changes" : ""}</p>
       <div className="grid grid-cols-2 gap-2 sm:flex sm:justify-end">
         {step > 0 && <button className="inline-flex min-h-11 items-center justify-center gap-1 rounded-lg border border-border bg-card px-4 text-sm font-semibold hover:bg-muted disabled:opacity-50" type="button" onClick={() => { setNotice(null); setStep((current) => Math.max(0, current - 1)); formRef.current?.scrollIntoView({ block: "start" }); }} disabled={step === 0 || pending}><ChevronLeft size={17} aria-hidden="true" /> Back</button>}

@@ -44,4 +44,17 @@ describe("LandlordSubmissionsList", () => {
     expect(html).toContain("Property 5");
     expect(html).not.toContain('aria-label="Pagination"');
   });
+
+  it("renders location, property type and rent metadata", () => {
+    const html = renderToStaticMarkup(
+      <LandlordSubmissionsList
+        submissions={[{ id: "p1", title: "Metro flat", status: "pending", street_address: "12 Colon St", city: "Cebu City", property_type: "apartment", monthly_rent: 12500 }]}
+        availableIds={[]}
+        feedback={{}}
+        correctionTargets={{}}
+        linkClass="test-link"
+      />
+    );
+    expect(html).toContain("12 Colon St, Cebu City · apartment · ₱12,500/mo");
+  });
 });

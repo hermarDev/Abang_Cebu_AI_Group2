@@ -28,9 +28,18 @@ export async function POST(request: Request) {
   const draftId = typeof input.submissionDraftId === "string" && uuid.test(input.submissionDraftId) ? input.submissionDraftId : null;
   const expectedRevision = Number.isSafeInteger(input.submissionExpectedRevision) && (input.submissionExpectedRevision as number) >= 1 ? input.submissionExpectedRevision as number : null;
   if (draftId === null || expectedRevision === null) return reply("Provide the exact submission revision.", 400);
+  const docDecision = typeof input.documentApplicabilityDecision === "string" && ["documents_verified", "exemption_accepted", "documents_required"].includes(input.documentApplicabilityDecision) ? input.documentApplicabilityDecision : null;
   let result;
   try {
-    result = await session.supabase.rpc("review_property", { p_property_id: input.propertyId, p_operation_id: input.operationId, p_decision: input.decision, p_note: note, p_submission_draft_id: draftId, p_submission_expected_revision: expectedRevision });
+    result = await session.supabase.rpc("review_property", {
+      p_property_id: input.propertyId,
+      p_operation_id: input.operationId,
+      p_decision: input.decision,
+      p_note: note,
+      p_submission_draft_id: draftId,
+      p_submission_expected_revision: expectedRevision,
+      ...(docDecision ? { p_document_decision: docDecision } : {}),
+    });
   } catch {
     return reply("The review outcome could not be confirmed. Reload its status before retrying.", 503);
   }

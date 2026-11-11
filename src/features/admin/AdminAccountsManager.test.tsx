@@ -41,4 +41,14 @@ describe("AdminAccountsManager", () => {
     respond(503, { error: "The account change could not be confirmed." });
     expect(await submitAccountChange("admin-a", { account: landlord, suspend: true, operationId: "op-3" }, "Valid reason", true)).toEqual({ ok: false, message: "The account change could not be confirmed." });
   });
+  it("renders inspect account button when onInspect is provided", () => {
+    const html = renderToStaticMarkup(
+      AccountRow({
+        account: { id: "a1", role: "landlord", isSuspended: false, fullName: "Lana Lord", propertyCount: 2, livePropertyCount: 1, openReportCount: 0 },
+        onAction: () => {},
+        onInspect: () => {},
+      })
+    );
+    expect(html).toContain("Inspect account");
+  });
 });

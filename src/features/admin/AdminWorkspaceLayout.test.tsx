@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from "vitest";
 vi.mock("next/navigation", () => ({ usePathname: () => "/admin/reviews" }));
 import { AdminWorkspaceLayout } from "./AdminWorkspaceLayout";
 
-const html = renderToStaticMarkup(<AdminWorkspaceLayout title="Listing reviews" subtitle="Sub" displayName="Ada Admin"><p>Body</p></AdminWorkspaceLayout>);
+const html = renderToStaticMarkup(<AdminWorkspaceLayout title="Listing reviews" subtitle="Sub" displayName="Ada Admin" avatarUrl="https://example.com/admin.jpg"><p>Body</p></AdminWorkspaceLayout>);
 
 describe("AdminWorkspaceLayout", () => {
   it("renders the grouped desktop sidebar with the active page marked", () => {
@@ -18,6 +18,7 @@ describe("AdminWorkspaceLayout", () => {
   it("renders header controls, theme controls, children, and a mobile bar with 44px targets", () => {
     expect(html).toContain("AbangCebu · Admin");
     expect(html).toContain('href="/auth/logout"');
+    expect(html).toContain("text-destructive");
     expect(html).toContain("Listing reviews</h1>");
     expect(html).toContain("<p>Body</p>");
     expect(html).toContain('aria-label="Admin mobile navigation"');
@@ -27,10 +28,12 @@ describe("AdminWorkspaceLayout", () => {
     expect(html).toContain('aria-label="More admin options"');
     expect(html).toMatch(/aria-label="[^"]*(light|dark|system|theme)/i);
   });
-  it("renders compact 44px responsive header actions with accessible aria-labels", () => {
-    expect(html).toMatch(/<a(?=[^>]*href="\/account")(?=[^>]*aria-label="Account settings")(?=[^>]*class="[^"]*min-h-11 min-w-11[^"]*")[^>]*>/);
-    expect(html).toMatch(/<a(?=[^>]*href="\/auth\/logout")(?=[^>]*aria-label="Log out")(?=[^>]*class="[^"]*min-h-11 min-w-11[^"]*")[^>]*>/);
-    expect(html).toContain('<span class="hidden sm:inline">Account settings</span>');
-    expect(html).toContain('<span class="hidden sm:inline">Log out</span>');
+  it("renders the account dropdown menu with Account settings and Log out links", () => {
+    expect(html).toContain("<span>Account</span>");
+    expect(html).toContain('src="https://example.com/admin.jpg"');
+    expect(html).toMatch(/<a(?=[^>]*href="\/account")[^>]*>/);
+    expect(html).toMatch(/<a(?=[^>]*href="\/auth\/logout")[^>]*>/);
+    expect(html).toContain("Account settings");
+    expect(html).toContain("Log out");
   });
 });

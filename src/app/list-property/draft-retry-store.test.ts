@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { describe, expect, it, vi } from "vitest";
 import { executeDraftSave, releaseDraftUpload, restartReleasedDraftUpload, type DraftIntentRepository, type DraftSaveIntent } from "./draft-save-client";
 
@@ -46,6 +47,15 @@ function repository(overrides: Partial<DraftIntentRepository> = {}): DraftIntent
 }
 
 describe("durable draft save execution", () => {
+  it("keeps the pending intent when upload acknowledgement has a mismatched digest", async () => {
+    const file = new File(["file"], "permit.pdf", { type: "application/pdf" });
+    const saved = intent({ draftId: "draft-a", revision: 1, phase: "created", files: [{ kind: "permit", operationId: "file-op", file }] });
+    const store = repository();
+    const fetcher = vi.fn().mockResolvedValueOnce(new Response(JSON.stringify({ sha256: "0".repeat(64), sizeBytes: file.size, contentType: file.type }), { status: 200 }));
+    await expect(executeDraftSave(saved, store, fetcher)).rejects.toThrow(/confirm|integrity/i);
+    expect(store.pending.has(saved.id)).toBe(true);
+    expect(store.deletePending).not.toHaveBeenCalled();
+  });
   it("retries an uncertain release with the original operation and keeps the intent", async () => {
     const file = new File(["file"], "photo.jpg", { type: "image/jpeg" });
     const saved = intent({ draftId: "draft-a", revision: 1, phase: "created", files: [{ kind: "photo", operationId: "file-op", file }] });
@@ -93,7 +103,7 @@ describe("durable draft save execution", () => {
     const saved = intent({ draftId: "draft-a", revision: 1, phase: "created", files: [{ kind: "photo", operationId: "old-op", file, released: true }] });
     const store = repository();
     await store.putPending(saved);
-    const fetcher = vi.fn().mockRejectedValueOnce(new Error("response lost")).mockResolvedValueOnce(new Response("{}", { status: 200 }));
+    const fetcher = vi.fn().mockRejectedValueOnce(new Error("response lost")).mockResolvedValueOnce(new Response(JSON.stringify({ sha256: createHash("sha256").update("file").digest("hex"), sizeBytes: file.size, contentType: file.type }), { status: 200 }));
     await restartReleasedDraftUpload(saved, "old-op", store);
     await expect(executeDraftSave(saved, store, fetcher)).rejects.toThrow("response lost");
     const first = (fetcher.mock.calls[0][1].body as FormData).get("operationId");
@@ -172,7 +182,7 @@ describe("durable draft save execution", () => {
     const fetcher = vi.fn()
       .mockResolvedValueOnce(new Response(JSON.stringify({ id: "22222222-2222-4222-8222-222222222222" }), { status: 200 }))
       .mockRejectedValueOnce(new Error("upload response lost"))
-      .mockResolvedValueOnce(new Response(JSON.stringify({ ok: true }), { status: 200 }));
+      .mockResolvedValueOnce(new Response(JSON.stringify({ sha256: createHash("sha256").update(new Uint8Array([1, 2, 3])).digest("hex"), sizeBytes: file.size, contentType: file.type }), { status: 200 }));
     await expect(executeDraftSave(saved, store, fetcher)).rejects.toThrow("upload response lost");
     expect(store.pending.has(saved.id)).toBe(true);
     await executeDraftSave(saved, store, fetcher);
