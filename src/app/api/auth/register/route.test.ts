@@ -63,6 +63,39 @@ describe("registration route", () => {
     expect(response.status).toBe(201);
     expect(signUp).toHaveBeenCalledOnce();
   });
+  it("rejects registration without Turnstile token when TURNSTILE_SECRET_KEY is configured", async () => {
+    vi.stubEnv("TURNSTILE_SECRET_KEY", "test-secret-key");
+    signUp.mockClear();
+    const response = await POST(request(goodPayload));
+    expect(response.status).toBe(403);
+    const body = await response.json();
+    expect(body.error.code).toBe("CAPTCHA_VERIFICATION_FAILED");
+    expect(signUp).not.toHaveBeenCalled();
+  });
+  it("accepts registration when Turnstile token verification succeeds", async () => {
+    vi.stubEnv("TURNSTILE_SECRET_KEY", "test-secret-key");
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ success: true }),
+    }));
+    signUp.mockReset().mockResolvedValue({ data: { user: { id: "u1" } }, error: null });
+    const response = await POST(request({ ...goodPayload, turnstileToken: "valid-turnstile-token" }));
+    expect(response.status).toBe(201);
+    expect(signUp).toHaveBeenCalledOnce();
+  });
+  it("rejects registration when Turnstile token verification fails", async () => {
+    vi.stubEnv("TURNSTILE_SECRET_KEY", "test-secret-key");
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ success: false, "error-codes": ["invalid-input-response"] }),
+    }));
+    signUp.mockClear();
+    const response = await POST(request({ ...goodPayload, turnstileToken: "invalid-token" }));
+    expect(response.status).toBe(403);
+    const body = await response.json();
+    expect(body.error.code).toBe("CAPTCHA_VERIFICATION_FAILED");
+    expect(signUp).not.toHaveBeenCalled();
+  });
   it("rejects admin role before contacting Supabase", async () => {
     signUp.mockClear();
     const response = await POST(request({ ...goodPayload, role: "admin" }));

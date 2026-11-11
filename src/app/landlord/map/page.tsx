@@ -45,7 +45,10 @@ function amenityLabels(value: unknown): string[] {
     .map(label => label.replaceAll("_", " ").trim()).filter(Boolean);
 }
 
-export default async function LandlordMapPage({ searchParams }: { searchParams?: Promise<{ selected?: string | string[] }> } = {}) {
+export default async function LandlordMapPage(props: { searchParams?: Promise<{ selected?: string | string[] }> }): Promise<React.JSX.Element>;
+export default async function LandlordMapPage(): Promise<React.JSX.Element>;
+export default async function LandlordMapPage(props?: { searchParams?: Promise<{ selected?: string | string[] }> }): Promise<React.JSX.Element> {
+  const searchParams = props?.searchParams;
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) redirect("/login?next=%2Flandlord%2Fmap");

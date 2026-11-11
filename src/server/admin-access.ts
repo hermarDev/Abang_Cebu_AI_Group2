@@ -27,6 +27,9 @@ type Rpc = (fn: string, args?: Record<string, unknown>) => Promise<RpcResult>;
 export type KnownAdminRpc =
   | "admin_list_properties"
   | "admin_update_property_location"
+  | "admin_set_property_lifecycle"
+  | "admin_list_accounts"
+  | "admin_set_account_suspension"
   | "admin_dashboard_overview"
   | "admin_list_audit_logs"
   | "admin_list_abuse_reports"

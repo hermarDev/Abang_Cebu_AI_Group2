@@ -3,7 +3,8 @@ import { afterEach, beforeEach, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({ access: vi.fn(), provider: vi.fn() }));
 vi.mock("@/server/assistant-access", () => ({ getAssistantAccess: mocks.access }));
 vi.mock("@/lib/supabase/server", () => ({ createClient: vi.fn() }));
-import { assistantLimiter, POST } from "./route";
+import { assistantLimiter } from "@/server/api-limiters";
+import { POST } from "./route";
 
 beforeEach(() => {
   assistantLimiter.reset();

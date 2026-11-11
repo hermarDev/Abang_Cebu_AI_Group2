@@ -95,6 +95,9 @@ describe("createRateLimiter", () => {
     // In test environment, invalid IP falls back to 'development'
     expect(limiter.check(invalid, "user1", 0)).toBe(true);
     expect(limiter.check(invalid, "user2", 0)).toBe(true);
+
+    const outOfRange = req({ "cf-connecting-ip": "999.999.999.999" });
+    expect(limiter.check(outOfRange, "user3", 0)).toBe(true);
   });
 
   it("bounds storage to prevent memory exhaustion under rotating actors", () => {

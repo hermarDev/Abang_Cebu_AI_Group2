@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { placesSearchLimiter } from "@/server/api-limiters";
 import { searchPlaces } from "@/server/places/search-places";
-import { GET, placesSearchLimiter } from "./route";
+import { GET } from "./route";
 
 vi.mock("@/server/places/search-places", () => ({
   searchPlaces: vi.fn(),

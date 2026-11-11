@@ -1,17 +1,11 @@
 import { createClient } from "@/lib/supabase/server";
+import { assistantLimiter } from "@/server/api-limiters";
 import { getAssistantAccess } from "@/server/assistant-access";
-import { createRateLimiter } from "@/server/rate-limit";
 
 type ConversationMessage = {
   role: "user" | "assistant";
   content: string;
 };
-
-export const assistantLimiter = createRateLimiter({
-  windowMs: 10 * 60 * 1000,
-  maxPerIp: 15,
-  maxPerActor: 30,
-});
 
 const GROQ_CHAT_COMPLETIONS_URL = "https://api.groq.com/openai/v1/chat/completions";
 const MAX_MESSAGES = 16;

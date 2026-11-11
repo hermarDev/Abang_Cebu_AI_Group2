@@ -1,16 +1,10 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
-import { createRateLimiter } from "@/server/rate-limit";
+import { favoritesLimiter } from "@/server/api-limiters";
 
 const noStoreHeaders = { "Cache-Control": "no-store" };
 const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const STORAGE_PATH_REGEX = /^[0-9a-f-]{36}\/[0-9a-f-]{36}\/[0-9a-f-]{36}\/[0-9a-f]{64}\.(jpg|png|webp)$/i;
-
-export const favoritesLimiter = createRateLimiter({
-  windowMs: 60 * 1000,
-  maxPerIp: 60,
-  maxPerActor: 30,
-});
 
 type SubmittedRentalRow = {
   id: string;

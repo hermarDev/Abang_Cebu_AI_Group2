@@ -20,7 +20,9 @@ async function signPhotos(rows: unknown[]): Promise<Map<string, string>> {
   return signed;
 }
 
-export async function GET(request?: Request) {
+export async function GET(request: Request): Promise<Response>;
+export async function GET(): Promise<Response>;
+export async function GET(request?: Request): Promise<Response> {
   const headers = { "Cache-Control": "no-store" };
   try {
     const url = request ? new URL(request.url) : null;

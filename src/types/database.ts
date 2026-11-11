@@ -344,6 +344,12 @@ export interface Database {
       admin_list_abuse_reports: { Args: { p_status?: string | null; p_limit?: number; p_offset?: number }; Returns: Json; };
       admin_get_abuse_report_detail: { Args: { p_report_id: string; p_operation_id: string }; Returns: Json; };
       admin_resolve_abuse_report: { Args: { p_report_id: string; p_operation_id: string; p_decision: 'resolved' | 'dismissed'; p_resolution_note: string; p_suspend_target_user?: boolean; p_unpublish_target_listing?: boolean }; Returns: Json; };
+      admin_update_property_location: { Args: { p_property_id: string; p_operation_id: string; p_city: string; p_address_line1: string; p_barangay: string; p_latitude: number; p_longitude: number; p_reason: string }; Returns: Json; };
+      save_property_draft: { Args: { p_operation_id: string; p_payload: Json }; Returns: string; };
+      update_property_draft: { Args: { p_draft_id: string; p_operation_id: string; p_expected_revision: number; p_payload: Json }; Returns: number; };
+      submit_property_from_draft: { Args: { p_operation_id: string; p_draft_id: string; p_expected_revision: number }; Returns: Json; };
+      release_property_draft_media: { Args: { p_draft_id: string; p_operation_id: string }; Returns: string; };
+      get_public_submitted_properties: { Args: Record<PropertyKey, never>; Returns: Json; };
     };
     Enums: {
       user_role: UserRole;
