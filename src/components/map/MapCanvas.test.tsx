@@ -92,4 +92,12 @@ describe("MapCanvas controls", () => {
     expect(source).toContain("closeRentalPopup(); onMessageLandlord?.(activePopupRental.id);");
     expect(source).toContain("aria-label={`Message landlord about ${activePopupRental.title}`}");
   });
+
+  it("keeps property location picker mode free of rental search overlays even when location is locked", () => {
+    expect(source).toContain("const isLocationPicker = Boolean(locationPicker || enablePinDrop || pinCoordinates !== undefined || onPinChange !== undefined);");
+    expect(source).toContain("const externallyControlled = externalFilters !== undefined || isLocationPicker;");
+    expect(source).toContain("!isLocationPicker && popupPortalTarget");
+    expect(source).toContain("!isLocationPicker && (assistantControlsTarget");
+    expect(source).toContain("setDraggable(Boolean(enablePinDrop))");
+  });
 });
