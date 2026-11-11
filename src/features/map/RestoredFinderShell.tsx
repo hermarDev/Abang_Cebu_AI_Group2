@@ -14,7 +14,7 @@ import { RentalFilterDialog } from "@/features/rentals/RentalFilterDialog";
 import Image from "next/image";
 import Link from "next/link";
 import { FinderAssistant } from "./FinderAssistant";
-import { Building2, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, CircleAlert, Info, LogIn, MapPinned, Menu, MessageSquare, Pencil, Search, X } from "lucide-react";
+import { Building2, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, CircleAlert, Info, LogIn, Menu, MessageSquare, Pencil, Search, X } from "lucide-react";
 import { AccountAccessContent, type AccountMode } from "@/components/auth/AccountAccessContent";
 import MapSearch from "@/components/map/MapSearch";
 import type { PlaceResult } from "@/lib/search/places";
