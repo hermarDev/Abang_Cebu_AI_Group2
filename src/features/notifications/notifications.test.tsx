@@ -111,8 +111,8 @@ describe("NotificationCenter", () => {
 
     expect(html).toContain("You’re all caught up!");
     expect(html).toContain("New messages, inquiries, and listing updates will appear here.");
-    expect(html).toContain("role=\"tablist\"");
-    expect(html).toContain("role=\"tab\"");
+    expect(html).toContain("role=\"group\"");
+    expect(html).toContain("aria-pressed=\"true\"");
     expect(html).not.toContain("Mark all read");
   });
 

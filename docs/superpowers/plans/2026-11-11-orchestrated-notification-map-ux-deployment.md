@@ -74,10 +74,10 @@
 
 3. **Refined Notification Content & Smart Thread Categorization:**
    - Check if previous messages exist in `rental_conversations` before naming a notification "New inquiry" vs "New message".
-   - Deep-link listing review notifications directly to `/landlord/properties?status=${status}&highlight=${property_id}`.
+   - Deep-link listing review notifications directly to `/landlord/properties?status=${status}&highlight=${property_id}`, and update `LandlordPropertiesClient` to read the highlight query param and scroll/highlight the matching property card while preserving existing status tab filtering.
 
-4. **Accessible Notification Tabs & Contextual Popover:**
-   - Add `role="tablist"` and `role="tab"` with `aria-selected` to `All`/`Unread` chips.
+4. **Accessible Notification Filter Controls & Contextual Popover:**
+   - Add `role="group"` with `aria-label="Notification filters"` and `aria-pressed` toggle buttons to `All`/`Unread` chips.
    - Retain Radix Popover on desktop (screens >= 640px) and bottom Sheet on mobile (< 640px).
    - In drawer navigation, open `NotificationsModal` with a dedicated state trigger to avoid anchor collision.
 
@@ -172,6 +172,6 @@
 
 ## 8. Risks and Rollback Considerations
 
-- **Database Migration Safety:** The public RPC update (`status = 'approved'`) is backwards-compatible and does not drop tables or alter column types. Rollback is a single `CREATE OR REPLACE FUNCTION` restoring previous filter logic if required.
+- **Database Migration Safety:** The public RPC update (`status = 'approved'`) is backwards-compatible and does not drop tables or alter column types. Rollback is a single `CREATE OR REPLACE FUNCTION` restoring the previous filter logic, accompanied by reverting `/api/rentals/route.ts` to restore previous pending listing handling if needed.
 - **Realtime Fallback:** If WebSocket connection to Supabase Realtime fails or is blocked by network firewalls, `useNotificationCenter.ts` automatically falls back to 30-second interval polling with zero UI disruption.
-- **Deployment Rollback:** The production EC2 deployment uses Docker Compose (`/opt/abangcebu/docker-compose.yml`). Previous container images remain cached in GHCR and local Docker daemon for instantaneous rollback via `docker-compose down && docker-compose up -d`.
+- **Deployment Rollback:** The production EC2 deployment uses Docker Compose (`/opt/abangcebu/docker-compose.yml`). Rollback is achieved by pinning the previous image digest or release tag in `docker-compose.yml` (e.g. `image: ghcr.io/hermardev/abang_cebu_ai_group2:9f0e632`) and running `docker compose up -d --force-recreate` to ensure the known good artifact is deployed.

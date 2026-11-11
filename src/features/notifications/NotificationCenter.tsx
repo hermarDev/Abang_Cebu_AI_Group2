@@ -122,11 +122,10 @@ export function NotificationCenter({
         </div>
 
         {/* Filter chips */}
-        <div className="flex items-center gap-2" role="tablist" aria-label="Notification filters">
+        <div className="flex items-center gap-2" role="group" aria-label="Notification filters">
           <button
             type="button"
-            role="tab"
-            aria-selected={filter === "all"}
+            aria-pressed={filter === "all"}
             onClick={() => setFilter("all")}
             className={cn(
               "px-3 py-1 rounded-full text-xs font-medium transition-colors",
@@ -139,8 +138,7 @@ export function NotificationCenter({
           </button>
           <button
             type="button"
-            role="tab"
-            aria-selected={filter === "unread"}
+            aria-pressed={filter === "unread"}
             onClick={() => setFilter("unread")}
             className={cn(
               "px-3 py-1 rounded-full text-xs font-medium transition-colors flex items-center gap-1.5",
