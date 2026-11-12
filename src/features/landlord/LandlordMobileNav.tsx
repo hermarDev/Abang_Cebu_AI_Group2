@@ -55,6 +55,10 @@ export function LandlordMobileNav({ userId = null, unreadCount: providedUnread, 
           </span>
         )}
       </button>
+      <Link href="/notifications" onClick={() => setOpen(false)} className="flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
+        <Bell size={19} aria-hidden="true" />
+        View all notifications
+      </Link>
       <Link href="/landlord/map" onClick={() => setOpen(false)} className="flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"><MapPinned size={19} aria-hidden="true" />Property map</Link>
       <Link href="/landlord/messages" onClick={() => setOpen(false)} className="flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"><MessageSquare size={19} aria-hidden="true" />Messages{unreadCount > 0 && <span aria-label={`${unreadCount} unread messages`} className="ml-auto rounded-full bg-action px-1.5 text-xs font-bold leading-5 text-action-foreground">{unreadCount > 99 ? "99+" : unreadCount}</span>}</Link>
       <a href="mailto:support@abangcebu.ai" onClick={() => setOpen(false)} className="flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"><Headset size={19} aria-hidden="true" />Contact support</a>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   Bell,
@@ -11,9 +12,13 @@ import {
   ShieldCheck,
   AlertCircle,
   RefreshCw,
+  Trash2,
+  X,
+  ArrowRight,
 } from "lucide-react";
 import { cn } from "@/components/ui/cn";
 import type { NotificationItem, NotificationType } from "@/types/database";
+import styles from "./NotificationCenter.module.css";
 
 export function formatRelativeTime(dateString: string): string {
   const date = new Date(dateString);
@@ -56,6 +61,8 @@ export interface NotificationCenterProps {
   onRefresh: () => void;
   onMarkAsRead: (id: string) => void;
   onMarkAllAsRead: () => void;
+  onDeleteNotification?: (id: string) => void;
+  onClearNotifications?: (scope: "read" | "all") => void;
   onClose?: () => void;
   className?: string;
   userRole?: "renter" | "landlord" | "admin" | null;
@@ -69,6 +76,8 @@ export function NotificationCenter({
   onRefresh,
   onMarkAsRead,
   onMarkAllAsRead,
+  onDeleteNotification,
+  onClearNotifications,
   onClose,
   className,
   userRole,
@@ -111,15 +120,31 @@ export function NotificationCenter({
               </span>
             )}
           </div>
-          {unreadCount > 0 && (
-            <button
-              type="button"
-              onClick={onMarkAllAsRead}
-              className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
-            >
-              <CheckCheck size={14} aria-hidden="true" />
-              Mark all read
-            </button>
+          {notifications.length > 0 && (
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={onMarkAllAsRead}
+                disabled={unreadCount === 0}
+                className={cn(
+                  "text-xs font-medium text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1",
+                  unreadCount === 0 && "opacity-40 cursor-not-allowed hover:text-muted-foreground"
+                )}
+              >
+                <CheckCheck size={14} aria-hidden="true" />
+                Mark all read
+              </button>
+              {notifications.some((n) => n.is_read) && onClearNotifications && (
+                <button
+                  type="button"
+                  onClick={() => onClearNotifications("read")}
+                  className="text-xs font-medium text-muted-foreground hover:text-destructive transition-colors flex items-center gap-1"
+                >
+                  <Trash2 size={13} aria-hidden="true" />
+                  Clear read
+                </button>
+              )}
+            </div>
           )}
         </div>
 
@@ -162,7 +187,7 @@ export function NotificationCenter({
       </div>
 
       {/* Notification List */}
-      <div className="flex-1 overflow-y-auto divide-y divide-border/40 min-h-[14rem]">
+      <div className={cn("flex-1 overflow-y-auto divide-y divide-border/40 min-h-[14rem]", styles.listContainer)}>
         {loading && notifications.length === 0 ? (
           <div className="p-4 space-y-3">
             {[1, 2, 3].map((i) => (
@@ -208,40 +233,71 @@ export function NotificationCenter({
           </div>
         ) : (
           filtered.map((item) => (
-            <button
+            <div
               key={item.id}
-              type="button"
-              onClick={() => handleItemClick(item)}
               className={cn(
                 "w-full text-left p-3.5 flex items-start gap-3 transition-colors hover:bg-muted/40 relative group",
                 !item.is_read && "bg-action/5"
               )}
             >
-              <div className="w-9 h-9 rounded-full bg-muted/80 border border-border/80 flex items-center justify-center shrink-0 mt-0.5">
-                {getNotificationIcon(item.type)}
-              </div>
-              <div className="flex-1 min-w-0 pr-4">
-                <div className="flex items-center justify-between gap-2">
-                  <p className="text-xs font-semibold text-foreground truncate">
-                    {item.title}
-                  </p>
-                  <span className="text-[10px] text-muted-foreground shrink-0">
-                    {formatRelativeTime(item.created_at)}
-                  </span>
+              <button
+                type="button"
+                onClick={() => handleItemClick(item)}
+                className="flex items-start gap-3 flex-1 min-w-0 text-left focus-visible:outline-none"
+              >
+                <div className="w-9 h-9 rounded-full bg-muted/80 border border-border/80 flex items-center justify-center shrink-0 mt-0.5">
+                  {getNotificationIcon(item.type)}
                 </div>
-                <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">
-                  {item.body}
-                </p>
+                <div className="flex-1 min-w-0 pr-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-xs font-semibold text-foreground truncate">
+                      {item.title}
+                    </p>
+                    <span className="text-[10px] text-muted-foreground shrink-0">
+                      {formatRelativeTime(item.created_at)}
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">
+                    {item.body}
+                  </p>
+                </div>
+              </button>
+              <div className="flex items-center gap-2 shrink-0 self-center">
+                {!item.is_read && (
+                  <span
+                    className="w-2 h-2 rounded-full bg-action shrink-0"
+                    aria-label="Unread notification"
+                  />
+                )}
+                {onDeleteNotification && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDeleteNotification(item.id);
+                    }}
+                    aria-label={`Dismiss notification: ${item.title}`}
+                    className="opacity-0 group-hover:opacity-100 focus:opacity-100 p-1 rounded-md text-muted-foreground hover:text-destructive hover:bg-muted/80 transition-opacity"
+                  >
+                    <X size={14} aria-hidden="true" />
+                  </button>
+                )}
               </div>
-              {!item.is_read && (
-                <span
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-action shrink-0"
-                  aria-label="Unread notification"
-                />
-              )}
-            </button>
+            </div>
           ))
         )}
+      </div>
+
+      {/* Footer link to Hub */}
+      <div className="p-2.5 border-t border-border/70 text-center bg-card shrink-0">
+        <Link
+          href="/notifications"
+          onClick={onClose}
+          className="text-xs font-semibold text-action hover:underline inline-flex items-center gap-1.5"
+        >
+          <span>View all notifications</span>
+          <ArrowRight size={13} aria-hidden="true" />
+        </Link>
       </div>
     </div>
   );

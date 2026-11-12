@@ -26,6 +26,8 @@ export function NotificationBell({ userId, userRole, className }: NotificationBe
     refresh,
     markAsRead,
     markAllAsRead,
+    deleteNotification,
+    clearNotifications,
   } = useNotificationCenter(userId, Boolean(userId));
 
   useEffect(() => {
@@ -81,6 +83,8 @@ export function NotificationBell({ userId, userRole, className }: NotificationBe
             onRefresh={() => void refresh(true)}
             onMarkAsRead={markAsRead}
             onMarkAllAsRead={markAllAsRead}
+            onDeleteNotification={deleteNotification}
+            onClearNotifications={clearNotifications}
             onClose={() => setOpen(false)}
           />
         </Sheet>
@@ -101,6 +105,8 @@ export function NotificationBell({ userId, userRole, className }: NotificationBe
           onRefresh={() => void refresh(true)}
           onMarkAsRead={markAsRead}
           onMarkAllAsRead={markAllAsRead}
+          onDeleteNotification={deleteNotification}
+          onClearNotifications={clearNotifications}
           onClose={() => setOpen(false)}
         />
       </PopoverContent>
