@@ -236,6 +236,8 @@ describe("RegisterForm", () => {
     expect(html).toContain('aria-checked="false"');
     expect(html).toContain("Find rentals");
     expect(html).toContain("List properties");
+    expect(html).toContain("gap-1.5 rounded-lg bg-muted p-1.5 mb-5");
+    expect(html).toContain("px-3 py-2");
     expect(html).not.toContain('role="tablist"');
     expect(html).not.toContain('role="tab"');
   });

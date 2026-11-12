@@ -31,6 +31,10 @@ for (const width of [320, 430, 1280]) {
       await expect(dialog.locator("[data-testid=turnstile-widget]")).toBeVisible();
       const register = await dialog.boundingBox();
       expect(register!.width).toBeCloseTo(initial!.width, 0);
+      if (width === 1280) {
+        expect(register!.width).toBeGreaterThan(480);
+        expect(register!.width).toBeLessThanOrEqual(560);
+      }
       expect(register!.height).toBeGreaterThan(0);
       expect(register!.height).toBeLessThanOrEqual(740);
       await dialog.getByRole("button", { name: /Log in/i, exact: true }).first().click();

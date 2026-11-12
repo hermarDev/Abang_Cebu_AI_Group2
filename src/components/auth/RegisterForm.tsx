@@ -97,7 +97,7 @@ export function RegisterForm({ onLogin }: { onLogin?: () => void } = {}) {
   };
 
   return (
-    <Surface {...(onLogin ? { className: "w-full" } : { className: "w-full max-w-lg mx-auto shadow-md", "data-surface": "finder" })}>
+    <Surface {...(onLogin ? { className: "w-full" } : { className: "w-full max-w-[34rem] mx-auto shadow-md", "data-surface": "finder" })}>
       {!onLogin && <CardHeader className="text-center">
         <CardTitle className="text-2xl font-bold">Create an Account</CardTitle>
         <CardDescription>Join AbangCebu to discover and list rentals in Cebu</CardDescription>
@@ -109,15 +109,15 @@ export function RegisterForm({ onLogin }: { onLogin?: () => void } = {}) {
           onValueChange={(value) => {
             if (value === "renter" || value === "landlord") setRole(value);
           }}
-          className="flex rounded-md bg-muted p-1 mb-4"
+          className="flex gap-1.5 rounded-lg bg-muted p-1.5 mb-5"
           aria-label="Account type"
         >
-          <RadioGroup.Item value="renter" className={`min-h-11 flex-1 rounded text-center text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring ${
+          <RadioGroup.Item value="renter" className={`min-h-11 flex-1 rounded-md px-3 py-2 text-center text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring ${
             role === "renter" ? "bg-accent text-accent-foreground ring-1 ring-inset ring-ring" : "text-muted-foreground hover:text-foreground"
           }`}>
             <span className="inline-flex items-center justify-center gap-2"><Search size={18} aria-hidden="true" />Renter</span> <span className="block text-xs font-normal">Find rentals</span>
           </RadioGroup.Item>
-          <RadioGroup.Item value="landlord" className={`min-h-11 flex-1 rounded text-center text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring ${
+          <RadioGroup.Item value="landlord" className={`min-h-11 flex-1 rounded-md px-3 py-2 text-center text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring ${
             role === "landlord" ? "bg-accent text-accent-foreground ring-1 ring-inset ring-ring" : "text-muted-foreground hover:text-foreground"
           }`}>
             <span className="inline-flex items-center justify-center gap-2"><HousePlus size={18} aria-hidden="true" />Landlord</span> <span className="block text-xs font-normal">List properties</span>

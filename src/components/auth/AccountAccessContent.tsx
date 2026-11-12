@@ -21,7 +21,7 @@ export function AccountAccessContent({ mode, onModeChange, isRecovery = false, s
     </section>;
   }
   return <section className={styles.accountContent} aria-labelledby="account-heading">
-    <div className="mb-4">
+    <div className="mb-5">
       <h2 id="account-heading" tabIndex={-1} className={styles.accountHeading}>{mode === "sign-in" ? "Welcome back" : "Create your account"}</h2>
       <p className="mt-1 text-xs text-muted-foreground">{mode === "sign-in" ? "Log in to your account to continue" : "Join AbangCebu to find or list rental properties"}</p>
     </div>
