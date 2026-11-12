@@ -71,12 +71,12 @@ describe("RegisterForm", () => {
     expect(html).not.toContain("types met");
     changeInput("password", "abcdefghA1!");
     html = renderToStaticMarkup(renderForm());
-    expect((html.match(/Met: /g) ?? [])).toHaveLength(4);
+    expect((html.match(/aria-label="Requirement met"/g) ?? [])).toHaveLength(4);
     expect(html).not.toContain("Requirements met");
     expect(html).not.toContain("Strength:");
     changeInput("password", "abcdefghA ");
     html = renderToStaticMarkup(renderForm());
-    expect((html.match(/Not met: /g) ?? [])).toHaveLength(2);
+    expect((html.match(/aria-label="Requirement not met"/g) ?? [])).toHaveLength(2);
     expect(html).not.toContain("types met");
   });
 
@@ -191,7 +191,7 @@ describe("RegisterForm", () => {
     const html = renderToStaticMarkup(<RegisterForm />);
     expect(html).toContain('minLength="8"');
     expect(html).toContain('maxLength="72"');
-    expect(html).toContain("8–72 characters");
+    expect(html).toContain("The password must be at least 8 characters.");
     expect(html).not.toContain("Choose at least 3 character types");
     expect(html).toContain('aria-describedby=');
   });
