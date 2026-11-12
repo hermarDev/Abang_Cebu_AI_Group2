@@ -35,18 +35,18 @@ AS $$
            p.latitude::double precision, p.longitude::double precision,
            p.street_address AS address, p.barangay, p.city,
            u.max_occupants, u.floor_area_sqm,
-           NULLIF(s.snapshot_payload->'unit'->>'bathroom_type', '') AS bathroom_type,
-           NULLIF(s.snapshot_payload->'unit'->>'tenant_policy', '') AS tenant_policy,
-           CASE WHEN pg_catalog.jsonb_typeof(s.snapshot_payload->'amenities') = 'array'
-                THEN s.snapshot_payload->'amenities' ELSE '[]'::jsonb END AS amenities,
-           CASE WHEN s.snapshot_payload IS NOT NULL THEN ARRAY(
+           NULLIF(l.snapshot_payload->'unit'->>'bathroom_type', '') AS bathroom_type,
+           NULLIF(l.snapshot_payload->'unit'->>'tenant_policy', '') AS tenant_policy,
+           CASE WHEN pg_catalog.jsonb_typeof(l.snapshot_payload->'amenities') = 'array'
+                THEN l.snapshot_payload->'amenities' ELSE '[]'::jsonb END AS amenities,
+           CASE WHEN l.snapshot_payload IS NOT NULL THEN ARRAY(
                SELECT dedup.object_path
                FROM (
                  SELECT DISTINCT ON (COALESCE(e.elem->>'content_sha256', e.elem->>'object_path'))
                        e.elem->>'object_path' AS object_path, e.ord
                  FROM pg_catalog.jsonb_array_elements(
-                        CASE WHEN pg_catalog.jsonb_typeof(s.snapshot_media) = 'array'
-                             THEN s.snapshot_media ELSE '[]'::jsonb END
+                        CASE WHEN pg_catalog.jsonb_typeof(l.snapshot_media) = 'array'
+                             THEN l.snapshot_media ELSE '[]'::jsonb END
                       ) WITH ORDINALITY AS e(elem, ord)
                  WHERE e.elem->>'kind' = 'photo'
                    AND e.elem->>'object_path' ~ '^[0-9a-f-]+/[0-9a-f-]+/[0-9a-f-]+/[0-9a-f]{64}\.(jpg|png|webp)$'
@@ -54,13 +54,13 @@ AS $$
                ) dedup
                ORDER BY dedup.ord
              )
-             WHEN p.status = 'pending' AND s.snapshot_payload IS NULL THEN ARRAY(
+             WHEN p.status = 'pending' AND l.snapshot_payload IS NULL THEN ARRAY(
                SELECT dedup.object_path
                FROM (
                  SELECT DISTINCT ON (COALESCE(m.content_sha256, m.object_path))
                        m.object_path, m.created_at
                  FROM public.property_draft_media m
-                 WHERE m.draft_id = s.draft_id
+                 WHERE m.draft_id = l.draft_id
                    AND m.confirmed AND m.released_at IS NULL AND m.kind = 'photo'
                    AND m.object_path ~ '^[0-9a-f-]+/[0-9a-f-]+/[0-9a-f-]+/[0-9a-f]{64}\.(jpg|png|webp)$'
                  ORDER BY COALESCE(m.content_sha256, m.object_path), m.created_at
