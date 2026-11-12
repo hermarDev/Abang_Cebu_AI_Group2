@@ -96,7 +96,7 @@ export function AdminWorkspaceLayout({ userId, displayName, avatarUrl, title, su
         </Link>
         <div className="flex shrink-0 items-center gap-1 sm:gap-2">
           {actions}
-          <NotificationBell userId={userId} userRole="admin" />
+          <NotificationBell userId={userId} />
           <AccountMenu displayName={displayName} avatarUrl={avatarUrl} role="Admin" variant="header" />
         </div>
       </div>
