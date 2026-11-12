@@ -1,5 +1,5 @@
 import { createAdminClient } from "@/lib/supabase/admin";
-import { jsonError, jsonOk, requireActiveAdmin, validUuid } from "@/server/admin-access";
+import { adminLifecycleLimiter, jsonError, jsonOk, rateLimited, requireActiveAdmin, validUuid } from "@/server/admin-access";
 
 const storagePath = /^[0-9a-f-]{36}\/[0-9a-f-]{36}\/[0-9a-f-]{36}\/[0-9a-f]{64}\.(?:jpg|png|webp|pdf)$/i;
 const object = (value: unknown): value is Record<string, unknown> => !!value && typeof value === "object" && !Array.isArray(value);
@@ -7,6 +7,8 @@ const object = (value: unknown): value is Record<string, unknown> => !!value && 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const session = await requireActiveAdmin(request);
   if ("response" in session && session.response) return session.response;
+  const limited = rateLimited(adminLifecycleLimiter, request, session.user.id);
+  if (limited) return limited;
   const { id } = await params;
   const search = new URL(request.url).searchParams;
   const draftId = search.get("draftId");

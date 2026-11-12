@@ -4,9 +4,7 @@ INSERT INTO auth.users(id, raw_user_meta_data) VALUES
  ('a9100000-0000-4000-8000-000000000001', '{"role":"admin","full_name":"Snapshot Admin"}'),
  ('a9100000-0000-4000-8000-000000000002', '{"role":"landlord","full_name":"Snapshot Owner"}');
 UPDATE public.profiles SET role = 'admin' WHERE id = 'a9100000-0000-4000-8000-000000000001';
-INSERT INTO public.profiles(id, role, full_name) VALUES
- ('a9100000-0000-4000-8000-000000000001','admin','Snapshot Admin'),
- ('a9100000-0000-4000-8000-000000000002','landlord','Snapshot Owner');
+-- The auth signup trigger creates the profiles.
 INSERT INTO public.property_drafts(id, owner_id, operation_id, payload, original_payload)
 SELECT ('d9100000-0000-4000-8000-' || lpad(n::text,12,'0'))::uuid,
  'a9100000-0000-4000-8000-000000000002', gen_random_uuid(), '{"property":{},"unit":{}}', '{"property":{},"unit":{}}'
@@ -38,6 +36,15 @@ UPDATE public.property_draft_media SET object_path = 'a/b/c/' || repeat('a',64) 
 UPDATE public.property_submissions SET snapshot_media = '[{"kind":"photo","object_path":"a/b/c/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.jpg"}]',
  snapshot_payload = '{"property":{},"unit":{"bathroom_type":"private"},"amenities":["accepted"]}'
  WHERE property_id = 'b9100000-0000-4000-8000-000000000003';
+UPDATE public.property_submissions SET snapshot_media = '[{"kind":"photo","object_path":"a/b/c/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.jpg"}]',
+ snapshot_payload = '{"property":{},"unit":{"bathroom_type":"private"},"amenities":["wifi"]}'
+ WHERE property_id = 'b9100000-0000-4000-8000-000000000005';
+SET LOCAL ROLE anon;
+DO $$ DECLARE x record; BEGIN
+ SELECT * INTO STRICT x FROM public.get_public_submitted_rentals() WHERE id = 'b9100000-0000-4000-8000-000000000005';
+ IF x.amenities <> '["wifi"]'::jsonb OR x.bathroom_type IS DISTINCT FROM 'private' OR cardinality(x.photo_paths) <> 1 THEN RAISE EXCEPTION 'initial pending snapshot missing'; END IF;
+END $$;
+RESET ROLE;
 SET LOCAL ROLE authenticated;
 SELECT set_config('request.jwt.claim.sub', 'a9100000-0000-4000-8000-000000000001', true);
 SELECT public.review_property('b9100000-0000-4000-8000-000000000003', gen_random_uuid(), 'approved', NULL, 'd9100000-0000-4000-8000-000000000003', 1);

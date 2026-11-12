@@ -4,11 +4,13 @@ const mocks = vi.hoisted(() => ({ getUser: vi.fn(), profile: vi.fn(), submission
 vi.mock("@/lib/supabase/server", () => ({ createClient: async () => ({ auth: { getUser: mocks.getUser }, from: (table: string) => table === "profiles" ? ({ select: () => ({ eq: () => ({ maybeSingle: mocks.profile }) }) }) : mocks.from(table) }) }));
 vi.mock("@/lib/supabase/admin", () => ({ createAdminClient: () => ({ from: mocks.from, storage: { from: () => ({ createSignedUrls: mocks.sign }) } }) }));
 import { GET } from "./route";
+import { adminLifecycleLimiter } from "@/server/admin-access";
 const A = "12345678-1234-4234-8234-123456789abc";
 const B = "22345678-1234-4234-8234-123456789abc";
 const path = `${A}/${B}/${A}/${"a".repeat(64)}.pdf`;
 const call = (revision = "3") => GET(new Request(`http://localhost/api/admin/properties/${A}/revision?draftId=${B}&revision=${revision}`, { headers: { "x-expected-user-id": "admin" } }), { params: Promise.resolve({ id: A }) });
 beforeEach(() => {
+  adminLifecycleLimiter.reset();
   vi.resetAllMocks();
   mocks.getUser.mockResolvedValue({ data: { user: { id: "admin" } }, error: null });
   mocks.profile.mockResolvedValue({ data: { role: "admin", is_suspended: false }, error: null });
@@ -18,6 +20,12 @@ beforeEach(() => {
   mocks.sign.mockResolvedValue({ data: [{ path, signedUrl: "https://storage/signed" }], error: null });
 });
 describe("pending revision read", () => {
+  it("rate limits revision reads before accessing privileged data", async () => {
+    for (let i = 0; i < 60; i++) expect((await call()).status).toBe(200);
+    mocks.from.mockClear();
+    expect((await call()).status).toBe(429);
+    expect(mocks.from).not.toHaveBeenCalled();
+  });
   it("reads exact unsuperseded pending snapshot and signs private media without exposing paths", async () => {
     const response = await call();
     expect(response.status).toBe(200);
