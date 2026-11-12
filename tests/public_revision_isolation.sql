@@ -9,10 +9,10 @@ INSERT INTO public.property_drafts(id, owner_id, operation_id, payload, original
 SELECT ('d9100000-0000-4000-8000-' || lpad(n::text,12,'0'))::uuid,
  'a9100000-0000-4000-8000-000000000002', gen_random_uuid(), '{"property":{},"unit":{}}', '{"property":{},"unit":{}}'
 FROM generate_series(1,5) n;
-INSERT INTO public.properties(id, landlord_id, title, description, property_type, street_address, barangay, city, latitude, longitude, status)
+INSERT INTO public.properties(id, landlord_id, title, description, property_type, street_address, barangay, city, coordinates, status)
 SELECT ('b9100000-0000-4000-8000-' || lpad(n::text,12,'0'))::uuid,
  'a9100000-0000-4000-8000-000000000002', 'Snapshot regression ' || n, 'Description', 'house', 'Street', 'Apas', 'Cebu City',
- 10.3, 123.9, 'pending'
+ extensions.ST_SetSRID(extensions.ST_MakePoint(123.9, 10.3), 4326), 'pending'
 FROM generate_series(1,5) n;
 INSERT INTO public.property_submissions(owner_id, operation_id, draft_id, expected_revision, property_id, snapshot_payload, snapshot_media, review_status)
 SELECT 'a9100000-0000-4000-8000-000000000002', gen_random_uuid(),
