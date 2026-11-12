@@ -67,7 +67,6 @@ export function PasswordRequirements({
                   <Circle
                     role="img"
                     aria-label="Requirement not met"
-                    aria-hidden="true"
                     className="mt-px size-3.5 shrink-0 text-muted-foreground"
                   />
                 )}
