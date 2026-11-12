@@ -30,6 +30,21 @@ export const test = base.extend<{ blockedRequests: string[] }>({
       }
       return route.continue();
     });
+    // Mock Turnstile script
+    await context.addInitScript(() => {
+      const turnstile = {
+        render: (container: HTMLElement, config: any) => {
+          container.innerHTML = '<button type="button" data-testid="turnstile-widget" data-action="' + (config.action || 'signup') + '" onClick="window.turnstile._cb && window.turnstile._cb(\'mock-token\')">Complete security verification</button>';
+          window.turnstile._cb = config.callback;
+          return 1; // widgetId
+        },
+        reset: (widgetId: number) => {},
+        remove: (widgetId: number) => {},
+        ready: (callback: () => void) => callback(),
+        _cb: null as ((token: string) => void) | null,
+      };
+      (window as any).turnstile = turnstile;
+    });
     await provide(context);
   },
 });

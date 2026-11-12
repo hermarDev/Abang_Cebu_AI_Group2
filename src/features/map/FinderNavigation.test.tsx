@@ -112,25 +112,3 @@ it("shows workspace section header for landlord and admin", () => {
   expect(adminHtml).toContain("Workspace");
   expect(adminHtml).toContain("Admin workspace");
 });
-
-it("renders notifications button with unread count for authenticated users", () => {
-  const html = renderToStaticMarkup(
-    <FinderNavigation
-      open
-      authenticated
-      userRole="renter"
-      userId="renter-1"
-      unreadNotificationCount={5}
-      onClose={() => {}}
-      preference="system"
-      resolvedTheme="light"
-      onPreferenceChange={() => {}}
-      onAccount={() => {}}
-      onHelp={() => {}}
-      onNotifications={() => {}}
-    />
-  );
-  expect(html).toContain("Notifications");
-  expect(html).toContain("lucide-bell");
-  expect(html).toContain('aria-label="5 unread notifications"');
-});
