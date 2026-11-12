@@ -30,7 +30,7 @@ export function LandlordMobileNav({ userId = null, unreadCount: providedUnread, 
   const { preference, resolvedTheme, setPreference } = useFinderTheme();
   const itemClass = "flex min-h-14 min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-lg px-0.5 text-[.65rem] font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring";
 
-  return <>
+  return <>(
     <nav aria-label="Landlord mobile navigation" className="fixed inset-x-0 bottom-0 z-40 flex items-center border-t border-border bg-card px-1 pb-[env(safe-area-inset-bottom)] text-card-foreground lg:hidden">
       {links.map(({ href, label, Icon }) => <Link key={href} href={href} prefetch={true} aria-label={label} aria-current={pathname === href ? "page" : undefined} className={`${itemClass} ${pathname === href ? "text-action" : "text-muted-foreground hover:text-foreground"}`}>
         <Icon size={20} aria-hidden="true" /><span>{label}</span>
@@ -55,6 +55,10 @@ export function LandlordMobileNav({ userId = null, unreadCount: providedUnread, 
           </span>
         )}
       </button>
+      <Link href="/notifications" onClick={() => setOpen(false)} className="flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
+        <Bell size={19} aria-hidden="true" />
+        View all notifications
+      </Link>
       <Link href="/landlord/map" onClick={() => setOpen(false)} className="flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"><MapPinned size={19} aria-hidden="true" />Property map</Link>
       <Link href="/landlord/messages" onClick={() => setOpen(false)} className="flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"><MessageSquare size={19} aria-hidden="true" />Messages{unreadCount > 0 && <span aria-label={`${unreadCount} unread messages`} className="ml-auto rounded-full bg-action px-1.5 text-xs font-bold leading-5 text-action-foreground">{unreadCount > 99 ? "99+" : unreadCount}</span>}</Link>
       <a href="mailto:support@abangcebu.ai" onClick={() => setOpen(false)} className="flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"><Headset size={19} aria-hidden="true" />Contact support</a>

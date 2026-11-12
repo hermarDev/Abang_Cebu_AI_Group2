@@ -4,7 +4,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useFinderTheme } from "@/features/map/useFinderTheme";
-import { Building2, ChevronLeft, ChevronRight, Headset, HousePlus, LayoutDashboard, MapPinned, MessageSquare, UserRound } from "lucide-react";
+import { Bell, Building2, ChevronLeft, ChevronRight, Headset, HousePlus, LayoutDashboard, MapPinned, MessageSquare, UserRound } from "lucide-react";
 import { LandlordMobileNav } from "@/features/landlord/LandlordMobileNav";
 import { AppearanceControls } from "@/features/map/AppearanceControls";
 import { useUnreadMessageCount } from "@/features/messages/useUnreadMessageCount";
@@ -29,6 +29,7 @@ const linkGroups = [
     label: "Communication",
     links: [
       { href: "/landlord/messages", label: "Messages", ariaLabel: "Messages", Icon: MessageSquare },
+      { href: "/notifications", label: "Notifications", ariaLabel: "Notifications", Icon: Bell },
     ],
   },
   {

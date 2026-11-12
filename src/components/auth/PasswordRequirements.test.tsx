@@ -1,25 +1,57 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { PasswordRequirements } from "./PasswordRequirements";
-import { REGISTRATION_VALIDATION_RULES } from "@/types/auth";
 
 describe("PasswordRequirements", () => {
-  it("shows exactly the symbols accepted by the shared policy", () => {
-    const html = renderToStaticMarkup(<PasswordRequirements id="policy" password="Abcdef1 " />);
-    const symbols = Array.from({ length: 95 }, (_, index) => String.fromCharCode(index + 32))
-      .filter((character) => REGISTRATION_VALIDATION_RULES.password.classes.symbol.test(character)).join("");
-    expect(html).toContain(symbols.replaceAll("&", "&amp;").replaceAll('"', "&quot;").replaceAll("'", "&#x27;").replaceAll("<", "&lt;").replaceAll(">", "&gt;"));
-    expect(html).toContain("Not met: </span>Symbol");
+  it("renders the reference wording for every requirement", () => {
+    const html = renderToStaticMarkup(<PasswordRequirements id="policy" password="Abcdef1!" />);
+    for (const label of [
+      "The password must be at least 8 characters.",
+      "The password must contain at least one uppercase and one lowercase letter.",
+      "The password must contain at least one symbol.",
+      "The password must contain at least one number.",
+    ]) expect(html).toContain(label);
   });
-  it("updates each check against the shared policy", () => {
-    const html = renderToStaticMarkup(<PasswordRequirements id="policy" password="Abcdef12" />);
-    expect(html).toContain("Met: </span>8–72 characters");
-    expect(html).toContain("Met: </span>Uppercase letter");
-    expect(html).toContain("Met: </span>Lowercase letter");
-    expect(html).toContain("Met: </span>Number");
-    expect(html).toContain("Not met: </span>Symbol");
+
+  it("marks each requirement met only when the shared policy is satisfied", () => {
+    const partial = renderToStaticMarkup(<PasswordRequirements id="policy" password="abcdef12" />);
+    expect(partial).toContain("The password must be at least 8 characters.");
+    expect(partial).toContain("The password must contain at least one uppercase and one lowercase letter.");
+    expect(partial).toContain("The password must contain at least one symbol.");
+    expect(partial).toContain("The password must contain at least one number.");
+    expect((partial.match(/aria-label="Requirement met"/g) ?? [])).toHaveLength(2);
+    expect((partial.match(/aria-label="Requirement not met"/g) ?? [])).toHaveLength(2);
+
+    const onlyUpper = renderToStaticMarkup(<PasswordRequirements id="policy" password="ABCDEFGH12" />);
+    expect((onlyUpper.match(/aria-label="Requirement met"/g) ?? [])).toHaveLength(2);
+    expect((onlyUpper.match(/aria-label="Requirement not met"/g) ?? [])).toHaveLength(2);
+
     const complete = renderToStaticMarkup(<PasswordRequirements id="policy" password="Abcdef1!" />);
-    expect(complete).not.toContain("Not met:");
-    expect(complete).toContain("Met: </span>Symbol");
+    expect((complete.match(/aria-label="Requirement met"/g) ?? [])).toHaveLength(4);
+    expect(complete).not.toContain("Requirement not met");
+  });
+
+  it("does not expose the old glyph or state prefixes", () => {
+    const html = renderToStaticMarkup(<PasswordRequirements id="policy" password="Abc" />);
+    expect(html).not.toContain("Not met:");
+    expect(html).not.toContain("Met: ");
+    expect(html).not.toContain("○");
+    expect(html).not.toContain("✓");
+  });
+
+  it("conditionally displays the confirmation requirement when confirmPassword is provided", () => {
+    const withoutConfirm = renderToStaticMarkup(<PasswordRequirements id="policy" password="Abc" />);
+    expect(withoutConfirm).not.toContain("The password and confirmation must match.");
+
+    const mismatch = renderToStaticMarkup(<PasswordRequirements id="policy" password="Password1!" confirmPassword="Different1!" />);
+    expect(mismatch).toContain("The password and confirmation must match.");
+    expect(mismatch).toContain('aria-label="Requirement not met"');
+
+    const match = renderToStaticMarkup(<PasswordRequirements id="policy" password="Password1!" confirmPassword="Password1!" />);
+    expect(match).toContain("The password and confirmation must match.");
+    expect(match).not.toContain("Requirement not met");
+
+    const bothEmpty = renderToStaticMarkup(<PasswordRequirements id="policy" password="" confirmPassword="" />);
+    expect(bothEmpty).toContain('aria-label="Requirement not met"');
   });
 });

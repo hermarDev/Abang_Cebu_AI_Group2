@@ -119,7 +119,7 @@ export function LandlordPropertiesClient({ properties }: { properties: LandlordM
         </div>
         <Link
           href="/list-property"
-          className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-foreground px-5 text-sm font-semibold text-background transition hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+          className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-action px-5 text-sm font-semibold text-action-foreground transition hover:bg-action-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
         >
           <HousePlus size={16} aria-hidden="true" />
           <span>Add property</span>

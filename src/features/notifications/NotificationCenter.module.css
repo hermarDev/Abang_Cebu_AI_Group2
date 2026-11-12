@@ -1,0 +1,23 @@
+.listContainer {
+  overflow-y: auto;
+  max-height: 24rem;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--border) 70%, transparent) transparent;
+}
+
+.listContainer::-webkit-scrollbar {
+  width: 6px;
+}
+
+.listContainer::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.listContainer::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--border) 70%, transparent);
+  border-radius: 9999px;
+}
+
+.listContainer::-webkit-scrollbar-thumb:hover {
+  background: var(--muted-foreground);
+}

@@ -17,6 +17,7 @@ const eslintConfig = defineConfig([
     "test-results/**",
     ".superpowers/**",
     ".worktrees/**",
+    "tests/**",
   ]),
 ]);
 

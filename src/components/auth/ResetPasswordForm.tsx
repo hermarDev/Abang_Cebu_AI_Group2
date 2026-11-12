@@ -168,7 +168,7 @@ export function ResetPasswordForm({ isRecovery = false, onBackToLogin, embedded 
                     {showNewPassword ? <EyeOff size={19} aria-hidden="true" /> : <Eye size={19} aria-hidden="true" />}
                   </button>
                 </div>
-                <PasswordRequirements id={`${newPasswordId}-policy`} password={newPassword} />
+                <PasswordRequirements id={`${newPasswordId}-policy`} password={newPassword} confirmPassword={confirmPassword} />
                 {passwordError && <p id={`${newPasswordId}-error`} role="alert" className="text-sm text-destructive">{passwordError}</p>}
               </div>
               <div>

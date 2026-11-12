@@ -21,11 +21,18 @@ export function NotificationBell({ userId, userRole, className }: NotificationBe
   const {
     notifications,
     unreadCount,
+    totalCount,
+    totalPages,
+    currentPage,
+    pageSize,
     loading,
     error,
     refresh,
+    loadPage,
     markAsRead,
     markAllAsRead,
+    deleteNotification,
+    clearNotifications,
   } = useNotificationCenter(userId, Boolean(userId));
 
   useEffect(() => {
@@ -75,13 +82,20 @@ export function NotificationBell({ userId, userRole, className }: NotificationBe
           <NotificationCenter
             notifications={notifications}
             unreadCount={unreadCount}
+            totalCount={totalCount}
+            totalPages={totalPages}
+            currentPage={currentPage}
+            pageSize={pageSize}
             loading={loading}
             error={error}
             userRole={userRole}
             onRefresh={() => void refresh(true)}
             onMarkAsRead={markAsRead}
             onMarkAllAsRead={markAllAsRead}
+            onDeleteNotification={deleteNotification}
+            onClearNotifications={clearNotifications}
             onClose={() => setOpen(false)}
+            onPageChange={loadPage}
           />
         </Sheet>
       </>
@@ -95,13 +109,20 @@ export function NotificationBell({ userId, userRole, className }: NotificationBe
         <NotificationCenter
           notifications={notifications}
           unreadCount={unreadCount}
+          totalCount={totalCount}
+          totalPages={totalPages}
+          currentPage={currentPage}
+          pageSize={pageSize}
           loading={loading}
           error={error}
           userRole={userRole}
           onRefresh={() => void refresh(true)}
           onMarkAsRead={markAsRead}
           onMarkAllAsRead={markAllAsRead}
+          onDeleteNotification={deleteNotification}
+          onClearNotifications={clearNotifications}
           onClose={() => setOpen(false)}
+          onPageChange={loadPage}
         />
       </PopoverContent>
     </Popover>

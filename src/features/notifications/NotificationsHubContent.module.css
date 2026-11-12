@@ -1,0 +1,36 @@
+.hubContainer {
+  width: 100%;
+  max-width: 56rem;
+  margin: 0 auto;
+}
+
+.searchInput:focus-within {
+  border-color: var(--ring);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--ring) 25%, transparent);
+}
+
+.itemRow {
+  transition: background-color 0.15s ease;
+}
+
+.itemRow:hover {
+  background-color: color-mix(in srgb, var(--muted) 40%, transparent);
+}
+
+.customScrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--border) 70%, transparent) transparent;
+}
+
+.customScrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.customScrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.customScrollbar::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--border) 70%, transparent);
+  border-radius: 9999px;
+}

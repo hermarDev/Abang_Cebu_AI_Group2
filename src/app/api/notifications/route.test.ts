@@ -7,6 +7,7 @@ const mocks = vi.hoisted(() => ({
   selectNotifications: vi.fn(),
   countUnread: vi.fn(),
   updateNotification: vi.fn(),
+  deleteNotification: vi.fn(),
 }));
 
 vi.mock("@/lib/supabase/server", () => ({
@@ -62,6 +63,17 @@ vi.mock("@/lib/supabase/server", () => ({
               },
             }),
           }),
+          delete: () => {
+            const chain = {
+              eq: (col: string, val: unknown) => {
+                mocks.deleteNotification(col, val);
+                return chain;
+              },
+              then: (onfulfilled?: (val: unknown) => unknown, onrejected?: (err: unknown) => unknown) =>
+                Promise.resolve({ error: null }).then(onfulfilled, onrejected),
+            };
+            return chain;
+          },
         };
       }
       throw new Error(`Unexpected table ${table}`);
@@ -102,7 +114,7 @@ beforeEach(() => {
   });
 });
 
-import { GET, PATCH } from "./route";
+import { GET, PATCH, DELETE } from "./route";
 
 describe("Notifications API Route", () => {
   describe("GET /api/notifications", () => {
@@ -172,6 +184,62 @@ describe("Notifications API Route", () => {
         method: "PATCH",
         headers: headers(uid),
         body: JSON.stringify({ action: "unknown" }),
+      }));
+      expect(res?.status).toBe(400);
+    });
+  });
+
+  describe("DELETE /api/notifications", () => {
+    it("returns 401 when user is signed out", async () => {
+      mocks.getUser.mockResolvedValue({ data: { user: null }, error: null });
+      const res = await DELETE(new Request("http://localhost/api/notifications?id=n-1", {
+        method: "DELETE",
+      }));
+      expect(res?.status).toBe(401);
+    });
+
+    it("deletes a single notification by id", async () => {
+      const res = await DELETE(new Request("http://localhost/api/notifications?id=n-1", {
+        method: "DELETE",
+        headers: headers(uid),
+      }));
+      expect(res?.status).toBe(200);
+      const json = await res!.json() as { success: boolean; deleted: string };
+      expect(json.success).toBe(true);
+      expect(json.deleted).toBe("n-1");
+      expect(mocks.deleteNotification).toHaveBeenCalledWith("id", "n-1");
+      expect(mocks.deleteNotification).toHaveBeenCalledWith("recipient_id", uid);
+    });
+
+    it("clears read notifications when scope=read", async () => {
+      const res = await DELETE(new Request("http://localhost/api/notifications?scope=read", {
+        method: "DELETE",
+        headers: headers(uid),
+      }));
+      expect(res?.status).toBe(200);
+      const json = await res!.json() as { success: boolean; scope: string };
+      expect(json.success).toBe(true);
+      expect(json.scope).toBe("read");
+      expect(mocks.deleteNotification).toHaveBeenCalledWith("recipient_id", uid);
+      expect(mocks.deleteNotification).toHaveBeenCalledWith("is_read", true);
+    });
+
+    it("clears all notifications when scope=all", async () => {
+      const res = await DELETE(new Request("http://localhost/api/notifications?scope=all", {
+        method: "DELETE",
+        headers: headers(uid),
+      }));
+      expect(res?.status).toBe(200);
+      const json = await res!.json() as { success: boolean; scope: string };
+      expect(json.success).toBe(true);
+      expect(json.scope).toBe("all");
+      expect(mocks.deleteNotification).toHaveBeenCalledWith("recipient_id", uid);
+    });
+
+    it("returns 400 when missing id and invalid scope", async () => {
+      const res = await DELETE(new Request("http://localhost/api/notifications?scope=invalid", {
+        method: "DELETE",
+        headers: headers(uid),
       }));
       expect(res?.status).toBe(400);
     });

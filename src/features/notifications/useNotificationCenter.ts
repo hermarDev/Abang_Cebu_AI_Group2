@@ -13,20 +13,46 @@ export function dispatchNotificationsUpdated() {
   }
 }
 
-interface FetchNotificationsResponse {
+export interface FetchNotificationsResponse {
   notifications: NotificationItem[];
   totalCount: number;
   unreadCount: number;
   hasMore: boolean;
+  tabCounts?: {
+    all: number;
+    unread: number;
+    messages: number;
+    listings: number;
+    system: number;
+  };
+}
+
+export interface FetchNotificationsQuery {
+  unreadOnly?: boolean;
+  limit?: number;
+  offset?: number;
+  search?: string;
+  types?: string[];
+  includeCounts?: boolean;
 }
 
 export async function fetchNotificationsClient(
   userId: string,
   unreadOnly = false,
   fetchImpl: typeof fetch = fetch,
-  signal?: AbortSignal
+  signal?: AbortSignal,
+  query: FetchNotificationsQuery = {}
 ): Promise<FetchNotificationsResponse> {
-  const url = `/api/notifications${unreadOnly ? "?unread=true" : ""}`;
+  const params = new URLSearchParams();
+  if (unreadOnly || query.unreadOnly) params.set("unread", "true");
+  if (query.limit !== undefined) params.set("limit", String(query.limit));
+  if (query.offset !== undefined) params.set("offset", String(query.offset));
+  if (query.search) params.set("search", query.search);
+  if (query.types && query.types.length > 0) params.set("type", query.types.join(","));
+  if (query.includeCounts) params.set("counts", "true");
+
+  const suffix = params.toString();
+  const url = `/api/notifications${suffix ? `?${suffix}` : ""}`;
   const response = await fetchImpl(url, {
     cache: "no-store",
     headers: { "x-expected-user-id": userId },
@@ -37,6 +63,7 @@ export async function fetchNotificationsClient(
 }
 
 export const NOTIFICATION_FOCUS_COOLDOWN_MS = 10_000;
+export const DEFAULT_PAGE_SIZE = 20;
 
 // One entry per signed-in user: every hook instance (bell, mobile nav, drawer) shares the request, result and abort handle.
 interface Shared {
@@ -64,13 +91,42 @@ function publish(userId: string, data: FetchNotificationsResponse) {
 }
 
 /** Shared fetch: joins an in-flight request, and reuses fresh data unless `force`. */
-export function loadNotifications(userId: string, { force = false }: { force?: boolean } = {}) {
+export function loadNotifications(
+  userId: string,
+  {
+    force = false,
+    page = 1,
+    pageSize = DEFAULT_PAGE_SIZE,
+    unreadOnly = false,
+    types,
+    search,
+    includeCounts = true,
+  }: {
+    force?: boolean;
+    page?: number;
+    pageSize?: number;
+    unreadOnly?: boolean;
+    types?: string[];
+    search?: string;
+    includeCounts?: boolean;
+  } = {}
+) {
   const item = entry(userId);
+  const offset = (page - 1) * pageSize;
+
   if (item.inFlight) return item.inFlight;
   if (!force && item.data && Date.now() - item.at < NOTIFICATION_FOCUS_COOLDOWN_MS) return Promise.resolve(item.data);
+
   const abort = new AbortController();
   item.abort = abort;
-  const request = fetchNotificationsClient(userId, false, fetch, abort.signal)
+  const request = fetchNotificationsClient(userId, false, fetch, abort.signal, {
+    unreadOnly,
+    limit: pageSize,
+    offset,
+    types,
+    search,
+    includeCounts,
+  })
     .then((data) => {
       publish(userId, data);
       channel?.postMessage({ userId, data });
@@ -139,35 +195,75 @@ function subscribe(userId: string, listener: (data: FetchNotificationsResponse) 
 
 const isAbort = (err: unknown) => err instanceof DOMException && err.name === "AbortError";
 
+export interface UseNotificationCenterOptions {
+  pageSize?: number;
+  initialPage?: number;
+}
+
 export function useNotificationCenter(
   userId: string | null | undefined,
-  enabled: boolean = true
+  enabled: boolean = true,
+  options: UseNotificationCenterOptions = {}
 ) {
+  const { pageSize = DEFAULT_PAGE_SIZE, initialPage = 1 } = options;
   const active = Boolean(enabled && userId);
   const cached = active && userId ? shared.get(userId)?.data ?? null : null;
   const [notifications, setNotifications] = useState<NotificationItem[]>(cached?.notifications ?? []);
   const [unreadCount, setUnreadCount] = useState<number>(cached?.unreadCount ?? 0);
+  const [totalCount, setTotalCount] = useState<number>(cached?.totalCount ?? 0);
   const [loading, setLoading] = useState<boolean>(active && !cached);
   const [error, setError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState<number>(initialPage);
+
+  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
 
   const refresh = useCallback(
     async (showLoading = false) => {
       if (!active || !userId) {
         setNotifications([]);
         setUnreadCount(0);
+        setTotalCount(0);
+        setCurrentPage(1);
         setLoading(false);
         return;
       }
       if (showLoading) setLoading(true);
       try {
-        await loadNotifications(userId, { force: true });
+        await loadNotifications(userId, { force: true, page: 1, pageSize });
       } catch (err) {
         if (!isAbort(err)) setError(err instanceof Error ? err.message : "Failed to load");
       } finally {
         setLoading(false);
       }
     },
-    [active, userId]
+    [active, userId, pageSize]
+  );
+
+  const loadPage = useCallback(
+    async (page: number, opts: { unreadOnly?: boolean; types?: string[]; search?: string } = {}) => {
+      if (!active || !userId) return;
+      setLoading(true);
+      setCurrentPage(page);
+      try {
+        const data = await loadNotifications(userId, {
+          force: true,
+          page,
+          pageSize,
+          unreadOnly: opts.unreadOnly,
+          types: opts.types,
+          search: opts.search,
+        });
+        setNotifications(data.notifications);
+        setUnreadCount(data.unreadCount);
+        setTotalCount(data.totalCount);
+        setError(null);
+      } catch (err) {
+        if (!isAbort(err)) setError(err instanceof Error ? err.message : "Failed to load");
+      } finally {
+        setLoading(false);
+      }
+    },
+    [active, userId, pageSize]
   );
 
   useEffect(() => {
@@ -176,6 +272,7 @@ export function useNotificationCenter(
     const unsubscribe = subscribe(userId, (data) => {
       setNotifications(data.notifications);
       setUnreadCount(data.unreadCount);
+      setTotalCount(data.totalCount);
       setError(null);
       setLoading(false);
     });
@@ -183,7 +280,7 @@ export function useNotificationCenter(
     const poll = async (force: boolean) => {
       if (document.visibilityState === "hidden") return;
       try {
-        await loadNotifications(userId, { force });
+        await loadNotifications(userId, { force, page: currentPage, pageSize });
       } catch (err) {
         if (!isAbort(err)) setError(err instanceof Error ? err.message : "Failed to load");
       } finally {
@@ -209,18 +306,29 @@ export function useNotificationCenter(
       window.removeEventListener(NOTIFICATIONS_UPDATED_EVENT, onTimerOrUpdate);
       document.removeEventListener("visibilitychange", onFocusOrVisible);
     };
-  }, [active, userId]);
+  }, [active, userId, currentPage, pageSize]);
 
   const markAsRead = useCallback(
     async (id: string) => {
       if (!userId) return;
-      // Optimistic update
-      setNotifications((prev) =>
-        prev.map((item) =>
-          item.id === id ? { ...item, is_read: true, read_at: new Date().toISOString() } : item
-        )
+      const current = entry(userId).data ?? {
+        notifications,
+        totalCount,
+        unreadCount,
+        hasMore: false,
+      };
+      const nextNotifications = current.notifications.map((item) =>
+        item.id === id ? { ...item, is_read: true, read_at: new Date().toISOString() } : item
       );
-      setUnreadCount((prev) => Math.max(0, prev - 1));
+      const target = current.notifications.find((item) => item.id === id);
+      const nextUnreadCount = target && !target.is_read ? Math.max(0, current.unreadCount - 1) : current.unreadCount;
+      const nextData: FetchNotificationsResponse = {
+        ...current,
+        notifications: nextNotifications,
+        unreadCount: nextUnreadCount,
+      };
+      publish(userId, nextData);
+      channel?.postMessage({ userId, data: nextData });
 
       try {
         await fetch("/api/notifications", {
@@ -236,16 +344,29 @@ export function useNotificationCenter(
         void refresh(false);
       }
     },
-    [userId, refresh]
+    [userId, notifications, unreadCount, totalCount, refresh]
   );
 
   const markAllAsRead = useCallback(async () => {
     if (!userId) return;
-    // Optimistic update
-    setNotifications((prev) =>
-      prev.map((item) => ({ ...item, is_read: true, read_at: new Date().toISOString() }))
-    );
-    setUnreadCount(0);
+    const current = entry(userId).data ?? {
+      notifications,
+      totalCount,
+      unreadCount,
+      hasMore: false,
+    };
+    const nextNotifications = current.notifications.map((item) => ({
+      ...item,
+      is_read: true,
+      read_at: new Date().toISOString(),
+    }));
+    const nextData: FetchNotificationsResponse = {
+      ...current,
+      notifications: nextNotifications,
+      unreadCount: 0,
+    };
+    publish(userId, nextData);
+    channel?.postMessage({ userId, data: nextData });
 
     try {
       await fetch("/api/notifications", {
@@ -260,15 +381,116 @@ export function useNotificationCenter(
     } catch {
       void refresh(false);
     }
-  }, [userId, refresh]);
+  }, [userId, notifications, unreadCount, totalCount, refresh]);
+
+  const deleteNotification = useCallback(
+    async (id: string): Promise<boolean> => {
+      if (!userId) return false;
+      const current = entry(userId).data ?? {
+        notifications,
+        totalCount,
+        unreadCount,
+        hasMore: false,
+      };
+
+      const target = current.notifications.find((n) => n.id === id);
+      const isUnread = target ? !target.is_read : false;
+      const nextNotifications = current.notifications.filter((n) => n.id !== id);
+      const nextUnreadCount = isUnread ? Math.max(0, current.unreadCount - 1) : current.unreadCount;
+      const nextTotalCount = Math.max(0, current.totalCount - 1);
+
+      const nextData: FetchNotificationsResponse = {
+        notifications: nextNotifications,
+        totalCount: nextTotalCount,
+        unreadCount: nextUnreadCount,
+        hasMore: current.hasMore,
+      };
+
+      publish(userId, nextData);
+      channel?.postMessage({ userId, data: nextData });
+
+      try {
+        const res = await fetch(`/api/notifications?id=${encodeURIComponent(id)}`, {
+          method: "DELETE",
+          headers: { "x-expected-user-id": userId },
+        });
+        if (!res.ok) throw new Error("Failed to delete notification");
+        dispatchNotificationsUpdated();
+        return true;
+      } catch {
+        void refresh(false);
+        return false;
+      }
+    },
+    [userId, notifications, unreadCount, totalCount, refresh]
+  );
+
+  const clearNotifications = useCallback(
+    async (scope: "read" | "all"): Promise<boolean> => {
+      if (!userId) return false;
+      const current = entry(userId).data ?? {
+        notifications,
+        totalCount,
+        unreadCount,
+        hasMore: false,
+      };
+
+      let nextNotifications: NotificationItem[];
+      let nextUnreadCount: number;
+      let nextTotalCount: number;
+
+      if (scope === "read") {
+        const readCount = current.notifications.filter((n) => n.is_read).length;
+        nextNotifications = current.notifications.filter((n) => !n.is_read);
+        nextUnreadCount = current.unreadCount;
+        nextTotalCount = Math.max(0, current.totalCount - readCount);
+      } else {
+        nextNotifications = [];
+        nextUnreadCount = 0;
+        nextTotalCount = 0;
+      }
+
+      const nextData: FetchNotificationsResponse = {
+        notifications: nextNotifications,
+        totalCount: nextTotalCount,
+        unreadCount: nextUnreadCount,
+        hasMore: false,
+      };
+
+      publish(userId, nextData);
+      channel?.postMessage({ userId, data: nextData });
+
+      try {
+        const res = await fetch(`/api/notifications?scope=${encodeURIComponent(scope)}`, {
+          method: "DELETE",
+          headers: { "x-expected-user-id": userId },
+        });
+        if (!res.ok) throw new Error("Failed to clear notifications");
+        dispatchNotificationsUpdated();
+        return true;
+      } catch {
+        void refresh(false);
+        return false;
+      }
+    },
+    [userId, notifications, unreadCount, totalCount, refresh]
+  );
 
   return {
     notifications,
     unreadCount,
+    totalCount,
+    totalPages,
+    currentPage,
+    pageSize,
     loading,
     error,
     refresh,
+    loadPage,
+    setPage: setCurrentPage,
     markAsRead,
     markAllAsRead,
+    deleteNotification,
+    clearNotifications,
   };
 }

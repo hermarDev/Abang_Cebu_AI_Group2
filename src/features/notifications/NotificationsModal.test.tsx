@@ -47,7 +47,7 @@ describe("NotificationsModal", () => {
     const html = renderToStaticMarkup(
       <NotificationsModal userId="user-123" open={true} onClose={() => {}} />
     );
-    expect(html).toContain("data-testid=\"notifications-modal\"");
+    expect(html).toContain('data-testid="notifications-modal"');
     expect(html).toContain("Notifications");
     expect(html).toContain("New message");
     expect(html).toContain("You have a message from landlord");
