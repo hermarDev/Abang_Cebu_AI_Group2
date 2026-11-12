@@ -304,10 +304,13 @@ export function RestoredFinderShell({ rentalStatus: statusOverride, initialAccou
       }
     }
   };
-  // After sign-in the shell stays mounted: resume the exact listing the guest chose, or drop it for non-renters.
-  if (pendingInquiryId && authenticated) {
-    setPendingInquiryId(null);
-  }
+  if (pendingInquiryId && authenticated && userRole !== "renter") setPendingInquiryId(null);
+  useEffect(() => {
+    if (!pendingInquiryId || !authenticated) return;
+    if (userRole === "renter" && userId && !usingSamples) {
+      window.location.href = `/messages?listing=${encodeURIComponent(pendingInquiryId)}`;
+    }
+  }, [pendingInquiryId, authenticated, userRole, userId, usingSamples]);
   const canSaveRentals = !usingSamples && (!authenticated || userRole === "renter") && (!authenticated || favoritesLoaded);
   const noInventory = rentals.length === 0;
   const canUseRentalAssistant = !authenticated || userRole === "renter";

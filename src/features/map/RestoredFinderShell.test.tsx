@@ -557,7 +557,7 @@ describe("RestoredFinderShell", () => {
     });
 
     it("renders the card action", () => {
-      expect(renderToStaticMarkup(<RentalCard rental={rental} selected={false} onSelect={vi.fn()} canMessage onMessage={vi.fn()} />)).toContain('aria-label="Message landlord about Endpoint rental"');
+      expect(renderToStaticMarkup(<RentalCard rental={rental} selected={false} onSelect={vi.fn()} canMessage />)).toContain('aria-label="Message landlord about Endpoint rental"');
       expect(renderToStaticMarkup(<RentalCard rental={rental} selected={false} onSelect={vi.fn()} />)).not.toContain("Message landlord");
     });
   });

@@ -86,10 +86,9 @@ describe("MapCanvas controls", () => {
   });
 
   it("adds a role-gated Message landlord popup action that closes the popup before navigating to messages page", () => {
-    expect(source).not.toContain("onMessageLandlord");
     expect(source).toContain("{canMessageLandlord && (");
     expect(source).toContain("<span>Message landlord</span>");
-    expect(source).toContain("closeRentalPopup(); if (typeof window !== \"undefined\") window.location.href = `/messages?listing=${encodeURIComponent(activePopupRental.id)}`;");
+    expect(source).toContain("closeRentalPopup(); onMessageLandlord?.(activePopupRental.id);");
     expect(source).toContain("aria-label={`Message landlord about ${activePopupRental.title}`}");
   });
 
