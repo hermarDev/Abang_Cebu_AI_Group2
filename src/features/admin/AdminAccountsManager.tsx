@@ -15,6 +15,7 @@ import { Select } from "@/components/ui/Select";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { AdminReasonField } from "./AdminReasonField";
 import { adminCall, newOperationId, reasonProblem } from "./admin-api";
+import { statusBadgeVariant } from "./status-badge";
 export type AdminAccount = {
   id: string;
   fullName?: string | null;
@@ -46,7 +47,7 @@ export function AccountRow({ account, onAction, onInspect }: { account: AdminAcc
         <p className="m-0 break-words font-semibold text-foreground">{account.fullName?.trim() || "Unnamed account"}</p>
         <div className="m-0 mt-1 flex flex-wrap items-center gap-2 text-xs sm:text-sm text-muted-foreground">
           <Badge variant="outline">{cap(account.role)}</Badge>
-          <Badge variant={account.isSuspended ? "destructive" : "default"}>{account.isSuspended ? "Suspended" : "Active"}</Badge>
+          <Badge variant={statusBadgeVariant(account.isSuspended ? "suspended" : "active")}>{account.isSuspended ? "Suspended" : "Active"}</Badge>
           <span>{account.propertyCount ?? 0} properties ({account.livePropertyCount ?? 0} live)</span>
           <span>{account.openReportCount ?? 0} open reports</span>
         </div>
@@ -150,7 +151,7 @@ export function AdminAccountsManager({ userId, initialRole, initialStatus }: { u
           <ul className="m-0 grid list-none gap-3 p-0">{paginatedAccounts.map((account) => <AccountRow key={account.id} account={account} onAction={open} onInspect={setInspectingAccount} />)}</ul>
           <Pagination currentPage={page} totalPages={totalPages} totalItems={accounts.length} pageSize={pageSize} onPageChange={setPage} />
         </>}
-    <Modal open={!!dialog} onClose={close} title={dialog?.suspend ? "Suspend account" : "Reinstate account"} description={dialog?.suspend ? `${cap(name)} will be signed out of admin-managed features. This is recorded in the audit log.` : `${cap(name)} will regain access. This is recorded in the audit log.`} className="max-h-[calc(100dvh-2rem)] overflow-y-auto">
+    <Modal open={!!dialog} onClose={close} title={dialog?.suspend ? "Suspend account" : "Reinstate account"} description={dialog?.suspend ? `${cap(name)} will be signed out of admin-managed features. This is recorded in the audit log.` : `${cap(name)} will regain access. This is recorded in the audit log.`} className="max-h-[calc(100dvh-2rem)] lg:max-h-[85dvh] overflow-y-auto">
       <div className="grid gap-4">
         <AdminReasonField id="admin-account-reason" label="Reason" value={reason} min={5} onChange={setReason} disabled={saving} />
         {dialog?.suspend && <label className="flex min-h-11 items-center gap-3 text-sm"><input type="checkbox" checked={unpublish} onChange={(event) => setUnpublish(event.target.checked)} disabled={saving} className="size-5" />{"Unpublish active & pending listings"}</label>}
@@ -176,7 +177,7 @@ export function AdminAccountsManager({ userId, initialRole, initialStatus }: { u
               <span className="font-semibold text-foreground">{inspectingAccount.fullName?.trim() || "Unnamed account"}</span>
               <div className="flex gap-1.5">
                 <Badge variant="outline">{cap(inspectingAccount.role)}</Badge>
-                <Badge variant={inspectingAccount.isSuspended ? "destructive" : "default"}>
+                <Badge variant={statusBadgeVariant(inspectingAccount.isSuspended ? "suspended" : "active")}>
                   {inspectingAccount.isSuspended ? "Suspended" : "Active"}
                 </Badge>
               </div>

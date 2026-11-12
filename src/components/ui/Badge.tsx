@@ -1,7 +1,7 @@
 import type { HTMLAttributes } from "react";
 import { cn } from "./cn";
 
-export type BadgeVariant = "default" | "secondary" | "outline" | "destructive" | "warning";
+export type BadgeVariant = "default" | "secondary" | "outline" | "destructive" | "warning" | "success";
 export interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
   variant?: BadgeVariant;
 }
@@ -12,6 +12,7 @@ const variants: Record<BadgeVariant, string> = {
   outline: "border border-border text-foreground",
   destructive: "bg-destructive text-destructive-foreground",
   warning: "bg-warning text-warning-foreground",
+  success: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
 };
 
 export function Badge({ variant = "default", className, ...props }: BadgeProps) {
