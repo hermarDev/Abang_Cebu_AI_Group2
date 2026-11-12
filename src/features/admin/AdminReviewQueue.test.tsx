@@ -100,6 +100,15 @@ describe("AdminReviewQueue", () => {
     for (const text of ["New description", "New city", "₱9,000", "wifi", 'href="https://signed/document"']) expect(html).toContain(text);
     for (const text of ["Bright room", "1 Salinas Dr", "https://x/photo.jpg", "https://x/permit.pdf"]) expect(html).not.toContain(text);
   });
+  it("shows bathroom type and tenant policy from the revision", () => {
+    const html = renderToStaticMarkup(<PropertyDetails property={property} revision={{ id: "op", draftId: "d1", expectedRevision: 3, reviewStatus: "pending", createdAt: "", snapshotPayload: { property: {}, unit: { bathroom_type: "private", tenant_policy: "female_only" } }, snapshotMedia: [] }} />);
+    expect(html).toContain("private");
+    expect(html).toContain("female_only");
+  });
+  it("shows permit fields for an initial listing", () => {
+    const html = renderToStaticMarkup(<PropertyDetails property={{ ...property, permitApplicability: "required", permitNumber: "TEST-123", permitLgu: "Cebu City", permitExpiresOn: "2030-01-01" }} />);
+    for (const value of ["required", "TEST-123", "Cebu City", "2030-01-01"]) expect(html).toContain(value);
+  });
   it("posts a rejection to the review route with the exact submission revision", async () => {
     respond(200, { status: "rejected" });
     const result = await submitReviewAction("admin-a", ctx("reject"), "  Permit unreadable  ");

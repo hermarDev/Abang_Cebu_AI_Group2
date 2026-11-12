@@ -42,6 +42,10 @@ export type AdminProperty = {
   createdAt?: string;
   updatedAt?: string;
   hasPendingRevision?: boolean;
+  permitApplicability?: string | null;
+  permitNumber?: string | null;
+  permitLgu?: string | null;
+  permitExpiresOn?: string | null;
   permitNotRequiredConfirmed?: boolean;
   permitExemptionReason?: string | null;
   documentCategories?: string | null;
@@ -171,10 +175,10 @@ export function PropertyDetails({
   const postalCode = (data?.postal_code as string) ?? property.postalCode;
   const latitude = (data?.latitude as number) ?? property.latitude;
   const longitude = (data?.longitude as number) ?? property.longitude;
-  const permitApplicability = (data?.permit_applicability as string) ?? undefined;
-  const permitNumber = (data?.permit_number as string) ?? undefined;
-  const permitLgu = (data?.permit_lgu as string) ?? undefined;
-  const permitExpiresOn = (data?.permit_expires_on as string) ?? undefined;
+  const permitApplicability = (data?.permit_applicability as string) ?? property.permitApplicability;
+  const permitNumber = (data?.permit_number as string) ?? property.permitNumber;
+  const permitLgu = (data?.permit_lgu as string) ?? property.permitLgu;
+  const permitExpiresOn = (data?.permit_expires_on as string) ?? property.permitExpiresOn;
   const permitNotRequiredConfirmed = (data?.permit_not_required_confirmed as boolean) ?? property.permitNotRequiredConfirmed;
   const permitExemptionReason = (data?.permit_exemption_reason as string) ?? property.permitExemptionReason;
   const documentCategories = (data?.document_categories as string) ?? property.documentCategories;
@@ -199,6 +203,8 @@ export function PropertyDetails({
     ["Amenities", revision && Array.isArray(revision.snapshotPayload.amenities) ? revision.snapshotPayload.amenities.join(", ") : null],
     ["Bedrooms", unit?.bedrooms as number],
     ["Bathrooms", unit?.bathrooms as number],
+    ["Bathroom type", unit?.bathroom_type as string],
+    ["Tenant policy", unit?.tenant_policy as string],
     ["Furnishing", unit?.furnished_status as string],
     ["Status", isRevision ? `Revision (${revision?.reviewStatus ?? "pending"})` : statusLabel(property)],
     ["Monthly rent", typeof monthlyRent === "number" ? `${peso.format(monthlyRent)}/month` : null],
