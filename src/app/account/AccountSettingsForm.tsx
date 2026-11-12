@@ -107,7 +107,7 @@ function PasswordDialog({ open, onClose, onSuccess }: { open: boolean; onClose: 
         </div>
         {key === "current" && currentError && <p id="account-current-error" role={error?.field === "currentPassword" ? "alert" : undefined} className="text-xs text-destructive">{currentError}</p>}
         {key === "password" && samePassword && <p id="password-same" className="text-xs text-destructive">Choose a different password.</p>}
-        {key === "password" && <PasswordRequirements id="password-requirements" password={values.password} emptyError={passwordTouched && !values.password} />}
+        {key === "password" && <PasswordRequirements id="password-requirements" password={values.password} confirmPassword={values.confirm} emptyError={passwordTouched && !values.password} />}
         {key === "confirm" && (mismatch || passwordsMatch) && <p id="password-mismatch" className={`text-xs ${mismatch ? "text-destructive" : "text-emerald-700 dark:text-emerald-400"}`}>{mismatch ? (values.confirm ? "Passwords do not match." : "Confirm your new password.") : <><span aria-hidden="true">✓ </span>Passwords match.</>}</p>}
       </div>)}
       {error?.field !== "currentPassword" && <ActionMessage result={error} />}
