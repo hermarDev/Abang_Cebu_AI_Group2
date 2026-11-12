@@ -22,20 +22,21 @@ const securityHeaders = [
     value: "max-age=31536000; includeSubDomains",
   },
   {
-    key: "Content-Security-Policy-Report-Only",
-    value: [
-      "default-src 'self'",
-      "script-src 'self' 'unsafe-eval' 'unsafe-inline'",
-      "style-src 'self' 'unsafe-inline'",
-      "img-src 'self' blob: data: https: *.supabase.co",
-      "font-src 'self' data:",
-      "connect-src 'self' https: *.supabase.co wss: *.supabase.co https://api.groq.com https://photon.komoot.io",
-      "worker-src 'self' blob:",
-      "frame-ancestors 'none'",
-      "object-src 'none'",
-      "base-uri 'self'",
-    ].join("; "),
-  },
+        key: "Content-Security-Policy-Report-Only",
+        value: [
+          "default-src 'self'",
+          "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://challenges.cloudflare.com",
+          "style-src 'self' 'unsafe-inline'",
+          "img-src 'self' blob: data: https: *.supabase.co",
+          "font-src 'self' data:",
+          "connect-src 'self' https: *.supabase.co wss: *.supabase.co https://api.groq.com https://photon.komoot.io",
+          "worker-src 'self' blob:",
+          "frame-src https://challenges.cloudflare.com",
+          "frame-ancestors 'none'",
+          "object-src 'none'",
+          "base-uri 'self'",
+        ].join("; "),
+      },
 ];
 
 const nextConfig: NextConfig = {
@@ -44,6 +45,9 @@ const nextConfig: NextConfig = {
     serverActions: {
       bodySizeLimit: "3mb",
     },
+  },
+  env: {
+    NEXT_PUBLIC_TURNSTILE_SITE_KEY: process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || "test-site-key",
   },
   async headers() {
     return [

@@ -60,6 +60,14 @@ const ERROR_CODE_MAP: Record<string, { code: AuthErrorCode; message: string; sta
     severity: 'error',
     actionHint: 'RETRY',
   },
+  captcha_failed: {
+    code: AuthErrorCode.CAPTCHA_VERIFICATION_FAILED,
+    message: 'Security verification expired or failed. Complete it again.',
+    status: 403,
+    feedbackMode: 'inline',
+    severity: 'error',
+    actionHint: 'RETRY',
+  },
   session_not_found: {
     code: AuthErrorCode.SESSION_EXPIRED,
     message: 'Your session has expired. Please sign in again.',

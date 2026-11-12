@@ -56,45 +56,22 @@ describe("registration route", () => {
     expect(response.status).toBe(429);
     expect(signUp).not.toHaveBeenCalled();
   });
-  it("accepts production registration without verification", async () => {
-    vi.stubEnv("NODE_ENV", "production");
+  it("forwards the Turnstile token unchanged to Supabase Auth", async () => {
     signUp.mockReset().mockResolvedValue({ data: { user: { id: "u1" } }, error: null });
-    const response = await POST(request(goodPayload));
+    const response = await POST(request({ ...goodPayload, turnstileToken: " provider-owned-token " }));
     expect(response.status).toBe(201);
-    expect(signUp).toHaveBeenCalledOnce();
-  });
-  it("rejects registration without Turnstile token when TURNSTILE_SECRET_KEY is configured", async () => {
-    vi.stubEnv("TURNSTILE_SECRET_KEY", "test-secret-key");
-    signUp.mockClear();
-    const response = await POST(request(goodPayload));
-    expect(response.status).toBe(403);
-    const body = await response.json();
-    expect(body.error.code).toBe("CAPTCHA_VERIFICATION_FAILED");
-    expect(signUp).not.toHaveBeenCalled();
-  });
-  it("accepts registration when Turnstile token verification succeeds", async () => {
-    vi.stubEnv("TURNSTILE_SECRET_KEY", "test-secret-key");
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
-      ok: true,
-      json: async () => ({ success: true }),
+    expect(signUp).toHaveBeenCalledWith(expect.objectContaining({
+      options: expect.objectContaining({ captchaToken: "provider-owned-token" }),
     }));
-    signUp.mockReset().mockResolvedValue({ data: { user: { id: "u1" } }, error: null });
-    const response = await POST(request({ ...goodPayload, turnstileToken: "valid-turnstile-token" }));
-    expect(response.status).toBe(201);
-    expect(signUp).toHaveBeenCalledOnce();
   });
-  it("rejects registration when Turnstile token verification fails", async () => {
-    vi.stubEnv("TURNSTILE_SECRET_KEY", "test-secret-key");
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
-      ok: true,
-      json: async () => ({ success: false, "error-codes": ["invalid-input-response"] }),
-    }));
-    signUp.mockClear();
+
+  it("maps a hosted Supabase CAPTCHA rejection without exposing provider detail", async () => {
+    signUp.mockReset().mockResolvedValue({ data: { user: null }, error: { code: "captcha_failed", message: "private provider detail" } });
     const response = await POST(request({ ...goodPayload, turnstileToken: "invalid-token" }));
     expect(response.status).toBe(403);
     const body = await response.json();
     expect(body.error.code).toBe("CAPTCHA_VERIFICATION_FAILED");
-    expect(signUp).not.toHaveBeenCalled();
+    expect(body.error.message).not.toContain("private provider detail");
   });
   it("rejects admin role before contacting Supabase", async () => {
     signUp.mockClear();

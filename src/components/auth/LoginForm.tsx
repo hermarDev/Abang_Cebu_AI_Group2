@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/Input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
 import { useRouter } from "next/navigation";
 import { getPostLoginRedirect, signInWithEmail } from "@/lib/auth/sign-in";
+import { TurnstileWidget } from "./TurnstileWidget";
 
 export function LoginForm({
   onRegister,
@@ -33,6 +34,8 @@ export function LoginForm({
   const [redirectingLabel, setRedirectingLabel] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string }>({});
   const [submitted, setSubmitted] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState("");
+  const [turnstileResetKey, setTurnstileResetKey] = useState(0);
   const emailError = (value: string) => !value.trim() ? "Enter your email address." : !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim()) ? "Enter a valid email address." : undefined;
   const Surface = onRegister ? "div" : Card;
 
@@ -52,10 +55,12 @@ export function LoginForm({
     setStatusMessage(null);
     setLoading(true);
     try {
-      const result = await signInWithEmail(email, password);
+      const result = await signInWithEmail(email, password, turnstileToken);
       if (!result.success) {
         setStatusIsError(true);
         setStatusMessage(result.message.replace(/^Sign in\b/i, "Log in"));
+        setTurnstileResetKey((k) => k + 1);
+        setTurnstileToken("");
         setLoading(false);
         return;
       }
@@ -63,7 +68,6 @@ export function LoginForm({
       const destination = getPostLoginRedirect(next, result.role);
       const isLandlordTarget = destination.startsWith("/landlord") || result.role === "landlord";
       const label = isLandlordTarget ? "Signing in · Preparing your workspace…" : "Signing in · Loading map…";
-      // Stay in the loading state on success: the route is still loading after replace().
       setRedirectingLabel(label);
       setStatusIsError(false);
       setStatusMessage(label);
@@ -79,7 +83,7 @@ export function LoginForm({
   };
 
   return (
-    <Surface {...(onRegister ? { className: "w-full" } : { className: "w-full max-w-md mx-auto shadow-md", "data-surface": "finder" })}>
+    <Surface {...(onRegister ? { className: "w-full" } : { className: "w-full max-w-md mx-auto shadow-md", "data-surface": "finder" })} >
       {!onRegister && (
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold">Welcome Back</CardTitle>
@@ -148,6 +152,12 @@ export function LoginForm({
             </div>
             {fieldErrors.password && <FieldError id={`${passwordId}-error`} role="alert" className="mt-1">{fieldErrors.password}</FieldError>}
           </div>
+
+          <TurnstileWidget
+            action="login"
+            onTokenChange={setTurnstileToken}
+            resetKey={turnstileResetKey}
+          />
 
           {statusMessage && (
             <div

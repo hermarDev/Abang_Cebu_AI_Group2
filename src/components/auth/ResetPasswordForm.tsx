@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/Input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
 import { CircleAlert, Eye, EyeOff, KeyRound, LockKeyhole, Mail } from "lucide-react";
 import { PasswordRequirements } from "./PasswordRequirements";
+import { TurnstileWidget } from "./TurnstileWidget";
 
 const genericSuccess = "If an account is associated with this email, a password recovery link has been dispatched.";
 
@@ -27,6 +28,8 @@ export function ResetPasswordForm({ isRecovery = false, onBackToLogin, embedded 
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [isError, setIsError] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState("");
+  const [turnstileResetKey, setTurnstileResetKey] = useState(0);
   const requestSent = !isRecovery && !!message && !isError;
   const passwordsMatch = !!newPassword && !!confirmPassword && newPassword === confirmPassword;
 
@@ -50,7 +53,7 @@ export function ResetPasswordForm({ isRecovery = false, onBackToLogin, embedded 
       const res = await fetch(isRecovery ? "/api/auth/reset-password/confirm" : "/api/auth/reset-password/request", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(isRecovery ? { newPassword, confirmPassword } : { email }),
+        body: JSON.stringify(isRecovery ? { newPassword, confirmPassword } : { email, ...(turnstileToken ? { turnstileToken } : {}) }),
       });
       const data = await res.json();
 
@@ -62,6 +65,10 @@ export function ResetPasswordForm({ isRecovery = false, onBackToLogin, embedded 
         }
         setIsError(true);
         setMessage(data?.error?.message || "Password recovery is temporarily unavailable. Try again.");
+        if (!isRecovery) {
+          setTurnstileResetKey((k) => k + 1);
+          setTurnstileToken("");
+        }
         return;
       }
 
@@ -74,6 +81,10 @@ export function ResetPasswordForm({ isRecovery = false, onBackToLogin, embedded 
     } catch {
       setIsError(true);
       setMessage("Password recovery is temporarily unavailable. Try again.");
+      if (!isRecovery) {
+        setTurnstileResetKey((k) => k + 1);
+        setTurnstileToken("");
+      }
     } finally {
       setLoading(false);
     }
@@ -82,7 +93,7 @@ export function ResetPasswordForm({ isRecovery = false, onBackToLogin, embedded 
   const Surface = embedded ? "div" : Card;
 
   return (
-    <Surface {...(embedded ? { className: "w-full" } : { "data-surface": "finder", className: "mx-auto w-full max-w-md border-border bg-card text-card-foreground shadow-lg" } as Record<string, string>)}>
+    <Surface {...(embedded ? { className: "w-full" } : { "data-surface": "finder", className: "mx-auto w-full max-w-md border-border bg-card text-card-foreground shadow-lg" } as Record<string, string>)} >
       {!embedded && <CardHeader className="items-center gap-3 px-6 pt-7 text-center">
         <span className="grid size-14 place-items-center rounded-full bg-accent text-accent-foreground" aria-hidden="true">
           <KeyRound size={25} strokeWidth={1.8} />
@@ -206,6 +217,14 @@ export function ResetPasswordForm({ isRecovery = false, onBackToLogin, embedded 
               />
               </div>
             </div>
+          )}
+
+          {!isRecovery && (
+            <TurnstileWidget
+              action="recovery"
+              onTokenChange={setTurnstileToken}
+              resetKey={turnstileResetKey}
+            />
           )}
 
           <Button type="submit" variant="primary" fullWidth size="lg" disabled={loading}>

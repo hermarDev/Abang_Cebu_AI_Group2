@@ -27,6 +27,8 @@ for (const width of [320, 430, 1280]) {
       await expect(dialog.getByLabel("Full Name", { exact: true })).toBeVisible();
       await expect(dialog.locator('input[type="password"]')).toHaveCount(1);
       await expect(dialog.locator('input[type="tel"]')).toHaveCount(0);
+      // Check for Turnstile widget on registration
+      await expect(dialog.locator("[data-testid=turnstile-widget]")).toBeVisible();
       const register = await dialog.boundingBox();
       expect(register!.width).toBeCloseTo(initial!.width, 0);
       expect(register!.height).toBeGreaterThan(0);
@@ -34,6 +36,8 @@ for (const width of [320, 430, 1280]) {
       await dialog.getByRole("button", { name: /Log in/i, exact: true }).first().click();
       await dialog.getByRole("button", { name: "Forgot password?" }).click();
       await expect(dialog.getByLabel("Email Address", { exact: true })).toBeVisible();
+      // Check for Turnstile widget on recovery
+      await expect(dialog.locator("[data-testid=turnstile-widget]")).toBeVisible();
       const reset = await dialog.boundingBox();
       expect(reset!.width).toBeCloseTo(initial!.width, 0);
       expect(reset!.height).toBeGreaterThan(0);
@@ -83,7 +87,7 @@ test("login fields remain unchanged while authentication is pending", async ({ p
 const challengeKeys = (value: unknown): string[] =>
   value && typeof value === "object"
     ? Object.entries(value).flatMap(([key, nested]) => [
-        ...( /captcha|turnstile|verification/i.test(key) ? [key] : []),
+        ...(/captcha|turnstile|verification/i.test(key) ? [key] : []),
         ...challengeKeys(nested),
       ])
     : [];
@@ -138,28 +142,43 @@ for (const width of [430, 1280]) {
     await dialog.getByLabel("Password", { exact: true }).fill("Test-password1!");
     const registrationForm = dialog.locator("form");
     await registrationForm.getByRole("button", { name: "Register as Renter", exact: true }).click();
+    await expect(dialog.getByRole("alert")).toContainText("Complete the security verification before registering");
+    // Complete the Turnstile challenge by clicking the widget
+    await dialog.locator('[data-testid="turnstile-widget"]').click();
+    // Wait a moment for the token to be set
+    await page.waitForTimeout(500);
+    await registrationForm.getByRole("button", { name: "Register as Renter", exact: true }).click();
     await expect(dialog.getByRole("alert")).toContainText("Controlled registration failure.");
+    // Re-complete the challenge after failure (token was cleared)
+    await dialog.locator('[data-testid="turnstile-widget"]').click();
+    await page.waitForTimeout(500);
     await registrationForm.getByRole("button", { name: "Register as Renter", exact: true }).click();
     await expect(dialog.getByRole("alert")).toContainText("Controlled registration failure.");
     expect(registrationPayloads).toHaveLength(2);
     for (const payload of registrationPayloads) {
       expect(payload).toMatchObject({ fullName: "Browser Test", email: "browser-register@example.invalid", password: "Test-password1!", role: "renter" });
-      expect(challengeKeys(payload)).toEqual([]);
+      expect(payload).toHaveProperty("turnstileToken", "mock-token");
+      expect(challengeKeys(payload)).toEqual(["turnstileToken"]);
     }
 
     await dialog.getByRole("button", { name: "Log in", exact: true }).click();
     await dialog.getByRole("button", { name: "Forgot password?" }).click();
-    await expect(challengeWidgets).toHaveCount(0);
+    // Complete Turnstile challenge for recovery
+    await dialog.locator('[data-testid="turnstile-widget"]').click();
+    await page.waitForTimeout(500);
     await dialog.getByLabel("Email Address", { exact: true }).fill("browser-recovery@example.invalid");
     const recoveryForm = dialog.locator("form");
     await recoveryForm.getByRole("button", { name: "Send reset link", exact: true }).click();
     await expect(dialog.getByRole("alert")).toContainText("Controlled recovery failure.");
+    // Re-complete the challenge after failure (token was cleared)
+    await dialog.locator('[data-testid="turnstile-widget"]').click();
+    await page.waitForTimeout(500);
     await recoveryForm.getByRole("button", { name: "Send reset link", exact: true }).click();
     await expect(dialog.getByRole("alert")).toContainText("Controlled recovery failure.");
     expect(recoveryPayloads).toHaveLength(2);
     for (const payload of recoveryPayloads) {
-      expect(payload).toEqual({ email: "browser-recovery@example.invalid" });
-      expect(challengeKeys(payload)).toEqual([]);
+      expect(payload).toEqual({ email: "browser-recovery@example.invalid", turnstileToken: "mock-token" });
+      expect(challengeKeys(payload)).toEqual(["turnstileToken"]);
     }
   });
 }
