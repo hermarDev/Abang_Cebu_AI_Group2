@@ -27,9 +27,14 @@ function NotificationsModalContent({ userId, userRole, onClose }: NotificationsM
   const {
     notifications,
     unreadCount,
+    totalCount,
+    totalPages,
+    currentPage,
+    pageSize,
     loading,
     error,
     refresh,
+    loadPage,
     markAsRead,
     markAllAsRead,
     deleteNotification,
@@ -41,6 +46,10 @@ function NotificationsModalContent({ userId, userRole, onClose }: NotificationsM
       className="max-h-[min(90dvh,38rem)] w-full border-0 shadow-none rounded-none"
       notifications={notifications}
       unreadCount={unreadCount}
+      totalCount={totalCount}
+      totalPages={totalPages}
+      currentPage={currentPage}
+      pageSize={pageSize}
       loading={loading}
       error={error}
       userRole={userRole}
@@ -50,6 +59,7 @@ function NotificationsModalContent({ userId, userRole, onClose }: NotificationsM
       onDeleteNotification={deleteNotification}
       onClearNotifications={clearNotifications}
       onClose={onClose}
+      onPageChange={loadPage}
     />
   );
 }
