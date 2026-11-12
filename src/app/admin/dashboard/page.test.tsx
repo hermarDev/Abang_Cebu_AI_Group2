@@ -49,7 +49,7 @@ describe("admin dashboard", () => {
       ["Active renters", 40, "/admin/accounts?role=renter&amp;status=active"], ["Active landlords", 9, "/admin/accounts?role=landlord&amp;status=active"],
       ["Suspended accounts", 1, "/admin/accounts?status=suspended"], ["Open abuse reports", 5, "/admin/reports?status=open"],
     ] as const) expect(html).toMatch(new RegExp(`href="${href.replace("?", "\\?")}"[^>]*>\\s*<span[^>]*>${label}</span><span[^>]*>${count}</span>`));
-    expect(html).toContain("property approved");
+    expect(html).toContain("Approved");
     expect(html).toContain("Ada Admin");
     expect(html).toContain('href="/admin/audit"');
     for (const href of ["/admin/reviews", "/admin/accounts", "/admin/reports"]) expect(html).toContain(`href="${href}`);
