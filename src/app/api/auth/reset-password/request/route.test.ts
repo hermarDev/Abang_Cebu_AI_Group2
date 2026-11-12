@@ -170,36 +170,33 @@ describe("password reset request route", () => {
     vi.stubEnv("TURNSTILE_SECRET_KEY", "test-secret-key");
     vi.stubEnv("NEXT_PUBLIC_SITE_URL", "https://recovery.example");
     const response = await POST(request({ email: "safe@example.com" }));
-    expect(response.status).toBe(403);
-    const body = await response.json();
-    expect(body.error.code).toBe("CAPTCHA_VERIFICATION_FAILED");
-    expect(resetPasswordForEmail).not.toHaveBeenCalled();
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual(genericSuccess);
+    expect(resetPasswordForEmail).toHaveBeenCalledOnce();
+    const callArgs = resetPasswordForEmail.mock.calls[0][1];
+    expect(callArgs.redirectTo).toContain("/auth/reset-password/callback");
+    expect(callArgs.captchaToken).toBeUndefined();
   });
 
-  it("accepts password reset request when Turnstile token verification succeeds", async () => {
+  it("forwards captchaToken to Supabase when turnstileToken is provided", async () => {
     vi.stubEnv("TURNSTILE_SECRET_KEY", "test-secret-key");
     vi.stubEnv("NEXT_PUBLIC_SITE_URL", "https://recovery.example");
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
-      ok: true,
-      json: async () => ({ success: true }),
-    }));
     const response = await POST(request({ email: "safe@example.com", turnstileToken: "valid-token" }));
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual(genericSuccess);
     expect(resetPasswordForEmail).toHaveBeenCalledOnce();
+    expect(resetPasswordForEmail).toHaveBeenCalledWith("safe@example.com", expect.objectContaining({
+      redirectTo: expect.stringContaining("/auth/reset-password/callback"),
+      captchaToken: "valid-token",
+    }));
   });
 
-  it("rejects password reset request when Turnstile token verification fails", async () => {
+  it("does not call verifyTurnstileToken locally when TURNSTILE_SECRET_KEY is set", async () => {
     vi.stubEnv("TURNSTILE_SECRET_KEY", "test-secret-key");
     vi.stubEnv("NEXT_PUBLIC_SITE_URL", "https://recovery.example");
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
-      ok: true,
-      json: async () => ({ success: false, "error-codes": ["invalid-input-response"] }),
-    }));
-    const response = await POST(request({ email: "safe@example.com", turnstileToken: "invalid-token" }));
-    expect(response.status).toBe(403);
-    const body = await response.json();
-    expect(body.error.code).toBe("CAPTCHA_VERIFICATION_FAILED");
-    expect(resetPasswordForEmail).not.toHaveBeenCalled();
+    const response = await POST(request({ email: "safe@example.com", turnstileToken: "valid-token" }));
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual(genericSuccess);
+    // verifyTurnstileToken is no longer imported or called
   });
 });

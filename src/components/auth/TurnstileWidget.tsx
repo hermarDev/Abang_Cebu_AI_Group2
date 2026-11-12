@@ -22,6 +22,7 @@ type Turnstile = {
 let scriptReady: Promise<Turnstile> | undefined;
 
 function loadTurnstile() {
+  // Check for pre-loaded turnstile (e.g., from test fixtures)
   const current = (window as Window & { turnstile?: Turnstile }).turnstile;
   if (current) return Promise.resolve(current);
   return scriptReady ??= new Promise<Turnstile>((resolve, reject) => {
@@ -54,6 +55,7 @@ export function TurnstileWidget({ onTokenChange, action, resetKey = 0 }: {
   const callback = useRef(onTokenChange);
   const widget = useRef<{ api: Turnstile; id: string } | null>(null);
   const [status, setStatus] = useState("Loading security verification…");
+  // Next.js replaces process.env.NEXT_PUBLIC_* at build time
   const sitekey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
 
   useEffect(() => { callback.current = onTokenChange; }, [onTokenChange]);
@@ -62,7 +64,9 @@ export function TurnstileWidget({ onTokenChange, action, resetKey = 0 }: {
     let active = true;
     callback.current("");
     if (!sitekey) {
-      setStatus("Security verification unavailable. Please reload and try again.");
+      setTimeout(() => {
+        if (active) setStatus("Security verification unavailable. Please reload and try again.");
+      });
       return;
     }
     loadTurnstile().then((api) => {

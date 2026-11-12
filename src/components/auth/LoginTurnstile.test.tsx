@@ -37,7 +37,7 @@ beforeEach(() => {
 afterEach(() => vi.unstubAllEnvs());
 it("submits and retries in production without verification", async () => {
   await submit();
-  expect(signInWithEmail).toHaveBeenCalledWith("test@example.com", "Test-password-1!");
+  expect(signInWithEmail).toHaveBeenCalledWith("test@example.com", "Test-password-1!", "");
   await submit();
   expect(signInWithEmail).toHaveBeenCalledTimes(2);
 });

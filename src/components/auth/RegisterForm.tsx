@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { validateRegistration } from "@/lib/auth/validation";
 import type { RegisterPayload } from "@/types/auth";
 import { PasswordRequirements } from "./PasswordRequirements";
+import { TurnstileWidget } from "./TurnstileWidget";
 
 export function RegisterForm({ onLogin }: { onLogin?: () => void } = {}) {
   const router = useRouter();
@@ -34,6 +35,8 @@ export function RegisterForm({ onLogin }: { onLogin?: () => void } = {}) {
     setFieldErrors(errors => ({ ...errors, [field]: validation.ok ? undefined : validation.errors[field] }));
   };
   const [registered, setRegistered] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState("");
+  const [turnstileResetKey, setTurnstileResetKey] = useState(0);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,6 +54,10 @@ export function RegisterForm({ onLogin }: { onLogin?: () => void } = {}) {
       if (firstInvalid) (e.currentTarget as HTMLFormElement).querySelector<HTMLInputElement>(`[name="${firstInvalid}"]`)?.focus();
       return;
     }
+    if (!turnstileToken) {
+      setErrorMessage("Complete the security verification before registering. If it is unavailable, reload and try again.");
+      return;
+    }
     setLoading(true);
 
     try {
@@ -62,6 +69,7 @@ export function RegisterForm({ onLogin }: { onLogin?: () => void } = {}) {
           email,
           password,
           role,
+          turnstileToken,
         }),
       });
 
@@ -82,6 +90,8 @@ export function RegisterForm({ onLogin }: { onLogin?: () => void } = {}) {
     } catch {
       setErrorMessage("Network error. Please try again later.");
     } finally {
+      setTurnstileToken("");
+      setTurnstileResetKey((key) => key + 1);
       setLoading(false);
     }
   };
@@ -216,6 +226,8 @@ export function RegisterForm({ onLogin }: { onLogin?: () => void } = {}) {
               </div>
             )}
 
+
+            <TurnstileWidget onTokenChange={setTurnstileToken} action="signup" resetKey={turnstileResetKey} />
 
             <Button type="submit" variant="primary" fullWidth size="lg" disabled={loading}>
               {loading ? "Registering..." : `Register as ${role === "renter" ? "Renter" : "Landlord"}`}

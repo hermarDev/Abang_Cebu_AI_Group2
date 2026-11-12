@@ -114,6 +114,27 @@ describe("validateRegistration", () => {
     });
   });
 
+  it("normalizes a non-empty Turnstile token", () => {
+    expect(validateRegistration({ ...validPayload, turnstileToken: " provider-token " })).toEqual({
+      ok: true,
+      value: {
+        email: "mika.example+test@example.com",
+        password: "R3nt!ngSafe",
+        fullName: "Mika Santos",
+        role: "renter",
+        phoneNumber: "+639171234567",
+        preferredLandmark: "USC Talamban",
+        turnstileToken: "provider-token",
+      },
+    });
+  });
+
+  it("rejects an empty Turnstile token when one is supplied", () => {
+    const result = validateRegistration({ ...validPayload, turnstileToken: "   " });
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.errors.turnstileToken).toBe("Invalid verification token.");
+  });
+
   it.each([
     [{ ...validPayload, role: "admin" }, "role"],
     [{ ...validPayload, password: "weak" }, "password"],

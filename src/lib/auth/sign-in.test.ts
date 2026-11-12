@@ -38,6 +38,15 @@ describe("signInWithEmail", () => {
     });
   });
 
+  it("forwards captchaToken to Supabase Auth when provided", async () => {
+    await signInWithEmail("renter@example.com", "Password1!", "test-captcha-token");
+    expect(signInWithPassword).toHaveBeenCalledWith({
+      email: "renter@example.com",
+      password: "Password1!",
+      options: { captchaToken: "test-captcha-token" },
+    });
+  });
+
   it("signs in with Supabase and accepts the canonical matching profile role", async () => {
     await expect(
       signInWithEmail(" renter@example.com ", "Password1!"),

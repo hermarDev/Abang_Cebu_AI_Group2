@@ -167,7 +167,9 @@ describe("TurnstileWidget", () => {
 
   it("fails visibly when no site key is configured", () => {
     vi.stubEnv("NEXT_PUBLIC_TURNSTILE_SITE_KEY", "");
+    vi.useFakeTimers();
     render();
+    vi.runAllTimers();
     expect(render()).toContain("unavailable");
     expect(append).not.toHaveBeenCalled();
     expect(onTokenChange).toHaveBeenLastCalledWith("");

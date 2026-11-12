@@ -7,6 +7,24 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn() }),
 }));
 
+const turnstileMock = vi.hoisted(() => ({ latest: null as { onTokenChange: (token: string) => void; action: string; resetKey?: number } | null }));
+
+vi.mock("./TurnstileWidget", () => ({
+  TurnstileWidget: (props: { onTokenChange: (token: string) => void; action: string; resetKey?: number }) => {
+    turnstileMock.latest = props;
+    return (
+      <button
+        type="button"
+        data-testid="turnstile-widget"
+        data-action={props.action}
+        onClick={() => props.onTokenChange("synthetic-token")}
+      >
+        Complete security verification
+      </button>
+    );
+  },
+}));
+
 const state = vi.hoisted(() => ({ active: false, values: [] as unknown[], cursor: 0, idCursor: 0 }));
 vi.mock("react", async (importOriginal) => {
   const react = await importOriginal<typeof import("react")>();
@@ -50,6 +68,14 @@ function fillValidForm() {
   changeInput("fullName", "Juan dela Cruz");
   changeInput("email", "juan@example.com");
   changeInput("password", "Strongpass1!");
+  completeChallenge();
+}
+
+function completeChallenge() {
+  renderToStaticMarkup(renderForm());
+  if (turnstileMock.latest?.onTokenChange) {
+    turnstileMock.latest.onTokenChange("synthetic-token");
+  }
 }
 
 afterEach(() => {
@@ -235,7 +261,7 @@ describe("production submission", () => {
     vi.stubGlobal("fetch", request);
     await submit(true);
     expect(request).toHaveBeenCalledOnce();
-    expect(JSON.parse(request.mock.calls[0][1].body)).toEqual({ fullName: "Juan dela Cruz", email: "juan@example.com", password: "Strongpass1!", role: "renter" });
+    expect(JSON.parse(request.mock.calls[0][1].body)).toEqual({ fullName: "Juan dela Cruz", email: "juan@example.com", password: "Strongpass1!", role: "renter", turnstileToken: "synthetic-token" });
   });
   it.each(["server", "network", "invalid JSON"])("allows retry after %s failure", async (failure) => {
     state.active = true;
