@@ -51,6 +51,7 @@ import {
 } from "@/components/ui/chat";
 import { PropertyDetailsSheet } from "@/features/rentals/PropertyDetailsSheet";
 import { notify } from "@/components/ui/AppToaster";
+import { submitInquiry } from "./ListingInquiryModal";
 import { dispatchMessagesUpdated } from "./useUnreadMessageCount";
 import { createClient } from "@/lib/supabase/client";
 import {
@@ -100,6 +101,7 @@ export type MessagingInboxProps = {
   userId: string;
   userRole: "renter" | "landlord";
   initialThreadId?: string | null;
+  initialListingId?: string | null;
   initialThreads?: RentalThreadSummary[];
 };
 
@@ -161,6 +163,124 @@ function shouldShowMarker(currentMsg: RentalMessageItem, prevMsg: RentalMessageI
   return !isSameDay(new Date(currentMsg.createdAt), new Date(prevMsg.createdAt));
 }
 
+
+function ComposeMode({
+  draft,
+  setDraft,
+  loading,
+  error,
+  onCancel,
+  onSubmit,
+}: {
+  listingId: string;
+  draft: string;
+  setDraft: (v: string) => void;
+  loading: boolean;
+  error: string | null;
+  onCancel: () => void;
+  onSubmit: (e: React.FormEvent) => Promise<void>;
+}) {
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  useEffect(() => {
+    const el = textareaRef.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${Math.min(el.scrollHeight, 128)}px`;
+  }, [draft]);
+
+  return (
+    <div className="flex flex-col min-h-0">
+      <header className="sticky top-0 z-10 grid gap-2 border-b border-border bg-card p-2.5 sm:p-3 shadow-xs">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex min-w-0 items-center gap-2 sm:gap-2.5">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="lg:hidden min-h-10 px-2 -ml-1 text-muted-foreground hover:text-foreground"
+              onClick={onCancel}
+              aria-label="Back to messages"
+            >
+              <ArrowLeft size={18} aria-hidden="true" />
+              <span className="text-xs font-semibold sm:inline hidden">Back to messages</span>
+            </Button>
+            <div className="flex items-center gap-2.5">
+              <div className="grid size-10 shrink-0 place-items-center rounded-lg bg-muted text-muted-foreground">
+                <Home size={18} aria-hidden="true" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-semibold text-foreground truncate">New inquiry</p>
+                <p className="text-[0.75rem] text-muted-foreground truncate">Message landlord about this listing</p>
+              </div>
+            </div>
+          </div>
+          <Button variant="ghost" size="sm" onClick={onCancel} aria-label="Cancel inquiry" className="size-9 min-h-9 p-0 text-muted-foreground hover:bg-muted hover:text-foreground">
+            <X size={18} aria-hidden="true" />
+          </Button>
+        </div>
+      </header>
+
+      <div className="flex-1 min-h-0 flex flex-col p-4 sm:p-6">
+        {error && (
+          <div role="alert" className="mb-4 rounded-lg bg-destructive/10 border border-destructive/30 p-3 text-sm text-destructive">
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={onSubmit} className="grid gap-4 flex-1">
+          <div className="relative flex flex-col items-center justify-center gap-2 rounded-2xl border border-border/70 bg-muted/30 p-6 text-center text-muted-foreground">
+            <MessageSquare size={32} aria-hidden="true" className="text-action/50" />
+            <p className="text-sm">Start your conversation</p>
+            <p className="text-xs">Your message will create a new conversation with the landlord</p>
+          </div>
+
+          <p className="text-xs text-muted-foreground">Send photos after starting the conversation.</p>
+          <div className="flex items-end gap-2">
+            <div className="relative flex-1 flex items-center rounded-2xl border border-input bg-muted/30 shadow-2xs transition-all focus-within:border-action focus-within:bg-card focus-within:ring-2 focus-within:ring-action/20">
+              <label htmlFor="compose-inquiry" className="sr-only">
+                Message
+              </label>
+              <textarea
+                ref={textareaRef}
+                id="compose-inquiry"
+                value={draft}
+                onChange={(e) => setDraft(e.target.value)}
+                maxLength={MESSAGE_MAX}
+                rows={1}
+                placeholder="Ask about availability, viewing times or house rules..."
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
+                    e.preventDefault();
+                    e.currentTarget.form?.requestSubmit();
+                  }
+                }}
+                className="min-h-10 max-h-32 w-full resize-none border-0 bg-transparent py-2.5 px-3.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-hidden disabled:cursor-not-allowed disabled:opacity-50"
+              />
+            </div>
+            <Button
+              type="submit"
+              size="sm"
+              variant="primary"
+              disabled={loading || !draft.trim()}
+              aria-label={loading ? "Sending message..." : "Send message"}
+              className="size-10 min-h-10 shrink-0 rounded-full p-0 flex items-center justify-center bg-action text-action-foreground hover:bg-action-hover disabled:opacity-40 cursor-pointer"
+            >
+              {loading ? (
+                <Clock size={16} className="animate-spin" aria-hidden="true" />
+              ) : (
+                <ArrowUp size={18} strokeWidth={2.5} aria-hidden="true" />
+              )}
+            </Button>
+          </div>
+          <div className="flex items-center justify-between px-1 text-[0.7rem] text-muted-foreground">
+            <span>Enter to send · Shift+Enter for new line</span>
+            <span>{draft.length} / {MESSAGE_MAX}</span>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 export function MessagingInbox(props: MessagingInboxProps) {
   const { userId } = props;
   const [retained, setRetained] = useState<Record<string, Retained>>({});
@@ -198,6 +318,7 @@ function MessagingInboxInner({
   userId,
   userRole,
   initialThreadId = null,
+  initialListingId = null,
   initialThreads,
   drafts,
   outboxes,
@@ -218,6 +339,12 @@ function MessagingInboxInner({
   const [blockOpen, setBlockOpen] = useState(false);
   const [reportTarget, setReportTarget] = useState<ReportTarget | null>(null);
   const [busy, setBusy] = useState(false);
+
+  // Compose mode for new inquiry from listing
+  const [composeListingId, setComposeListingId] = useState<string | null>(initialListingId);
+  const [composeDraft, setComposeDraft] = useState("");
+  const [composeLoading, setComposeLoading] = useState(false);
+  const [composeError, setComposeError] = useState<string | null>(null);
 
   const scrollerRef = useRef<MessageScrollerHandle>(null);
   const stickToBottom = useRef(true);
@@ -462,6 +589,12 @@ function MessagingInboxInner({
 
   const select = (id: string | null) => {
     if (id === selectedRef.current) return;
+    // Exiting compose mode when selecting a thread
+    if (composeListingId) {
+      setComposeListingId(null);
+      setComposeDraft("");
+      setComposeError(null);
+    }
     generationRef.current++;
     olderLoaded.current = false;
     setDetail(null);
@@ -688,6 +821,36 @@ function MessagingInboxInner({
     void deliver(item);
   }
 
+  async function handleComposeSubmit(event: React.FormEvent) {
+    event.preventDefault();
+    if (!composeListingId) return;
+    const body = composeDraft.trim();
+    if (!body || body.length > MESSAGE_MAX || composeLoading) return;
+
+    setComposeLoading(true);
+    setComposeError(null);
+    try {
+      const result = await submitInquiry(`${userId}:${composeListingId}`, userId, composeListingId, body);
+      if (result.error) throw new Error(result.error);
+      const conversationId = result.conversationId;
+      if (!conversationId) throw new Error("No conversation ID returned");
+
+      setComposeListingId(null);
+      setComposeDraft("");
+      setComposeError(null);
+
+      if (typeof window !== "undefined") {
+        window.history.replaceState(null, "", `?thread=${encodeURIComponent(conversationId)}`);
+      }
+      select(conversationId);
+    } catch (err) {
+      setComposeError(err instanceof Error ? err.message : "Couldn't send inquiry. Please try again.");
+      notify("error", "compose-inquiry", err instanceof Error ? err.message : "Couldn't send inquiry. Please try again.");
+    } finally {
+      setComposeLoading(false);
+    }
+  }
+
   async function setArchived(archived: boolean) {
     if (!thread) return;
     const threadId = thread.id;
@@ -785,7 +948,7 @@ function MessagingInboxInner({
     <div className="grid h-full min-h-0 overflow-hidden rounded-none border-0 bg-card text-card-foreground shadow-none sm:rounded-2xl sm:border sm:border-border sm:shadow-xs lg:grid-cols-[340px_minmax(0,1fr)]">
       <aside
         aria-label="Conversations"
-        className={`${selectedId ? "hidden lg:flex" : "flex"} min-h-0 flex-col border-border lg:border-r`}
+        className={`${selectedId || composeListingId ? "hidden lg:flex" : "flex"} min-h-0 flex-col border-border lg:border-r`}
       >
         {userRole === "renter" && (
           <div className="flex sm:hidden items-center justify-between border-b border-border px-3.5 py-3 bg-card">
@@ -953,9 +1116,19 @@ function MessagingInboxInner({
 
       <section
         aria-label="Conversation"
-        className={`${selectedId ? "flex" : "hidden lg:flex"} min-h-0 min-w-0 flex-col`}
+        className={`${selectedId || composeListingId ? "flex" : "hidden lg:flex"} min-h-0 min-w-0 flex-col`}
       >
-        {!selectedId || !thread ? (
+        {composeListingId ? (
+          <ComposeMode
+            listingId={composeListingId}
+            draft={composeDraft}
+            setDraft={setComposeDraft}
+            loading={composeLoading}
+            error={composeError}
+            onCancel={() => setComposeListingId(null)}
+            onSubmit={handleComposeSubmit}
+          />
+        ) : !selectedId || !thread ? (
           selectedId && detailError ? (
             <div role="alert" className="grid gap-3 p-6 text-sm">
               <Button variant="outline" onClick={() => select(null)}>

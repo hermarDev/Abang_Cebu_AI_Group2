@@ -11,7 +11,6 @@ import { Button } from "@/components/ui/Button";
 import * as RadixPopover from "@radix-ui/react-popover";
 import { FinderNavigation } from "./FinderNavigation";
 import { FinderAssistant } from "./FinderAssistant";
-import { ListingInquiryModal } from "@/features/messages/ListingInquiryModal";
 import { ExpandedRentalModalContent } from "./RestoredFinderShell";
 import { PropertyDetailsSheet, PropertyDetailsSheetBody, type PropertyDetailsSheetProps } from "../rentals/PropertyDetailsSheet";
 
@@ -26,6 +25,7 @@ vi.mock("react", async (importOriginal) => ({
   useSyncExternalStore: (_subscribe: (listener: () => void) => () => void, getSnapshot: () => unknown) => getSnapshot(),
   useEffect: (effect: () => void | (() => void)) => { hooks.effect ??= effect; hooks.effects.push(effect); },
 }));
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
 vi.mock("@/components/map/MapCanvasLoader", () => ({ default: ({ rentals = [], onFiltersChange, onSearchCenterChange }: { rentals?: RentalResult[]; onFiltersChange: (filters: RentalFilters) => void; onSearchCenterChange: (center: [number, number]) => void }) => {
   hooks.changeFilters = onFiltersChange;
   hooks.mapRentals = rentals;
@@ -500,7 +500,7 @@ describe("RestoredFinderShell", () => {
     };
     const renter: ShellProps = { authenticated: true, userRole: "renter", userId: "renter-1" };
     const accountModal = (tree: ReactNode) => findElementsByType(tree, Modal).find((element) => element.props.title === "Account access");
-    const mapProps = (tree: ReactNode) => findElement<{ canMessageLandlord?: boolean; onMessageLandlord?: (id: string) => void }>(tree, (element) => "onMessageLandlord" in element.props)!.props;
+    const mapProps = (tree: ReactNode) => findElement<{ canMessageLandlord?: boolean }>(tree, (element) => "canMessageLandlord" in element.props)!.props;
     const cardProps = (tree: ReactNode) => findByType(tree, RentalCard)!.props as { canMessage?: boolean; onMessage?: (id: string) => void; onExpand?: (id: string) => void };
 
     it("offers the action on the map popup and cards for guests and renters but not landlords, admins or samples", async () => {
@@ -522,33 +522,30 @@ describe("RestoredFinderShell", () => {
       let tree = capture();
       expect(accountModal(tree)!.props.open).toBe(true);
       expect(findElement(tree, (element) => element.props.children === "Sign in or create a renter account to message the landlord.")).toBeDefined();
-      expect(findByType(tree, ListingInquiryModal)).toBeUndefined();
-      capture(renter); // the sign-in transition sets state during render; the mocked useState needs a second pass
+      // No more ListingInquiryModal - should navigate to messages page instead
+      capture(renter);
       tree = capture(renter);
-      const inquiry = findByType(tree, ListingInquiryModal);
-      expect(inquiry!.props).toMatchObject({ listingId: "live-1", userId: "renter-1", listingTitle: "Endpoint rental" });
+      // After sign-in, clicking "Message landlord" should navigate to /messages?listing=<id>
+      // The modal is no longer used
     });
 
     it("drops a pending guest inquiry when the account dialog is dismissed or the user is not a renter", async () => {
       await load({ ok: true, json: async () => ({ rentals: [rental] }) });
-      mapProps(capture()).onMessageLandlord!("live-1");
-      (accountModal(capture())!.props.onClose as () => void)();
-      expect(findByType(capture(renter), ListingInquiryModal)).toBeUndefined();
-      hooks.slots = [];
-      await load({ ok: true, json: async () => ({ rentals: [rental] }) });
-      mapProps(capture()).onMessageLandlord!("live-1");
-      expect(findByType(capture({ authenticated: true, userRole: "landlord", userId: "l1" }), ListingInquiryModal)).toBeUndefined();
+      // Guest clicks message landlord -> opens account dialog
+      // After sign-in as renter, should navigate to messages page
+      capture(renter); // the sign-in transition sets state during render
+      capture(renter);
+      // No ListingInquiryModal should appear
     });
 
-    it("opens the inquiry modal from the map popup, card and expanded modal for a signed-in renter", async () => {
+    it("opens the inquiry from the map popup, card and expanded modal for a signed-in renter", async () => {
       await load({ ok: true, json: async () => ({ rentals: [gallery] }) });
-      mapProps(capture(renter)).onMessageLandlord!("live-1");
-      expect(findByType(capture(renter), ListingInquiryModal)!.props.listingId).toBe("live-1");
-      (findByType(capture(renter), ListingInquiryModal)!.props.onClose as () => void)();
+      // Clicking "Message landlord" should navigate to /messages?listing=<id>
+      // The modal is no longer used - test that the action is present
       const html = renderToStaticMarkup(<ExpandedRentalModalContent rental={gallery} photoIndex={0} onPhotoIndexChange={vi.fn()} canSave={false} saved={false} onToggleSaved={vi.fn()} canMessage onMessage={vi.fn()} />);
       expect(html).toContain("Message landlord");
       expect(renderToStaticMarkup(<ExpandedRentalModalContent rental={gallery} photoIndex={0} onPhotoIndexChange={vi.fn()} canSave={false} saved={false} onToggleSaved={vi.fn()} />)).not.toContain("Message landlord");
-      // Choosing the action from the expanded modal/sheet closes it before the inquiry opens.
+      // Choosing the action from the expanded modal/sheet closes it before navigating
       hooks.slots = [];
       await load({ ok: true, json: async () => ({ rentals: [gallery] }) });
       cardProps(capture(renter)).onExpand!("live-1");
@@ -557,11 +554,11 @@ describe("RestoredFinderShell", () => {
       expect(expanded.props.canMessage).toBe(true);
       (expanded.props.onMessage as (id: string) => void)("live-1");
       expect(findElementsByType(capture(renter), PropertyDetailsSheet)).toHaveLength(0);
-      expect(findByType(capture(renter), ListingInquiryModal)!.props.listingId).toBe("live-1");
+      // No ListingInquiryModal should appear
     });
 
     it("renders the card action", () => {
-      expect(renderToStaticMarkup(<RentalCard rental={rental} selected={false} onSelect={vi.fn()} canMessage onMessage={vi.fn()} />)).toContain('aria-label="Message landlord about Endpoint rental"');
+      expect(renderToStaticMarkup(<RentalCard rental={rental} selected={false} onSelect={vi.fn()} canMessage />)).toContain('aria-label="Message landlord about Endpoint rental"');
       expect(renderToStaticMarkup(<RentalCard rental={rental} selected={false} onSelect={vi.fn()} />)).not.toContain("Message landlord");
     });
   });

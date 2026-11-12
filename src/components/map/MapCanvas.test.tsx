@@ -85,8 +85,7 @@ describe("MapCanvas controls", () => {
     expect(styles).toContain(".rentalPopupPriceRow");
   });
 
-  it("adds a role-gated Message landlord popup action that closes the popup before opening the inquiry", () => {
-    expect(source).toContain("canMessageLandlord = false, onMessageLandlord");
+  it("adds a role-gated Message landlord popup action that closes the popup before navigating to messages page", () => {
     expect(source).toContain("{canMessageLandlord && (");
     expect(source).toContain("<span>Message landlord</span>");
     expect(source).toContain("closeRentalPopup(); onMessageLandlord?.(activePopupRental.id);");

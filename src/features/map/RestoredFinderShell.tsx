@@ -13,6 +13,7 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { RentalFilterDialog } from "@/features/rentals/RentalFilterDialog";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { BrandLogo, ChatbotAvatar } from "@/components/brand";
 import { FinderAssistant } from "./FinderAssistant";
 import { Building2, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, CircleAlert, Info, LogIn, Menu, MessageSquare, Pencil, Search, X } from "lucide-react";
@@ -26,7 +27,6 @@ import { Button } from "@/components/ui/Button";
 import { notify } from "@/components/ui/AppToaster";
 import { QuickFilters, getActiveFilterCount, propertyTypes } from "./FinderQuickFilters";
 import { RentalCard } from "@/features/listings/RentalCard";
-import { ListingInquiryModal } from "@/features/messages/ListingInquiryModal";
 import { PropertyDetailsSheet } from "@/features/rentals/PropertyDetailsSheet";
 import {
   formatCurfew,
@@ -91,6 +91,7 @@ export function ExpandedRentalModalContent({ rental, photoIndex, onPhotoIndexCha
 }
 
 export function RestoredFinderShell({ rentalStatus: statusOverride, initialAccountMode, initialAccountOpen = false, isRecovery = false, statusMessage: initialStatusMessage, initialErrorMessage, authenticated = false, userRole = null, userId = null, displayName = null, avatarUrl = null }: { authenticated?: boolean; userRole?: UserRole | null; userId?: string | null; displayName?: string | null; avatarUrl?: string | null; rentalStatus?: "loading" | "error" | "ready"; initialAccountMode?: AccountMode; initialAccountOpen?: boolean; isRecovery?: boolean; statusMessage?: string; initialErrorMessage?: string }) {
+  const router = useRouter();
   // Eager (not lazy) initial value: the test's useState mock does not invoke initializer functions.
   const cachedRentals = statusOverride === undefined ? freshRentalsCache() : null;
   const initialInventory = cachedRentals ? { status: "ready" as const, rentals: cachedRentals.rentals } : { status: "loading" as const, rentals: [] };
@@ -223,7 +224,6 @@ export function RestoredFinderShell({ rentalStatus: statusOverride, initialAccou
   const [expandedRentalId, setExpandedRentalId] = useState<string | null>(null);
   const [expandedPhotoIndex, setExpandedPhotoIndex] = useState(0);
   void expandedPhotoIndex;
-  const [inquiryListingId, setInquiryListingId] = useState<string | null>(null);
   const [pendingInquiryId, setPendingInquiryId] = useState<string | null>(null);
   const openExpandedRental = (id: string) => { setSelectedRentalId(id); setExpandedPhotoIndex(0); setExpandedRentalId(id); };
   const expandedRental = rentals.find((item) => item.id === expandedRentalId) ?? visibleRentals.find((item) => item.id === expandedRentalId) ?? null;
@@ -299,14 +299,15 @@ export function RestoredFinderShell({ rentalStatus: statusOverride, initialAccou
       setAccountOpen(true);
       return;
     }
-    if (userId) setInquiryListingId(id);
+    if (userId) router.push(`/messages?listing=${encodeURIComponent(id)}`);
   };
-  // After sign-in the shell stays mounted: resume the exact listing the guest chose, or drop it for non-renters.
-  if (pendingInquiryId && authenticated) {
-    setPendingInquiryId(null);
-    if (userRole === "renter" && userId && !usingSamples) setInquiryListingId(pendingInquiryId);
-  }
-  const inquiryRental = inquiryListingId ? rentals.find((item) => item.id === inquiryListingId) ?? null : null;
+  if (pendingInquiryId && authenticated && userRole !== "renter") setPendingInquiryId(null);
+  useEffect(() => {
+    if (!pendingInquiryId || !authenticated) return;
+    if (userRole === "renter" && userId && !usingSamples) {
+      router.push(`/messages?listing=${encodeURIComponent(pendingInquiryId)}`);
+    }
+  }, [pendingInquiryId, authenticated, userRole, userId, usingSamples, router]);
   const canSaveRentals = !usingSamples && (!authenticated || userRole === "renter") && (!authenticated || favoritesLoaded);
   const noInventory = rentals.length === 0;
   const canUseRentalAssistant = !authenticated || userRole === "renter";
@@ -455,7 +456,7 @@ export function RestoredFinderShell({ rentalStatus: statusOverride, initialAccou
       onMessage={messageLandlord}
     />
   )}
-  {inquiryRental && userId && <ListingInquiryModal key={inquiryRental.id} listingId={inquiryRental.id} listingTitle={inquiryRental.title} userId={userId} surface="finder" onClose={() => setInquiryListingId(null)} />}
+  
   {canUseRentalAssistant && !helpOpen && <button type="button" className={styles.chatLauncher} aria-label="Open rental assistant" title="Rental assistant" onClick={() => setHelpOpen(true)}><ChatbotAvatar size={48} className="h-12 w-12" /></button>}
   {canUseRentalAssistant && helpOpen && <button type="button" className={styles.assistantBackdrop} style={{ backdropFilter: "blur(3px)", WebkitBackdropFilter: "blur(3px)" }} aria-label="Close AbangCebu assistant" tabIndex={-1} onClick={() => setHelpOpen(false)} />}
   {canUseRentalAssistant && <FinderAssistant open={helpOpen} onOpenChange={setHelpOpen} onSearch={() => document.querySelector<HTMLInputElement>('input[role="combobox"]')?.focus()} onFilters={() => setAdvancedOpen(true)} onControlsTargetChange={setAssistantControlsTarget} onSignIn={() => { setHelpOpen(false); setAccountOpen(true); }} authenticated={authenticated} userId={userId} displayName={displayName} profilePhotoUrl={avatarUrl} />}</div></main>;

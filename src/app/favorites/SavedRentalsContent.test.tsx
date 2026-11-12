@@ -2,12 +2,11 @@ import { isValidElement, type ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { SavedRentalsContent } from "./SavedRentalsContent";
 import { notify } from "@/components/ui/AppToaster";
-import { ListingInquiryModal } from "@/features/messages/ListingInquiryModal";
 import { Skeleton } from "@/components/ui/Skeleton";
 
+const navigation = vi.hoisted(() => ({ push: vi.fn() }));
+vi.mock("next/navigation", () => ({ useRouter: () => navigation }));
 vi.mock("@/components/ui/AppToaster", () => ({ notify: vi.fn() }));
-vi.mock("@/features/messages/ListingInquiryModal", () => ({ ListingInquiryModal: () => null }));
-
 const hooks = vi.hoisted(() => ({
   cursor: 0,
   values: [] as unknown[],
@@ -206,7 +205,7 @@ describe("SavedRentalsContent fetch lifecycle", () => {
     expect(text(tree)).toContain("No longer available");
     page.unmount();
   });
-  it("opens the inquiry modal for an available saved rental and hides the action for unavailable ones", async () => {
+  it("navigates to messages page for an available saved rental and hides the action for unavailable ones", async () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true, json: async () => ({ favorites: [rental, { ...rental, id: "rental-2", title: "Gone studio", isAvailable: false }] }) }));
     const page = mounted();
     await settle();
@@ -217,14 +216,10 @@ describe("SavedRentalsContent fetch lifecycle", () => {
       if (typeof label === "string" && label.startsWith("Message landlord about")) { labels.push(label); open = element.props.onClick as () => void; }
     });
     expect(labels).toEqual(["Message landlord about Lahug studio"]);
+    expect(open).toBeTypeOf("function");
+    navigation.push.mockClear();
     open?.();
-    let modal: Record<string, unknown> | undefined;
-    walk(page.tree(), (element) => { if (element.type === ListingInquiryModal) modal = element.props; });
-    expect(modal).toMatchObject({ listingId: "rental-1", listingTitle: "Lahug studio", userId: "test-user" });
-    (modal!.onClose as () => void)();
-    let stillOpen = false;
-    walk(page.tree(), (element) => { if (element.type === ListingInquiryModal) stillOpen = true; });
-    expect(stillOpen).toBe(false);
+    expect(navigation.push).toHaveBeenCalledWith("/messages?listing=rental-1");
     page.unmount();
   });
   it("does not display a zero price for an unavailable rental", async () => {
