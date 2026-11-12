@@ -213,49 +213,61 @@ describe("MessageItem reply and attachments UI", () => {
 describe("handleRealtimeMessageInsert", () => {
   it("dispatches update when new message arrives in an inactive thread", () => {
     const onInactive = vi.fn();
+    const onActive = vi.fn();
     const result = handleRealtimeMessageInsert(
       { new: { conversation_id: "thread-2", sender_id: "counterpart-user" } },
       "current-user",
       "thread-1",
-      onInactive
+      onInactive,
+      onActive
     );
     expect(result).toBe(true);
     expect(onInactive).toHaveBeenCalledTimes(1);
+    expect(onActive).not.toHaveBeenCalled();
   });
 
   it("dispatches update when no thread is selected (inbox list view)", () => {
     const onInactive = vi.fn();
+    const onActive = vi.fn();
     const result = handleRealtimeMessageInsert(
       { new: { conversation_id: "thread-1", sender_id: "counterpart-user" } },
       "current-user",
       null,
-      onInactive
+      onInactive,
+      onActive
     );
     expect(result).toBe(true);
     expect(onInactive).toHaveBeenCalledTimes(1);
+    expect(onActive).not.toHaveBeenCalled();
   });
 
   it("does not dispatch when message is from current user", () => {
     const onInactive = vi.fn();
+    const onActive = vi.fn();
     const result = handleRealtimeMessageInsert(
       { new: { conversation_id: "thread-2", sender_id: "current-user" } },
       "current-user",
       "thread-1",
-      onInactive
+      onInactive,
+      onActive
     );
     expect(result).toBe(false);
     expect(onInactive).not.toHaveBeenCalled();
+    expect(onActive).not.toHaveBeenCalled();
   });
 
-  it("does not dispatch when message arrives in the currently active thread", () => {
+  it("calls onActive when message arrives in the currently active thread", () => {
     const onInactive = vi.fn();
+    const onActive = vi.fn();
     const result = handleRealtimeMessageInsert(
       { new: { conversation_id: "thread-1", sender_id: "counterpart-user" } },
       "current-user",
       "thread-1",
-      onInactive
+      onInactive,
+      onActive
     );
-    expect(result).toBe(false);
+    expect(result).toBe(true);
     expect(onInactive).not.toHaveBeenCalled();
+    expect(onActive).toHaveBeenCalledTimes(1);
   });
 });

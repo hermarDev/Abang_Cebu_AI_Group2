@@ -80,12 +80,17 @@ export function handleRealtimeMessageInsert(
   payload: { new?: { conversation_id?: string; sender_id?: string } | null },
   userId: string,
   selectedId: string | null,
-  onInactiveMessage: () => void
+  onInactiveMessage: () => void,
+  onActiveMessage: () => void
 ): boolean {
   const newMsg = payload.new;
   if (!newMsg || newMsg.sender_id === userId) return false;
   if (newMsg.conversation_id && newMsg.conversation_id !== selectedId) {
     onInactiveMessage();
+    return true;
+  }
+  if (newMsg.conversation_id && newMsg.conversation_id === selectedId) {
+    onActiveMessage();
     return true;
   }
   return false;
@@ -218,6 +223,7 @@ function MessagingInboxInner({
   const stickToBottom = useRef(true);
   const selectedRef = useRef(selectedId);
   const generationRef = useRef(0);
+  const openThreadRef = useRef<typeof openThread | null>(null);
   useEffect(() => {
     selectedRef.current = selectedId;
   }, [selectedId]);
@@ -322,14 +328,17 @@ function MessagingInboxInner({
   useEffect(() => {
     if (!userId) return;
     const supabase = createClient();
+    const conversationId = selectedRef.current;
     const channel = supabase
-      .channel(`realtime:messages:${userId}`)
+      .channel(`realtime:messages:${userId}:${conversationId ?? "inbox"}`)
       .on(
         "postgres_changes",
         {
           event: "INSERT",
           schema: "public",
           table: "rental_messages",
+          // Server-side filter reduces bandwidth; RLS provides security for authorization
+          filter: conversationId ? `conversation_id=eq.${conversationId}` : "",
         },
         (payload) => {
           if (!alive.current) return;
@@ -340,16 +349,26 @@ function MessagingInboxInner({
             () => {
               dispatchMessagesUpdated();
               void loadThreads(tabRef.current === "archived", true);
+            },
+            () => {
+              // New message in the currently open conversation - refresh the thread
+              const fn = openThreadRef.current;
+              if (fn && selectedRef.current) void fn(selectedRef.current);
             }
           );
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+          // Realtime will auto-reconnect; log for diagnostics
+          console.warn(`Realtime channel status: ${status}`);
+        }
+      });
 
     return () => {
       void supabase.removeChannel(channel);
     };
-  }, [userId, loadThreads]);
+  }, [userId, loadThreads, selectedId]);
 
   const markRead = useCallback(
     async (id: string) => {
@@ -390,6 +409,10 @@ function MessagingInboxInner({
     },
     [userId, markRead]
   );
+
+  useEffect(() => {
+    openThreadRef.current = openThread;
+  }, [openThread]);
 
   useEffect(() => {
     // openThread only sets state after its awaited fetch resolves (external sync), so no cascading render.
