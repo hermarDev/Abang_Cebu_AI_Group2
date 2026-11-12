@@ -18,15 +18,41 @@ interface FetchNotificationsResponse {
   totalCount: number;
   unreadCount: number;
   hasMore: boolean;
+  tabCounts?: {
+    all: number;
+    unread: number;
+    messages: number;
+    listings: number;
+    system: number;
+  };
+}
+
+export interface FetchNotificationsQuery {
+  unreadOnly?: boolean;
+  limit?: number;
+  offset?: number;
+  search?: string;
+  types?: string[];
+  includeCounts?: boolean;
 }
 
 export async function fetchNotificationsClient(
   userId: string,
   unreadOnly = false,
   fetchImpl: typeof fetch = fetch,
-  signal?: AbortSignal
+  signal?: AbortSignal,
+  query: FetchNotificationsQuery = {}
 ): Promise<FetchNotificationsResponse> {
-  const url = `/api/notifications${unreadOnly ? "?unread=true" : ""}`;
+  const params = new URLSearchParams();
+  if (unreadOnly || query.unreadOnly) params.set("unread", "true");
+  if (query.limit !== undefined) params.set("limit", String(query.limit));
+  if (query.offset !== undefined) params.set("offset", String(query.offset));
+  if (query.search) params.set("search", query.search);
+  if (query.types && query.types.length > 0) params.set("type", query.types.join(","));
+  if (query.includeCounts) params.set("counts", "true");
+
+  const suffix = params.toString();
+  const url = `/api/notifications${suffix ? `?${suffix}` : ""}`;
   const response = await fetchImpl(url, {
     cache: "no-store",
     headers: { "x-expected-user-id": userId },
@@ -214,13 +240,24 @@ export function useNotificationCenter(
   const markAsRead = useCallback(
     async (id: string) => {
       if (!userId) return;
-      // Optimistic update
-      setNotifications((prev) =>
-        prev.map((item) =>
-          item.id === id ? { ...item, is_read: true, read_at: new Date().toISOString() } : item
-        )
+      const current = entry(userId).data ?? {
+        notifications,
+        totalCount: notifications.length,
+        unreadCount,
+        hasMore: false,
+      };
+      const nextNotifications = current.notifications.map((item) =>
+        item.id === id ? { ...item, is_read: true, read_at: new Date().toISOString() } : item
       );
-      setUnreadCount((prev) => Math.max(0, prev - 1));
+      const target = current.notifications.find((item) => item.id === id);
+      const nextUnreadCount = target && !target.is_read ? Math.max(0, current.unreadCount - 1) : current.unreadCount;
+      const nextData: FetchNotificationsResponse = {
+        ...current,
+        notifications: nextNotifications,
+        unreadCount: nextUnreadCount,
+      };
+      publish(userId, nextData);
+      channel?.postMessage({ userId, data: nextData });
 
       try {
         await fetch("/api/notifications", {
@@ -236,16 +273,29 @@ export function useNotificationCenter(
         void refresh(false);
       }
     },
-    [userId, refresh]
+    [userId, notifications, unreadCount, refresh]
   );
 
   const markAllAsRead = useCallback(async () => {
     if (!userId) return;
-    // Optimistic update
-    setNotifications((prev) =>
-      prev.map((item) => ({ ...item, is_read: true, read_at: new Date().toISOString() }))
-    );
-    setUnreadCount(0);
+    const current = entry(userId).data ?? {
+      notifications,
+      totalCount: notifications.length,
+      unreadCount,
+      hasMore: false,
+    };
+    const nextNotifications = current.notifications.map((item) => ({
+      ...item,
+      is_read: true,
+      read_at: new Date().toISOString(),
+    }));
+    const nextData: FetchNotificationsResponse = {
+      ...current,
+      notifications: nextNotifications,
+      unreadCount: 0,
+    };
+    publish(userId, nextData);
+    channel?.postMessage({ userId, data: nextData });
 
     try {
       await fetch("/api/notifications", {
@@ -260,7 +310,100 @@ export function useNotificationCenter(
     } catch {
       void refresh(false);
     }
-  }, [userId, refresh]);
+  }, [userId, notifications, unreadCount, refresh]);
+
+  const deleteNotification = useCallback(
+    async (id: string): Promise<boolean> => {
+      if (!userId) return false;
+      const current = entry(userId).data ?? {
+        notifications,
+        totalCount: notifications.length,
+        unreadCount,
+        hasMore: false,
+      };
+
+      const target = current.notifications.find((n) => n.id === id);
+      const isUnread = target ? !target.is_read : false;
+      const nextNotifications = current.notifications.filter((n) => n.id !== id);
+      const nextUnreadCount = isUnread ? Math.max(0, current.unreadCount - 1) : current.unreadCount;
+      const nextTotalCount = Math.max(0, current.totalCount - 1);
+
+      const nextData: FetchNotificationsResponse = {
+        notifications: nextNotifications,
+        totalCount: nextTotalCount,
+        unreadCount: nextUnreadCount,
+        hasMore: current.hasMore,
+      };
+
+      publish(userId, nextData);
+      channel?.postMessage({ userId, data: nextData });
+
+      try {
+        const res = await fetch(`/api/notifications?id=${encodeURIComponent(id)}`, {
+          method: "DELETE",
+          headers: { "x-expected-user-id": userId },
+        });
+        if (!res.ok) throw new Error("Failed to delete notification");
+        dispatchNotificationsUpdated();
+        return true;
+      } catch {
+        void refresh(false);
+        return false;
+      }
+    },
+    [userId, notifications, unreadCount, refresh]
+  );
+
+  const clearNotifications = useCallback(
+    async (scope: "read" | "all"): Promise<boolean> => {
+      if (!userId) return false;
+      const current = entry(userId).data ?? {
+        notifications,
+        totalCount: notifications.length,
+        unreadCount,
+        hasMore: false,
+      };
+
+      let nextNotifications: NotificationItem[];
+      let nextUnreadCount: number;
+      let nextTotalCount: number;
+
+      if (scope === "read") {
+        const readCount = current.notifications.filter((n) => n.is_read).length;
+        nextNotifications = current.notifications.filter((n) => !n.is_read);
+        nextUnreadCount = current.unreadCount;
+        nextTotalCount = Math.max(0, current.totalCount - readCount);
+      } else {
+        nextNotifications = [];
+        nextUnreadCount = 0;
+        nextTotalCount = 0;
+      }
+
+      const nextData: FetchNotificationsResponse = {
+        notifications: nextNotifications,
+        totalCount: nextTotalCount,
+        unreadCount: nextUnreadCount,
+        hasMore: false,
+      };
+
+      publish(userId, nextData);
+      channel?.postMessage({ userId, data: nextData });
+
+      try {
+        const res = await fetch(`/api/notifications?scope=${encodeURIComponent(scope)}`, {
+          method: "DELETE",
+          headers: { "x-expected-user-id": userId },
+        });
+        if (!res.ok) throw new Error("Failed to clear notifications");
+        dispatchNotificationsUpdated();
+        return true;
+      } catch {
+        void refresh(false);
+        return false;
+      }
+    },
+    [userId, notifications, unreadCount, refresh]
+  );
 
   return {
     notifications,
@@ -270,5 +413,7 @@ export function useNotificationCenter(
     refresh,
     markAsRead,
     markAllAsRead,
+    deleteNotification,
+    clearNotifications,
   };
 }

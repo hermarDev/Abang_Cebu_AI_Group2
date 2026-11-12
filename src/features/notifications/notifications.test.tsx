@@ -167,7 +167,29 @@ describe("NotificationCenter", () => {
 
     expect(html).toContain("role=\"group\"");
     expect(html).toContain("Listing updated");
-    expect(html).not.toContain("Mark all read");
+    expect(html).toContain("Mark all read");
+    expect(html).toContain("disabled=\"\"");
+  });
+
+  it("renders per-item dismiss and clear read buttons when handlers provided", () => {
+    const html = renderToStaticMarkup(
+      <NotificationCenter
+        notifications={dummyNotifications}
+        unreadCount={1}
+        loading={false}
+        error={null}
+        onRefresh={() => {}}
+        onMarkAsRead={() => {}}
+        onMarkAllAsRead={() => {}}
+        onDeleteNotification={() => {}}
+        onClearNotifications={() => {}}
+      />
+    );
+
+    expect(html).toContain("Clear read");
+    expect(html).toContain("Dismiss notification: New message");
+    expect(html).toContain("Dismiss notification: Listing updated");
+    expect(html).toContain("View all notifications");
   });
 
   it("renders error state when error is provided", () => {

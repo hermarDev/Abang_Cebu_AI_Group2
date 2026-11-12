@@ -14,6 +14,7 @@ import {
   LogIn,
   LayoutDashboard,
   Bell,
+  ExternalLink,
 } from "lucide-react";
 import { AppearanceControls } from "./AppearanceControls";
 import { AccountMenu } from "@/components/ui/AccountMenu";
@@ -182,6 +183,10 @@ export function FinderNavigation({
                   </span>
                 )}
               </button>
+              <Link href="/notifications" className={styles.navItem} onClick={onClose}>
+                <ExternalLink aria-hidden="true" />
+                <span>View all notifications</span>
+              </Link>
             </section>
           )}
 

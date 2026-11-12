@@ -32,6 +32,8 @@ function NotificationsModalContent({ userId, userRole, onClose }: NotificationsM
     refresh,
     markAsRead,
     markAllAsRead,
+    deleteNotification,
+    clearNotifications,
   } = useNotificationCenter(userId, true);
 
   return (
@@ -45,6 +47,8 @@ function NotificationsModalContent({ userId, userRole, onClose }: NotificationsM
       onRefresh={() => void refresh(true)}
       onMarkAsRead={markAsRead}
       onMarkAllAsRead={markAllAsRead}
+      onDeleteNotification={deleteNotification}
+      onClearNotifications={clearNotifications}
       onClose={onClose}
     />
   );
