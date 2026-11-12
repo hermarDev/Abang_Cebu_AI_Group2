@@ -1,6 +1,25 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+const hooks = vi.hoisted(() => ({ active: false, slots: [] as unknown[], index: 0 }));
+vi.mock("react", async (original) => {
+  const actual = await original<typeof import("react")>();
+  return { ...actual,
+    useState: (initial: unknown) => {
+      if (!hooks.active) return actual.useState(initial);
+      const index = hooks.index++;
+      if (!(index in hooks.slots)) hooks.slots[index] = typeof initial === "function" ? (initial as () => unknown)() : initial;
+      return [hooks.slots[index], (value: unknown) => { hooks.slots[index] = typeof value === "function" ? (value as (prior: unknown) => unknown)(hooks.slots[index]) : value; }];
+    },
+    useRef: (initial: unknown) => {
+      if (!hooks.active) return actual.useRef(initial);
+      const index = hooks.index++;
+      if (!(index in hooks.slots)) hooks.slots[index] = { current: initial };
+      return hooks.slots[index];
+    },
+    useEffect: (...args: Parameters<typeof actual.useEffect>) => { if (!hooks.active) actual.useEffect(...args); },
+  };
+});
 vi.mock("@/components/ui/AppToaster", () => ({ notify: vi.fn() }));
 import { AdminReviewQueue, actionsFor, PropertyDetails, ReviewCard, statusLabel, submitReviewAction, type AdminProperty } from "./AdminReviewQueue";
 
@@ -8,7 +27,44 @@ const property: AdminProperty = { id: "p1", title: "Lahug room", status: "pendin
 const ctx = (action: "approve" | "reject" | "unpublish" | "restore", p = property) => ({ property: p, action, operationId: "op-1" });
 const respond = (status: number, body: unknown) => vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: status < 400, status, json: async () => body }));
 
-afterEach(() => vi.unstubAllGlobals());
+afterEach(() => { vi.unstubAllGlobals(); hooks.active = false; hooks.slots = []; hooks.index = 0; });
+
+function renderQueue() { hooks.index = 0; return AdminReviewQueue({ userId: "admin-a" }); }
+function nodes(value: unknown): Array<import("react").ReactElement<Record<string, unknown>>> {
+  if (Array.isArray(value)) return value.flatMap(nodes);
+  if (!value || typeof value !== "object" || !("props" in value)) return [];
+  const element = value as import("react").ReactElement<Record<string, unknown>>;
+  return [element, ...nodes(element.props.children)];
+}
+
+it("ignores out-of-order inspections, fails closed after fetch failure and binds loaded revision decisions", async () => {
+  hooks.active = true;
+  renderQueue();
+  const first = { ...property, status: "approved", hasPendingRevision: true };
+  const second = { ...first, id: "p2", submissionDraftId: "d2", submissionExpectedRevision: 8 };
+  hooks.slots[4] = [first, second];
+  const inspect = nodes(renderQueue()).find((node) => node.type === ReviewCard)!.props.onInspect as (p: AdminProperty) => Promise<void>;
+  let finishFirst!: (value: unknown) => void;
+  let finishSecond!: (value: unknown) => void;
+  vi.stubGlobal("fetch", vi.fn().mockImplementationOnce(() => new Promise((resolve) => { finishFirst = resolve; })).mockImplementationOnce(() => new Promise((resolve) => { finishSecond = resolve; })));
+  const pendingFirst = inspect(first);
+  const pendingSecond = inspect(second);
+  const revision = { id: "op2", draftId: "d2", expectedRevision: 8, reviewStatus: "pending", createdAt: "", snapshotPayload: { property: {}, unit: {} }, snapshotMedia: [] };
+  finishSecond({ ok: true, json: async () => ({ revision }) }); await pendingSecond;
+  finishFirst({ ok: true, json: async () => ({ revision: { ...revision, draftId: "d1", expectedRevision: 3 } }) }); await pendingFirst;
+  let tree = nodes(renderQueue());
+  expect(tree.find((node) => node.type === PropertyDetails)?.props.revision).toEqual(revision);
+  const approve = tree.find((node) => node.props.children === "Approve revision")!;
+  (approve.props.onClick as () => void)();
+  renderQueue();
+  expect(hooks.slots[6]).toMatchObject({ property: { id: "p2", submissionDraftId: "d2", submissionExpectedRevision: 8 }, action: "approve" });
+  respond(503, { error: "Cannot load snapshot" });
+  await inspect(first);
+  tree = nodes(renderQueue());
+  expect(tree.some((node) => node.type === PropertyDetails)).toBe(false);
+  expect(tree.some((node) => node.props.children === "Approve revision")).toBe(false);
+  expect(tree.some((node) => node.props.children === "Cannot load snapshot")).toBe(true);
+});
 
 describe("AdminReviewQueue", () => {
   it("renders tabs, search and a loading skeleton before data arrives", () => {
@@ -38,6 +94,11 @@ describe("AdminReviewQueue", () => {
     const html = renderToStaticMarkup(<PropertyDetails property={property} />);
     for (const text of ["Bright room near IT Park", "apartment", "whole_unit", "24 sqm", "1 Salinas Dr", "6000", "10.33", "123.9", "Lana Lord", "Earlier note", "photo 1", 'href="https://x/permit.pdf"', "Open permit 1"]) expect(html).toContain(text);
     expect(renderToStaticMarkup(<PropertyDetails property={{ id: "p2", status: "pending" }} />)).toContain("No permits uploaded.");
+  });
+  it("renders nested snapshot values without live-field or media fallback", () => {
+    const html = renderToStaticMarkup(<PropertyDetails property={property} revision={{ id: "op", draftId: "d1", expectedRevision: 3, reviewStatus: "pending", createdAt: "", snapshotPayload: { property: { title: "New title", description: "New description", city: "New city" }, unit: { monthly_rent: 9000, bedrooms: 3 }, amenities: ["wifi"] }, snapshotMedia: [{ kind: "permit", url: "https://signed/document" }] }} />);
+    for (const text of ["New description", "New city", "₱9,000", "wifi", 'href="https://signed/document"']) expect(html).toContain(text);
+    for (const text of ["Bright room", "1 Salinas Dr", "https://x/photo.jpg", "https://x/permit.pdf"]) expect(html).not.toContain(text);
   });
   it("posts a rejection to the review route with the exact submission revision", async () => {
     respond(200, { status: "rejected" });
