@@ -227,4 +227,51 @@ describe("ListPropertyForm", () => {
     expect(hooks.push).toHaveBeenCalledWith("/landlord/properties");
     expect(button("Saving…")).toBeTruthy();
   });
+
+  it("adapts bathroom fields based on rentalType and auto-assigns private for entire_place", async () => {
+    fields.rentalType = "entire_place";
+    fields.bathrooms = "2";
+    // Change unit type via the select onChange to update React state
+    (find((el) => el.props.name === "rentalType").props.onChange as (event: unknown) => void)({ target: { value: "entire_place" } });
+    (find((el) => el.props.name === "bathrooms").props.onChange as (event: unknown) => void)({ target: { value: "2" } });
+
+    // Step 3 should not have bathroomType select for entire place
+    let foundBathroomType: Element | undefined;
+    walk(render(), (el) => { if (el.props.name === "bathroomType") foundBathroomType = el; });
+    expect(foundBathroomType).toBeUndefined();
+
+    hooks.save.mockResolvedValueOnce({ draftId: "draft-entire", revision: 2 });
+    await reachReviewStep();
+
+    // Verify Review step shows Bathrooms count
+    const reviewTree = render();
+    expect(text(reviewTree)).toContain("Bathrooms");
+    expect(text(reviewTree)).toContain("2 bathrooms");
+
+    // Click Save draft to verify payload
+    (button("Save draft").props.onClick as () => void)();
+    await settle();
+
+    expect(hooks.save).toHaveBeenCalledWith(
+      expect.objectContaining({
+        values: expect.objectContaining({
+          rentalType: "entire_place",
+          bathroomType: "private",
+        }),
+      }),
+      expect.anything()
+    );
+  });
+
+  it("renders Bathroom access select with descriptive options for room rentals", () => {
+    fields.rentalType = "private_room";
+    (find((el) => el.props.name === "rentalType").props.onChange as (event: unknown) => void)({ target: { value: "private_room" } });
+
+    const tree = render();
+    expect(text(tree)).toContain("Bathroom access");
+    const select = find((el) => el.props.name === "bathroomType");
+    expect(select).toBeTruthy();
+    expect(text(select)).toContain("Private (own bathroom / en-suite)");
+    expect(text(select)).toContain("Shared (common bathroom / CR)");
+  });
 });

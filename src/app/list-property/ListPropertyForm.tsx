@@ -80,6 +80,8 @@ type ListingReview = {
   city: string;
   amenities: string[];
   tenantPolicy: string;
+  bathrooms?: string;
+  bathroomType?: string;
 };
 
 function PermitThumbnail({ file, className = "size-12 rounded object-cover" }: { file: File; className?: string }) {
@@ -285,9 +287,12 @@ export function ListPropertyForm({ userId, restoreTarget }: { userId: string; re
     if (permitExemptionReason.trim()) preservedProp.permit_exemption_reason = permitExemptionReason.trim();
     if (Object.keys(documentCategories).length > 0) preservedProp.document_categories = JSON.stringify(documentCategories);
 
+    const rType = value("rentalType") || rentalType;
+    const resolvedBathroomType = rType === "entire_place" ? "private" : value("bathroomType");
+
     return {
-      title: value("title"), description: value("description"), propertyType: value("propertyType"), rentalType: value("rentalType"), price: value("price"),
-      address, barangay: value("barangay"), city: value("city"), bathroomType: value("bathroomType"), maxOccupants: value("maxOccupants"),
+      title: value("title"), description: value("description"), propertyType: value("propertyType"), rentalType: rType, price: value("price"),
+      address, barangay: value("barangay"), city: value("city"), bathroomType: resolvedBathroomType, maxOccupants: value("maxOccupants"),
       amenities: Array.from(form.querySelectorAll<HTMLInputElement>('input[name="amenities"]:checked')).map((input) => input.value),
       permitApplicability: permitApplicabilityCalculated, ...legacyPermit.current,
       permitNotRequiredConfirmed, location,
@@ -417,16 +422,19 @@ export function ListPropertyForm({ userId, restoreTarget }: { userId: string; re
     const value = (name: string) => form.querySelector<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>(`[name="${name}"]`)?.value ?? "";
     const selectedAmenities = Array.from(form.querySelectorAll<HTMLInputElement>('input[name="amenities"]:checked'))
       .map((input) => amenities.find(([amenityValue]) => amenityValue === input.value)?.[1] ?? input.value);
+    const rType = value("rentalType") || rentalType;
     setReview({
       title: value("title"),
       description: value("description"),
       propertyType: value("propertyType"),
-      rentalType: value("rentalType"),
+      rentalType: rType,
       barangay: value("barangay"),
       price: value("price"),
       city: value("city"),
       amenities: selectedAmenities,
       tenantPolicy: value("tenantPolicy") || "any",
+      bathrooms: value("bathrooms") || bathrooms,
+      bathroomType: rType === "entire_place" ? "private" : value("bathroomType"),
     });
   }
 
@@ -800,8 +808,20 @@ export function ListPropertyForm({ userId, restoreTarget }: { userId: string; re
         <div className="flex items-start gap-3"><span className="grid size-11 shrink-0 place-items-center rounded-xl bg-accent text-action"><Check size={19} aria-hidden="true" /></span><div><h2 id="property-amenities-heading" className="m-0 text-lg font-semibold">Amenities and details</h2><p className="mb-0 mt-1 text-sm text-muted-foreground">Select the amenities available to renters.</p></div></div>
         <fieldset className="grid gap-2 border-0 p-0 sm:grid-cols-2"><legend className="mb-2 text-sm font-medium">Amenities</legend>{amenities.map(([value, label]) => <label className="flex min-h-11 cursor-pointer items-center gap-2.5 rounded-xl border border-border bg-background px-3 text-sm transition-colors hover:bg-muted/40 has-[:checked]:border-action has-[:checked]:bg-action/5 has-[:checked]:font-medium" key={value}><input className="size-4 accent-action" type="checkbox" name="amenities" value={value} /><span>{label}</span></label>)}</fieldset>
         <div className="grid gap-4 sm:grid-cols-2">
-          <label className="grid gap-1.5 text-sm font-medium"><span>Bathroom</span><select className={input} name="bathroomType" defaultValue=""><option value="">Not specified</option><option value="private">Private</option><option value="shared">Shared</option></select></label>
-          <label className="grid gap-1.5 text-sm font-medium"><span>Maximum occupants</span><input className={input} name="maxOccupants" type="number" min="1" max="1000" placeholder="Optional" /></label>
+          {rentalType !== "entire_place" && (
+            <label className="grid gap-1.5 text-sm font-medium">
+              <span>Bathroom access</span>
+              <select className={input} name="bathroomType" defaultValue="">
+                <option value="">Not specified</option>
+                <option value="private">Private (own bathroom / en-suite)</option>
+                <option value="shared">Shared (common bathroom / CR)</option>
+              </select>
+            </label>
+          )}
+          <label className={clsx("grid gap-1.5 text-sm font-medium", (rentalType === "entire_place" || !rentalType) ? "sm:col-span-2" : "")}>
+            <span>Maximum occupants</span>
+            <input className={input} name="maxOccupants" type="number" min="1" max="1000" placeholder="Optional" />
+          </label>
         </div>
       </section>
       <section className={section} aria-labelledby="property-photos-heading">
@@ -1048,6 +1068,20 @@ export function ListPropertyForm({ userId, restoreTarget }: { userId: string; re
           <div className="rounded-xl border border-border p-3"><div className="flex items-center justify-between gap-2"><dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Property</dt><button type="button" className="text-xs font-semibold text-action hover:underline" aria-label="Edit property details" onClick={() => jumpToStep(0)}>Edit</button></div><dd className="mb-0 mt-1 font-semibold">{review?.title || "Not provided"}</dd><dd className="mb-0 mt-1 text-sm text-muted-foreground">{propertyTypes.find(([value]) => value === review?.propertyType)?.[1] ?? "Type not selected"} · {({ entire_place: "Entire place", private_room: "Private room", shared_room: "Shared room", bedspace: "Bedspace" } as Record<string, string>)[review?.rentalType ?? ""] ?? "Unit type not selected"}</dd></div>
           <div className="rounded-xl border border-border p-3"><dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Monthly rent</dt><dd className="mb-0 mt-1 font-semibold">{price > 0 ? `₱${price.toLocaleString("en-PH")}` : "Not provided"}</dd></div>
           <div className="rounded-xl border border-border p-3"><dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Tenant preference</dt><dd className="mb-0 mt-1 text-sm">{review?.tenantPolicy === "female_only" ? "Female only / Ladies only" : review?.tenantPolicy === "male_only" ? "Male only" : review?.tenantPolicy === "mixed" ? "Mixed / Co-ed" : "All / Anyone welcome"}</dd></div>
+          <div className="rounded-xl border border-border p-3">
+            <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              {review?.rentalType === "entire_place" ? "Bathrooms" : "Bathroom access"}
+            </dt>
+            <dd className="mb-0 mt-1 text-sm font-medium">
+              {review?.rentalType === "entire_place"
+                ? `${review?.bathrooms || "1"} bathroom${Number(review?.bathrooms || "1") > 1 ? "s" : ""}`
+                : review?.bathroomType === "private"
+                ? "Private (own bathroom / en-suite)"
+                : review?.bathroomType === "shared"
+                ? "Shared (common bathroom / CR)"
+                : "Not specified"}
+            </dd>
+          </div>
           <div className="rounded-xl border border-border p-3"><div className="flex items-center justify-between gap-2"><dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Business permit</dt><button type="button" className="text-xs font-semibold text-action hover:underline" aria-label="Edit business permit" onClick={() => jumpToStep(3)}>Edit</button></div><dd className="mb-0 mt-1 text-sm">{permitPhotos.length > 0 ? `Required · ${permitPhotos.length} file${permitPhotos.length === 1 ? "" : "s"}: ${permitPhotos.map((file) => file.name).join(", ")}` : "Declared not required"}</dd></div>
           <div className="rounded-xl border border-border p-3 sm:col-span-2"><div className="flex items-center justify-between gap-2"><dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Location</dt><button type="button" className="text-xs font-semibold text-action hover:underline" aria-label="Edit location" onClick={() => jumpToStep(1)}>Edit</button></div><dd className="mb-0 mt-1 font-medium">{address || "Address not provided"}</dd><dd className="mb-0 mt-1 text-sm text-muted-foreground">{[review?.barangay, review?.city].filter(Boolean).join(", ")}</dd></div>
           <div className="rounded-xl border border-border p-3 sm:col-span-2"><div className="flex items-center justify-between gap-2"><dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Amenities</dt><button type="button" className="text-xs font-semibold text-action hover:underline" aria-label="Edit amenities and photos" onClick={() => jumpToStep(2)}>Edit</button></div><dd className="mb-0 mt-1 text-sm">{selectedAmenities.length ? selectedAmenities.join(", ") : "No amenities selected"}</dd></div>
