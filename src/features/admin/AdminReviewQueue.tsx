@@ -15,6 +15,7 @@ import { Select } from "@/components/ui/Select";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { AdminReasonField } from "./AdminReasonField";
 import { adminCall, formatAdminDate, newOperationId, reasonProblem } from "./admin-api";
+import { statusBadgeVariant } from "./status-badge";
 export type AdminProperty = {
   id: string;
   title?: string | null;
@@ -324,10 +325,10 @@ export function AdminReviewQueue({ userId, initialStatus = "pending", initialSea
           <div className="grid gap-3">{paginatedProperties.map((property) => <ReviewCard key={property.id} property={property} onAction={open} onInspect={setInspecting} />)}</div>
           <Pagination currentPage={page} totalPages={totalPages} totalItems={properties.length} pageSize={pageSize} onPageChange={setPage} />
         </>}
-    <Modal open={!!inspecting} onClose={() => setInspecting(null)} title={inspecting?.title || "Untitled property"} description="Property details and permits" className="max-h-[calc(100dvh-2rem)] max-w-2xl overflow-y-auto">
+    <Modal open={!!inspecting} onClose={() => setInspecting(null)} title={inspecting?.title || "Untitled property"} description="Property details and permits" className="max-h-[calc(100dvh-2rem)] lg:max-h-[85dvh] max-w-2xl overflow-y-auto">
       {inspecting && <PropertyDetails property={inspecting} />}
     </Modal>
-    <Modal open={!!dialog} onClose={close} title={copy?.title ?? ""} description={dialog ? `${dialog.property.title ?? "Property"} · ${statusLabel(dialog.property)}` : undefined} className="max-h-[calc(100dvh-2rem)] overflow-y-auto">
+    <Modal open={!!dialog} onClose={close} title={copy?.title ?? ""} description={dialog ? `${dialog.property.title ?? "Property"} · ${statusLabel(dialog.property)}` : undefined} className="max-h-[calc(100dvh-2rem)] lg:max-h-[85dvh] overflow-y-auto">
       <div className="grid gap-4">
         {dialog?.action === "approve" && (
           <div className="grid gap-1.5">

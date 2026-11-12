@@ -11,6 +11,7 @@ import { Pagination } from "@/components/ui/Pagination";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { AdminReasonField } from "./AdminReasonField";
 import { adminCall, formatAdminDate, newOperationId, reasonProblem } from "./admin-api";
+import { statusBadgeVariant } from "./status-badge";
 
 export type EvidenceMessage = { id: string; senderId: string; body: string; createdAt: string; reported?: boolean };
 export type AdminReport = {
@@ -46,7 +47,7 @@ export function ReportRow({ report, onInspect, onDecide }: { report: AdminReport
   return <li className="grid gap-3 rounded-xl border border-border bg-card p-4 transition hover:border-action/30">
     <div className="flex flex-wrap items-center gap-2">
       <Badge variant={report.category === "harassment" || report.category === "scam" || report.category === "safety" ? "destructive" : "outline"}>{label(report.category)}</Badge>
-      <Badge variant={isClosed(report.status) ? "secondary" : "warning"}>{label(report.status)}</Badge>
+      <Badge variant={statusBadgeVariant(report.status)}>{label(report.status)}</Badge>
       <span className="text-sm text-muted-foreground">{label(report.targetType)} report · {formatAdminDate(report.createdAt)}</span>
     </div>
     <p className="m-0 text-sm text-muted-foreground">
@@ -145,10 +146,10 @@ export function AdminReportsQueue({ userId, initialStatus }: { userId: string; i
           <ul className="m-0 grid list-none gap-3 p-0">{paginatedReports.map((r) => <ReportRow key={r.id} report={r} onInspect={inspect} onDecide={decide} />)}</ul>
           <Pagination currentPage={page} totalPages={totalPages} totalItems={reports.length} pageSize={pageSize} onPageChange={setPage} />
         </>}
-    <Modal open={!!evidence} onClose={() => setEvidence(null)} title="Report evidence" description="Bounded snapshot captured when the report was filed." className="max-h-[calc(100dvh-2rem)] overflow-y-auto">
+    <Modal open={!!evidence} onClose={() => setEvidence(null)} title="Report evidence" description="Bounded snapshot captured when the report was filed." className="max-h-[calc(100dvh-2rem)] lg:max-h-[85dvh] overflow-y-auto">
       {evidence && <EvidenceView report={evidence} />}
     </Modal>
-    <Modal open={!!dialog} onClose={close} title={resolving ? "Resolve report" : "Dismiss report"} description="Your decision and note are recorded in the audit log." className="max-h-[calc(100dvh-2rem)] overflow-y-auto">
+    <Modal open={!!dialog} onClose={close} title={resolving ? "Resolve report" : "Dismiss report"} description="Your decision and note are recorded in the audit log." className="max-h-[calc(100dvh-2rem)] lg:max-h-[85dvh] overflow-y-auto">
       <div className="grid gap-4">
         <AdminReasonField id="admin-report-note" label="Resolution note" value={note} min={5} onChange={setNote} disabled={saving} />
         {resolving && <>
