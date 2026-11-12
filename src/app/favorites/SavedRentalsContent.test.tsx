@@ -4,6 +4,8 @@ import { SavedRentalsContent } from "./SavedRentalsContent";
 import { notify } from "@/components/ui/AppToaster";
 import { Skeleton } from "@/components/ui/Skeleton";
 
+const navigation = vi.hoisted(() => ({ push: vi.fn() }));
+vi.mock("next/navigation", () => ({ useRouter: () => navigation }));
 vi.mock("@/components/ui/AppToaster", () => ({ notify: vi.fn() }));
 const hooks = vi.hoisted(() => ({
   cursor: 0,
@@ -214,8 +216,10 @@ describe("SavedRentalsContent fetch lifecycle", () => {
       if (typeof label === "string" && label.startsWith("Message landlord about")) { labels.push(label); open = element.props.onClick as () => void; }
     });
     expect(labels).toEqual(["Message landlord about Lahug studio"]);
-    // Clicking should navigate to /messages?listing=<id> - test that the handler exists
     expect(open).toBeTypeOf("function");
+    navigation.push.mockClear();
+    open?.();
+    expect(navigation.push).toHaveBeenCalledWith("/messages?listing=rental-1");
     page.unmount();
   });
   it("does not display a zero price for an unavailable rental", async () => {

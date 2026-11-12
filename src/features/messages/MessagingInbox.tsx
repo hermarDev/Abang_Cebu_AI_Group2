@@ -51,6 +51,7 @@ import {
 } from "@/components/ui/chat";
 import { PropertyDetailsSheet } from "@/features/rentals/PropertyDetailsSheet";
 import { notify } from "@/components/ui/AppToaster";
+import { submitInquiry } from "./ListingInquiryModal";
 import { dispatchMessagesUpdated } from "./useUnreadMessageCount";
 import { createClient } from "@/lib/supabase/client";
 import {
@@ -65,7 +66,6 @@ import {
   listingHref,
   mergeMessages,
   postThreadMessage,
-  postListingInquiry,
   uploadMessageAttachment,
   type ReportCategory,
   type RentalMessageAttachment,
@@ -167,8 +167,6 @@ function shouldShowMarker(currentMsg: RentalMessageItem, prevMsg: RentalMessageI
 function ComposeMode({
   draft,
   setDraft,
-  attachments,
-  setAttachments,
   loading,
   error,
   onCancel,
@@ -177,88 +175,18 @@ function ComposeMode({
   listingId: string;
   draft: string;
   setDraft: (v: string) => void;
-  attachments: StagedAttachment[];
-  setAttachments: React.Dispatch<React.SetStateAction<StagedAttachment[]>>;
   loading: boolean;
   error: string | null;
   onCancel: () => void;
   onSubmit: (e: React.FormEvent) => Promise<void>;
 }) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const newId = () => globalThis.crypto.randomUUID();
-
   useEffect(() => {
     const el = textareaRef.current;
     if (!el) return;
     el.style.height = "auto";
     el.style.height = `${Math.min(el.scrollHeight, 128)}px`;
   }, [draft]);
-
-  async function handleFileSelect(files: FileList | File[]) {
-    const array = Array.from(files).slice(0, Math.max(0, 5 - attachments.length));
-    if (array.length === 0) return;
-    const newItems: StagedAttachment[] = array.map((file) => ({
-      id: newId(),
-      file,
-      previewUrl: URL.createObjectURL(file),
-      status: "uploading",
-    }));
-    setAttachments((prev) => [...prev, ...newItems]);
-
-    for (const item of newItems) {
-      try {
-        setAttachments((prev) =>
-          prev.map((a) =>
-            a.id === item.id ? { ...a, status: "ready" } : a
-          )
-        );
-      } catch (err) {
-        setAttachments((prev) =>
-          prev.map((a) =>
-            a.id === item.id ? { ...a, status: "error", errorMessage: err instanceof Error ? err.message : "Upload failed" } : a
-          )
-        );
-      }
-    }
-  }
-
-  function handleFileInputChange(e: React.ChangeEvent<HTMLInputElement>) {
-    if (e.target.files) {
-      void handleFileSelect(e.target.files);
-      e.target.value = "";
-    }
-  }
-
-  const handlePaste = (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
-    const items = e.clipboardData?.items;
-    if (!items) return;
-    const imageFiles: File[] = [];
-    for (let i = 0; i < items.length; i++) {
-      if (items[i].type.startsWith("image/")) {
-        const file = items[i].getAsFile();
-        if (file) imageFiles.push(file);
-      }
-    }
-    if (imageFiles.length > 0) {
-      e.preventDefault();
-      void handleFileSelect(imageFiles);
-    }
-  };
-
-  const handleDrop = (e: React.DragEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const files = e.dataTransfer?.files;
-    if (!files || files.length === 0) return;
-    const imageFiles = Array.from(files).filter((f) => f.type.startsWith("image/"));
-    if (imageFiles.length > 0) {
-      void handleFileSelect(imageFiles);
-    }
-  };
-
-  function removeAttachment(id: string) {
-    setAttachments((prev) => prev.filter((a) => a.id !== id));
-  }
 
   return (
     <div className="flex flex-col min-h-0">
@@ -298,74 +226,15 @@ function ComposeMode({
           </div>
         )}
 
-        <form onSubmit={onSubmit} className="grid gap-4 flex-1" onDragOver={(e) => e.preventDefault()} onDrop={handleDrop}>
+        <form onSubmit={onSubmit} className="grid gap-4 flex-1">
           <div className="relative flex flex-col items-center justify-center gap-2 rounded-2xl border border-border/70 bg-muted/30 p-6 text-center text-muted-foreground">
             <MessageSquare size={32} aria-hidden="true" className="text-action/50" />
             <p className="text-sm">Start your conversation</p>
             <p className="text-xs">Your message will create a new conversation with the landlord</p>
           </div>
 
-          {attachments.length > 0 && (
-            <div className="flex gap-2 overflow-x-auto py-1 scrollbar-thin">
-              {attachments.map((att) => (
-                <div key={att.id} className="relative flex items-center gap-2 rounded-xl border border-border bg-card p-1.5 pr-2 shadow-2xs shrink-0 max-w-48 text-xs">
-                  <div className="relative size-10 shrink-0 overflow-hidden rounded-lg bg-muted">
-                    {att.previewUrl ? (
-                      <Image src={att.previewUrl} alt="" fill unoptimized className="object-cover" />
-                    ) : (
-                      <div className="grid h-full w-full place-items-center text-muted-foreground">
-                        <ImageIcon size={16} aria-hidden="true" />
-                      </div>
-                    )}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="m-0 font-medium truncate">{att.file.name}</p>
-                    <span className="text-[0.68rem] text-muted-foreground">
-                      {att.status === "uploading" ? (
-                        <span className="text-action font-semibold">Uploading…</span>
-                      ) : att.status === "error" ? (
-                        <span className="text-destructive font-semibold">Failed</span>
-                      ) : (
-                        (att.file.size / (1024 * 1024)).toFixed(1) + " MB"
-                      )}
-                    </span>
-                  </div>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    aria-label={`Remove ${att.file.name}`}
-                    onClick={() => removeAttachment(att.id)}
-                    className="size-6 min-h-6 p-0 text-muted-foreground hover:text-foreground"
-                  >
-                    <X size={13} aria-hidden="true" />
-                  </Button>
-                </div>
-              ))}
-            </div>
-          )}
-
+          <p className="text-xs text-muted-foreground">Send photos after starting the conversation.</p>
           <div className="flex items-end gap-2">
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              aria-label="Attach photos"
-              title="Attach photos"
-              disabled={attachments.length >= 5}
-              onClick={() => fileInputRef.current?.click()}
-              className="size-10 min-h-10 shrink-0 rounded-full bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground p-0 flex items-center justify-center cursor-pointer"
-            >
-              <Plus size={20} aria-hidden="true" />
-            </Button>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/jpeg,image/png,image/webp"
-              multiple
-              onChange={handleFileInputChange}
-              className="sr-only"
-            />
             <div className="relative flex-1 flex items-center rounded-2xl border border-input bg-muted/30 shadow-2xs transition-all focus-within:border-action focus-within:bg-card focus-within:ring-2 focus-within:ring-action/20">
               <label htmlFor="compose-inquiry" className="sr-only">
                 Message
@@ -375,7 +244,6 @@ function ComposeMode({
                 id="compose-inquiry"
                 value={draft}
                 onChange={(e) => setDraft(e.target.value)}
-                onPaste={handlePaste}
                 maxLength={MESSAGE_MAX}
                 rows={1}
                 placeholder="Ask about availability, viewing times or house rules..."
@@ -392,7 +260,7 @@ function ComposeMode({
               type="submit"
               size="sm"
               variant="primary"
-              disabled={loading || (!draft.trim() && !attachments.some((a) => a.status === "ready")) || attachments.some((a) => a.status === "uploading")}
+              disabled={loading || !draft.trim()}
               aria-label={loading ? "Sending message..." : "Send message"}
               className="size-10 min-h-10 shrink-0 rounded-full p-0 flex items-center justify-center bg-action text-action-foreground hover:bg-action-hover disabled:opacity-40 cursor-pointer"
             >
@@ -475,7 +343,6 @@ function MessagingInboxInner({
   // Compose mode for new inquiry from listing
   const [composeListingId, setComposeListingId] = useState<string | null>(initialListingId);
   const [composeDraft, setComposeDraft] = useState("");
-  const [composeAttachments, setComposeAttachments] = useState<StagedAttachment[]>([]);
   const [composeLoading, setComposeLoading] = useState(false);
   const [composeError, setComposeError] = useState<string | null>(null);
 
@@ -726,7 +593,6 @@ function MessagingInboxInner({
     if (composeListingId) {
       setComposeListingId(null);
       setComposeDraft("");
-      setComposeAttachments([]);
       setComposeError(null);
     }
     generationRef.current++;
@@ -959,31 +825,18 @@ function MessagingInboxInner({
     event.preventDefault();
     if (!composeListingId) return;
     const body = composeDraft.trim();
-    const readyAttachments = composeAttachments.filter((a) => a.status === "ready");
-    if ((!body && readyAttachments.length === 0) || body.length > MESSAGE_MAX || composeLoading || composeAttachments.some((a) => a.status === "uploading")) return;
+    if (!body || body.length > MESSAGE_MAX || composeLoading) return;
 
     setComposeLoading(true);
     setComposeError(null);
-    const operationId = globalThis.crypto.randomUUID();
-
     try {
-      const result = await postListingInquiry(userId, { listingId: composeListingId, operationId, body });
+      const result = await submitInquiry(`${userId}:${composeListingId}`, userId, composeListingId, body);
+      if (result.error) throw new Error(result.error);
       const conversationId = result.conversationId;
       if (!conversationId) throw new Error("No conversation ID returned");
 
-      if (readyAttachments.length > 0 && conversationId) {
-        for (const att of readyAttachments) {
-          try {
-            await uploadMessageAttachment(conversationId, userId, att.file);
-          } catch {
-            console.warn("Attachment upload failed for compose mode");
-          }
-        }
-      }
-
       setComposeListingId(null);
       setComposeDraft("");
-      setComposeAttachments([]);
       setComposeError(null);
 
       if (typeof window !== "undefined") {
@@ -1095,7 +948,7 @@ function MessagingInboxInner({
     <div className="grid h-full min-h-0 overflow-hidden rounded-none border-0 bg-card text-card-foreground shadow-none sm:rounded-2xl sm:border sm:border-border sm:shadow-xs lg:grid-cols-[340px_minmax(0,1fr)]">
       <aside
         aria-label="Conversations"
-        className={`${selectedId ? "hidden lg:flex" : "flex"} min-h-0 flex-col border-border lg:border-r`}
+        className={`${selectedId || composeListingId ? "hidden lg:flex" : "flex"} min-h-0 flex-col border-border lg:border-r`}
       >
         {userRole === "renter" && (
           <div className="flex sm:hidden items-center justify-between border-b border-border px-3.5 py-3 bg-card">
@@ -1263,9 +1116,19 @@ function MessagingInboxInner({
 
       <section
         aria-label="Conversation"
-        className={`${selectedId ? "flex" : "hidden lg:flex"} min-h-0 min-w-0 flex-col`}
+        className={`${selectedId || composeListingId ? "flex" : "hidden lg:flex"} min-h-0 min-w-0 flex-col`}
       >
-        {!selectedId || !thread ? (
+        {composeListingId ? (
+          <ComposeMode
+            listingId={composeListingId}
+            draft={composeDraft}
+            setDraft={setComposeDraft}
+            loading={composeLoading}
+            error={composeError}
+            onCancel={() => setComposeListingId(null)}
+            onSubmit={handleComposeSubmit}
+          />
+        ) : !selectedId || !thread ? (
           selectedId && detailError ? (
             <div role="alert" className="grid gap-3 p-6 text-sm">
               <Button variant="outline" onClick={() => select(null)}>
@@ -1285,18 +1148,6 @@ function MessagingInboxInner({
               <p className="text-sm">Select a conversation to read it.</p>
             </div>
           )
-        ) : composeListingId ? (
-          <ComposeMode
-            listingId={composeListingId}
-            draft={composeDraft}
-            setDraft={setComposeDraft}
-            attachments={composeAttachments}
-            setAttachments={setComposeAttachments}
-            loading={composeLoading}
-            error={composeError}
-            onCancel={() => setComposeListingId(null)}
-            onSubmit={handleComposeSubmit}
-          />
         ) : (
           <>
             <header className="sticky top-0 z-10 grid gap-2 border-b border-border bg-card p-2.5 sm:p-3 shadow-xs">

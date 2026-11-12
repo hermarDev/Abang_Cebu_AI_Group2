@@ -22,6 +22,18 @@ const thread = (over: Partial<RentalThreadSummary> = {}): RentalThreadSummary =>
 const render = (props: Partial<React.ComponentProps<typeof MessagingInbox>> = {}) => renderToStaticMarkup(<MessagingInbox userId="u1" userRole="renter" {...props} />);
 
 describe("MessagingInbox rendering", () => {
+  it("opens the new inquiry composer when a listing is supplied", () => {
+    const html = render({ initialListingId: "l1", initialThreads: [] });
+    expect(html).toContain("Start your conversation");
+    expect(html).toContain('id="compose-inquiry"');
+  });
+
+  it("does not offer photos before the inquiry exists", () => {
+    const html = render({ initialListingId: "l1", initialThreads: [] });
+    expect(html).not.toContain('aria-label="Attach photos"');
+    expect(html).toContain("Send photos after starting the conversation");
+  });
+
   it("shows four thread skeletons while loading", () => {
     const html = render();
     expect(html).toContain('aria-label="Loading conversations"');
