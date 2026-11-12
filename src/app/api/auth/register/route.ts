@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { validateRegistration } from "@/lib/auth/validation";
 import { getClientIp } from "@/server/rate-limit";
-import { verifyTurnstileToken } from "@/server/turnstile";
+import { mapSupabaseAuthError } from "@/lib/auth/auth-error";
 import type { RegisterSuccessResponse } from "@/types/auth";
 
 const registrationAccepted: RegisterSuccessResponse = {
@@ -42,8 +42,6 @@ function hasExceededRateLimit(request: Request, email: string) {
   return ipLimited || emailLimited;
 }
 
-import { mapSupabaseAuthError } from "@/lib/auth/auth-error";
-
 export async function POST(request: Request) {
   let payload: unknown;
   try {
@@ -54,17 +52,7 @@ export async function POST(request: Request) {
   const validation = validateRegistration(payload);
   if (!validation.ok) return NextResponse.json({ success: false, error: { code: "VALIDATION_ERROR", message: "The submitted registration data is invalid.", details: validation.errors } }, { status: 422 });
 
-  if (process.env.TURNSTILE_SECRET_KEY) {
-    const turnstile = await verifyTurnstileToken(validation.value.turnstileToken, request);
-    if (!turnstile.valid) {
-      return NextResponse.json(
-        { success: false, error: { code: "CAPTCHA_VERIFICATION_FAILED", message: "Complete the security verification and try again." } },
-        { status: 403, headers: { "Cache-Control": "no-store" } },
-      );
-    }
-  }
-
-  const { email, password, role, fullName, phoneNumber, preferredLandmark } = validation.value;
+  const { email, password, role, fullName, phoneNumber, preferredLandmark, turnstileToken } = validation.value;
   let rateLimited = true;
   try {
     rateLimited = hasExceededRateLimit(request, email);
@@ -86,6 +74,7 @@ export async function POST(request: Request) {
       options: {
         emailRedirectTo: `${origin}/auth/callback?next=/`,
         data: { role, full_name: fullName, ...(phoneNumber ? { phone_number: phoneNumber } : {}), ...(preferredLandmark ? { preferred_landmark: preferredLandmark } : {}) },
+        ...(turnstileToken ? { captchaToken: turnstileToken } : {}),
       },
     });
     if (error || !data.user) {

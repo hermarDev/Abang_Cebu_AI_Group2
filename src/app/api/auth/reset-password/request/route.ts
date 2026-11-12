@@ -4,7 +4,6 @@ import { createClient } from "@/lib/supabase/server";
 import { PASSWORD_RESET_CALLBACK_PATH } from "@/lib/auth/password-reset";
 import { validateResetRequest } from "@/lib/auth/password-reset-validation";
 import { getClientIp } from "@/server/rate-limit";
-import { verifyTurnstileToken } from "@/server/turnstile";
 
 const genericSuccess = {
   success: true,
@@ -77,15 +76,10 @@ export async function POST(request: Request) {
   }
 
   if (process.env.TURNSTILE_SECRET_KEY) {
-    const turnstile = await verifyTurnstileToken(validation.turnstileToken, request);
-    if (!turnstile.valid) {
-      return NextResponse.json(
-        { success: false, error: { code: "CAPTCHA_VERIFICATION_FAILED", message: "Complete the security verification and try again." } },
-        { status: 403, headers: { "Cache-Control": "no-store" } },
-      );
-    }
+    // Supabase Auth hosted CAPTCHA is the authoritative verifier.
+    // The application never consumes the Turnstile token locally when hosted verification is enabled.
+    // Token is forwarded via options.captchaToken to Supabase Auth methods.
   }
-
 
   let rateLimited = false;
   try {
@@ -126,7 +120,10 @@ export async function POST(request: Request) {
 
     const supabase = await createClient();
     // Suppress provider-specific account existence and failure details.
-    await supabase.auth.resetPasswordForEmail(validation.email, { redirectTo: recoveryUrl.toString() });
+    await supabase.auth.resetPasswordForEmail(validation.email, {
+      redirectTo: recoveryUrl.toString(),
+      ...(validation.turnstileToken ? { captchaToken: validation.turnstileToken } : {}),
+    });
   } catch {
     // Keep provider failures indistinguishable from successful dispatch.
   }
