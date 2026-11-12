@@ -75,12 +75,6 @@ export async function POST(request: Request) {
     );
   }
 
-  if (process.env.TURNSTILE_SECRET_KEY) {
-    // Supabase Auth hosted CAPTCHA is the authoritative verifier.
-    // The application never consumes the Turnstile token locally when hosted verification is enabled.
-    // Token is forwarded via options.captchaToken to Supabase Auth methods.
-  }
-
   let rateLimited = false;
   try {
     rateLimited = hasExceededRateLimit(request, validation.email, Date.now());
