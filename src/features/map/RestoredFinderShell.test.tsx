@@ -25,6 +25,7 @@ vi.mock("react", async (importOriginal) => ({
   useSyncExternalStore: (_subscribe: (listener: () => void) => () => void, getSnapshot: () => unknown) => getSnapshot(),
   useEffect: (effect: () => void | (() => void)) => { hooks.effect ??= effect; hooks.effects.push(effect); },
 }));
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
 vi.mock("@/components/map/MapCanvasLoader", () => ({ default: ({ rentals = [], onFiltersChange, onSearchCenterChange }: { rentals?: RentalResult[]; onFiltersChange: (filters: RentalFilters) => void; onSearchCenterChange: (center: [number, number]) => void }) => {
   hooks.changeFilters = onFiltersChange;
   hooks.mapRentals = rentals;

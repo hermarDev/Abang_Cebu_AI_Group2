@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { BrandLogo } from "@/components/brand";
 import { formatPrice } from "@/features/rentals/search";
 import { ArrowLeft, Bookmark, Building2, MapPin, MessageSquare, Trash2 } from "lucide-react";
@@ -44,6 +45,7 @@ export function SavedRentalsContent({ userId }: { userId: string | null }) {
 }
 
 function SavedRentalsSession({ userId }: { userId: string }) {
+  const router = useRouter();
   const [rentals, setRentals] = useState<SavedRental[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -215,7 +217,7 @@ function SavedRentalsSession({ userId }: { userId: string }) {
                         <Trash2 size={16} aria-hidden="true" />{removingId === rental.id ? "Removing…" : "Remove"}
                       </button>
                     </div>
-                    {rental.isAvailable && <button type="button" aria-label={"Message landlord about " + rental.title} className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-action px-3 text-sm font-semibold text-action-foreground hover:bg-action-hover" onClick={() => { if (typeof window !== "undefined") window.location.href = `/messages?listing=${encodeURIComponent(rental.id)}`; }}>
+                    {rental.isAvailable && <button type="button" aria-label={"Message landlord about " + rental.title} className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-action px-3 text-sm font-semibold text-action-foreground hover:bg-action-hover" onClick={() => { router.push(`/messages?listing=${encodeURIComponent(rental.id)}`); }}>
                       <MessageSquare size={16} aria-hidden="true" />Message landlord
                     </button>}
                   </div>
@@ -250,7 +252,7 @@ function SavedRentalsSession({ userId }: { userId: string }) {
         canMessage={selectedRental.isAvailable}
         onMessage={(id) => {
           setSelectedRental(null);
-          if (typeof window !== "undefined") window.location.href = `/messages?listing=${encodeURIComponent(id)}`;
+          router.push(`/messages?listing=${encodeURIComponent(id)}`);
         }}
         canSave={true}
         saved={true}
