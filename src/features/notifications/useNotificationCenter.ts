@@ -113,7 +113,6 @@ export function loadNotifications(
 ) {
   const item = entry(userId);
   const offset = (page - 1) * pageSize;
-  const cacheKey = `${page}:${pageSize}:${unreadOnly}:${types?.join(",") ?? ""}:${search ?? ""}`;
 
   if (item.inFlight) return item.inFlight;
   if (!force && item.data && Date.now() - item.at < NOTIFICATION_FOCUS_COOLDOWN_MS) return Promise.resolve(item.data);
