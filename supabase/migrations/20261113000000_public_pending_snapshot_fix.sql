@@ -78,15 +78,14 @@ AS $$
     ) u ON true
     LEFT JOIN LATERAL (
       SELECT s.* FROM public.property_submissions s
+      LEFT JOIN latest_approved_submission approved
+        ON approved.property_id = s.property_id
+       AND approved.draft_id = s.draft_id
+       AND approved.expected_revision = s.expected_revision
       WHERE s.property_id = p.id
         AND ((p.status = 'pending' AND s.superseded_by IS NULL)
-             OR (p.status = 'approved' AND EXISTS (
-               SELECT 1 FROM latest_approved_submission las
-               WHERE las.property_id = s.property_id
-                 AND las.draft_id = s.draft_id
-                 AND las.expected_revision = s.expected_revision
-             )))
-      ORDER BY s.created_at DESC LIMIT 1
+             OR (p.status = 'approved' AND approved.property_id IS NOT NULL))
+      ORDER BY approved.review_created_at DESC NULLS LAST, s.created_at DESC, s.operation_id DESC LIMIT 1
     ) s ON true
     LEFT JOIN latest_approved_submission l
       ON l.property_id = p.id
