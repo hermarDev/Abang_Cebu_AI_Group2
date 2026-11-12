@@ -1,3 +1,4 @@
+import { Check, Circle } from "lucide-react";
 import { REGISTRATION_VALIDATION_RULES } from "@/types/auth";
 
 export interface PasswordRequirementsProps {
@@ -14,31 +15,28 @@ export function PasswordRequirements({
   confirmPassword,
 }: PasswordRequirementsProps) {
   const policy = REGISTRATION_VALIDATION_RULES.password;
-  const symbols = Array.from({ length: 95 }, (_, index) => String.fromCharCode(index + 32))
-    .filter((character) => policy.classes.symbol.test(character))
-    .join("");
 
   const requirements = [
     {
-      label: `${policy.minLength}–${policy.maxLength} characters`,
+      label: `The password must be at least ${policy.minLength} characters.`,
       met: password.length >= policy.minLength && password.length <= policy.maxLength,
     },
     {
-      label: "Uppercase & lowercase letters",
+      label: "The password must contain at least one uppercase and one lowercase letter.",
       met: policy.classes.uppercase.test(password) && policy.classes.lowercase.test(password),
     },
     {
-      label: "Number",
-      met: policy.classes.digit.test(password),
+      label: "The password must contain at least one symbol.",
+      met: policy.classes.symbol.test(password),
     },
     {
-      label: `Symbol (${symbols})`,
-      met: policy.classes.symbol.test(password),
+      label: "The password must contain at least one number.",
+      met: policy.classes.digit.test(password),
     },
     ...(confirmPassword !== undefined
       ? [
           {
-            label: "Passwords match",
+            label: "The password and confirmation must match.",
             met: password.length > 0 && password === confirmPassword,
           },
         ]
@@ -53,11 +51,27 @@ export function PasswordRequirements({
         {requirements.map(({ label, met }) => (
           <li
             key={label}
-            className={met ? "text-emerald-700 dark:text-emerald-400" : "text-muted-foreground"}
+            className={met ? "flex items-start gap-1.5 text-emerald-600 dark:text-emerald-400" : "flex items-start gap-1.5 text-muted-foreground"}
           >
-            <span aria-hidden="true">{met ? "✓" : "○"}</span>{" "}
-            <span className="sr-only">{met ? "Met: " : "Not met: "}</span>
-            {label}
+            {met
+              ? (
+                  <span
+                    role="img"
+                    aria-label="Requirement met"
+                    className="mt-px grid size-3.5 shrink-0 place-items-center rounded-full bg-emerald-500 text-white"
+                  >
+                    <Check aria-hidden="true" className="size-2.5" strokeWidth={3} />
+                  </span>
+                )
+              : (
+                  <Circle
+                    role="img"
+                    aria-label="Requirement not met"
+                    aria-hidden="true"
+                    className="mt-px size-3.5 shrink-0 text-muted-foreground"
+                  />
+                )}
+            <span>{label}</span>
           </li>
         ))}
       </ul>
