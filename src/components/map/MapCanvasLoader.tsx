@@ -21,7 +21,6 @@ type MapCanvasLoaderProps = {
   onToggleFavorite?: (id: string) => void;
   onExpandRental?: (id: string) => void;
   canMessageLandlord?: boolean;
-  onMessageLandlord?: (id: string) => void;
   selectedPlace?: PlaceResult | null;
   rentals?: RentalResult[];
   dataStatus?: "loading" | "ready" | "error";
@@ -44,5 +43,5 @@ type MapCanvasLoaderProps = {
 
 export default function MapCanvasLoader(props: MapCanvasLoaderProps) {
   const { rentals = [], dataStatus = "error", filters, onFiltersChange, locationQuery, onLocationQueryChange, searchRadiusKm, onSearchRadiusKmChange, onSearchCenterChange, resolvedTheme, decorative, showAttribution, locationPicker } = props;
-  return <MapCanvas locationPicker={locationPicker} enablePinDrop={props.enablePinDrop} pinCoordinates={props.pinCoordinates} onPinChange={props.onPinChange} selectedRentalId={props.selectedRentalId} onSelectRental={props.onSelectRental} selectedPlace={props.selectedPlace} rentals={rentals} dataStatus={dataStatus} filters={filters} onFiltersChange={onFiltersChange} locationQuery={locationQuery} onLocationQueryChange={onLocationQueryChange} searchRadiusKm={searchRadiusKm} onSearchRadiusKmChange={onSearchRadiusKmChange} onSearchCenterChange={onSearchCenterChange} resolvedTheme={resolvedTheme} assistantControlsTarget={props.assistantControlsTarget} savedRentalIds={props.savedRentalIds} canSaveRentals={props.canSaveRentals} onToggleFavorite={props.onToggleFavorite} onExpandRental={props.onExpandRental} canMessageLandlord={props.canMessageLandlord} onMessageLandlord={props.onMessageLandlord} decorative={decorative} showAttribution={showAttribution} />;
+  return <MapCanvas locationPicker={locationPicker} enablePinDrop={props.enablePinDrop} pinCoordinates={props.pinCoordinates} onPinChange={props.onPinChange} selectedRentalId={props.selectedRentalId} onSelectRental={props.onSelectRental} selectedPlace={props.selectedPlace} rentals={rentals} dataStatus={dataStatus} filters={filters} onFiltersChange={onFiltersChange} locationQuery={locationQuery} onLocationQueryChange={onLocationQueryChange} searchRadiusKm={searchRadiusKm} onSearchRadiusKmChange={onSearchRadiusKmChange} onSearchCenterChange={onSearchCenterChange} resolvedTheme={resolvedTheme} assistantControlsTarget={props.assistantControlsTarget} savedRentalIds={props.savedRentalIds} canSaveRentals={props.canSaveRentals} onToggleFavorite={props.onToggleFavorite} onExpandRental={props.onExpandRental} canMessageLandlord={props.canMessageLandlord} decorative={decorative} showAttribution={showAttribution} />;
 }

@@ -14,7 +14,6 @@ export function RentalCard({
   onToggleSaved,
   onExpand,
   canMessage = false,
-  onMessage,
 }: {
   rental: RentalResult;
   selected: boolean;
@@ -24,7 +23,6 @@ export function RentalCard({
   onToggleSaved?: (id: string) => void;
   onExpand?: (id: string) => void;
   canMessage?: boolean;
-  onMessage?: (id: string) => void;
 }) {
   return <article className={styles.rentalCard}>
     <div className={styles.rentalPhotoFrame}>
@@ -46,6 +44,6 @@ export function RentalCard({
     <p className={styles.cardAddress}>{rental.address ?? rental.locality}</p><p className={styles.cardDescription}>{rental.description}</p>
     {rental.amenities.length > 0 && <ul className={styles.amenities} aria-label="Amenities">{rental.amenities.map((amenity, index) => <li key={amenity + "-" + index}>{amenity}</li>)}</ul>}
     <button type="button" className={styles.expandCardButton} aria-label={"View details for " + rental.title} onClick={() => onExpand?.(rental.id)}><Maximize2 size={15} aria-hidden="true" /><span>View details</span></button>
-    {canMessage && <button type="button" className={styles.expandCardButton} aria-label={"Message landlord about " + rental.title} onClick={() => onMessage?.(rental.id)}><MessageSquare size={15} aria-hidden="true" /><span>Message landlord</span></button>}
+    {canMessage && <button type="button" className={styles.expandCardButton} aria-label={"Message landlord about " + rental.title} onClick={() => { if (typeof window !== "undefined") window.location.href = `/messages?listing=${encodeURIComponent(rental.id)}`; }}><MessageSquare size={15} aria-hidden="true" /><span>Message landlord</span></button>}
   </article>;
 }

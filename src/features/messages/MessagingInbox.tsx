@@ -65,6 +65,7 @@ import {
   listingHref,
   mergeMessages,
   postThreadMessage,
+  postListingInquiry,
   uploadMessageAttachment,
   type ReportCategory,
   type RentalMessageAttachment,
@@ -100,6 +101,7 @@ export type MessagingInboxProps = {
   userId: string;
   userRole: "renter" | "landlord";
   initialThreadId?: string | null;
+  initialListingId?: string | null;
   initialThreads?: RentalThreadSummary[];
 };
 
@@ -161,6 +163,256 @@ function shouldShowMarker(currentMsg: RentalMessageItem, prevMsg: RentalMessageI
   return !isSameDay(new Date(currentMsg.createdAt), new Date(prevMsg.createdAt));
 }
 
+
+function ComposeMode({
+  draft,
+  setDraft,
+  attachments,
+  setAttachments,
+  loading,
+  error,
+  onCancel,
+  onSubmit,
+}: {
+  listingId: string;
+  draft: string;
+  setDraft: (v: string) => void;
+  attachments: StagedAttachment[];
+  setAttachments: React.Dispatch<React.SetStateAction<StagedAttachment[]>>;
+  loading: boolean;
+  error: string | null;
+  onCancel: () => void;
+  onSubmit: (e: React.FormEvent) => Promise<void>;
+}) {
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const newId = () => globalThis.crypto.randomUUID();
+
+  useEffect(() => {
+    const el = textareaRef.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${Math.min(el.scrollHeight, 128)}px`;
+  }, [draft]);
+
+  async function handleFileSelect(files: FileList | File[]) {
+    const array = Array.from(files).slice(0, Math.max(0, 5 - attachments.length));
+    if (array.length === 0) return;
+    const newItems: StagedAttachment[] = array.map((file) => ({
+      id: newId(),
+      file,
+      previewUrl: URL.createObjectURL(file),
+      status: "uploading",
+    }));
+    setAttachments((prev) => [...prev, ...newItems]);
+
+    for (const item of newItems) {
+      try {
+        setAttachments((prev) =>
+          prev.map((a) =>
+            a.id === item.id ? { ...a, status: "ready" } : a
+          )
+        );
+      } catch (err) {
+        setAttachments((prev) =>
+          prev.map((a) =>
+            a.id === item.id ? { ...a, status: "error", errorMessage: err instanceof Error ? err.message : "Upload failed" } : a
+          )
+        );
+      }
+    }
+  }
+
+  function handleFileInputChange(e: React.ChangeEvent<HTMLInputElement>) {
+    if (e.target.files) {
+      void handleFileSelect(e.target.files);
+      e.target.value = "";
+    }
+  }
+
+  const handlePaste = (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+    const imageFiles: File[] = [];
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].type.startsWith("image/")) {
+        const file = items[i].getAsFile();
+        if (file) imageFiles.push(file);
+      }
+    }
+    if (imageFiles.length > 0) {
+      e.preventDefault();
+      void handleFileSelect(imageFiles);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const files = e.dataTransfer?.files;
+    if (!files || files.length === 0) return;
+    const imageFiles = Array.from(files).filter((f) => f.type.startsWith("image/"));
+    if (imageFiles.length > 0) {
+      void handleFileSelect(imageFiles);
+    }
+  };
+
+  function removeAttachment(id: string) {
+    setAttachments((prev) => prev.filter((a) => a.id !== id));
+  }
+
+  return (
+    <div className="flex flex-col min-h-0">
+      <header className="sticky top-0 z-10 grid gap-2 border-b border-border bg-card p-2.5 sm:p-3 shadow-xs">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex min-w-0 items-center gap-2 sm:gap-2.5">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="lg:hidden min-h-10 px-2 -ml-1 text-muted-foreground hover:text-foreground"
+              onClick={onCancel}
+              aria-label="Back to messages"
+            >
+              <ArrowLeft size={18} aria-hidden="true" />
+              <span className="text-xs font-semibold sm:inline hidden">Back to messages</span>
+            </Button>
+            <div className="flex items-center gap-2.5">
+              <div className="grid size-10 shrink-0 place-items-center rounded-lg bg-muted text-muted-foreground">
+                <Home size={18} aria-hidden="true" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-semibold text-foreground truncate">New inquiry</p>
+                <p className="text-[0.75rem] text-muted-foreground truncate">Message landlord about this listing</p>
+              </div>
+            </div>
+          </div>
+          <Button variant="ghost" size="sm" onClick={onCancel} aria-label="Cancel inquiry" className="size-9 min-h-9 p-0 text-muted-foreground hover:bg-muted hover:text-foreground">
+            <X size={18} aria-hidden="true" />
+          </Button>
+        </div>
+      </header>
+
+      <div className="flex-1 min-h-0 flex flex-col p-4 sm:p-6">
+        {error && (
+          <div role="alert" className="mb-4 rounded-lg bg-destructive/10 border border-destructive/30 p-3 text-sm text-destructive">
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={onSubmit} className="grid gap-4 flex-1" onDragOver={(e) => e.preventDefault()} onDrop={handleDrop}>
+          <div className="relative flex flex-col items-center justify-center gap-2 rounded-2xl border border-border/70 bg-muted/30 p-6 text-center text-muted-foreground">
+            <MessageSquare size={32} aria-hidden="true" className="text-action/50" />
+            <p className="text-sm">Start your conversation</p>
+            <p className="text-xs">Your message will create a new conversation with the landlord</p>
+          </div>
+
+          {attachments.length > 0 && (
+            <div className="flex gap-2 overflow-x-auto py-1 scrollbar-thin">
+              {attachments.map((att) => (
+                <div key={att.id} className="relative flex items-center gap-2 rounded-xl border border-border bg-card p-1.5 pr-2 shadow-2xs shrink-0 max-w-48 text-xs">
+                  <div className="relative size-10 shrink-0 overflow-hidden rounded-lg bg-muted">
+                    {att.previewUrl ? (
+                      <Image src={att.previewUrl} alt="" fill unoptimized className="object-cover" />
+                    ) : (
+                      <div className="grid h-full w-full place-items-center text-muted-foreground">
+                        <ImageIcon size={16} aria-hidden="true" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="m-0 font-medium truncate">{att.file.name}</p>
+                    <span className="text-[0.68rem] text-muted-foreground">
+                      {att.status === "uploading" ? (
+                        <span className="text-action font-semibold">Uploading…</span>
+                      ) : att.status === "error" ? (
+                        <span className="text-destructive font-semibold">Failed</span>
+                      ) : (
+                        (att.file.size / (1024 * 1024)).toFixed(1) + " MB"
+                      )}
+                    </span>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    aria-label={`Remove ${att.file.name}`}
+                    onClick={() => removeAttachment(att.id)}
+                    className="size-6 min-h-6 p-0 text-muted-foreground hover:text-foreground"
+                  >
+                    <X size={13} aria-hidden="true" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className="flex items-end gap-2">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              aria-label="Attach photos"
+              title="Attach photos"
+              disabled={attachments.length >= 5}
+              onClick={() => fileInputRef.current?.click()}
+              className="size-10 min-h-10 shrink-0 rounded-full bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground p-0 flex items-center justify-center cursor-pointer"
+            >
+              <Plus size={20} aria-hidden="true" />
+            </Button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              multiple
+              onChange={handleFileInputChange}
+              className="sr-only"
+            />
+            <div className="relative flex-1 flex items-center rounded-2xl border border-input bg-muted/30 shadow-2xs transition-all focus-within:border-action focus-within:bg-card focus-within:ring-2 focus-within:ring-action/20">
+              <label htmlFor="compose-inquiry" className="sr-only">
+                Message
+              </label>
+              <textarea
+                ref={textareaRef}
+                id="compose-inquiry"
+                value={draft}
+                onChange={(e) => setDraft(e.target.value)}
+                onPaste={handlePaste}
+                maxLength={MESSAGE_MAX}
+                rows={1}
+                placeholder="Ask about availability, viewing times or house rules..."
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
+                    e.preventDefault();
+                    e.currentTarget.form?.requestSubmit();
+                  }
+                }}
+                className="min-h-10 max-h-32 w-full resize-none border-0 bg-transparent py-2.5 px-3.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-hidden disabled:cursor-not-allowed disabled:opacity-50"
+              />
+            </div>
+            <Button
+              type="submit"
+              size="sm"
+              variant="primary"
+              disabled={loading || (!draft.trim() && !attachments.some((a) => a.status === "ready")) || attachments.some((a) => a.status === "uploading")}
+              aria-label={loading ? "Sending message..." : "Send message"}
+              className="size-10 min-h-10 shrink-0 rounded-full p-0 flex items-center justify-center bg-action text-action-foreground hover:bg-action-hover disabled:opacity-40 cursor-pointer"
+            >
+              {loading ? (
+                <Clock size={16} className="animate-spin" aria-hidden="true" />
+              ) : (
+                <ArrowUp size={18} strokeWidth={2.5} aria-hidden="true" />
+              )}
+            </Button>
+          </div>
+          <div className="flex items-center justify-between px-1 text-[0.7rem] text-muted-foreground">
+            <span>Enter to send · Shift+Enter for new line</span>
+            <span>{draft.length} / {MESSAGE_MAX}</span>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 export function MessagingInbox(props: MessagingInboxProps) {
   const { userId } = props;
   const [retained, setRetained] = useState<Record<string, Retained>>({});
@@ -198,6 +450,7 @@ function MessagingInboxInner({
   userId,
   userRole,
   initialThreadId = null,
+  initialListingId = null,
   initialThreads,
   drafts,
   outboxes,
@@ -218,6 +471,13 @@ function MessagingInboxInner({
   const [blockOpen, setBlockOpen] = useState(false);
   const [reportTarget, setReportTarget] = useState<ReportTarget | null>(null);
   const [busy, setBusy] = useState(false);
+
+  // Compose mode for new inquiry from listing
+  const [composeListingId, setComposeListingId] = useState<string | null>(initialListingId);
+  const [composeDraft, setComposeDraft] = useState("");
+  const [composeAttachments, setComposeAttachments] = useState<StagedAttachment[]>([]);
+  const [composeLoading, setComposeLoading] = useState(false);
+  const [composeError, setComposeError] = useState<string | null>(null);
 
   const scrollerRef = useRef<MessageScrollerHandle>(null);
   const stickToBottom = useRef(true);
@@ -462,6 +722,13 @@ function MessagingInboxInner({
 
   const select = (id: string | null) => {
     if (id === selectedRef.current) return;
+    // Exiting compose mode when selecting a thread
+    if (composeListingId) {
+      setComposeListingId(null);
+      setComposeDraft("");
+      setComposeAttachments([]);
+      setComposeError(null);
+    }
     generationRef.current++;
     olderLoaded.current = false;
     setDetail(null);
@@ -686,6 +953,49 @@ function MessagingInboxInner({
     setReplyingTo(null);
     setStagedAttachments([]);
     void deliver(item);
+  }
+
+  async function handleComposeSubmit(event: React.FormEvent) {
+    event.preventDefault();
+    if (!composeListingId) return;
+    const body = composeDraft.trim();
+    const readyAttachments = composeAttachments.filter((a) => a.status === "ready");
+    if ((!body && readyAttachments.length === 0) || body.length > MESSAGE_MAX || composeLoading || composeAttachments.some((a) => a.status === "uploading")) return;
+
+    setComposeLoading(true);
+    setComposeError(null);
+    const operationId = globalThis.crypto.randomUUID();
+
+    try {
+      const result = await postListingInquiry(userId, { listingId: composeListingId, operationId, body });
+      const conversationId = result.conversationId;
+      if (!conversationId) throw new Error("No conversation ID returned");
+
+      if (readyAttachments.length > 0 && conversationId) {
+        for (const att of readyAttachments) {
+          try {
+            await uploadMessageAttachment(conversationId, userId, att.file);
+          } catch {
+            console.warn("Attachment upload failed for compose mode");
+          }
+        }
+      }
+
+      setComposeListingId(null);
+      setComposeDraft("");
+      setComposeAttachments([]);
+      setComposeError(null);
+
+      if (typeof window !== "undefined") {
+        window.history.replaceState(null, "", `?thread=${encodeURIComponent(conversationId)}`);
+      }
+      select(conversationId);
+    } catch (err) {
+      setComposeError(err instanceof Error ? err.message : "Couldn't send inquiry. Please try again.");
+      notify("error", "compose-inquiry", err instanceof Error ? err.message : "Couldn't send inquiry. Please try again.");
+    } finally {
+      setComposeLoading(false);
+    }
   }
 
   async function setArchived(archived: boolean) {
@@ -975,6 +1285,18 @@ function MessagingInboxInner({
               <p className="text-sm">Select a conversation to read it.</p>
             </div>
           )
+        ) : composeListingId ? (
+          <ComposeMode
+            listingId={composeListingId}
+            draft={composeDraft}
+            setDraft={setComposeDraft}
+            attachments={composeAttachments}
+            setAttachments={setComposeAttachments}
+            loading={composeLoading}
+            error={composeError}
+            onCancel={() => setComposeListingId(null)}
+            onSubmit={handleComposeSubmit}
+          />
         ) : (
           <>
             <header className="sticky top-0 z-10 grid gap-2 border-b border-border bg-card p-2.5 sm:p-3 shadow-xs">

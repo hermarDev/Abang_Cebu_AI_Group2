@@ -85,14 +85,13 @@ type MapCanvasProps = {
   onToggleFavorite?: (id: string) => void;
   onExpandRental?: (id: string) => void;
   canMessageLandlord?: boolean;
-  onMessageLandlord?: (id: string) => void;
   enablePinDrop?: boolean;
   pinCoordinates?: [number, number] | null;
   onPinChange?: (coordinates: [number, number]) => void;
   locationPicker?: boolean;
 };
 
-export function MapCanvas({ selectedPlace, selectedRentalId, onSelectRental, rentals = [], dataStatus = "error", filters: externalFilters, onFiltersChange, locationQuery: externalLocationQuery, onLocationQueryChange, searchRadiusKm: externalSearchRadiusKm, onSearchRadiusKmChange, onSearchCenterChange, resolvedTheme = "light", assistantControlsTarget, savedRentalIds, canSaveRentals = false, onToggleFavorite, onExpandRental, canMessageLandlord = false, onMessageLandlord, decorative = false, showAttribution = true, enablePinDrop = false, pinCoordinates, onPinChange, locationPicker = false }: MapCanvasProps) {
+export function MapCanvas({ selectedPlace, selectedRentalId, onSelectRental, rentals = [], dataStatus = "error", filters: externalFilters, onFiltersChange, locationQuery: externalLocationQuery, onLocationQueryChange, searchRadiusKm: externalSearchRadiusKm, onSearchRadiusKmChange, onSearchCenterChange, resolvedTheme = "light", assistantControlsTarget, savedRentalIds, canSaveRentals = false, onToggleFavorite, onExpandRental, canMessageLandlord = false, decorative = false, showAttribution = true, enablePinDrop = false, pinCoordinates, onPinChange, locationPicker = false }: MapCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [selectedRental, setSelectedRental] = useState<string | null>(null);
   const activeSelectedRental = selectedRentalId !== undefined ? selectedRentalId : selectedRental;
@@ -791,7 +790,7 @@ export function MapCanvas({ selectedPlace, selectedRentalId, onSelectRental, ren
                     style={{ gridColumn: "1 / -1" }}
                     data-message-id={activePopupRental.id}
                     aria-label={`Message landlord about ${activePopupRental.title}`}
-                    onClick={() => { closeRentalPopup(); onMessageLandlord?.(activePopupRental.id); }}
+                    onClick={() => { closeRentalPopup(); if (typeof window !== "undefined") window.location.href = `/messages?listing=${encodeURIComponent(activePopupRental.id)}`; }}
                   >
                     <MessageSquare size={14} aria-hidden="true" />
                     <span>Message landlord</span>

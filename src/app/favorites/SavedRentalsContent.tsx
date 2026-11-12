@@ -8,7 +8,6 @@ import { formatPrice } from "@/features/rentals/search";
 import { ArrowLeft, Bookmark, Building2, MapPin, MessageSquare, Trash2 } from "lucide-react";
 import { notify } from "@/components/ui/AppToaster";
 import { Skeleton } from "@/components/ui/Skeleton";
-import { ListingInquiryModal } from "@/features/messages/ListingInquiryModal";
 import { PropertyDetailsSheet } from "@/features/rentals/PropertyDetailsSheet";
 import type { RentalResult } from "@/contracts/preview";
 
@@ -52,7 +51,6 @@ function SavedRentalsSession({ userId }: { userId: string }) {
   const [removeError, setRemoveError] = useState<string | null>(null);
   const [selectedRental, setSelectedRental] = useState<SavedRental | null>(null);
   const retryController = useRef<AbortController | null>(null);
-  const [inquiryId, setInquiryId] = useState<string | null>(null);
 
   const fetchRentals = useCallback(async (signal?: AbortSignal) => {
     try {
@@ -140,9 +138,7 @@ function SavedRentalsSession({ userId }: { userId: string }) {
     }
   }
 
-  const inquiryRental = rentals.find((rental) => rental.id === inquiryId && rental.isAvailable) ?? null;
-
-  return <main className="relative isolate min-h-[100dvh] overflow-hidden bg-background text-foreground">
+    return <main className="relative isolate min-h-[100dvh] overflow-hidden bg-background text-foreground">
     <div className="absolute inset-0 z-10 overflow-y-auto overscroll-contain">
       <div className="mx-auto w-full max-w-6xl px-4 py-5 sm:px-6 sm:py-8 lg:px-8">
         <header className="sticky top-3 z-20 flex items-center justify-between gap-4 rounded-2xl border border-border/70 bg-white/90 p-3 shadow-sm backdrop-blur-sm dark:bg-slate-950/90 sm:px-5">
@@ -219,7 +215,7 @@ function SavedRentalsSession({ userId }: { userId: string }) {
                         <Trash2 size={16} aria-hidden="true" />{removingId === rental.id ? "Removing…" : "Remove"}
                       </button>
                     </div>
-                    {rental.isAvailable && <button type="button" aria-label={"Message landlord about " + rental.title} className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-action px-3 text-sm font-semibold text-action-foreground hover:bg-action-hover" onClick={() => setInquiryId(rental.id)}>
+                    {rental.isAvailable && <button type="button" aria-label={"Message landlord about " + rental.title} className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-action px-3 text-sm font-semibold text-action-foreground hover:bg-action-hover" onClick={() => { if (typeof window !== "undefined") window.location.href = `/messages?listing=${encodeURIComponent(rental.id)}`; }}>
                       <MessageSquare size={16} aria-hidden="true" />Message landlord
                     </button>}
                   </div>
@@ -254,7 +250,7 @@ function SavedRentalsSession({ userId }: { userId: string }) {
         canMessage={selectedRental.isAvailable}
         onMessage={(id) => {
           setSelectedRental(null);
-          setInquiryId(id);
+          if (typeof window !== "undefined") window.location.href = `/messages?listing=${encodeURIComponent(id)}`;
         }}
         canSave={true}
         saved={true}
@@ -264,6 +260,5 @@ function SavedRentalsSession({ userId }: { userId: string }) {
         }}
       />
     )}
-    {inquiryRental && <ListingInquiryModal key={inquiryRental.id} listingId={inquiryRental.id} listingTitle={inquiryRental.title} userId={userId} onClose={() => setInquiryId(null)} />}
   </main>;
 }
