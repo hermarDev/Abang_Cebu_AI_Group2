@@ -14,7 +14,12 @@ export default async function MessagesPage(props?: { searchParams?: Promise<{ th
   const searchParams = props?.searchParams;
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
-  if (authError || !user) redirect("/login?next=%2Fmessages");
+  if (authError || !user) {
+    const sp = await searchParams;
+    const listing = sp?.listing;
+    const next = typeof listing === "string" ? `/messages?listing=${encodeURIComponent(listing)}` : "/messages";
+    redirect(`/login?next=${encodeURIComponent(next)}`);
+  }
   const { data: profile } = await supabase.from("profiles").select("role,is_suspended").eq("id", user.id).maybeSingle();
   if (!profile || profile.is_suspended) redirect("/login");
   if (profile.role === "landlord") redirect("/landlord/messages");
