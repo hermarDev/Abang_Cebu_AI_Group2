@@ -17,6 +17,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { cn } from "@/components/ui/cn";
+import { Pagination } from "@/components/ui/Pagination";
 import type { NotificationItem, NotificationType } from "@/types/database";
 import styles from "./NotificationCenter.module.css";
 
@@ -56,6 +57,10 @@ function getNotificationIcon(type: NotificationType) {
 export interface NotificationCenterProps {
   notifications: NotificationItem[];
   unreadCount: number;
+  totalCount?: number;
+  totalPages?: number;
+  currentPage?: number;
+  pageSize?: number;
   loading: boolean;
   error: string | null;
   onRefresh: () => void;
@@ -64,6 +69,7 @@ export interface NotificationCenterProps {
   onDeleteNotification?: (id: string) => void;
   onClearNotifications?: (scope: "read" | "all") => void;
   onClose?: () => void;
+  onPageChange?: (page: number) => void;
   className?: string;
   userRole?: "renter" | "landlord" | "admin" | null;
 }
@@ -71,6 +77,10 @@ export interface NotificationCenterProps {
 export function NotificationCenter({
   notifications,
   unreadCount,
+  totalCount = 0,
+  totalPages = 1,
+  currentPage = 1,
+  pageSize = 20,
   loading,
   error,
   onRefresh,
@@ -79,6 +89,7 @@ export function NotificationCenter({
   onDeleteNotification,
   onClearNotifications,
   onClose,
+  onPageChange,
   className,
   userRole,
 }: NotificationCenterProps) {
@@ -100,6 +111,11 @@ export function NotificationCenter({
     if (notification.link) {
       router.push(notification.link);
     }
+  };
+
+  const handleFilterChange = (newFilter: "all" | "unread") => {
+    setFilter(newFilter);
+    onPageChange?.(1);
   };
 
   return (
@@ -154,7 +170,7 @@ export function NotificationCenter({
             <button
               type="button"
               aria-pressed={filter === "all"}
-              onClick={() => setFilter("all")}
+              onClick={() => handleFilterChange("all")}
               className={cn(
                 "px-3 py-1 rounded-full text-xs font-medium transition-colors",
                 filter === "all"
@@ -167,7 +183,7 @@ export function NotificationCenter({
             <button
               type="button"
               aria-pressed={filter === "unread"}
-              onClick={() => setFilter("unread")}
+              onClick={() => handleFilterChange("unread")}
               className={cn(
                 "px-3 py-1 rounded-full text-xs font-medium transition-colors flex items-center gap-1.5",
                 filter === "unread"
@@ -289,6 +305,17 @@ export function NotificationCenter({
       </div>
 
       {/* Footer link to Hub */}
+      {totalPages > 1 && onPageChange && (
+        <div className="border-t border-border/70 p-2.5 bg-muted/10 shrink-0">
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={totalCount}
+            pageSize={pageSize}
+            onPageChange={onPageChange}
+          />
+        </div>
+      )}
       <div className="p-2.5 border-t border-border/70 text-center bg-card shrink-0">
         <Link
           href="/notifications"
