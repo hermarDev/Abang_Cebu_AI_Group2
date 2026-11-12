@@ -15,6 +15,7 @@ import { Select } from "@/components/ui/Select";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { AdminReasonField } from "./AdminReasonField";
 import { adminCall, formatAdminDate, newOperationId, reasonProblem } from "./admin-api";
+import { statusBadgeVariant } from "./status-badge";
 export type AdminProperty = {
   id: string;
   title?: string | null;
