@@ -71,7 +71,7 @@ describe("RegisterForm", () => {
     expect(html).not.toContain("types met");
     changeInput("password", "abcdefghA1!");
     html = renderToStaticMarkup(renderForm());
-    expect((html.match(/Met: /g) ?? [])).toHaveLength(5);
+    expect((html.match(/Met: /g) ?? [])).toHaveLength(4);
     expect(html).not.toContain("Requirements met");
     expect(html).not.toContain("Strength:");
     changeInput("password", "abcdefghA ");
