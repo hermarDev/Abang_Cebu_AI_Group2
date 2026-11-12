@@ -58,14 +58,14 @@ export const test = base.extend<{ blockedRequests: string[] }>({
           const btn = container.querySelector('[data-testid="turnstile-widget"]');
           if (btn) {
             btn.addEventListener('click', () => {
-              turnstile._cb && turnstile._cb('mock-token');
+              if (turnstile._cb) turnstile._cb('mock-token');
             });
           }
           turnstile._cb = config.callback;
           return 1; // widgetId
         },
-        reset: (_widgetId: number) => {},
-        remove: (_widgetId: number) => {},
+        reset: () => {},
+        remove: () => {},
         ready: (callback: () => void) => callback(),
         _cb: null as ((token: string) => void) | null,
       };

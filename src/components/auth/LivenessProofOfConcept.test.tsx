@@ -91,7 +91,8 @@ describe("LivenessProofOfConcept", () => {
   });
 });
 
-function render(ui: React.ReactElement) {
+function render(_: React.ReactElement) {
+  void _;
   return {
     container: { 
       querySelector: (sel: string) => {

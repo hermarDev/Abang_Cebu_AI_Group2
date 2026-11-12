@@ -55,7 +55,8 @@ describe("LivenessPOCPage", () => {
   });
 });
 
-function render(_ui: React.ReactElement) {
+function render(_: React.ReactElement) {
+  void _;
   return {
     container: {
       querySelector: (sel: string) => {
