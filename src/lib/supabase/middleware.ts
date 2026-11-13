@@ -9,7 +9,7 @@ export async function updateSession(request: NextRequest) {
 
   const envUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const envKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  if (process.env.NODE_ENV === "production" && process.env.NEXT_PHASE !== "phase-production-build" && (!envUrl || !envKey || envUrl.includes("placeholder.supabase.co"))) {
+  if (process.env.NODE_ENV === "production" && process.env.NEXT_PHASE !== "phase-production-build" && (!envUrl || !envKey || envUrl.includes("placeholder.supabase.co") || envKey === "placeholder-anon-key")) {
     throw new Error("Supabase middleware configuration is missing.");
   }
   const supabaseUrl = envUrl || "https://placeholder.supabase.co";
