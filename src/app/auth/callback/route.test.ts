@@ -42,6 +42,9 @@ describe("auth callback route", () => {
     const response = await GET(request("?code=test-code&type=recovery&next=%2Freset-password"));
     expect(exchangeCodeForSession).toHaveBeenCalledWith("test-code");
     expect(response.headers.get("location")).toBe("http://localhost/reset-password");
+    expect(response.headers.getSetCookie().some(cookie => cookie.includes("abangcebu-password-reset=1") && cookie.includes("HttpOnly"))).toBe(true);
+    expect(response.headers.get("cache-control")).toBe("no-store");
+    expect(response.headers.get("referrer-policy")).toBe("no-referrer");
   });
 
   it("blocks unsafe recovery redirects", async () => {
