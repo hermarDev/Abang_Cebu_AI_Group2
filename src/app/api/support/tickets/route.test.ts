@@ -4,6 +4,7 @@ const mocks = vi.hoisted(() => ({
   getUser: vi.fn(),
   rpc: vi.fn(),
   select: vi.fn(),
+  adminSelect: vi.fn(),
   upload: vi.fn(),
   remove: vi.fn(),
   createSignedUrl: vi.fn(),
@@ -12,6 +13,14 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("@/lib/supabase/admin", () => ({
   createAdminClient: () => ({
+    rpc: mocks.rpc,
+    from: (table: string) => ({
+      select: () => ({
+        eq: () => ({
+          maybeSingle: () => mocks.adminSelect(table),
+        }),
+      }),
+    }),
     storage: {
       from: () => ({
         upload: mocks.upload,
@@ -51,7 +60,9 @@ vi.mock("@/server/turnstile", () => ({
 }));
 
 import { GET, POST } from "./route";
+import { GET as GET_TICKET } from "./[ticketId]/route";
 import { GET as GET_ATTACHMENT } from "./[ticketId]/attachments/route";
+import { hashGuestSupportToken } from "@/server/support-api";
 import { supportTicketsLimiter } from "@/server/api-limiters";
 
 let ipCounter = 0;
@@ -109,14 +120,32 @@ describe("POST /api/support/tickets", () => {
     const json = await res.json();
     expect(json.ticket).toBeDefined();
     expect(json.ticket.ticketNumber).toBe("SUP-01001");
+    expect(typeof json.guestToken).toBe("string");
+    expect(json.guestToken.length).toBeGreaterThan(16);
     expect(mocks.rpc).toHaveBeenCalledWith(
       "submit_support_ticket",
       expect.objectContaining({
         p_requester_name: "Maria Santos",
         p_requester_email: "maria@example.com",
         p_category: "account_access",
+        p_guest_token_hash: expect.any(String),
       }),
     );
+  });
+
+  it("rejects oversized JSON body with 413 before parsing", async () => {
+    const req = new Request("http://localhost/api/support/tickets", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "x-forwarded-for": nextIp(),
+      },
+      body: JSON.stringify({ ...validPayload, description: "a".repeat(70_000) }),
+    });
+
+    const res = await POST(req);
+    expect(res.status).toBe(413);
+    expect(mocks.rpc).not.toHaveBeenCalled();
   });
 
   it("allows authenticated user submission with x-expected-user-id header", async () => {
@@ -294,6 +323,107 @@ describe("POST /api/support/tickets", () => {
     expect(res.status).toBe(400);
     expect(mocks.upload).not.toHaveBeenCalled();
     expect(mocks.rpc).not.toHaveBeenCalled();
+  });
+
+  it("cleans up duplicate uploads on idempotent replay and preserves uploads on ambiguous RPC failure", async () => {
+    mocks.rpc.mockResolvedValueOnce({
+      data: {
+        id: "92345678-1234-4234-8234-123456789abc",
+        ticketNumber: "SUP-01001",
+        status: "open",
+        replayed: true,
+      },
+      error: null,
+    });
+
+    const fd1 = new FormData();
+    fd1.set("operationId", "12345678-1234-4234-8234-123456789abc");
+    fd1.set("requesterName", "Maria Santos");
+    fd1.set("requesterEmail", "maria@example.com");
+    fd1.set("category", "account_access");
+    fd1.set("subject", "Cannot access my account");
+    fd1.set("description", "I am unable to receive password reset emails on my account.");
+    fd1.set("turnstileToken", "valid-turnstile-token");
+    fd1.append("attachments", new File([pngBytes], "s1.png", { type: "image/png" }));
+
+    const replayRes = await POST(
+      new Request("http://localhost/api/support/tickets", {
+        method: "POST",
+        headers: { "x-forwarded-for": nextIp() },
+        body: fd1,
+      }),
+    );
+    expect(replayRes.status).toBe(200);
+    expect(mocks.remove).toHaveBeenCalledTimes(1);
+
+    mocks.remove.mockClear();
+    mocks.rpc.mockResolvedValueOnce({ data: null, error: { message: "network timeout" } });
+    // Simulate uncertain reconciliation (throws/errors) -> must preserve uploads
+    mocks.adminSelect.mockResolvedValueOnce({ data: null, error: { message: "timeout" } });
+
+    const fd2 = new FormData();
+    fd2.set("operationId", "12345678-1234-4234-8234-123456789abd");
+    fd2.set("requesterName", "Maria Santos");
+    fd2.set("requesterEmail", "maria@example.com");
+    fd2.set("category", "account_access");
+    fd2.set("subject", "Cannot access my account");
+    fd2.set("description", "I am unable to receive password reset emails on my account.");
+    fd2.set("turnstileToken", "valid-turnstile-token");
+    fd2.append("attachments", new File([pngBytes], "s2.png", { type: "image/png" }));
+
+    const ambigRes = await POST(
+      new Request("http://localhost/api/support/tickets", {
+        method: "POST",
+        headers: { "x-forwarded-for": nextIp() },
+        body: fd2,
+      }),
+    );
+    expect(ambigRes.status).toBe(503);
+    expect(mocks.remove).not.toHaveBeenCalled();
+  });
+});
+
+describe("GET /api/support/tickets/[ticketId]", () => {
+  const ticketId = "92345678-1234-4234-8234-123456789abc";
+  const ctx = { params: Promise.resolve({ ticketId }) };
+
+  it("verifies guest status token and rejects bad tokens", async () => {
+    const rawToken = "secret-guest-token-12345";
+    mocks.adminSelect.mockResolvedValue({
+      data: {
+        id: ticketId,
+        ticket_number: "SUP-01001",
+        user_id: null,
+        requester_name: "Guest",
+        requester_email: "guest@example.com",
+        requester_role: "guest",
+        category: "other",
+        subject: "Question about map",
+        description: "Looking for rental status update.",
+        attachments: [],
+        status: "in_progress",
+        priority: "normal",
+        admin_response: "We are checking your question now.",
+        created_at: "2026-11-13T00:00:00Z",
+        updated_at: "2026-11-13T00:05:00Z",
+        guest_access_token_hash: hashGuestSupportToken(rawToken),
+      },
+      error: null,
+    });
+
+    const badRes = await GET_TICKET(
+      new Request(`http://localhost/api/support/tickets/${ticketId}?token=wrong-token`),
+      ctx,
+    );
+    expect(badRes.status).toBe(403);
+
+    const okRes = await GET_TICKET(
+      new Request(`http://localhost/api/support/tickets/${ticketId}?token=${rawToken}`),
+      ctx,
+    );
+    expect(okRes.status).toBe(200);
+    const json = await okRes.json();
+    expect(json.ticket.adminResponse).toBe("We are checking your question now.");
   });
 });
 

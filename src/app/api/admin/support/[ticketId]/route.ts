@@ -63,6 +63,19 @@ export async function POST(request: Request, context: Context) {
     return jsonError("Audit reason must be 1,000 characters or less.", 400);
   }
 
+  if (
+    input.expectedUpdatedAt !== undefined &&
+    input.expectedUpdatedAt !== null &&
+    (typeof input.expectedUpdatedAt !== "string" || Number.isNaN(Date.parse(input.expectedUpdatedAt)))
+  ) {
+    return jsonError("Invalid ticket revision timestamp.", 400);
+  }
+
+  const hasResponseField = "adminResponse" in input;
+  const trimmedResponse =
+    typeof input.adminResponse === "string" ? input.adminResponse.trim() : "";
+  const clearResponse = hasResponseField && trimmedResponse.length === 0;
+
   const { data, error } = await adminRpc(
     session.supabase,
     "admin_update_support_ticket",
@@ -71,9 +84,11 @@ export async function POST(request: Request, context: Context) {
       p_operation_id: input.operationId,
       p_status: input.status,
       p_priority: input.priority ?? null,
-      p_admin_response:
-        typeof input.adminResponse === "string" ? input.adminResponse.trim() : null,
+      p_admin_response: clearResponse || !hasResponseField ? null : trimmedResponse,
       p_reason: typeof input.reason === "string" ? input.reason.trim() : null,
+      p_expected_updated_at:
+        typeof input.expectedUpdatedAt === "string" ? input.expectedUpdatedAt : null,
+      p_clear_response: clearResponse,
     },
   );
 

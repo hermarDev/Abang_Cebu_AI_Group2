@@ -75,9 +75,12 @@ test("admin support page is guarded for guests", async ({ page }) => {
   await expect(page).toHaveURL(/\/login/);
 });
 
-test("guest cannot call authenticated ticket history API", async ({ page }) => {
+test("guest cannot call authenticated ticket history API or guest lookup without token", async ({ page }) => {
   const response = await page.request.get("/api/support/tickets");
   expect(response.status()).toBe(401);
+
+  const missingToken = await page.request.get("/api/support/tickets/11111111-1111-4111-8111-111111111111");
+  expect(missingToken.status()).toBe(401);
 });
 
 test("support attachment API rejects path traversal and unknown paths", async ({ page }) => {

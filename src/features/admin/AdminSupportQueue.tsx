@@ -142,6 +142,8 @@ export function AdminSupportQueue({
   const pageSize = 10;
 
   const [tickets, setTickets] = useState<SupportTicketRecord[] | null>(null);
+  const [totalItems, setTotalItems] = useState(0);
+  const [pinnedTicket, setPinnedTicket] = useState<SupportTicketRecord | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
 
@@ -163,9 +165,15 @@ export function AdminSupportQueue({
     (async () => {
       setTickets(null);
       setError(null);
-      const params = new URLSearchParams({ status, category });
+      const offset = (page - 1) * pageSize;
+      const params = new URLSearchParams({
+        status,
+        category,
+        limit: String(pageSize),
+        offset: String(offset),
+      });
       if (searchQuery) params.set("search", searchQuery);
-      const result = await adminCall<{ tickets?: SupportTicketRecord[] }>(
+      const result = await adminCall<{ tickets?: SupportTicketRecord[]; total?: number }>(
         `/api/admin/support?${params.toString()}`,
         userId,
         undefined,
@@ -173,14 +181,32 @@ export function AdminSupportQueue({
       );
       if (abort.signal.aborted) return;
       if (result.ok) {
-        setTickets(Array.isArray(result.data.tickets) ? result.data.tickets : []);
+        const rows = Array.isArray(result.data.tickets) ? result.data.tickets : [];
+        const total = typeof result.data.total === "number" ? result.data.total : rows.length;
+        setTickets(rows);
+        setTotalItems(total);
+
+        // Ensure linked ticket from notification is visible even if it sits on an older page
+        if (initialTicketId && !rows.some((r) => r.id === initialTicketId) && !searchQuery && status === "all" && category === "all") {
+          const single = await adminCall<{ tickets?: SupportTicketRecord[] }>(
+            `/api/admin/support?status=all&category=all&ticketId=${encodeURIComponent(initialTicketId)}&limit=1&offset=0`,
+            userId,
+            undefined,
+            abort.signal,
+          );
+          if (!abort.signal.aborted && single.ok && Array.isArray(single.data.tickets) && single.data.tickets[0]) {
+            setPinnedTicket(single.data.tickets[0]);
+          }
+        } else {
+          setPinnedTicket(null);
+        }
       } else {
         setError(result.message);
         notify("error", "admin-support-load", result.message);
       }
     })();
     return () => abort.abort();
-  }, [status, category, searchQuery, userId, reloadKey]);
+  }, [status, category, searchQuery, page, userId, reloadKey, initialTicketId]);
 
   function openManage(ticket: SupportTicketRecord) {
     setDialog({ ticket, operationId: newOperationId() });
@@ -224,12 +250,14 @@ export function AdminSupportQueue({
         priority: nextPriority,
         adminResponse: adminResponse.trim() || null,
         reason: reason.trim(),
+        expectedUpdatedAt: dialog.ticket.updatedAt,
       },
     );
     setSaving(false);
     if (!result.ok) {
       setDialogError(result.message);
       notify("error", "admin-support-update", result.message);
+      setReloadKey((k) => k + 1);
       return;
     }
     setDialog(null);
@@ -237,9 +265,12 @@ export function AdminSupportQueue({
     setReloadKey((k) => k + 1);
   }
 
-  const totalPages = tickets ? Math.max(1, Math.ceil(tickets.length / pageSize)) : 1;
+  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
   const validPage = Math.min(page, totalPages);
-  const paginatedTickets = tickets ? tickets.slice((validPage - 1) * pageSize, validPage * pageSize) : [];
+  const visibleTickets = tickets ?? [];
+  const displayTickets = pinnedTicket && !visibleTickets.some((t) => t.id === pinnedTicket.id)
+    ? [pinnedTicket, ...visibleTickets]
+    : visibleTickets;
 
   return (
     <section aria-label="Support tickets" className="grid gap-4">
@@ -316,12 +347,12 @@ export function AdminSupportQueue({
             <Skeleton key={i} className="h-32" />
           ))}
         </div>
-      ) : tickets.length === 0 ? (
+      ) : displayTickets.length === 0 ? (
         <Empty>No support tickets match these filters.</Empty>
       ) : (
         <>
           <ul className="m-0 grid list-none gap-3 p-0">
-            {paginatedTickets.map((ticket) => (
+            {displayTickets.map((ticket) => (
               <TicketRow
                 key={ticket.id}
                 ticket={ticket}
@@ -334,7 +365,7 @@ export function AdminSupportQueue({
           <Pagination
             currentPage={validPage}
             totalPages={totalPages}
-            totalItems={tickets.length}
+            totalItems={totalItems}
             pageSize={pageSize}
             onPageChange={setPage}
           />

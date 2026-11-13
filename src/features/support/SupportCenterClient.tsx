@@ -53,6 +53,7 @@ export interface SupportCenterClientProps {
   backLabel: string;
   turnstileRequired?: boolean;
   highlightTicketId?: string | null;
+  guestToken?: string | null;
 }
 
 function generateUuid(): string {
@@ -97,6 +98,7 @@ export function SupportCenterClient({
   backLabel,
   turnstileRequired = false,
   highlightTicketId = null,
+  guestToken = null,
 }: SupportCenterClientProps) {
   // Form State
   const [name, setName] = useState(initialName);
@@ -117,8 +119,16 @@ export function SupportCenterClient({
   const [submittedTicket, setSubmittedTicket] = useState<{
     ticketNumber: string;
     id: string;
+    guestStatusUrl?: string | null;
   } | null>(null);
   const [operationId, setOperationId] = useState(() => generateUuid());
+
+  // Guest status lookup state (via ?ticket=<id>&token=<token>)
+  const [guestLookupTicket, setGuestLookupTicket] = useState<SupportTicketRecord | null>(null);
+  const [guestLookupLoading, setGuestLookupLoading] = useState(
+    Boolean(!authenticated && highlightTicketId && guestToken),
+  );
+  const [guestLookupError, setGuestLookupError] = useState<string | null>(null);
 
   // Request History State (Authenticated users)
   const [tickets, setTickets] = useState<SupportTicketRecord[]>([]);
@@ -187,6 +197,40 @@ export function SupportCenterClient({
   }, [authenticated, userId, fetchTickets]);
 
   useEffect(() => {
+    if (authenticated || !highlightTicketId || !guestToken) return;
+    const controller = new AbortController();
+    (async () => {
+      await Promise.resolve();
+      if (controller.signal.aborted) return;
+      setGuestLookupLoading(true);
+      setGuestLookupError(null);
+      try {
+        const res = await fetch(
+          `/api/support/tickets/${encodeURIComponent(highlightTicketId)}?token=${encodeURIComponent(guestToken)}`,
+          { signal: controller.signal },
+        );
+        const payload = await res.json().catch(() => null);
+        if (controller.signal.aborted) return;
+        if (!res.ok || !payload?.ticket) {
+          setGuestLookupError(payload?.error ?? "Could not load ticket status.");
+          setGuestLookupTicket(null);
+        } else {
+          setGuestLookupTicket(payload.ticket as SupportTicketRecord);
+        }
+      } catch {
+        if (!controller.signal.aborted) {
+          setGuestLookupError("Could not load ticket status.");
+        }
+      } finally {
+        if (!controller.signal.aborted) {
+          setGuestLookupLoading(false);
+        }
+      }
+    })();
+    return () => controller.abort();
+  }, [authenticated, highlightTicketId, guestToken]);
+
+  useEffect(() => {
     if (highlightTicketId) {
       // eslint-disable-next-line react-hooks/set-state-in-effect -- sync external highlightTicketId prop change
       setLocalHighlightId(highlightTicketId);
@@ -228,7 +272,15 @@ export function SupportCenterClient({
     const selected = Array.from(event.currentTarget.files ?? []);
     if (selected.length === 0) return;
 
-    const merged = [...files, ...selected].slice(0, 3);
+    if (files.length + selected.length > 3) {
+      const overflowMsg = `You can attach up to 3 files total. ${selected[0].name} and any extra selections were not added.`;
+      setErrors((prev) => ({ ...prev, attachments: overflowMsg }));
+      notify("warning", "support-attachment-warning", overflowMsg);
+      event.currentTarget.value = "";
+      return;
+    }
+
+    const merged = [...files, ...selected];
     const attachmentError = validateSupportAttachmentFiles(merged);
     if (attachmentError) {
       setErrors((prev) => ({ ...prev, attachments: attachmentError }));
@@ -259,6 +311,9 @@ export function SupportCenterClient({
   async function handleDownloadAttachment(ticketId: string, storagePath: string) {
     try {
       const query = new URLSearchParams({ path: storagePath });
+      if (!authenticated && guestToken) {
+        query.set("token", guestToken);
+      }
       const response = await fetch(
         `/api/support/tickets/${encodeURIComponent(ticketId)}/attachments?${query.toString()}`,
         {
@@ -348,7 +403,6 @@ export function SupportCenterClient({
       formData.set("website", website);
 
       for (const file of files) {
-        formData.append("files", file);
         formData.append("attachments", file);
       }
 
@@ -374,11 +428,26 @@ export function SupportCenterClient({
       const createdTicketNumber: string =
         payload?.ticketNumber ?? payload?.ticket?.ticketNumber ?? "SUP-RECEIVED";
       const createdId: string = payload?.id ?? payload?.ticket?.id ?? opId;
+      const returnedToken =
+        typeof payload?.guestToken === "string" && payload.guestToken ? payload.guestToken : null;
+      const guestStatusUrl =
+        !authenticated && returnedToken
+          ? `/support?ticket=${encodeURIComponent(createdId)}&token=${encodeURIComponent(returnedToken)}`
+          : null;
+      const returnedAttachments = Array.isArray(payload?.ticket?.attachments)
+        ? (payload.ticket.attachments as SupportTicketRecord["attachments"])
+        : files.map((f) => ({
+            fileName: f.name,
+            fileSize: f.size,
+            mimeType: f.type,
+            storagePath: "",
+          }));
 
       notify("success", "support-ticket-submitted", "Support request submitted successfully.");
       setSubmittedTicket({
         ticketNumber: createdTicketNumber,
         id: createdId,
+        guestStatusUrl,
       });
 
       if (authenticated) {
@@ -393,20 +462,15 @@ export function SupportCenterClient({
           subject: validation.value.subject,
           description: validation.value.description,
           relatedListingId: validation.value.relatedListingId,
-          attachments: files.map((f) => ({
-            fileName: f.name,
-            fileSize: f.size,
-            mimeType: f.type,
-            storagePath: "",
-          })),
+          attachments: returnedAttachments,
           status: "open",
           priority: "normal",
           adminResponse: null,
           assignedAdminId: null,
           assignedAdminName: null,
           resolvedAt: null,
-          createdAt: payload?.createdAt ?? new Date().toISOString(),
-          updatedAt: payload?.createdAt ?? new Date().toISOString(),
+          createdAt: payload?.ticket?.createdAt ?? payload?.createdAt ?? new Date().toISOString(),
+          updatedAt: payload?.ticket?.createdAt ?? payload?.createdAt ?? new Date().toISOString(),
         };
 
         setTickets((prev) => [newRecord, ...prev]);
@@ -440,7 +504,7 @@ export function SupportCenterClient({
   const isLandlordMobile = userRole === "landlord" && authenticated;
 
   return (
-    <main className="relative isolate min-h-[100dvh] overflow-x-hidden bg-background text-foreground">
+    <main className="relative isolate min-h-[100dvh] overflow-x-clip bg-background text-foreground">
       <div className="mx-auto w-full max-w-5xl px-4 py-5 sm:px-6 sm:py-8 lg:px-8">
         <header className="sticky top-3 z-20 flex items-center justify-between gap-4 rounded-2xl border border-border/70 bg-white/90 p-3 shadow-sm backdrop-blur-sm dark:bg-slate-950/90 sm:px-5">
           <Link
@@ -528,6 +592,20 @@ export function SupportCenterClient({
                       <p className="m-0 text-sm opacity-90 leading-relaxed">
                         Your request has been logged and assigned to our support queue. We review inquiries in order of urgency and aim to respond within one business day.
                       </p>
+                      {submittedTicket.guestStatusUrl && (
+                        <div className="rounded-lg border border-emerald-500/30 bg-background/70 p-2.5 text-xs">
+                          <p className="m-0 font-semibold">Save your private ticket status link</p>
+                          <p className="m-0 mt-1 opacity-85">
+                            Bookmark this link to check status updates and admin replies without signing in:
+                          </p>
+                          <Link
+                            href={submittedTicket.guestStatusUrl}
+                            className="mt-1.5 inline-block break-all font-mono font-semibold text-action underline"
+                          >
+                            {submittedTicket.guestStatusUrl}
+                          </Link>
+                        </div>
+                      )}
                       <div className="pt-2">
                         <Button
                           type="button"
@@ -1001,33 +1079,94 @@ export function SupportCenterClient({
                   )}
                 </section>
               ) : (
-                /* Guest Sign-In Guidance Card */
-                <section
-                  className="rounded-2xl border border-border/70 bg-card p-5 text-card-foreground shadow-sm sm:p-6"
-                  aria-labelledby="guest-guidance-heading"
-                >
-                  <div className="flex items-start gap-3">
-                    <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-accent text-accent-foreground">
-                      <Clock size={20} aria-hidden="true" />
-                    </span>
-                    <div>
-                      <h2 id="guest-guidance-heading" className="m-0 text-base font-semibold">
-                        Track your requests
-                      </h2>
-                      <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-                        Sign in to your AbangCebu account to view past inquiries, status updates, and admin responses in real time.
-                      </p>
-                      <div className="mt-4">
-                        <Link
-                          href="/login?next=%2Fsupport"
-                          className="inline-flex min-h-10 items-center justify-center rounded-lg border border-border bg-card px-4 text-xs font-semibold text-foreground hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
-                        >
-                          Sign in to track requests
-                        </Link>
+                <>
+                  {(guestLookupLoading || guestLookupError || guestLookupTicket) && (
+                    <section
+                      className="rounded-2xl border border-border/70 bg-card p-5 text-card-foreground shadow-sm sm:p-6"
+                      aria-label="Guest ticket status"
+                    >
+                      <h2 className="m-0 text-base font-semibold">Ticket status</h2>
+                      {guestLookupLoading ? (
+                        <div className="mt-3 space-y-2" role="status">
+                          <Skeleton className="h-4 w-28" />
+                          <Skeleton className="h-4 w-full" />
+                        </div>
+                      ) : guestLookupError ? (
+                        <Alert variant="error" className="mt-3">
+                          <p className="m-0 text-xs">{guestLookupError}</p>
+                        </Alert>
+                      ) : guestLookupTicket ? (
+                        <div className="mt-3 space-y-2.5 text-xs">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="font-mono font-bold text-foreground">
+                              {guestLookupTicket.ticketNumber}
+                            </span>
+                            <Badge variant={statusBadgeVariant(guestLookupTicket.status)}>
+                              {SUPPORT_STATUS_LABELS[guestLookupTicket.status] ?? guestLookupTicket.status}
+                            </Badge>
+                          </div>
+                          <p className="m-0 text-sm font-semibold text-foreground">{guestLookupTicket.subject}</p>
+                          <p className="m-0 whitespace-pre-wrap text-foreground/90">{guestLookupTicket.description}</p>
+                          {guestLookupTicket.attachments.length > 0 && (
+                            <div className="flex flex-wrap gap-1.5">
+                              {guestLookupTicket.attachments.map((att) => (
+                                <button
+                                  key={att.storagePath || att.fileName}
+                                  type="button"
+                                  onClick={() => handleDownloadAttachment(guestLookupTicket.id, att.storagePath)}
+                                  className="inline-flex items-center gap-1 rounded-md border border-border bg-muted/40 px-2 py-1 text-[11px] font-medium text-foreground hover:bg-muted cursor-pointer"
+                                >
+                                  <Download size={11} aria-hidden="true" />
+                                  <span className="max-w-32 truncate">{att.fileName}</span>
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                          {guestLookupTicket.adminResponse ? (
+                            <div className="rounded-lg border border-border/80 bg-muted/50 p-2.5">
+                              <p className="m-0 text-[11px] font-bold uppercase tracking-wider text-action">
+                                Admin response
+                              </p>
+                              <p className="m-0 mt-1 whitespace-pre-wrap text-foreground">
+                                {guestLookupTicket.adminResponse}
+                              </p>
+                            </div>
+                          ) : (
+                            <p className="m-0 text-muted-foreground">No admin reply yet. Check back using this private link.</p>
+                          )}
+                        </div>
+                      ) : null}
+                    </section>
+                  )}
+
+                  {/* Guest Sign-In Guidance Card */}
+                  <section
+                    className="rounded-2xl border border-border/70 bg-card p-5 text-card-foreground shadow-sm sm:p-6"
+                    aria-labelledby="guest-guidance-heading"
+                  >
+                    <div className="flex items-start gap-3">
+                      <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-accent text-accent-foreground">
+                        <Clock size={20} aria-hidden="true" />
+                      </span>
+                      <div>
+                        <h2 id="guest-guidance-heading" className="m-0 text-base font-semibold">
+                          Track your requests
+                        </h2>
+                        <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+                          Sign in before submitting a request to track tickets in your account and receive notifications. Signing in later does not recover earlier guest requests, so bookmark the private status link shown after submitting as a guest.
+                        </p>
+                        <div className="mt-4">
+                          <Link
+                            href="/login?next=%2Fsupport"
+                            className="inline-flex min-h-10 items-center justify-center rounded-lg border border-border bg-card px-4 text-xs font-semibold text-foreground hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+                          >
+                            Sign in to track requests
+                          </Link>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </section>
+                  </section>
+                </>
               )}
 
               {/* Self-Service Help Callout */}

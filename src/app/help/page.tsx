@@ -29,16 +29,16 @@ export default async function HelpPage() {
   }
 
   const backHref =
-    userRole === "admin"
+    !isSuspended && userRole === "admin"
       ? "/admin/dashboard"
-      : userRole === "landlord"
+      : !isSuspended && userRole === "landlord"
         ? "/landlord/dashboard"
         : "/";
 
   const backLabel =
-    userRole === "admin"
+    !isSuspended && userRole === "admin"
       ? "Back to admin workspace"
-      : userRole === "landlord"
+      : !isSuspended && userRole === "landlord"
         ? "Back to workspace"
         : "Back to map";
 

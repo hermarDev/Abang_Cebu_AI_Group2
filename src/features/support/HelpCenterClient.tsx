@@ -82,7 +82,7 @@ export function HelpCenterClient({
   }
 
   return (
-    <main className="relative isolate min-h-[100dvh] overflow-x-hidden bg-background text-foreground">
+    <main className={`relative isolate min-h-[100dvh] overflow-x-clip bg-background text-foreground${isLandlordMobile ? " pb-20 md:pb-0" : ""}`}>
       <div className="mx-auto w-full max-w-5xl px-4 py-5 sm:px-6 sm:py-8 lg:px-8">
         <header className="sticky top-3 z-20 flex items-center justify-between gap-4 rounded-2xl border border-border/70 bg-white/90 p-3 shadow-sm backdrop-blur-sm dark:bg-slate-950/90 sm:px-5">
           <Link

@@ -17,6 +17,8 @@ export default async function SupportPage(props: SupportPageProps) {
   const searchParams = props.searchParams ? await props.searchParams : {};
   const highlightTicketId =
     typeof searchParams.ticket === "string" ? searchParams.ticket.trim() : null;
+  const guestToken =
+    typeof searchParams.token === "string" ? searchParams.token.trim() : null;
 
   const supabase = await createClient();
   const {
@@ -24,6 +26,7 @@ export default async function SupportPage(props: SupportPageProps) {
   } = await supabase.auth.getUser();
 
   let userRole: string | null = null;
+  let isSuspended = false;
   let initialName = "";
   let initialEmail = "";
 
@@ -32,27 +35,28 @@ export default async function SupportPage(props: SupportPageProps) {
 
     const { data: profile } = await supabase
       .from("profiles")
-      .select("full_name, role")
+      .select("full_name, role, is_suspended")
       .eq("id", user.id)
       .maybeSingle();
 
     if (profile) {
       userRole = profile.role ?? null;
+      isSuspended = Boolean(profile.is_suspended);
       initialName = profile.full_name ?? "";
     }
   }
 
   const backHref =
-    userRole === "admin"
+    !isSuspended && userRole === "admin"
       ? "/admin/dashboard"
-      : userRole === "landlord"
+      : !isSuspended && userRole === "landlord"
         ? "/landlord/dashboard"
         : "/";
 
   const backLabel =
-    userRole === "admin"
+    !isSuspended && userRole === "admin"
       ? "Back to admin workspace"
-      : userRole === "landlord"
+      : !isSuspended && userRole === "landlord"
         ? "Back to workspace"
         : "Back to map";
 
@@ -69,6 +73,7 @@ export default async function SupportPage(props: SupportPageProps) {
       backLabel={backLabel}
       turnstileRequired={turnstileRequired}
       highlightTicketId={highlightTicketId}
+      guestToken={guestToken}
     />
   );
 }

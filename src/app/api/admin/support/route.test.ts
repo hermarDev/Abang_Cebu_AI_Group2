@@ -187,6 +187,29 @@ describe("POST /api/admin/support/[ticketId]", () => {
       p_priority: "high",
       p_admin_response: "We have resolved the login issue for you.",
       p_reason: "User confirmed account access restored.",
+      p_expected_updated_at: null,
+      p_clear_response: false,
+    });
+  });
+
+  it("passes p_clear_response=true when admin clears adminResponse and forwards expectedUpdatedAt", async () => {
+    mocks.rpc.mockResolvedValue({ data: { ticketId: TICKET_ID, adminResponse: null }, error: null });
+
+    const res = await postTicket({
+      ...validUpdateBody,
+      adminResponse: null,
+      expectedUpdatedAt: "2026-11-13T00:00:00Z",
+    });
+    expect(res.status).toBe(200);
+    expect(mocks.rpc).toHaveBeenCalledWith("admin_update_support_ticket", {
+      p_ticket_id: TICKET_ID,
+      p_operation_id: OP_ID,
+      p_status: "resolved",
+      p_priority: "high",
+      p_admin_response: null,
+      p_reason: "User confirmed account access restored.",
+      p_expected_updated_at: "2026-11-13T00:00:00Z",
+      p_clear_response: true,
     });
   });
 

@@ -380,9 +380,9 @@ export interface Database {
       submit_property_from_draft: { Args: { p_operation_id: string; p_draft_id: string; p_expected_revision: number }; Returns: Json; };
       release_property_draft_media: { Args: { p_draft_id: string; p_operation_id: string }; Returns: string; };
       get_public_submitted_properties: { Args: Record<PropertyKey, never>; Returns: Json; };
-      submit_support_ticket: { Args: { p_operation_id: string; p_requester_name: string; p_requester_email: string; p_category: string; p_subject: string; p_description: string; p_related_listing_id?: string | null; p_attachments?: Json; p_ticket_id?: string | null }; Returns: Json; };
-      admin_list_support_tickets: { Args: { p_status?: string | null; p_category?: string | null; p_search?: string | null; p_limit?: number; p_offset?: number }; Returns: Json; };
-      admin_update_support_ticket: { Args: { p_ticket_id: string; p_operation_id: string; p_status: string; p_priority?: string | null; p_admin_response?: string | null; p_reason?: string | null }; Returns: Json; };
+      submit_support_ticket: { Args: { p_operation_id: string; p_requester_name: string; p_requester_email: string; p_category: string; p_subject: string; p_description: string; p_related_listing_id?: string | null; p_attachments?: Json; p_ticket_id?: string | null; p_user_id?: string | null; p_guest_token_hash?: string | null }; Returns: Json; };
+      admin_list_support_tickets: { Args: { p_status?: string | null; p_category?: string | null; p_search?: string | null; p_limit?: number; p_offset?: number; p_ticket_id?: string | null }; Returns: Json; };
+      admin_update_support_ticket: { Args: { p_ticket_id: string; p_operation_id: string; p_status: string; p_priority?: string | null; p_admin_response?: string | null; p_reason?: string | null; p_expected_updated_at?: string | null; p_clear_response?: boolean }; Returns: Json; };
     };
     Enums: {
       user_role: UserRole;

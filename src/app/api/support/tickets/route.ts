@@ -1,3 +1,4 @@
+import { randomBytes } from "node:crypto";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import {
@@ -11,7 +12,11 @@ import { supportTicketsLimiter } from "@/server/api-limiters";
 import { getClientIp } from "@/server/rate-limit";
 import {
   cleanupSupportUploads,
+  hashGuestSupportToken,
+  MAX_SUPPORT_JSON_BYTES,
+  MAX_SUPPORT_MULTIPART_BYTES,
   mapSupportTicketRow,
+  readBoundedBody,
   reply,
   SUPPORT_ATTACHMENTS_BUCKET,
 } from "@/server/support-api";
@@ -74,13 +79,41 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  // Check client IP fail-closed before reading or buffering any request body
+  const ip = getClientIp(request);
+  if (!ip) {
+    return reply(
+      { error: "Too many support requests. Please wait before trying again." },
+      429,
+      { "Retry-After": "60" },
+    );
+  }
+
   const contentType = request.headers.get("content-type") ?? "";
+  const isMultipart = contentType.includes("multipart/form-data");
+  const maxBytes = isMultipart ? MAX_SUPPORT_MULTIPART_BYTES : MAX_SUPPORT_JSON_BYTES;
+
+  const bounded = await readBoundedBody(request, maxBytes);
+  if (!bounded.ok) {
+    return reply(
+      { error: "Request body exceeds the allowed size limit." },
+      413,
+    );
+  }
+
   let rawFields: Record<string, unknown> = {};
   const files: File[] = [];
 
-  if (contentType.includes("multipart/form-data")) {
+  if (isMultipart) {
     try {
-      const formData = await request.formData();
+      const headers = new Headers(request.headers);
+      headers.delete("content-length");
+      const boundedReq = new Request(request.url, {
+        method: request.method,
+        headers,
+        body: Buffer.from(bounded.bytes),
+      });
+      const formData = await boundedReq.formData();
       for (const [key, val] of formData.entries()) {
         if (key === "attachments") {
           if (val instanceof File && val.size > 0) {
@@ -95,7 +128,8 @@ export async function POST(request: Request) {
     }
   } else {
     try {
-      const body: unknown = await request.json();
+      const text = new TextDecoder().decode(bounded.bytes);
+      const body: unknown = JSON.parse(text);
       if (body && typeof body === "object" && !Array.isArray(body)) {
         rawFields = body as Record<string, unknown>;
       } else {
@@ -112,16 +146,7 @@ export async function POST(request: Request) {
     return reply({ error: "Invalid submission." }, 400);
   }
 
-  // 2. Rate limiter with fail-closed production IP check
-  const ip = getClientIp(request);
-  if (!ip) {
-    return reply(
-      { error: "Too many support requests. Please wait before trying again." },
-      429,
-      { "Retry-After": "60" },
-    );
-  }
-
+  // 2. Rate limiter
   const actorKey =
     typeof rawFields.requesterEmail === "string" && rawFields.requesterEmail.trim()
       ? rawFields.requesterEmail.trim().toLowerCase()
@@ -214,29 +239,29 @@ export async function POST(request: Request) {
     }
   }
 
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    return reply(
+      { error: "Support service is temporarily unavailable. Please try again later." },
+      503,
+    );
+  }
+
+  let adminClient: ReturnType<typeof createAdminClient>;
+  try {
+    adminClient = createAdminClient();
+  } catch {
+    return reply(
+      { error: "Support service is temporarily unavailable. Please try again later." },
+      503,
+    );
+  }
+
   // 7. Upload files if present
   const ticketId = crypto.randomUUID();
   const uploadedPaths: string[] = [];
   const attachmentsMeta: SupportAttachmentMeta[] = [];
 
   if (files.length > 0) {
-    if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
-      return reply(
-        { error: "Attachment storage is temporarily unavailable. Please try again later." },
-        503,
-      );
-    }
-
-    let adminClient: ReturnType<typeof createAdminClient>;
-    try {
-      adminClient = createAdminClient();
-    } catch {
-      return reply(
-        { error: "Attachment storage is temporarily unavailable. Please try again later." },
-        503,
-      );
-    }
-
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       const bytes = fileBuffers[i];
@@ -265,8 +290,12 @@ export async function POST(request: Request) {
     }
   }
 
-  // 8. Call RPC submit_support_ticket
-  const { data, error: rpcError } = await supabase.rpc("submit_support_ticket", {
+  // Generate one-time cryptographic status lookup token for guest submissions
+  const guestToken = user ? null : randomBytes(24).toString("base64url");
+  const guestTokenHash = guestToken ? hashGuestSupportToken(guestToken) : null;
+
+  // 8. Invoke service-role-restricted submit_support_ticket RPC
+  const { data, error: rpcError } = await adminClient.rpc("submit_support_ticket", {
     p_operation_id: validation.value.operationId,
     p_requester_name: validation.value.requesterName,
     p_requester_email: validation.value.requesterEmail,
@@ -276,10 +305,33 @@ export async function POST(request: Request) {
     p_related_listing_id: validation.value.relatedListingId,
     p_attachments: attachmentsMeta,
     p_ticket_id: ticketId,
+    p_user_id: user?.id ?? null,
+    p_guest_token_hash: guestTokenHash,
   });
 
   if (rpcError) {
-    await cleanupSupportUploads(uploadedPaths);
+    const isDeterministicRejection =
+      rpcError.code === "23505" || rpcError.code === "22023" || rpcError.code === "42501";
+
+    if (isDeterministicRejection) {
+      await cleanupSupportUploads(uploadedPaths);
+    } else if (uploadedPaths.length > 0) {
+      // Reconcile operationId before cleanup: never delete files referenced by a committed ticket
+      try {
+        const { data: existing, error: reconcileError } = await adminClient
+          .from("support_tickets")
+          .select("id")
+          .eq("operation_id", validation.value.operationId)
+          .maybeSingle();
+
+        if (!reconcileError && (!existing || existing.id !== ticketId)) {
+          await cleanupSupportUploads(uploadedPaths);
+        }
+      } catch {
+        // Preserve uploads when reconciliation outcome is uncertain
+      }
+    }
+
     if (rpcError.code === "23505") {
       return reply({ error: "Operation ID already used for a different request." }, 409);
     }
@@ -291,5 +343,16 @@ export async function POST(request: Request) {
 
   const result = (data ?? {}) as Record<string, unknown>;
   const isReplay = result.replayed === true;
-  return reply({ ticket: data }, isReplay ? 200 : 201);
+  if (isReplay && uploadedPaths.length > 0) {
+    // Discard retry's newly uploaded objects because the replayed ticket keeps its original files
+    await cleanupSupportUploads(uploadedPaths);
+  }
+
+  return reply(
+    {
+      ticket: data,
+      ...(!isReplay && guestToken ? { guestToken } : {}),
+    },
+    isReplay ? 200 : 201,
+  );
 }

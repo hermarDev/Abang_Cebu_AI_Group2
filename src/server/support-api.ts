@@ -1,3 +1,4 @@
+import { createHash, timingSafeEqual } from "node:crypto";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type {
   SupportAttachmentMeta,
@@ -10,6 +11,8 @@ import type {
 export const noStoreHeaders = { "Cache-Control": "no-store" } as const;
 
 export const SUPPORT_ATTACHMENTS_BUCKET = "support-attachments";
+export const MAX_SUPPORT_JSON_BYTES = 64 * 1024;
+export const MAX_SUPPORT_MULTIPART_BYTES = 17 * 1024 * 1024;
 
 export function reply(
   body: unknown,
@@ -20,6 +23,56 @@ export function reply(
     status,
     headers: { ...noStoreHeaders, ...extraHeaders },
   });
+}
+
+export function hashGuestSupportToken(token: string): string {
+  return createHash("sha256").update(token, "utf8").digest("hex");
+}
+
+export function verifyGuestSupportToken(token: string, expectedHash: string | null | undefined): boolean {
+  if (!token || !expectedHash) return false;
+  const actual = Buffer.from(hashGuestSupportToken(token), "utf8");
+  const expected = Buffer.from(expectedHash, "utf8");
+  return actual.length === expected.length && timingSafeEqual(actual, expected);
+}
+
+export async function readBoundedBody(
+  request: Request,
+  maxBytes: number,
+): Promise<{ ok: true; bytes: Uint8Array } | { ok: false }> {
+  const headerLen = request.headers.get("content-length");
+  if (headerLen && /^\d+$/.test(headerLen.trim()) && Number(headerLen.trim()) > maxBytes) {
+    return { ok: false };
+  }
+
+  if (!request.body) {
+    return { ok: true, bytes: new Uint8Array(0) };
+  }
+
+  const reader = request.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    if (value) {
+      total += value.byteLength;
+      if (total > maxBytes) {
+        await reader.cancel().catch(() => {});
+        return { ok: false };
+      }
+      chunks.push(value);
+    }
+  }
+
+  const out = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) {
+    out.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return { ok: true, bytes: out };
 }
 
 export function mapSupportTicketRow(row: Record<string, unknown>): SupportTicketRecord {

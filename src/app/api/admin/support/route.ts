@@ -4,6 +4,7 @@ import {
   jsonOk,
   pageParams,
   requireActiveAdmin,
+  validUuid,
 } from "@/server/admin-access";
 
 const STATUSES = ["open", "in_progress", "resolved", "closed", "all"] as const;
@@ -26,6 +27,7 @@ export async function GET(request: Request) {
   const status = params.get("status");
   const category = params.get("category");
   const search = params.get("search");
+  const ticketId = params.get("ticketId");
   const page = pageParams(params);
 
   if (!page || (status !== null && !STATUSES.includes(status as (typeof STATUSES)[number]))) {
@@ -34,6 +36,10 @@ export async function GET(request: Request) {
 
   if (category !== null && !CATEGORIES.includes(category as (typeof CATEGORIES)[number])) {
     return jsonError("Invalid support ticket category filter.", 400);
+  }
+
+  if (ticketId !== null && !validUuid(ticketId)) {
+    return jsonError("Invalid ticket filter.", 400);
   }
 
   const { data, error } = await adminRpc(
@@ -45,6 +51,7 @@ export async function GET(request: Request) {
       p_search: search,
       p_limit: page.limit,
       p_offset: page.offset,
+      ...(ticketId ? { p_ticket_id: ticketId } : {}),
     },
   );
 
@@ -55,5 +62,11 @@ export async function GET(request: Request) {
     return jsonError("Support tickets could not be loaded. Please retry.", 503);
   }
 
-  return jsonOk({ tickets: data });
+  if (Array.isArray(data)) {
+    return jsonOk({ tickets: data, total: data.length });
+  }
+  const obj = (data ?? {}) as { tickets?: unknown[]; total?: number };
+  const tickets = Array.isArray(obj.tickets) ? obj.tickets : [];
+  const total = typeof obj.total === "number" ? obj.total : tickets.length;
+  return jsonOk({ tickets, total });
 }
