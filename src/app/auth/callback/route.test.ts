@@ -9,13 +9,26 @@ function request(query: string) {
 }
 
 describe("auth callback route", () => {
-  beforeEach(() => exchangeCodeForSession.mockReset().mockResolvedValue({ error: null }));
+  beforeEach(() => {
+    vi.stubEnv("NEXT_PUBLIC_SITE_URL", "http://localhost");
+    exchangeCodeForSession.mockReset().mockResolvedValue({ error: null });
+  });
   afterEach(() => vi.unstubAllEnvs());
 
   it("uses NEXT_PUBLIC_SITE_URL canonical origin when configured", async () => {
     vi.stubEnv("NEXT_PUBLIC_SITE_URL", "https://abangcebu.tech");
     const response = await GET(request("?code=test-code&next=%2F"));
     expect(response.headers.get("location")).toBe("https://abangcebu.tech/");
+  });
+
+  it.each(["", "invalid", "http://example.com", "https://user:pass@example.com", "https://example.com/path", "https://example.com/?x=1", "https://example.com/#x"])("rejects invalid production canonical origin without exchanging code", async (siteUrl) => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("NEXT_PUBLIC_SITE_URL", siteUrl);
+    const response = await GET(new Request("https://attacker.example/auth/callback?code=one-time-code"));
+    expect(response.status).toBe(503);
+    expect(response.headers.get("location")).toBeNull();
+    expect(response.headers.get("cache-control")).toBe("no-store");
+    expect(exchangeCodeForSession).not.toHaveBeenCalled();
   });
 
   it("requires a PKCE code", async () => {

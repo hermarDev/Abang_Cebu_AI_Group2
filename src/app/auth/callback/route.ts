@@ -1,17 +1,18 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { isSafeRedirectUrl } from "@/types/auth";
+import { getSiteOrigin } from "@/server/site-origin";
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
-  const configuredSite = process.env.NEXT_PUBLIC_SITE_URL?.trim();
-  let origin = url.origin;
-  if (configuredSite) {
-    try {
-      origin = new URL(configuredSite).origin;
-    } catch {
-      // Fall back to request origin only when env URL is malformed.
-    }
+  let origin: string;
+  try {
+    origin = getSiteOrigin();
+  } catch {
+    return NextResponse.json(
+      { success: false, error: { code: "AUTH_CALLBACK_UNAVAILABLE", message: "Authentication is temporarily unavailable." } },
+      { status: 503, headers: { "Cache-Control": "no-store" } },
+    );
   }
   const code = url.searchParams.get("code");
   const type = url.searchParams.get("type");
