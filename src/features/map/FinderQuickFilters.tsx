@@ -18,7 +18,8 @@ export const propertyTypes: { value: PropertyType; label: string }[] = [
 const budgetOptions: { value: number | null; label: string }[] = [
   { value: null, label: "Any maximum" }, { value: 2500, label: "Up to ₱2,500" },
   { value: 3500, label: "Up to ₱3,500" }, { value: 5000, label: "Up to ₱5,000" },
-  { value: 8000, label: "Up to ₱8,000" },
+  { value: 10000, label: "Up to ₱10,000" }, { value: 15000, label: "Up to ₱15,000" },
+  { value: 25000, label: "Up to ₱25,000" }, { value: 45000, label: "Up to ₱45,000" },
 ];
 
 const isActive = (value: unknown) => Array.isArray(value)
@@ -61,6 +62,7 @@ export function QuickFilters({ filters, onChange, onOpenFilters }: {
       <RadixPopover.Portal><RadixPopover.Content className={styles.filterPopover} align="start" sideOffset={8} aria-label="Budget filter">
         <form onSubmit={(event) => { event.preventDefault(); onChange({ ...filters, maxPrice: budgetDraft }); }}>
           <fieldset className={styles.choiceList}><legend className="sr-only">Maximum monthly rent</legend>{budgetOptions.map((option) => <label key={option.value ?? "any"}><input type="radio" name="quick-budget" checked={budgetDraft === option.value} onChange={() => setBudgetDraft(option.value)} /><span>{option.label}</span></label>)}</fieldset>
+          <label className="mt-2 grid gap-1 text-xs font-medium text-muted-foreground"><span>Custom maximum (PHP)</span><input type="number" min={0} max={500000} step={500} placeholder="e.g. 20000" aria-label="Custom maximum monthly rent" value={budgetDraft ?? ""} onChange={(event) => { const raw = event.target.value.trim(); if (!raw) { setBudgetDraft(null); return; } const parsed = Number(raw); if (Number.isFinite(parsed) && parsed >= 0) setBudgetDraft(parsed); }} className="min-h-9 w-full rounded-md border border-border bg-background px-2.5 text-sm text-foreground" /></label>
           <div className={styles.popoverActions}><RadixPopover.Close asChild><Button type="button" onClick={() => onChange({ ...filters, maxPrice: budgetDraft })}>Apply budget</Button></RadixPopover.Close></div>
         </form>
       </RadixPopover.Content></RadixPopover.Portal>

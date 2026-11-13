@@ -13,14 +13,13 @@ import type { RentalResult } from "@/contracts/preview";
 import { DEFAULT_RENTAL_FILTERS } from "@/contracts/rental-filters";
 import { RentalFilterDialog } from "@/features/rentals/RentalFilterDialog";
 import { Select } from "@/components/ui/Select";
+import { formatVerificationLabel } from "@/features/listings/RentalCard";
 import MapSearch from "./MapSearch";
 import styles from "./MapCanvas.module.css";
 import { groupRentalsByCoordinates, makeRadiusPolygon, METRO_CEBU_CENTER } from "./map-geometry";
 
 function verificationLabel(status: RentalResult["verificationStatus"]): string {
-  if (!status) return "Verification status unknown";
-  if (status === "unverified") return "Not verified";
-  return `${status.replaceAll("_", " ")} listing`;
+  return formatVerificationLabel(status);
 }
 
 // Serve MapLibre's worker files together so its worker can resolve the shared module.
@@ -190,6 +189,7 @@ export function MapCanvas({ selectedPlace, selectedRentalId, onSelectRental, ren
     rentalPopupRef.current.setOffset(POPUP_OFFSETS);
   }, [popupPortalTarget, activePopupRentalId, popupPhotoIndex, savedRentalIds]);
   const [mapStatus, setMapStatus] = useState<MapStatus>("loading");
+  const [mapRetryKey, setMapRetryKey] = useState(0);
   const [locationStatus, setLocationStatus] = useState<LocationStatus>("idle");
   const [statusMessage, setStatusMessage] = useState(
     "Map centered on the default search area. Use Locate me to find your position.",
@@ -225,7 +225,7 @@ export function MapCanvas({ selectedPlace, selectedRentalId, onSelectRental, ren
       const fallbackTimer = window.setTimeout(() => {
         setMapStatus("unavailable");
         setStatusMessage(
-          "The interactive map is unavailable in this browser. The default search area remains selected.",
+          "The interactive map is unavailable in this browser. Use the search box or listings panel to browse rentals.",
         );
       }, 0);
       return () => window.clearTimeout(fallbackTimer);
@@ -319,7 +319,7 @@ export function MapCanvas({ selectedPlace, selectedRentalId, onSelectRental, ren
       map.remove();
       mapRef.current = null;
     };
-  }, [decorative, showAttribution]);
+  }, [decorative, showAttribution, mapRetryKey]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -591,8 +591,20 @@ export function MapCanvas({ selectedPlace, selectedRentalId, onSelectRental, ren
 
       {!decorative && mapStatus === "unavailable" && (
         <div className={styles.mapFallback} role="status">
-          <strong>Map unavailable</strong>
-          <span>The default search area remains selected.</span>
+          <strong>Interactive map unavailable</strong>
+          <span>Use the search box or listings panel to browse local rentals.</span>
+          <button
+            type="button"
+            className={styles.secondaryButton}
+            style={{ marginInline: "auto", marginTop: "0.35rem", paddingInline: "1rem", width: "auto" }}
+            onClick={() => {
+              setMapStatus("loading");
+              setStatusMessage("Retrying interactive map…");
+              setMapRetryKey((current) => current + 1);
+            }}
+          >
+            Retry map
+          </button>
         </div>
       )}
 
@@ -802,7 +814,7 @@ export function MapCanvas({ selectedPlace, selectedRentalId, onSelectRental, ren
           </article>
         );
       })(), popupPortalTarget)}
-      {!decorative && !isLocationPicker && (assistantControlsTarget ? createPortal(mapControls, assistantControlsTarget) : mapControls)}
+      {!decorative && !isLocationPicker && mapStatus !== "unavailable" && (assistantControlsTarget ? createPortal(mapControls, assistantControlsTarget) : mapControls)}
     </section>
   );
 }

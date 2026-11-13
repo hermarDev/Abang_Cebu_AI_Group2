@@ -96,7 +96,16 @@ describe("MapCanvas controls", () => {
     expect(source).toContain("const isLocationPicker = Boolean(locationPicker || enablePinDrop || pinCoordinates !== undefined || onPinChange !== undefined);");
     expect(source).toContain("const externallyControlled = externalFilters !== undefined || isLocationPicker;");
     expect(source).toContain("!isLocationPicker && popupPortalTarget");
-    expect(source).toContain("!isLocationPicker && (assistantControlsTarget");
+    expect(source).toContain('!isLocationPicker && mapStatus !== "unavailable" && (assistantControlsTarget');
     expect(source).toContain("setDraggable(Boolean(enablePinDrop))");
+  });
+
+  it("hides map controls when unavailable and provides a working Retry map action", () => {
+    expect(source).toContain("const [mapRetryKey, setMapRetryKey] = useState(0);");
+    expect(source).toContain("}, [decorative, showAttribution, mapRetryKey]);");
+    expect(source).toContain('mapStatus !== "unavailable" && (assistantControlsTarget ? createPortal(mapControls, assistantControlsTarget) : mapControls)');
+    expect(source).toContain("Interactive map unavailable");
+    expect(source).toContain("Retry map");
+    expect(source).toContain("setMapRetryKey((current) => current + 1)");
   });
 });

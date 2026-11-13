@@ -9,6 +9,7 @@ import type { RentalResult } from "@/contracts/preview";
 import { DEFAULT_RENTAL_FILTERS, type RentalFilters } from "@/contracts/rental-filters";
 import { Button } from "@/components/ui/Button";
 import * as RadixPopover from "@radix-ui/react-popover";
+import { QuickFilters } from "./FinderQuickFilters";
 import { FinderNavigation } from "./FinderNavigation";
 import { FinderAssistant } from "./FinderAssistant";
 import { ExpandedRentalModalContent } from "./RestoredFinderShell";
@@ -205,9 +206,12 @@ describe("RestoredFinderShell", () => {
     expect(findByType(typePopover.props.children, RadixPopover.Content)).toBeDefined();
     expect(findByType(quickFilters, RadixPopover.Anchor)).toBeUndefined();
     expect(findByType(quickFilters, "dialog")).toBeUndefined();
-    const budgetOptions = findElementsByType(budgetPopover.props.children, "input");
+    const budgetInputs = findElementsByType(budgetPopover.props.children, "input");
+    const budgetOptions = budgetInputs.filter((element) => element.props.type === "radio");
+    const customBudgetInput = budgetInputs.find((element) => element.props.type === "number");
     const typeOptions = findElementsByType(typePopover.props.children, "input");
-    expect(budgetOptions).toHaveLength(5);
+    expect(budgetOptions).toHaveLength(8);
+    expect(customBudgetInput?.props["aria-label"]).toBe("Custom maximum monthly rent");
     expect(typeOptions).toHaveLength(8);
     const rerenderQuickFilters = () => {
       hooks.index = 0;
@@ -220,6 +224,10 @@ describe("RestoredFinderShell", () => {
     (budgetForm!.props.onSubmit as (event: typeof budgetEvent) => void)(budgetEvent);
     expect(budgetEvent.preventDefault).toHaveBeenCalledOnce();
     expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ maxPrice: 5000 }));
+    (customBudgetInput!.props.onChange as (event: { target: { value: string } }) => void)({ target: { value: "40000" } });
+    const customForm = findByType(findPopoverRoots(rerenderQuickFilters())[0].props.children, "form");
+    (customForm!.props.onSubmit as (event: typeof budgetEvent) => void)({ preventDefault: vi.fn() });
+    expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ maxPrice: 40000 }));
     (typeOptions[1].props.onChange as (event: { target: { checked: boolean } }) => void)({ target: { checked: true } });
     const typeApplyElement = findElementsByType(findPopoverRoots(rerenderQuickFilters())[1].props.children, Button).find((element) => element.props.children === "Apply types");
     expect(typeApplyElement).toBeDefined();
@@ -460,6 +468,34 @@ describe("RestoredFinderShell", () => {
   });
 
   const gallery: RentalResult = { ...rental, imageUrls: ["https://example.test/a.jpg", "https://example.test/b.jpg", "https://example.test/c.jpg"], verificationStatus: "property_verified", area: 18, maxOccupants: 2, description: "Full gallery description." };
+
+  it("auto-expands initial unmodified discovery radius when 2 km is empty, while keeping explicit 2 km strict", async () => {
+    const metroRental: RentalResult = { ...rental, id: "metro-1", title: "Mandaue condo", coordinates: [123.925, 10.335] }; // ~4.8 km from [123.8854, 10.3157]
+    await load({ ok: true, json: async () => ({ rentals: [metroRental] }) });
+    const initial = render();
+    expect(initial).toContain("Mandaue condo");
+    expect(initial).toContain("Search area: <b>5 km radius</b>");
+
+    const quickFiltersEl = findByType(captureShell(), QuickFilters)!;
+    (quickFiltersEl.props.onRadiusChange as (r: number) => void)(2);
+    const strictTwoKm = render();
+    expect(strictTwoKm).toContain("No rentals within 2 km");
+    expect(strictTwoKm).not.toContain("Mandaue condo");
+  });
+
+  it("renders consistent truthful verification pills on RentalCard and ExpandedRentalModalContent", () => {
+    const cases: Array<[string, string]> = [
+      ["property_verified", "Verified property"],
+      ["approved", "Verified property"],
+      ["pending", "Pending verification"],
+      ["unverified", "Unverified"],
+    ];
+    for (const [status, label] of cases) {
+      const sample = { ...rental, verificationStatus: status as RentalResult["verificationStatus"] };
+      expect(renderToStaticMarkup(<RentalCard rental={sample} selected={false} onSelect={vi.fn()} />)).toContain(label);
+      expect(renderToStaticMarkup(<ExpandedRentalModalContent rental={sample} photoIndex={0} onPhotoIndexChange={vi.fn()} canSave={false} saved={false} onToggleSaved={vi.fn()} />)).toContain(label);
+    }
+  });
 
   it("renders a View details button and photo count badge on multi-photo rental cards", () => {
     const html = renderToStaticMarkup(<RentalCard rental={gallery} selected={false} onSelect={vi.fn()} onExpand={vi.fn()} />);

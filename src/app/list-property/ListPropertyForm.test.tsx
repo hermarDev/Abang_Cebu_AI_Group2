@@ -39,7 +39,7 @@ vi.mock("./draft-retry-store", () => ({ BrowserDraftIntentRepository: class { as
 vi.mock("./draft-save-client", () => ({ executeDraftSave: hooks.save }));
 
 import { notify } from "@/components/ui/AppToaster";
-import { ListPropertyForm } from "./ListPropertyForm";
+import { ListPropertyForm, getRentOutlierWarning } from "./ListPropertyForm";
 
 type Element = ReactElement<Record<string, unknown>>;
 const fields: Record<string, string> = {};
@@ -273,5 +273,24 @@ describe("ListPropertyForm", () => {
     expect(select).toBeTruthy();
     expect(text(select)).toContain("Private (own bathroom / en-suite)");
     expect(text(select)).toContain("Shared (common bathroom / CR)");
+  });
+
+  it("shows non-blocking outlier rent confirmation by unit basis without blocking submission", async () => {
+    expect(getRentOutlierWarning("bedspace", "50000")).toContain("unusually high for a bedspace");
+    expect(getRentOutlierWarning("entire_place", "900")).toContain("unusually low for an entire place");
+    expect(getRentOutlierWarning("private_room", "8000")).toBeNull();
+
+    fields.rentalType = "bedspace";
+    fields.price = "50000";
+    (find((el) => el.props.name === "rentalType").props.onChange as (event: unknown) => void)({ target: { value: "bedspace" } });
+    (find((el) => el.props.name === "price").props.onChange as (event: unknown) => void)({ target: { value: "50000" } });
+    expect(text(render())).toContain("unusually high for a bedspace (per bed)");
+
+    hooks.save.mockResolvedValueOnce({ draftId: "draft-outlier", revision: 2 });
+    await reachReviewStep();
+    expect(text(render())).toContain("unusually high for a bedspace (per bed)");
+    (button("Submit listing for review").props.onClick as () => void)();
+    await settle();
+    expect(submissions).toHaveLength(1);
   });
 });

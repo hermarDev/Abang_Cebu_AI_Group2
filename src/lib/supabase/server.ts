@@ -9,8 +9,13 @@ import { createBoundedFetch } from "./fetch-timeout";
  */
 export async function createClient() {
   const cookieStore = await cookies();
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://placeholder.supabase.co";
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "placeholder-anon-key";
+  const envUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const envKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (process.env.NODE_ENV === "production" && process.env.NEXT_PHASE !== "phase-production-build" && (!envUrl || !envKey || envUrl.includes("placeholder.supabase.co"))) {
+    throw new Error("Supabase server configuration is missing.");
+  }
+  const supabaseUrl = envUrl || "https://placeholder.supabase.co";
+  const supabaseAnonKey = envKey || "placeholder-anon-key";
 
   return createServerClient(supabaseUrl, supabaseAnonKey, {
     global: { fetch: createBoundedFetch(6_000) },

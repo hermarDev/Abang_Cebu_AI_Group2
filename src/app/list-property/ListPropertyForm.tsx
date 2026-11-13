@@ -31,6 +31,27 @@ const unitTypesByPropertyType: Record<string, readonly string[]> = {
 const allUnitTypes = ["entire_place", "private_room", "shared_room", "bedspace"] as const;
 const unitTypeLabels: Record<string, string> = { entire_place: "Entire place", private_room: "Private room", shared_room: "Shared room", bedspace: "Bedspace" };
 
+export function getRentOutlierWarning(rentalType: string, rawPrice: string): string | null {
+  const trimmed = rawPrice.trim();
+  if (!trimmed) return null;
+  const amount = Number(trimmed);
+  if (!Number.isFinite(amount) || amount <= 0) return null;
+  const bounds: Record<string, { min: number; max: number; label: string }> = {
+    bedspace: { min: 500, max: 12_000, label: "a bedspace (per bed)" },
+    shared_room: { min: 800, max: 18_000, label: "a shared room" },
+    private_room: { min: 1_000, max: 35_000, label: "a private room" },
+    entire_place: { min: 2_500, max: 250_000, label: "an entire place" },
+  };
+  const rule = bounds[rentalType] ?? { min: 500, max: 250_000, label: "a rental unit" };
+  if (amount < rule.min) {
+    return `₱${amount.toLocaleString("en-PH")} is unusually low for ${rule.label}. Confirm this monthly rent is accurate before submitting.`;
+  }
+  if (amount > rule.max) {
+    return `₱${amount.toLocaleString("en-PH")} is unusually high for ${rule.label}. Confirm this monthly rent is accurate before submitting.`;
+  }
+  return null;
+}
+
 function getCityGuidance(city: string) {
   const norm = (city || "").trim().toLowerCase();
   if (norm.includes("mandaue")) {
@@ -150,6 +171,7 @@ export function ListPropertyForm({ userId, restoreTarget }: { userId: string; re
   const [rentalType, setRentalType] = useState("");
   const [drafts, setDrafts] = useState<Array<{ id: string; revision: unknown; payload: unknown }> | null>(null);
   const [draftError, setDraftError] = useState("");
+  const [priceValue, setPriceValue] = useState("");
 
   async function loadDrafts() {
     if (!userId) return;
@@ -194,6 +216,7 @@ export function ListPropertyForm({ userId, restoreTarget }: { userId: string; re
       form.querySelectorAll<HTMLInputElement>('input[name="amenities"]').forEach((input) => { input.checked = values.amenities.includes(input.value); });
       setPropertyType((values as unknown as Record<string, string>).propertyType ?? "");
       setRentalType((values as unknown as Record<string, string>).rentalType ?? "");
+      setPriceValue(values.price ?? "");
       setAddress(values.address);
       setCity(values.city || "Cebu City");
       setBedrooms(String(values.preserved?.unit?.bedrooms ?? ""));
@@ -260,6 +283,7 @@ export function ListPropertyForm({ userId, restoreTarget }: { userId: string; re
       }
       queueMicrotask(() => {
         setPropertyType(snapshot.propertyType);
+        setPriceValue(snapshot.price ?? "");
         setAddress(snapshot.address);
         setLocation(snapshot.location);
         setPermitNotRequiredConfirmed(snapshot.permitNotRequiredConfirmed);
@@ -682,6 +706,8 @@ export function ListPropertyForm({ userId, restoreTarget }: { userId: string; re
 
   const selectedAmenities = review?.amenities ?? [];
   const price = Number(review?.price ?? "");
+  const rentOutlierWarning = getRentOutlierWarning(rentalType || "entire_place", priceValue);
+  const reviewOutlierWarning = getRentOutlierWarning(review?.rentalType || rentalType || "entire_place", review?.price ?? "");
   const section = "grid gap-4 rounded-2xl border border-border bg-card p-4 shadow-xs sm:p-6";
   const input = "min-h-11 w-full rounded-lg border border-border bg-background px-3 text-sm font-normal text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring";
 
@@ -741,7 +767,8 @@ export function ListPropertyForm({ userId, restoreTarget }: { userId: string; re
           <legend className="px-1 text-sm font-semibold">First rental unit</legend>
           <p className="m-0 text-sm text-muted-foreground sm:col-span-2">Add the type and monthly rent for the first unit at this property.</p>
           <label className="grid gap-1.5 text-sm font-medium"><span>Unit type</span><select className={input} name="rentalType" value={rentalType} onChange={(e) => setRentalType(e.target.value)} required>{(unitTypesByPropertyType[propertyType] ?? allUnitTypes).map((value) => <option key={value} value={value}>{unitTypeLabels[value]}</option>)}<option value="" disabled>Select a unit type</option></select></label>
-          <label className="grid gap-1.5 text-sm font-medium"><span>Monthly rent (PHP)</span><div className="relative flex items-center"><span className="pointer-events-none absolute left-3 text-sm font-semibold text-muted-foreground" aria-hidden="true">₱</span><input className={clsx(input, "pl-7")} name="price" type="number" min="1" max="10000000" step="1" required placeholder="e.g. 12000" /></div></label>
+          <label className="grid gap-1.5 text-sm font-medium"><span>Monthly rent (PHP)</span><div className="relative flex items-center"><span className="pointer-events-none absolute left-3 text-sm font-semibold text-muted-foreground" aria-hidden="true">₱</span><input className={clsx(input, "pl-7")} name="price" type="number" min="1" max="10000000" step="1" required placeholder="e.g. 12000" onChange={(e) => setPriceValue(e.target.value)} /></div></label>
+          {rentOutlierWarning && <p role="status" className="m-0 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-900 dark:text-amber-200 sm:col-span-2">{rentOutlierWarning}</p>}
           <label className="grid gap-1.5 text-sm font-medium sm:col-span-2"><span>Tenant preference</span><select className={input} name="tenantPolicy" defaultValue="any"><option value="any">All / Anyone welcome</option><option value="female_only">Female only / Ladies only</option><option value="male_only">Male only</option><option value="mixed">Mixed / Co-ed</option></select></label>
           {rentalType === "entire_place" && (
             <div className="grid gap-4 border-t border-border/60 pt-2 sm:col-span-2 sm:grid-cols-2">
@@ -1066,7 +1093,7 @@ export function ListPropertyForm({ userId, restoreTarget }: { userId: string; re
         <div className="flex items-start gap-3"><span className="grid size-11 shrink-0 place-items-center rounded-xl bg-accent text-action"><Check size={19} aria-hidden="true" /></span><div><h2 id="listing-review-heading" className="m-0 text-lg font-semibold">Review your listing</h2><p className="mb-0 mt-1 text-sm text-muted-foreground">Check the details before sending your property for review.</p></div></div>
         <dl className="grid gap-3 sm:grid-cols-2">
           <div className="rounded-xl border border-border p-3"><div className="flex items-center justify-between gap-2"><dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Property</dt><button type="button" className="text-xs font-semibold text-action hover:underline" aria-label="Edit property details" onClick={() => jumpToStep(0)}>Edit</button></div><dd className="mb-0 mt-1 font-semibold">{review?.title || "Not provided"}</dd><dd className="mb-0 mt-1 text-sm text-muted-foreground">{propertyTypes.find(([value]) => value === review?.propertyType)?.[1] ?? "Type not selected"} · {({ entire_place: "Entire place", private_room: "Private room", shared_room: "Shared room", bedspace: "Bedspace" } as Record<string, string>)[review?.rentalType ?? ""] ?? "Unit type not selected"}</dd></div>
-          <div className="rounded-xl border border-border p-3"><dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Monthly rent</dt><dd className="mb-0 mt-1 font-semibold">{price > 0 ? `₱${price.toLocaleString("en-PH")}` : "Not provided"}</dd></div>
+          <div className="rounded-xl border border-border p-3"><dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Monthly rent</dt><dd className="mb-0 mt-1 font-semibold">{price > 0 ? `₱${price.toLocaleString("en-PH")}` : "Not provided"}</dd>{reviewOutlierWarning && <dd className="mb-0 mt-1 text-xs text-amber-800 dark:text-amber-300">{reviewOutlierWarning}</dd>}</div>
           <div className="rounded-xl border border-border p-3"><dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Tenant preference</dt><dd className="mb-0 mt-1 text-sm">{review?.tenantPolicy === "female_only" ? "Female only / Ladies only" : review?.tenantPolicy === "male_only" ? "Male only" : review?.tenantPolicy === "mixed" ? "Mixed / Co-ed" : "All / Anyone welcome"}</dd></div>
           <div className="rounded-xl border border-border p-3">
             <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
