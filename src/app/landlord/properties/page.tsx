@@ -7,7 +7,7 @@ import { MapPinned } from "lucide-react";
 import { AccountMenu } from "@/components/ui/AccountMenu";
 import { createClient } from "@/lib/supabase/server";
 import { signProfileAvatar } from "@/lib/profile-avatar";
-import { fetchLandlordManagedProperties } from "@/server/landlord-properties";
+import { fetchLandlordPortfolio } from "@/server/landlord-properties";
 import { LandlordWorkspaceLayout } from "../dashboard/LandlordWorkspaceLayout";
 import { LandlordPropertiesClient } from "./LandlordPropertiesClient";
 
@@ -32,17 +32,19 @@ export default async function LandlordPropertiesPage() {
 
   if (profileError || profile?.role !== "landlord" || profile.is_suspended) notFound();
 
-  const [avatarUrl, properties] = await Promise.all([
+  const [avatarUrl, portfolio] = await Promise.all([
     signProfileAvatar(user.id, profile.avatar_url),
-    fetchLandlordManagedProperties(supabase, user.id),
+    fetchLandlordPortfolio(supabase, user.id),
   ]);
 
   const displayName = profile.full_name?.trim() || "landlord";
+  const hasCoreError = portfolio.errors.listings || portfolio.errors.properties || portfolio.errors.drafts;
+  const propertiesCount = hasCoreError ? null : portfolio.items.length;
 
   return (
     <LandlordWorkspaceLayout
       userId={user.id}
-      propertiesCount={properties.length}
+      propertiesCount={propertiesCount}
       brand={
         <Link href="/landlord/dashboard" aria-label="AbangCebu landlord workspace" className="flex min-w-0 items-center gap-3">
           <BrandLogo className="h-auto w-24 sm:w-32" />
@@ -63,7 +65,11 @@ export default async function LandlordPropertiesPage() {
         </>
       }
     >
-      <LandlordPropertiesClient properties={properties} />
+      <LandlordPropertiesClient
+        properties={portfolio.items}
+        errors={portfolio.errors}
+        truncated={portfolio.truncated}
+      />
     </LandlordWorkspaceLayout>
   );
 }

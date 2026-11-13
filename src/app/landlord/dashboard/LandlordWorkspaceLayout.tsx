@@ -140,7 +140,7 @@ export function LandlordWorkspaceLayout({ brand, actions, children, userId = nul
         </div>
       </aside>
 
-      <div className="min-w-0 space-y-5 sm:space-y-6 pb-20 pb-[calc(5rem+env(safe-area-inset-bottom))] lg:pb-0">{children}</div>
+      <div className="min-w-0 space-y-5 sm:space-y-6">{children}</div>
     </div>
 
     <LandlordMobileNav userId={userId} unreadCount={unreadCount} />
