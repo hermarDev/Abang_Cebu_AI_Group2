@@ -42,11 +42,38 @@ describe("password reset PKCE callback", () => {
     expect(createServerClient).not.toHaveBeenCalled();
   });
 
+  it.each(["invalid", "expired", "exception"])("uses canonical origin for %s recovery errors", async (failure) => {
+    vi.stubEnv("NEXT_PUBLIC_SITE_URL", "https://recovery.example");
+    if (failure === "expired") exchangeCodeForSession.mockResolvedValue({ data: { user: null }, error: { message: "expired" } });
+    if (failure === "exception") exchangeCodeForSession.mockRejectedValue(new Error("network unavailable"));
+    const query = failure === "invalid" ? "?type=recovery" : "?code=one-time-code&type=recovery";
+    const response = await GET(new Request(`https://attacker.example/auth/reset-password/callback${query}`));
+    expect(new URL(response.headers.get("location")!).origin).toBe("https://recovery.example");
+    expect(response.headers.get("cache-control")).toBe("no-store");
+    expect(response.headers.get("referrer-policy")).toBe("no-referrer");
+  });
+
   it("rejects a callback without a canonical origin", async () => {
     vi.stubEnv("NEXT_PUBLIC_SITE_URL", "");
     const response = await GET(request("?code=one-time-code&type=recovery&next=%2Freset-password"));
     expect(response.status).toBe(503);
     expect(createServerClient).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ["", "public-anon-key"],
+    ["https://placeholder.supabase.co", "public-anon-key"],
+    ["https://project.supabase.co", ""],
+    ["https://project.supabase.co", "placeholder-anon-key"],
+  ])("fails closed in production when provider configuration is missing or a placeholder", async (url, key) => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("NEXT_PUBLIC_SITE_URL", "https://example.com");
+    vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", url);
+    vi.stubEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY", key);
+    const response = await GET(request("?code=one-time-code&type=recovery&next=%2Freset-password"));
+    expect(response.status).toBe(503);
+    expect(createServerClient).not.toHaveBeenCalled();
+    expect(exchangeCodeForSession).not.toHaveBeenCalled();
   });
 
   it("exchanges a recovery code, persists Supabase cookies, and sets short-lived HttpOnly marker", async () => {
@@ -59,6 +86,16 @@ describe("password reset PKCE callback", () => {
     const cookies = response.headers.getSetCookie();
     expect(cookies.some((cookie) => cookie.includes("sb-access-token=session"))).toBe(true);
     expect(cookies.some((cookie) => cookie.includes("abangcebu-password-reset=1") && cookie.includes("HttpOnly"))).toBe(true);
+  });
+
+  it("sets a secure recovery cookie when canonical HTTPS terminates at a proxy", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("NEXT_PUBLIC_SITE_URL", "https://recovery.example");
+    const response = await GET(request("?code=one-time-code&type=recovery&next=%2Freset-password"));
+    const marker = response.headers.getSetCookie().find(cookie => cookie.startsWith("abangcebu-password-reset=1"));
+    expect(marker).toContain("Secure");
+    expect(marker).toContain("HttpOnly");
+    expect(response.headers.get("location")).toBe("https://recovery.example/reset-password");
   });
 
   it("rejects unsafe redirects before exchanging the code", async () => {

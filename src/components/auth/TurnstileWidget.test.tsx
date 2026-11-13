@@ -46,7 +46,7 @@ let api: { render: ReturnType<typeof vi.fn>; reset: ReturnType<typeof vi.fn>; re
 let script: EventTarget & { src?: string; async?: boolean };
 let append: ReturnType<typeof vi.fn>;
 let Widget: typeof import("./TurnstileWidget").TurnstileWidget;
-let onTokenChange: ReturnType<typeof vi.fn>;
+let onTokenChange: ReturnType<typeof vi.fn<(token: string) => void>>;
 
 function render(resetKey = 0, action: "signup" | "login" | "recovery" = "signup", callback = onTokenChange) {
   hooks.cursor = 0;

@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Compass, LayoutDashboard } from "lucide-react";
+import { Compass } from "lucide-react";
 
 export default function NotFound() {
   return (
@@ -46,13 +46,6 @@ export default function NotFound() {
           >
             <Compass size={18} aria-hidden="true" />
             <span>Explore Map</span>
-          </Link>
-          <Link
-            href="/admin/dashboard"
-            className="w-full sm:w-auto inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-border bg-card px-5 py-2.5 text-sm font-medium text-foreground shadow-xs hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring transition-colors"
-          >
-            <LayoutDashboard size={18} aria-hidden="true" />
-            <span>Dashboard</span>
           </Link>
         </div>
       </div>

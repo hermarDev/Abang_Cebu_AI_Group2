@@ -1,27 +1,35 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { isSafeRedirectUrl } from "@/types/auth";
+import { getSiteOrigin } from "@/server/site-origin";
+import { PASSWORD_RESET_FORM_PATH, PASSWORD_RESET_RECOVERY_COOKIE } from "@/lib/auth/password-reset";
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
-  const configuredSite = process.env.NEXT_PUBLIC_SITE_URL?.trim();
-  let origin = url.origin;
-  if (configuredSite) {
-    try {
-      origin = new URL(configuredSite).origin;
-    } catch {
-      // Fall back to request origin only when env URL is malformed.
-    }
+  let origin: string;
+  try {
+    origin = getSiteOrigin();
+  } catch {
+    return NextResponse.json(
+      { success: false, error: { code: "AUTH_CALLBACK_UNAVAILABLE", message: "Authentication is temporarily unavailable." } },
+      { status: 503, headers: { "Cache-Control": "no-store" } },
+    );
   }
+  const redirect = (target: string) => {
+    const response = NextResponse.redirect(new URL(target, origin));
+    response.headers.set("Cache-Control", "no-store");
+    response.headers.set("Referrer-Policy", "no-referrer");
+    return response;
+  };
   const code = url.searchParams.get("code");
   const type = url.searchParams.get("type");
-  const next = url.searchParams.get("next") || "/";
+  const next = url.searchParams.get("next") || (type === "recovery" ? PASSWORD_RESET_FORM_PATH : "/");
 
   if (!code) {
-    return NextResponse.redirect(new URL("/login?error=invalid_auth_link", origin));
+    return redirect("/login?error=invalid_auth_link");
   }
-  if (type === "recovery" && !isSafeRedirectUrl(next)) {
-    return NextResponse.redirect(new URL("/login?error=invalid_recovery_link", origin));
+  if (type === "recovery" && (!isSafeRedirectUrl(next) || next !== PASSWORD_RESET_FORM_PATH)) {
+    return redirect("/login?error=invalid_recovery_link");
   }
 
   try {
@@ -29,11 +37,17 @@ export async function GET(request: Request) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (error) {
       const target = type === "recovery" ? "/login?error=expired_recovery_link" : "/login?error=expired_auth_link";
-      return NextResponse.redirect(new URL(target, origin));
+      return redirect(target);
     }
-    return NextResponse.redirect(new URL(type === "recovery" ? next : isSafeRedirectUrl(next) ? next : "/", origin));
+    const response = redirect(type === "recovery" ? next : isSafeRedirectUrl(next) ? next : "/");
+    if (type === "recovery") {
+      response.cookies.set(PASSWORD_RESET_RECOVERY_COOKIE, "1", {
+        httpOnly: true, secure: new URL(origin).protocol === "https:", sameSite: "lax", path: "/", maxAge: 10 * 60,
+      });
+    }
+    return response;
   } catch {
     const target = type === "recovery" ? "/login?error=expired_recovery_link" : "/login?error=auth_callback_failed";
-    return NextResponse.redirect(new URL(target, origin));
+    return redirect(target);
   }
 }
