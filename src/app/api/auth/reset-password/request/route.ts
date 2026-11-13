@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { PASSWORD_RESET_CALLBACK_PATH } from "@/lib/auth/password-reset";
 import { validateResetRequest } from "@/lib/auth/password-reset-validation";
 import { getClientIp } from "@/server/rate-limit";
+import { getSiteOrigin } from "@/server/site-origin";
 
 const genericSuccess = {
   success: true,
@@ -89,17 +90,9 @@ export async function POST(request: Request) {
     );
   }
 
-  let configuredSite: URL;
+  let configuredSite: string;
   try {
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
-    if (!siteUrl) throw new Error("NEXT_PUBLIC_SITE_URL is required");
-    configuredSite = new URL(siteUrl);
-    if (configuredSite.username || configuredSite.password || configuredSite.search || configuredSite.hash || configuredSite.pathname !== "/") {
-      throw new Error("NEXT_PUBLIC_SITE_URL must be an origin only");
-    }
-    if (configuredSite.protocol !== "https:" && process.env.NODE_ENV === "production") {
-      throw new Error("Production site URL must use HTTPS");
-    }
+    configuredSite = getSiteOrigin();
   } catch {
     return NextResponse.json(
       { success: false, error: { code: "AUTH_PASSWORD_RESET_UNAVAILABLE", message: "Password recovery is temporarily unavailable." } },
@@ -108,7 +101,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const recoveryUrl = new URL(PASSWORD_RESET_CALLBACK_PATH, configuredSite.origin);
+    const recoveryUrl = new URL(PASSWORD_RESET_CALLBACK_PATH, configuredSite);
     recoveryUrl.searchParams.set("type", "recovery");
     recoveryUrl.searchParams.set("next", "/reset-password");
 

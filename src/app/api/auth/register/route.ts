@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { validateRegistration } from "@/lib/auth/validation";
 import { getClientIp } from "@/server/rate-limit";
+import { getSiteOrigin } from "@/server/site-origin";
 import { mapSupabaseAuthError } from "@/lib/auth/auth-error";
 import type { RegisterSuccessResponse } from "@/types/auth";
 
@@ -65,10 +66,14 @@ export async function POST(request: Request) {
       { status: 429, headers: { "Retry-After": "900", "Cache-Control": "no-store" } },
     );
   }
+  let origin: string;
+  try {
+    origin = getSiteOrigin();
+  } catch {
+    return NextResponse.json({ success: false, error: { code: "REGISTRATION_UNAVAILABLE", message: "Registration is temporarily unavailable." } }, { status: 503, headers: { "Cache-Control": "no-store" } });
+  }
   try {
     const supabase = await createClient();
-    const configuredSite = process.env.NEXT_PUBLIC_SITE_URL?.trim();
-    const origin = configuredSite ? new URL(configuredSite).origin : new URL(request.url).origin;
     const { data, error } = await supabase.auth.signUp({
       email,
       password,

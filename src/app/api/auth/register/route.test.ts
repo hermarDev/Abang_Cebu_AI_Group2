@@ -17,6 +17,7 @@ afterEach(() => { vi.unstubAllEnvs(); vi.unstubAllGlobals(); });
 
 describe("registration route", () => {
   beforeEach(async () => {
+    vi.stubEnv("NEXT_PUBLIC_SITE_URL", "http://localhost");
     vi.resetModules();
     ({ POST } = await import("./route"));
   });
@@ -79,6 +80,25 @@ describe("registration route", () => {
     expect(response.status).toBe(422);
     expect(signUp).not.toHaveBeenCalled();
   });
+  it("uses the canonical origin instead of the request host", async () => {
+    vi.stubEnv("NEXT_PUBLIC_SITE_URL", "https://recovery.example");
+    signUp.mockReset().mockResolvedValue({ data: { user: { id: "u1" } }, error: null });
+    const response = await POST(new Request("https://attacker.example/api/auth/register", {
+      method: "POST", headers: { "content-type": "application/json", "x-real-ip": "198.51.100.81" }, body: JSON.stringify(goodPayload),
+    }));
+    expect(response.status).toBe(201);
+    expect(signUp).toHaveBeenCalledWith(expect.objectContaining({ options: expect.objectContaining({ emailRedirectTo: "https://recovery.example/auth/callback?next=/" }) }));
+  });
+
+  it.each(["", "not a url", "http://example.com", "https://user:pass@example.com", "https://example.com/path", "https://example.com/?x=1", "https://example.com/#fragment"])("rejects invalid production origin %s before contacting Supabase", async (siteUrl) => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("NEXT_PUBLIC_SITE_URL", siteUrl);
+    signUp.mockReset().mockResolvedValue({ data: { user: { id: "u1" } }, error: null });
+    const response = await POST(request(goodPayload, "198.51.100.82"));
+    expect(response.status).toBe(503);
+    expect(signUp).not.toHaveBeenCalled();
+  });
+
   it("creates an allow-listed registration and returns a verification response", async () => {
     vi.stubEnv("NEXT_PUBLIC_SITE_URL", "https://abangcebu.tech");
     signUp.mockReset().mockResolvedValue({ data: { user: { id: "u1", email: "mika@example.com", created_at: "2026-10-15T00:00:00Z", email_confirmed_at: null } }, error: null });
