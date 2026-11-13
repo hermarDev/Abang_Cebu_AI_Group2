@@ -102,7 +102,7 @@ BEGIN
     ADD CONSTRAINT admin_audit_logs_action_type_check CHECK (action_type IN (
       'property_approved', 'property_rejected', 'property_unpublished', 'property_restored',
       'account_suspended', 'account_reinstated', 'report_resolved', 'report_dismissed',
-      'report_evidence_viewed', 'support_ticket_updated'
+      'report_evidence_viewed', 'property_location_corrected', 'support_ticket_updated'
     )),
     ADD CONSTRAINT admin_audit_logs_target_type_check CHECK (target_type IN (
       'property', 'listing', 'account', 'report', 'support_ticket'
