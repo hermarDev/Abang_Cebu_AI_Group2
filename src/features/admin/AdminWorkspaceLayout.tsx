@@ -4,7 +4,7 @@ import { useState, type ReactNode } from "react";
 import Link from "next/link";
 import { BrandLogo } from "@/components/brand";
 import { usePathname } from "next/navigation";
-import { Bell, ChevronLeft, ChevronRight, ClipboardCheck, Ellipsis, Flag, LayoutDashboard, ScrollText, UserRound, Users } from "lucide-react";
+import { Bell, ChevronLeft, ChevronRight, CircleHelp, ClipboardCheck, Ellipsis, Flag, Headset, LayoutDashboard, ScrollText, UserRound, Users } from "lucide-react";
 import { AccountMenu } from "@/components/ui/AccountMenu";
 import { LogoutLink } from "@/components/ui/LogoutLink";
 import { Modal } from "@/components/ui/Modal";
@@ -18,8 +18,10 @@ const linkGroups = [
     { href: "/admin/reviews", label: "Listing reviews", Icon: ClipboardCheck },
     { href: "/admin/accounts", label: "Accounts", Icon: Users },
     { href: "/admin/reports", label: "Reports", Icon: Flag },
+    { href: "/admin/support", label: "Support tickets", Icon: Headset },
     { href: "/admin/audit", label: "Audit log", Icon: ScrollText },
   ] },
+  { label: "Support", links: [{ href: "/help", label: "Help Center", Icon: CircleHelp }] },
   { label: "Account", links: [{ href: "/account", label: "Account settings", Icon: UserRound }] },
 ];
 
@@ -64,7 +66,9 @@ function AdminMobileNav({ pathname }: { pathname: string }) {
         <Bell size={19} aria-hidden="true" />
         Notifications
       </button>
+      <Link href="/admin/support" onClick={() => setOpen(false)} className={`flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium hover:bg-muted ${focusRing}`}><Headset size={19} aria-hidden="true" />Support tickets</Link>
       <Link href="/admin/audit" onClick={() => setOpen(false)} className={`flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium hover:bg-muted ${focusRing}`}><ScrollText size={19} aria-hidden="true" />Audit log</Link>
+      <Link href="/help" onClick={() => setOpen(false)} className={`flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium hover:bg-muted ${focusRing}`}><CircleHelp size={19} aria-hidden="true" />Help Center</Link>
       <Link href="/account" onClick={() => setOpen(false)} className={`flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium hover:bg-muted ${focusRing}`}><UserRound size={19} aria-hidden="true" />Account settings</Link>
       <div className="my-3"><ThemeControls expanded /></div>
       <div className="my-2 h-px bg-border/80" role="separator" />

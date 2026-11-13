@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import { BrandLogo } from "@/components/brand";
 import {
@@ -55,7 +54,6 @@ export function FinderNavigation({
   displayName = null,
   avatarUrl = null,
 }: FinderNavigationProps) {
-  const [faqOpen, setFaqOpen] = useState(false);
   const { unreadCount: polledUnread } = useUnreadMessageCount(
     userId,
     Boolean(authenticated && userId && userRole === "renter" && unreadMessageCount === undefined)
@@ -184,28 +182,14 @@ export function FinderNavigation({
           {/* 4. SUPPORT */}
           <section className={styles.section} aria-label="Support">
             <p className={sectionHeaderClass}>Support</p>
-            <button
-              type="button"
-              className={styles.navItem}
-              aria-expanded={faqOpen}
-              aria-controls="finder-faq"
-              onClick={() => setFaqOpen((value) => !value)}
-            >
+            <Link href="/help" className={styles.navItem} onClick={onClose}>
               <CircleHelp aria-hidden="true" />
-              <span>Help &amp; FAQ</span>
-            </button>
-            {faqOpen && (
-              <div id="finder-faq" className={styles.faq}>
-                <h3>How do I find a rental?</h3>
-                <p>Use Budget, Property type, or Filters to narrow your search.</p>
-                <h3>Need more help?</h3>
-                <p>Use the map search and filters to narrow your options, or contact support.</p>
-              </div>
-            )}
-            <a href="mailto:support@abangcebu.ai" className={styles.navItem}>
+              <span>Help Center</span>
+            </Link>
+            <Link href="/support" className={styles.navItem} onClick={onClose}>
               <Headset aria-hidden="true" />
               <span>Contact support</span>
-            </a>
+            </Link>
           </section>
         </nav>
 

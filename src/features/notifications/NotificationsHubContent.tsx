@@ -8,6 +8,7 @@ import {
   Bell,
   CheckCheck,
   Flag,
+  Headset,
   Home,
   MessageSquare,
   RefreshCw,
@@ -38,7 +39,7 @@ const PAGE_SIZE = 20;
 const TAB_TYPES: Record<Exclude<NotificationTab, "all" | "unread">, string[]> = {
   messages: ["message", "inquiry"],
   listings: ["listing_update", "listing_review", "listing_pending"],
-  system: ["report", "security"],
+  system: ["report", "security", "support"],
 };
 
 function getNotificationIcon(type: NotificationType) {
@@ -54,6 +55,8 @@ function getNotificationIcon(type: NotificationType) {
       return <Flag size={18} className="text-destructive" aria-hidden="true" />;
     case "security":
       return <ShieldCheck size={18} className="text-action" aria-hidden="true" />;
+    case "support":
+      return <Headset size={18} className="text-action" aria-hidden="true" />;
     default:
       return <Bell size={18} className="text-foreground" aria-hidden="true" />;
   }

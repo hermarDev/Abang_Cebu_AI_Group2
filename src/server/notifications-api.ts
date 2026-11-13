@@ -40,6 +40,7 @@ export const NOTIFICATION_TYPES = [
   "listing_pending",
   "report",
   "security",
+  "support",
 ] as const;
 
 export type NotificationTypeFilter = (typeof NOTIFICATION_TYPES)[number];
@@ -117,7 +118,7 @@ export async function fetchNotifications(
           .from("notifications")
           .select("*", { count: "exact", head: true })
           .eq("recipient_id", userId)
-          .in("type", ["report", "security"]),
+          .in("type", ["report", "security", "support"]),
       }
     : null;
 

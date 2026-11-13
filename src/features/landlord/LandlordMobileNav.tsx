@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bell, Building2, Ellipsis, Headset, HousePlus, LayoutDashboard, MapPinned, MessageSquare, UserRound } from "lucide-react";
+import { Bell, Building2, CircleHelp, Ellipsis, Headset, HousePlus, LayoutDashboard, MapPinned, MessageSquare, UserRound } from "lucide-react";
 import { LogoutLink } from "@/components/ui/LogoutLink";
 import { Modal } from "@/components/ui/Modal";
 import { AppearanceControls } from "@/features/map/AppearanceControls";
@@ -61,7 +61,8 @@ export function LandlordMobileNav({ userId = null, unreadCount: providedUnread, 
       </Link>
       <Link href="/landlord/map" onClick={() => setOpen(false)} className="flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"><MapPinned size={19} aria-hidden="true" />Property map</Link>
       <Link href="/landlord/messages" onClick={() => setOpen(false)} className="flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"><MessageSquare size={19} aria-hidden="true" />Messages{unreadCount > 0 && <span aria-label={`${unreadCount} unread messages`} className="ml-auto rounded-full bg-action px-1.5 text-xs font-bold leading-5 text-action-foreground">{unreadCount > 99 ? "99+" : unreadCount}</span>}</Link>
-      <a href="mailto:support@abangcebu.ai" onClick={() => setOpen(false)} className="flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"><Headset size={19} aria-hidden="true" />Contact support</a>
+      <Link href="/help" onClick={() => setOpen(false)} className="flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"><CircleHelp size={19} aria-hidden="true" />Help Center</Link>
+      <Link href="/support" onClick={() => setOpen(false)} className="flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"><Headset size={19} aria-hidden="true" />Contact support</Link>
       <div className="my-2 h-px bg-border/80" role="separator" />
       <LogoutLink onClick={() => setOpen(false)} iconSize={19} className="flex w-full gap-3" />
     </Modal>

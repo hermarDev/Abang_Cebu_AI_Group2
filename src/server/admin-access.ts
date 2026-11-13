@@ -9,6 +9,7 @@ const limiterOptions = { windowMs: 5 * 60_000, maxPerIp: 60, maxPerActor: 60 };
 export const adminLifecycleLimiter = createRateLimiter(limiterOptions);
 export const adminAccountsLimiter = createRateLimiter(limiterOptions);
 export const adminReportsLimiter = createRateLimiter(limiterOptions);
+export const adminSupportLimiter = createRateLimiter(limiterOptions);
 
 export async function requireActiveAdmin(request: Request) {
   const supabase = await createClient();
@@ -35,6 +36,8 @@ export type KnownAdminRpc =
   | "admin_list_abuse_reports"
   | "admin_get_abuse_report_detail"
   | "admin_resolve_abuse_report"
+  | "admin_list_support_tickets"
+  | "admin_update_support_ticket"
   | "review_property";
 
 // Safely typed RPC call with client interface validation; a rejected call becomes an error result.

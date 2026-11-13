@@ -7,6 +7,7 @@ import {
   Bell,
   CheckCheck,
   Flag,
+  Headset,
   Home,
   MessageSquare,
   ShieldCheck,
@@ -48,6 +49,8 @@ function getNotificationIcon(type: NotificationType) {
       return <Flag size={18} className="text-destructive" aria-hidden="true" />;
     case "security":
       return <ShieldCheck size={18} className="text-action" aria-hidden="true" />;
+    case "support":
+      return <Headset size={18} className="text-action" aria-hidden="true" />;
     default:
       return <Bell size={18} className="text-foreground" aria-hidden="true" />;
   }
