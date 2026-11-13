@@ -31,6 +31,16 @@ describe("auth callback route", () => {
     expect(exchangeCodeForSession).not.toHaveBeenCalled();
   });
 
+  it.each(["missing", "unsafe", "rejected", "thrown", "success"])("prevents caching and referrer leakage for %s callback", async (outcome) => {
+    if (outcome === "rejected") exchangeCodeForSession.mockResolvedValue({ error: { message: "expired" } });
+    if (outcome === "thrown") exchangeCodeForSession.mockRejectedValue(new Error("offline"));
+    const query = outcome === "missing" ? "?type=recovery" : outcome === "unsafe" ? "?code=x&type=recovery&next=%2F%2Fevil.example" : "?code=x&type=recovery&next=%2Freset-password";
+    const response = await GET(request(query));
+    expect(response.headers.get("cache-control")).toBe("no-store");
+    expect(response.headers.get("referrer-policy")).toBe("no-referrer");
+    if (outcome !== "success") expect(response.headers.getSetCookie().some(cookie => cookie.startsWith("abangcebu-password-reset=1"))).toBe(false);
+  });
+
   it("requires a PKCE code", async () => {
     const response = await GET(request("?type=recovery"));
     expect(response.status).toBe(307);
