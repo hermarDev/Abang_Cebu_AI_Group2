@@ -42,6 +42,17 @@ describe("password reset PKCE callback", () => {
     expect(createServerClient).not.toHaveBeenCalled();
   });
 
+  it.each(["invalid", "expired", "exception"])("uses canonical origin for %s recovery errors", async (failure) => {
+    vi.stubEnv("NEXT_PUBLIC_SITE_URL", "https://recovery.example");
+    if (failure === "expired") exchangeCodeForSession.mockResolvedValue({ data: { user: null }, error: { message: "expired" } });
+    if (failure === "exception") exchangeCodeForSession.mockRejectedValue(new Error("network unavailable"));
+    const query = failure === "invalid" ? "?type=recovery" : "?code=one-time-code&type=recovery";
+    const response = await GET(new Request(`https://attacker.example/auth/reset-password/callback${query}`));
+    expect(new URL(response.headers.get("location")!).origin).toBe("https://recovery.example");
+    expect(response.headers.get("cache-control")).toBe("no-store");
+    expect(response.headers.get("referrer-policy")).toBe("no-referrer");
+  });
+
   it("rejects a callback without a canonical origin", async () => {
     vi.stubEnv("NEXT_PUBLIC_SITE_URL", "");
     const response = await GET(request("?code=one-time-code&type=recovery&next=%2Freset-password"));
