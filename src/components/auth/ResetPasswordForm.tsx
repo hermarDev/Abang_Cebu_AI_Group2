@@ -30,21 +30,33 @@ export function ResetPasswordForm({ isRecovery = false, onBackToLogin, embedded 
   const [isError, setIsError] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState("");
   const [turnstileResetKey, setTurnstileResetKey] = useState(0);
+  const [emailError, setEmailError] = useState<string | null>(null);
+  const [emailSubmitted, setEmailSubmitted] = useState(false);
+  const validateEmail = (value: string) => !value.trim() ? "Enter your email address." : !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim()) ? "Enter a valid email address." : null;
   const requestSent = !isRecovery && !!message && !isError;
   const passwordsMatch = !!newPassword && !!confirmPassword && newPassword === confirmPassword;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const form = e.currentTarget as HTMLFormElement;
+    const form = e.currentTarget as HTMLFormElement | undefined;
     if (loading) return;
     setMessage(null);
     setIsError(false);
     setPasswordMismatch(false);
     setPasswordError(null);
+    if (!isRecovery) {
+      setEmailSubmitted(true);
+      const nextEmailError = validateEmail(email);
+      setEmailError(nextEmailError);
+      if (nextEmailError) {
+        (form?.querySelector?.<HTMLInputElement>('[name="email"]') ?? form?.querySelector?.<HTMLInputElement>('[type="email"]'))?.focus?.();
+        return;
+      }
+    }
     if (isRecovery && newPassword !== confirmPassword) {
       setMismatchChecked(true);
       setPasswordMismatch(true);
-      (e.currentTarget as HTMLFormElement).querySelector<HTMLInputElement>('[name="confirmPassword"]')?.focus();
+      form?.querySelector?.<HTMLInputElement>('[name="confirmPassword"]')?.focus();
       return;
     }
     setLoading(true);
@@ -60,7 +72,7 @@ export function ResetPasswordForm({ isRecovery = false, onBackToLogin, embedded 
       if (!res.ok || !data?.success) {
         if (isRecovery && data?.error?.code === "WEAK_PASSWORD") {
           setPasswordError("Choose a stronger password.");
-          form.querySelector<HTMLInputElement>('[name="newPassword"]')?.focus();
+          form?.querySelector<HTMLInputElement>('[name="newPassword"]')?.focus();
           return;
         }
         setIsError(true);
@@ -141,7 +153,7 @@ export function ResetPasswordForm({ isRecovery = false, onBackToLogin, embedded 
             </div>
           </div>
         )}
-        {!requestSent && <form onSubmit={handleSubmit} className="space-y-4">
+        {!requestSent && <form onSubmit={handleSubmit} className="space-y-4" noValidate>
           {isRecovery ? (
             <>
               <div>
@@ -209,13 +221,17 @@ export function ResetPasswordForm({ isRecovery = false, onBackToLogin, embedded 
               <Input
                 className="pl-10 border-input bg-card text-foreground placeholder:text-muted-foreground focus-visible:outline-ring"
                 id={emailId}
+                name="email"
                 type="email"
                 autoComplete="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                aria-invalid={Boolean(emailError)}
+                aria-describedby={emailError ? `${emailId}-error` : undefined}
+                onChange={(e) => { const value = e.target.value; setEmail(value); if (emailSubmitted) setEmailError(validateEmail(value)); }}
                 required
               />
               </div>
+              {emailError && <p id={`${emailId}-error`} role="alert" className="mt-1 text-sm text-destructive">{emailError}</p>}
             </div>
           )}
 

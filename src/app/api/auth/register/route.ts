@@ -67,7 +67,8 @@ export async function POST(request: Request) {
   }
   try {
     const supabase = await createClient();
-    const origin = new URL(request.url).origin;
+    const configuredSite = process.env.NEXT_PUBLIC_SITE_URL?.trim();
+    const origin = configuredSite ? new URL(configuredSite).origin : new URL(request.url).origin;
     const { data, error } = await supabase.auth.signUp({
       email,
       password,

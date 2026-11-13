@@ -35,7 +35,7 @@ export function sanitizeIp(raw: string | null | undefined): string | null {
 }
 
 export function getClientIp(request: Request): string | null {
-  const cf = sanitizeIp(request.headers.get("cf-connecting-ip"));
+  const cf = process.env.TRUST_CLOUDFLARE_IP === "true" ? sanitizeIp(request.headers.get("cf-connecting-ip")) : null;
   const real = sanitizeIp(request.headers.get("x-real-ip"));
   const fwdRaw = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
   const fwd = sanitizeIp(fwdRaw);

@@ -1,92 +1,54 @@
-import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { favoritesLimiter } from "@/server/api-limiters";
+import { PUBLIC_SUBMITTED_STATUSES, signSubmittedPhotos } from "@/server/rentals/public-rentals";
+import { mapSubmittedRental } from "@/server/rentals/map-listing";
 
 const noStoreHeaders = { "Cache-Control": "no-store" };
 const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-const STORAGE_PATH_REGEX = /^[0-9a-f-]{36}\/[0-9a-f-]{36}\/[0-9a-f-]{36}\/[0-9a-f]{64}\.(jpg|png|webp)$/i;
 
-type SubmittedRentalRow = {
-  id: string;
-  title?: string;
-  description?: string | null;
-  price?: number | string;
-  property_type?: string;
-  address?: string;
-  city?: string;
-  moderation_status?: string;
-  photo_paths?: string[];
-};
+type SavedFavorite = { id: string; savedAt: string; title: string; description: string; price: number; propertyType: string; address: string; city: string; imageUrls: string[]; isAvailable: boolean };
+const unavailableFavorite = (listingId: string, savedAt: string): SavedFavorite => ({ id: listingId, savedAt, title: "Unavailable rental", description: "", price: 0, propertyType: "", address: "", city: "", imageUrls: [], isAvailable: false });
 
-type RpcClient = {
-  rpc?: (fn: string) => Promise<{ data: unknown; error: { message?: string } | null }>;
-};
-
+// Batch-load and normalize submitted rentals through the same mapper the finder
+// uses, so saved pending/approved properties and propertyType match everywhere.
 async function loadSubmittedRentalsMap(
   supabase: unknown,
   targetIds: Set<string>,
-): Promise<Map<string, SubmittedRentalRow & { signedImageUrls: string[] }>> {
-  const result = new Map<string, SubmittedRentalRow & { signedImageUrls: string[] }>();
+): Promise<Map<string, Omit<SavedFavorite, "savedAt">>> {
+  const result = new Map<string, Omit<SavedFavorite, "savedAt">>();
   if (targetIds.size === 0) return result;
-  const rpc = (supabase as RpcClient).rpc;
+  const rpc = (supabase as { rpc?: (fn: string) => Promise<{ data: unknown; error: unknown }> }).rpc;
   if (typeof rpc !== "function") return result;
-
   try {
     const { data, error } = await rpc.call(supabase, "get_public_submitted_rentals");
     if (error || !Array.isArray(data)) return result;
-
-    const matched = (data as SubmittedRentalRow[]).filter(
-      (row) =>
-        row &&
-        typeof row.id === "string" &&
-        (row.moderation_status === "approved" || row.moderation_status === "pending") &&
-        targetIds.has(row.id),
-    );
+    const matched = (data as unknown[]).filter((row) => {
+      const r = row as { id?: unknown; moderation_status?: unknown } | null;
+      return r && typeof r.id === "string" && targetIds.has(r.id) && typeof r.moderation_status === "string" && (PUBLIC_SUBMITTED_STATUSES as readonly string[]).includes(r.moderation_status);
+    });
     if (matched.length === 0) return result;
-
-    const allPaths = Array.from(
-      new Set(
-        matched.flatMap((row) =>
-          Array.isArray(row.photo_paths)
-            ? row.photo_paths.filter((p): p is string => typeof p === "string" && STORAGE_PATH_REGEX.test(p))
-            : [],
-        ),
-      ),
-    );
-
-    const signedByPath = new Map<string, string>();
-    if (allPaths.length > 0) {
+    const signed = await signSubmittedPhotos(matched);
+    for (const row of matched) {
       try {
-        const admin = createAdminClient();
-        const { data: signed } = await admin.storage.from("property-draft-media").createSignedUrls(allPaths, 3600);
-        for (const entry of signed ?? []) {
-          if (entry?.path && entry.signedUrl && /^https?:\/\//i.test(entry.signedUrl)) {
-            signedByPath.set(entry.path, entry.signedUrl);
-          }
-        }
+        const rental = mapSubmittedRental(row, signed);
+        result.set(rental.id, {
+          id: rental.id,
+          title: rental.title,
+          description: rental.description,
+          price: rental.price,
+          propertyType: rental.propertyType ?? rental.type,
+          address: rental.address ?? "",
+          city: rental.locality,
+          imageUrls: rental.imageUrls ?? [],
+          isAvailable: true,
+        });
       } catch {
-        // Degrade gracefully to empty photos if signing fails
+        // Skip malformed rows; caller falls back to unavailable placeholder.
       }
     }
-
-    for (const row of matched) {
-      const seenLeaf = new Set<string>();
-      const signedImageUrls = (row.photo_paths ?? [])
-        .filter((p): p is string => typeof p === "string")
-        .filter((p) => {
-          const leaf = p.split("/").pop()?.toLowerCase() ?? p;
-          if (seenLeaf.has(leaf)) return false;
-          seenLeaf.add(leaf);
-          return true;
-        })
-        .map((p) => signedByPath.get(p))
-        .filter((url): url is string => Boolean(url));
-      result.set(row.id, { ...row, signedImageUrls });
-    }
   } catch {
-    // Ignore RPC failure and fall back to unavailable placeholder
+    // Ignore RPC failure and fall back to unavailable placeholder.
   }
-
   return result;
 }
 
@@ -162,29 +124,10 @@ export async function GET(request: Request) {
       const listing = byId.get(favorite.listing_id);
       if (!listing) {
         const submitted = submittedById.get(favorite.listing_id);
-        if (
-          submitted &&
-          submitted.moderation_status === "approved" &&
-          typeof submitted.title === "string" &&
-          Number.isFinite(Number(submitted.price))
-        ) {
-          return [{
-            id: submitted.id,
-            savedAt: favorite.created_at,
-            title: submitted.title,
-            description: typeof submitted.description === "string" ? submitted.description : "",
-            price: Number(submitted.price),
-            propertyType: submitted.property_type ?? "",
-            address: submitted.address ?? "",
-            city: submitted.city ?? "",
-            imageUrls: submitted.signedImageUrls,
-            isAvailable: true,
-          }];
-        }
-        return [{ id: favorite.listing_id, savedAt: favorite.created_at, title: "Unavailable rental", description: "", price: 0, propertyType: "", address: "", city: "", imageUrls: [], isAvailable: false }];
+        return [submitted ? { ...submitted, savedAt: favorite.created_at } : unavailableFavorite(favorite.listing_id, favorite.created_at)];
       }
       if (listing.status !== "published" || listing.is_available !== true || typeof listing.title !== "string" || !Number.isFinite(Number(listing.price))) {
-        return [{ id: favorite.listing_id, savedAt: favorite.created_at, title: "Unavailable rental", description: "", price: 0, propertyType: "", address: "", city: "", imageUrls: [], isAvailable: false }];
+        return [unavailableFavorite(favorite.listing_id, favorite.created_at)];
       }
       return [{
         id: listing.id,

@@ -38,7 +38,7 @@ Do not overwrite an existing environment file. Set these values for your develop
 | `NEXT_PUBLIC_MAP_STYLE_URL` | Map style path; use `/styles/osm.json` for the included style |
 | `NEXT_PUBLIC_SITE_URL` | Canonical application origin used by password recovery; use HTTPS in production |
 
-The application no longer submits CAPTCHA tokens. Before deployment, verify hosted Supabase CAPTCHA settings, effective Auth and email rate limits, trusted ingress and the recovery redirect allowlist. Application and hosted configuration changes must be coordinated; a mismatched CAPTCHA setting can block authentication. See the [password recovery implementation guide](docs/specifications/auth/password-reset-implementation.md).
+The application submits Cloudflare Turnstile CAPTCHA tokens on login, registration and password recovery via `NEXT_PUBLIC_TURNSTILE_SITE_KEY` and forwards them to Supabase Auth. Before deployment, verify hosted Supabase CAPTCHA settings, effective Auth and email rate limits, trusted ingress and the recovery redirect allowlist. Application and hosted configuration changes must be coordinated; a mismatched CAPTCHA setting or missing site key can block authentication. See the [password recovery implementation guide](docs/specifications/auth/password-reset-implementation.md).
 
 Never put a service-role key in a `NEXT_PUBLIC_*` variable or browser code. Normal browser access uses the anonymous key with RLS. Do not commit environment files or copy production credentials into test fixtures.
 

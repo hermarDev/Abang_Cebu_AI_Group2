@@ -162,6 +162,39 @@ describe("favorites account consistency", () => {
       }],
     });
   });
+  it("allows saving and reading a pending condominium submission with normalized propertyType", async () => {
+    mocks.listing.mockResolvedValue({ data: null, error: null });
+    mocks.favorites.mockResolvedValue({ data: [{ listing_id: listingId, created_at: "2026-11-08" }], error: null });
+    mocks.sessionRows.mockResolvedValue({ data: [], error: null });
+    mocks.rpc.mockResolvedValue({
+      data: [{
+        id: listingId,
+        title: "Pending Condo",
+        description: "Awaiting review",
+        price: 13500,
+        property_type: "condominium",
+        rental_type: "entire_place",
+        address: "Lahug",
+        city: "Cebu City",
+        latitude: 10.33,
+        longitude: 123.9,
+        moderation_status: "pending",
+        photo_paths: [],
+      }],
+      error: null,
+    });
+    expect((await POST(request("POST", "account-b")))?.status).toBe(201);
+    const getResponse = await GET(request("GET", "account-b"));
+    expect(getResponse?.status).toBe(200);
+    expect(await getResponse?.json()).toEqual({
+      favorites: [expect.objectContaining({
+        id: listingId,
+        title: "Pending Condo",
+        propertyType: "condo",
+        isAvailable: true,
+      })],
+    });
+  });
   it.each(["rejected", "archived"])("rejects saving a %s submitted property with 409", async (status) => {
     mocks.listing.mockResolvedValue({ data: null, error: null });
     mocks.rpc.mockResolvedValue({ data: [{ id: listingId, title: "Hidden", price: 1, moderation_status: status, photo_paths: [] }], error: null });

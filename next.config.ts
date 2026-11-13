@@ -46,9 +46,6 @@ const nextConfig: NextConfig = {
       bodySizeLimit: "3mb",
     },
   },
-  env: {
-    NEXT_PUBLIC_TURNSTILE_SITE_KEY: process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || "test-site-key",
-  },
   async headers() {
     return [
       {

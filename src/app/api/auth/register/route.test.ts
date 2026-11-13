@@ -7,7 +7,7 @@ vi.mock("@/lib/supabase/server", () => ({ createClient: async () => ({ auth: { s
 
 function request(body: unknown, ip: string | null = "198.51.100.1") {
   const headers = new Headers({ "content-type": "application/json" });
-  if (ip !== null) headers.set("cf-connecting-ip", ip);
+  if (ip !== null) headers.set("x-real-ip", ip);
   return new Request("http://localhost/api/auth/register", { method: "POST", headers, body: JSON.stringify(body) });
 }
 
@@ -80,10 +80,11 @@ describe("registration route", () => {
     expect(signUp).not.toHaveBeenCalled();
   });
   it("creates an allow-listed registration and returns a verification response", async () => {
+    vi.stubEnv("NEXT_PUBLIC_SITE_URL", "https://abangcebu.tech");
     signUp.mockReset().mockResolvedValue({ data: { user: { id: "u1", email: "mika@example.com", created_at: "2026-10-15T00:00:00Z", email_confirmed_at: null } }, error: null });
     const response = await POST(request({ ...goodPayload, is_admin: true }));
     expect(response.status).toBe(201);
-    expect(signUp).toHaveBeenCalledWith(expect.objectContaining({ email: "mika@example.com", options: expect.objectContaining({ data: { role: "renter", full_name: "Mika Santos" }, emailRedirectTo: expect.stringContaining("/auth/callback") }) }));
+    expect(signUp).toHaveBeenCalledWith(expect.objectContaining({ email: "mika@example.com", options: expect.objectContaining({ data: { role: "renter", full_name: "Mika Santos" }, emailRedirectTo: "https://abangcebu.tech/auth/callback?next=/" }) }));
     expect(await response.json()).toEqual({ success: true, message: "If registration can proceed, check your email for the next steps." });
   });
   it.each([
