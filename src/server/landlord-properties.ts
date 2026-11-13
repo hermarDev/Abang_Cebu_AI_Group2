@@ -21,22 +21,22 @@ export type SubmissionRow = {
   submitted_payload?: { media?: { photos?: PhotoRef[] } } | null;
 };
 
-export function photoPaths(submission?: SubmissionRow, expectedOwnerId?: string): string[] {
-  if (!submission) return [];
+export function photoPaths(submission: SubmissionRow | undefined, expectedOwnerId: string): string[] {
+  if (!submission || !expectedOwnerId || !submission.draft_id) return [];
   const hasSnapshotMedia = Array.isArray(submission.snapshot_media);
   const raw = hasSnapshotMedia
     ? submission.snapshot_media!.filter((m) => m?.kind === "photo").map((m) => m.object_path)
     : [submission.snapshot_payload?.media?.photos, submission.submitted_payload?.media?.photos].flatMap((photos) =>
         Array.isArray(photos) ? photos.map((p) => (typeof p === "string" ? p : p?.object_path ?? p?.path)) : [],
       );
-  const normalizedOwner = expectedOwnerId?.toLowerCase();
-  const normalizedDraft = submission.draft_id?.toLowerCase();
+  const normalizedOwner = expectedOwnerId.toLowerCase();
+  const normalizedDraft = submission.draft_id.toLowerCase();
   const seenLeaf = new Set<string>();
   return raw.filter((path): path is string => {
     if (typeof path !== "string" || !PHOTO_PATH.test(path)) return false;
     const [pathOwner, pathDraft] = path.toLowerCase().split("/");
-    if (normalizedOwner && pathOwner !== normalizedOwner) return false;
-    if (normalizedDraft && pathDraft !== normalizedDraft) return false;
+    if (pathOwner !== normalizedOwner) return false;
+    if (pathDraft !== normalizedDraft) return false;
     const leaf = path.split("/").pop()?.toLowerCase() ?? path;
     if (seenLeaf.has(leaf)) return false;
     seenLeaf.add(leaf);

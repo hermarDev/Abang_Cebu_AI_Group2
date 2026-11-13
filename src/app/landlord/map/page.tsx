@@ -5,6 +5,7 @@ import { ArrowLeft } from "lucide-react";
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { amenityLabels, photoPaths, type SubmissionRow } from "@/server/landlord-properties";
 import { LandlordPropertyMap, type LandlordPropertyMapItem } from "@/features/landlord/LandlordPropertyMap";
 import { LandlordMobileNav } from "@/features/landlord/LandlordMobileNav";
 
@@ -12,38 +13,6 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Your property map — AbangCebu" };
 
 const hasCoordinates = (row: { latitude: unknown; longitude: unknown }) => row.latitude != null && row.longitude != null && Number.isFinite(Number(row.latitude)) && Number.isFinite(Number(row.longitude)) && Math.abs(Number(row.latitude)) <= 90 && Math.abs(Number(row.longitude)) <= 180;
-
-const PHOTO_PATH = /^[0-9a-f-]+\/[0-9a-f-]+\/[0-9a-f-]+\/[0-9a-f]{64}\.(?:jpg|png|webp)$/i;
-type PhotoRef = string | { object_path?: string; path?: string };
-type Submission = {
-  property_id: string; draft_id: string; expected_revision: number; superseded_by: string | null;
-  snapshot_media?: { kind?: string; object_path?: string }[] | null;
-  snapshot_payload?: { media?: { photos?: PhotoRef[] }; property?: { description?: string | null }; amenities?: unknown } | null;
-  submitted_payload?: { media?: { photos?: PhotoRef[] } } | null;
-};
-
-// Only photo-kind paths matching the owner-scoped pattern are returned, so permit files are never signed.
-function photoPaths(submission?: Submission): string[] {
-  if (!submission) return [];
-  const raw = [
-    ...(Array.isArray(submission.snapshot_media) ? submission.snapshot_media.filter(m => m?.kind === "photo").map(m => m.object_path) : []),
-    ...[submission.snapshot_payload?.media?.photos, submission.submitted_payload?.media?.photos].flatMap(photos => Array.isArray(photos) ? photos.map(photo => typeof photo === "string" ? photo : photo?.object_path ?? photo?.path) : []),
-  ];
-  const seenLeaf = new Set<string>();
-  return raw.filter((path): path is string => {
-    if (typeof path !== "string" || !PHOTO_PATH.test(path)) return false;
-    const leaf = path.split("/").pop()?.toLowerCase() ?? path;
-    if (seenLeaf.has(leaf)) return false;
-    seenLeaf.add(leaf);
-    return true;
-  });
-}
-
-function amenityLabels(value: unknown): string[] {
-  if (!Array.isArray(value)) return [];
-  return value.map(item => typeof item === "string" ? item : typeof item === "object" && item ? String((item as { label?: unknown; name?: unknown }).label ?? (item as { name?: unknown }).name ?? "") : "")
-    .map(label => label.replaceAll("_", " ").trim()).filter(Boolean);
-}
 
 export default async function LandlordMapPage(props: { searchParams?: Promise<{ selected?: string | string[] }> }): Promise<React.JSX.Element>;
 export default async function LandlordMapPage(): Promise<React.JSX.Element>;
@@ -79,8 +48,8 @@ export default async function LandlordMapPage(props?: { searchParams?: Promise<{
     : { data: [], error: null };
 
   const draftTargets = new Map<string, { draftId: string; revision: number }>();
-  const activeSubmissions = new Map<string, Submission>();
-  for (const submission of (submittedDrafts ?? []) as Submission[]) {
+  const activeSubmissions = new Map<string, SubmissionRow>();
+  for (const submission of (submittedDrafts ?? []) as SubmissionRow[]) {
     if (submission.superseded_by) continue;
     if (!activeSubmissions.has(submission.property_id)) activeSubmissions.set(submission.property_id, submission);
     if (!draftTargets.has(submission.property_id) && Number.isSafeInteger(submission.expected_revision) && submission.expected_revision > 0) {
@@ -88,7 +57,7 @@ export default async function LandlordMapPage(props?: { searchParams?: Promise<{
     }
   }
 
-  const paths = [...new Set((submitted ?? []).filter(hasCoordinates).flatMap(row => photoPaths(activeSubmissions.get(row.id))))];
+  const paths = [...new Set((submitted ?? []).filter(hasCoordinates).flatMap(row => photoPaths(activeSubmissions.get(row.id), user.id)))];
   const signedByPath = new Map<string, string>();
   if (paths.length) {
     try {
@@ -106,7 +75,7 @@ export default async function LandlordMapPage(props?: { searchParams?: Promise<{
       id: row.id, title: row.title, property_type: row.property_type, address: row.street_address, city: row.city,
       latitude: Number(row.latitude), longitude: Number(row.longitude), price: Number(unit?.monthly_rent ?? 0),
       is_available: unit?.is_available ?? true, status: row.status,
-      imageUrls: photoPaths(active).map(path => signedByPath.get(path)).filter((url): url is string => Boolean(url)),
+      imageUrls: photoPaths(active, user.id).map(path => signedByPath.get(path)).filter((url): url is string => Boolean(url)),
       description: row.description ?? active?.snapshot_payload?.property?.description ?? null,
       ...(amenities.length ? { amenities } : {}),
       editHref: (row.status === "pending" || row.status === "rejected") && target ? "/list-property?draftId=" + encodeURIComponent(target.draftId) + "&revision=" + target.revision : null,

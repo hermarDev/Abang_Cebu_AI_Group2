@@ -1,3 +1,4 @@
+vi.mock("server-only", () => ({}));
 import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -84,14 +85,32 @@ describe("landlord property map", () => {
     mocks.results[table] = { data: null, error: { message: "failed" } };
     expect(renderToStaticMarkup(await LandlordMapPage())).toContain("Properties unavailable");
   });
-  it("batch-signs only valid photo paths and passes imageUrls, description and amenities", async () => {
-    const uuid = "11111111-1111-1111-1111-111111111111";
-    const photo = (n: string) => `${uuid}/${uuid}/${uuid}/${n.repeat(64)}.jpg`;
-    const permit = `${uuid}/${uuid}/${uuid}/permit.pdf`;
+  it("batch-signs only owner/draft-bound photo paths and refuses cross-owner, cross-draft, and payload fallback when snapshot_media exists", async () => {
+    const ownerId = "11111111-1111-4111-8111-111111111111";
+    const otherOwnerId = "99999999-9999-4999-8999-999999999999";
+    const draftId = "22222222-2222-4222-8222-222222222222";
+    const otherDraftId = "88888888-8888-4888-8888-888888888888";
+    const opId = "33333333-3333-4333-8333-333333333333";
+    const photo = (n: string, o = ownerId, d = draftId) => `${o}/${d}/${opId}/${n.repeat(64)}.jpg`;
+    const permit = `${ownerId}/${draftId}/${opId}/permit.pdf`;
+    mocks.getUser.mockResolvedValue({ data: { user: { id: ownerId } }, error: null });
     mocks.signed.mockResolvedValue({ data: [photo("a"), photo("b")].map(path => ({ path, signedUrl: `https://signed.test/${path.slice(-8)}` })), error: null });
     mocks.results.properties = { data: [{ id: "p-pending", title: "Pending room", description: null, street_address: "1 St", city: "Cebu", latitude: 10.31, longitude: 123.89, status: "pending" }], error: null };
     mocks.results.property_submissions = { data: [
-      { property_id: "p-pending", draft_id: "d1", expected_revision: 2, superseded_by: null, snapshot_media: [{ kind: "photo", object_path: photo("a") }, { kind: "permit", object_path: permit }], snapshot_payload: { media: { photos: [{ object_path: photo("b") }, "../evil.jpg"] }, property: { description: "Near IT Park" }, amenities: ["wifi", "air_conditioning"] } },
+      {
+        property_id: "p-pending",
+        draft_id: draftId,
+        expected_revision: 2,
+        superseded_by: null,
+        snapshot_media: [
+          { kind: "photo", object_path: photo("a") },
+          { kind: "photo", object_path: photo("b") },
+          { kind: "photo", object_path: photo("d", otherOwnerId, draftId) },
+          { kind: "photo", object_path: photo("e", ownerId, otherDraftId) },
+          { kind: "permit", object_path: permit },
+        ],
+        snapshot_payload: { media: { photos: [{ object_path: photo("f") }, "../evil.jpg"] }, property: { description: "Near IT Park" }, amenities: ["wifi", "air_conditioning"] },
+      },
       { property_id: "p-pending", draft_id: "old", expected_revision: 1, superseded_by: "x", snapshot_media: [{ kind: "photo", object_path: photo("c") }] },
     ], error: null };
     const html = renderToStaticMarkup(await LandlordMapPage());
@@ -99,10 +118,28 @@ describe("landlord property map", () => {
     expect(mocks.signed).toHaveBeenCalledWith("property-draft-media", [photo("a"), photo("b")], 3600);
     expect(html).toContain(`|img:https://signed.test/${photo("a").slice(-8)}+https://signed.test/${photo("b").slice(-8)}|desc:Near IT Park|am:wifi+air conditioning`);
   });
+  it("supports legacy snapshot_payload photo fallback when snapshot_media is null and owner/draft match", async () => {
+    const ownerId = "11111111-1111-4111-8111-111111111111";
+    const draftId = "22222222-2222-4222-8222-222222222222";
+    const opId = "33333333-3333-4333-8333-333333333333";
+    const legacyPhoto = `${ownerId}/${draftId}/${opId}/${"a".repeat(64)}.jpg`;
+    const otherOwnerPhoto = `99999999-9999-4999-8999-999999999999/${draftId}/${opId}/${"b".repeat(64)}.jpg`;
+    mocks.getUser.mockResolvedValue({ data: { user: { id: ownerId } }, error: null });
+    mocks.signed.mockResolvedValue({ data: [{ path: legacyPhoto, signedUrl: "https://signed.test/legacy.jpg" }], error: null });
+    mocks.results.properties = { data: [{ id: "p-pending", title: "Pending room", description: null, street_address: "1 St", city: "Cebu", latitude: 10.31, longitude: 123.89, status: "pending" }], error: null };
+    mocks.results.property_submissions = { data: [
+      { property_id: "p-pending", draft_id: draftId, expected_revision: 2, superseded_by: null, snapshot_media: null, snapshot_payload: { media: { photos: [{ object_path: legacyPhoto }, { object_path: otherOwnerPhoto }] } } },
+    ], error: null };
+    const html = renderToStaticMarkup(await LandlordMapPage());
+    expect(mocks.signed).toHaveBeenCalledWith("property-draft-media", [legacyPhoto], 3600);
+    expect(html).toContain("|img:https://signed.test/legacy.jpg");
+  });
   it("renders without photos when signing fails", async () => {
-    const uuid = "11111111-1111-1111-1111-111111111111";
+    const ownerId = "11111111-1111-4111-8111-111111111111";
+    const draftId = "22222222-2222-4222-8222-222222222222";
+    mocks.getUser.mockResolvedValue({ data: { user: { id: ownerId } }, error: null });
     mocks.signed.mockRejectedValue(new Error("not configured"));
-    mocks.results.property_submissions = { data: [{ property_id: "p-pending", draft_id: "d1", expected_revision: 2, superseded_by: null, snapshot_media: [{ kind: "photo", object_path: `${uuid}/${uuid}/${uuid}/${"a".repeat(64)}.png` }] }], error: null };
-    expect(renderToStaticMarkup(await LandlordMapPage())).toContain("Pending room|pending|7500|/list-property?draftId=d1&amp;revision=2, Rejected");
+    mocks.results.property_submissions = { data: [{ property_id: "p-pending", draft_id: draftId, expected_revision: 2, superseded_by: null, snapshot_media: [{ kind: "photo", object_path: `${ownerId}/${draftId}/33333333-3333-4333-8333-333333333333/${"a".repeat(64)}.png` }] }], error: null };
+    expect(renderToStaticMarkup(await LandlordMapPage())).toContain(`Pending room|pending|7500|/list-property?draftId=${draftId}&amp;revision=2, Rejected`);
   });
 });

@@ -29,6 +29,7 @@ vi.mock("@/lib/supabase/admin", () => ({
 import {
   fetchLandlordPortfolio,
   fetchLandlordManagedProperties,
+  photoPaths,
   type LandlordManagedProperty,
 } from "./landlord-properties";
 
@@ -371,6 +372,14 @@ describe("fetchLandlordPortfolio", () => {
     expect(mocks.units.mock.calls[0][1]).toHaveLength(100);
     expect(mocks.units.mock.calls[1][1]).toHaveLength(25);
     expect(result.items.find((i) => i.id === "prop-1")?.editHref).toBe("/list-property?draftId=draft-live&revision=4");
+  });
+
+  it("photoPaths fails closed when expectedOwnerId or draft_id is missing", () => {
+    const ownerId = "11111111-1111-4111-8111-111111111111";
+    const draftId = "22222222-2222-4222-8222-222222222222";
+    const ownPhoto = `${ownerId}/${draftId}/33333333-3333-4333-8333-333333333333/${"a".repeat(64)}.jpg`;
+    expect(photoPaths({ property_id: "p", draft_id: draftId, expected_revision: 1, superseded_by: null, snapshot_media: [{ kind: "photo", object_path: ownPhoto }] }, "")).toEqual([]);
+    expect(photoPaths({ property_id: "p", draft_id: "", expected_revision: 1, superseded_by: null, snapshot_media: [{ kind: "photo", object_path: ownPhoto }] }, ownerId)).toEqual([]);
   });
 
   it("fetchLandlordManagedProperties delegates to fetchLandlordPortfolio and returns items", async () => {
