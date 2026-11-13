@@ -5,6 +5,15 @@ import { formatPrice } from "@/features/rentals/search";
 import { propertyTypes } from "@/features/map/FinderQuickFilters";
 import styles from "@/features/map/RestoredFinderShell.module.css";
 
+export function formatVerificationLabel(status: string | null | undefined): string {
+  if (!status) return "Verification status unknown";
+  if (status === "approved" || status === "property_verified" || status === "fully_verified") return "Verified property";
+  if (status === "pending") return "Pending verification";
+  if (status === "unverified") return "Unverified";
+  if (status === "identity_verified") return "Identity verified";
+  return `${status.replaceAll("_", " ")} listing`;
+}
+
 export function RentalCard({
   rental,
   selected,
@@ -41,7 +50,10 @@ export function RentalCard({
         onClick={(event) => { event.stopPropagation(); onToggleSaved?.(rental.id); }}
       ><Bookmark size={18} aria-hidden="true" fill={saved ? "currentColor" : "none"} /></button>}
     </div>
-    <span className={styles.category}>{propertyTypes.find(({ value }) => value === (rental.propertyType ?? rental.type))?.label ?? rental.type.replaceAll(/[-_]/g, " ")}</span>
+    <div className={styles.expandedMeta}>
+      <span className={styles.category}>{propertyTypes.find(({ value }) => value === (rental.propertyType ?? rental.type))?.label ?? rental.type.replaceAll(/[-_]/g, " ")}</span>
+      <span className={styles.verificationPill}>{formatVerificationLabel(rental.verificationStatus)}</span>
+    </div>
     <h2><button id={"rental-card-" + rental.id} type="button" aria-pressed={selected} onClick={() => onSelect(rental.id)}>{rental.title}</button></h2><p className={styles.price}>{formatPrice(rental.price)}<span> / month · per {rental.basis}</span></p>
     <p className={styles.cardAddress}>{rental.address ?? rental.locality}</p><p className={styles.cardDescription}>{rental.description}</p>
     {rental.amenities.length > 0 && <ul className={styles.amenities} aria-label="Amenities">{rental.amenities.map((amenity, index) => <li key={amenity + "-" + index}>{amenity}</li>)}</ul>}

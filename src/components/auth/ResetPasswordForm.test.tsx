@@ -140,6 +140,24 @@ describe("ResetPasswordForm", () => {
     expect(html).toContain("Send reset link");
   });
 
+  it("validates blank and malformed email synchronously before submitting", async () => {
+    state.active = true;
+    const request = vi.fn();
+    vi.stubGlobal("fetch", request);
+    const focus = vi.fn();
+    const querySelector = vi.fn(() => ({ focus }));
+    const form = findElement(renderForm(), (element) => element.type === "form")!;
+    await (form.props.onSubmit as (event: unknown) => Promise<void>)({ preventDefault: vi.fn(), currentTarget: { querySelector } });
+    expect(request).not.toHaveBeenCalled();
+    expect(focus).toHaveBeenCalledOnce();
+    expect(renderToStaticMarkup(renderForm())).toContain("Enter your email address.");
+    const emailInput = findElement(renderForm(), (element) => element.props.type === "email")!;
+    expect(emailInput.props["aria-invalid"]).toBe(true);
+    expect(emailInput.props["aria-describedby"]).toBe(`${emailInput.props.id}-error`);
+    (emailInput.props.onChange as (event: { target: { value: string } }) => void)({ target: { value: "not-an-email" } });
+    expect(renderToStaticMarkup(renderForm())).toContain("Enter a valid email address.");
+  });
+
   it("replaces the request form with neutral confirmation after a successful request", async () => {
     state.active = true;
     const request = vi.fn().mockResolvedValue({
@@ -147,6 +165,8 @@ describe("ResetPasswordForm", () => {
       json: async () => ({ success: true, message: "Account exists: private@example.com" }),
     });
     vi.stubGlobal("fetch", request);
+    const email = findElement(renderForm(), (element) => element.props.type === "email")!;
+    (email.props.onChange as (event: { target: { value: string } }) => void)({ target: { value: "renter@example.com" } });
     const form = findElement(renderForm(), (element) => element.type === "form")!;
     await (form.props.onSubmit as (event: { preventDefault: () => void }) => Promise<void>)({ preventDefault: vi.fn() });
 
@@ -229,6 +249,8 @@ describe("production submission", () => {
         ? async () => { throw new Error("invalid JSON"); }
         : async () => ({ success: false, error: { message: "Try again." } }) });
     vi.stubGlobal("fetch", request);
+    const input = findElement(renderForm(), (el) => el.props.type === "email")!;
+    (input.props.onChange as (event: unknown) => void)({ target: { value: "renter@example.com" } });
     await submit();
     expect(findElement(renderForm(), (el) => el.props.type === "submit")!.props.disabled).toBe(false);
     await submit();

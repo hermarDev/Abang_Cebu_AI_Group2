@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createRateLimiter } from "./rate-limit";
 
 const req = (headers: Record<string, string> = {}) => new Request("http://localhost/api", { headers });
@@ -7,34 +7,35 @@ const opts = { windowMs: 1000, maxPerIp: 3, maxPerActor: 2 };
 describe("createRateLimiter", () => {
   let limiter: ReturnType<typeof createRateLimiter>;
   beforeEach(() => { limiter = createRateLimiter(opts); });
+  afterEach(() => { vi.unstubAllEnvs(); });
 
   it("blocks an actor after maxPerActor within the window", () => {
-    const r = req({ "cf-connecting-ip": "1.1.1.1" });
+    const r = req({ "x-real-ip": "1.1.1.1" });
     expect(limiter.check(r, "a", 0)).toBe(true);
     expect(limiter.check(r, "a", 1)).toBe(true);
     expect(limiter.check(r, "a", 2)).toBe(false);
   });
 
   it("blocks an IP after maxPerIp across different actors", () => {
-    const r = req({ "cf-connecting-ip": "1.1.1.1" });
+    const r = req({ "x-real-ip": "1.1.1.1" });
     expect(["a", "b", "c", "d"].map((k) => limiter.check(r, k, 0))).toEqual([true, true, true, false]);
   });
 
   it("normalizes actor keys", () => {
-    const r = req({ "cf-connecting-ip": "1.1.1.1" });
+    const r = req({ "x-real-ip": "1.1.1.1" });
     limiter.check(r, "User@X.com ", 0);
     limiter.check(r, "user@x.com", 1);
     expect(limiter.check(r, " USER@x.com", 2)).toBe(false);
   });
 
   it("tracks different IPs independently", () => {
-    limiter.check(req({ "cf-connecting-ip": "1.1.1.1" }), "a", 0);
-    limiter.check(req({ "cf-connecting-ip": "1.1.1.1" }), "a", 0);
-    expect(limiter.check(req({ "cf-connecting-ip": "2.2.2.2" }), "b", 0)).toBe(true);
+    limiter.check(req({ "x-real-ip": "1.1.1.1" }), "a", 0);
+    limiter.check(req({ "x-real-ip": "1.1.1.1" }), "a", 0);
+    expect(limiter.check(req({ "x-real-ip": "2.2.2.2" }), "b", 0)).toBe(true);
   });
 
   it("slides: allows again once timestamps expire", () => {
-    const r = req({ "cf-connecting-ip": "1.1.1.1" });
+    const r = req({ "x-real-ip": "1.1.1.1" });
     limiter.check(r, "a", 0);
     limiter.check(r, "a", 500);
     expect(limiter.check(r, "a", 999)).toBe(false);
@@ -43,7 +44,7 @@ describe("createRateLimiter", () => {
   });
 
   it("does not record blocked attempts", () => {
-    const r = req({ "cf-connecting-ip": "1.1.1.1" });
+    const r = req({ "x-real-ip": "1.1.1.1" });
     limiter.check(r, "a", 0);
     limiter.check(r, "a", 1);
     for (let i = 0; i < 5; i++) limiter.check(r, "a", 2 + i);
@@ -51,7 +52,7 @@ describe("createRateLimiter", () => {
   });
 
   it("reports retryAfterSeconds >= 1 when blocked", () => {
-    const r = req({ "cf-connecting-ip": "1.1.1.1" });
+    const r = req({ "x-real-ip": "1.1.1.1" });
     expect(limiter.checkDetailed(r, "a", 0)).toEqual({ allowed: true, retryAfterSeconds: 0 });
     limiter.checkDetailed(r, "a", 100);
     expect(limiter.checkDetailed(r, "a", 900)).toEqual({ allowed: false, retryAfterSeconds: 1 });
@@ -68,7 +69,18 @@ describe("createRateLimiter", () => {
     expect(l.check(req(), "d", 0)).toBe(false);
   });
 
-  it("accepts x-real-ip and x-forwarded-for in production when cf-connecting-ip is missing", () => {
+  it("ignores spoofed cf-connecting-ip unless TRUST_CLOUDFLARE_IP is enabled", () => {
+    const l = createRateLimiter({ windowMs: 1000, maxPerIp: 1, maxPerActor: 10 });
+    expect(l.check(req({ "x-real-ip": "5.5.5.5", "cf-connecting-ip": "1.1.1.1" }), "a", 0)).toBe(true);
+    expect(l.check(req({ "x-real-ip": "5.5.5.5", "cf-connecting-ip": "2.2.2.2" }), "b", 0)).toBe(false);
+
+    vi.stubEnv("TRUST_CLOUDFLARE_IP", "true");
+    const cfLimiter = createRateLimiter({ windowMs: 1000, maxPerIp: 1, maxPerActor: 10 });
+    expect(cfLimiter.check(req({ "x-real-ip": "5.5.5.5", "cf-connecting-ip": "1.1.1.1" }), "a", 0)).toBe(true);
+    expect(cfLimiter.check(req({ "x-real-ip": "5.5.5.5", "cf-connecting-ip": "2.2.2.2" }), "b", 0)).toBe(true);
+  });
+
+  it("accepts x-real-ip and x-forwarded-for in production", () => {
     const prev = process.env.NODE_ENV;
     (process.env as Record<string, string>).NODE_ENV = "production";
     try {
@@ -83,7 +95,7 @@ describe("createRateLimiter", () => {
   });
 
   it("reset clears state", () => {
-    const r = req({ "cf-connecting-ip": "1.1.1.1" });
+    const r = req({ "x-real-ip": "1.1.1.1" });
     limiter.check(r, "a", 0);
     limiter.check(r, "a", 1);
     limiter.reset();
@@ -91,19 +103,19 @@ describe("createRateLimiter", () => {
   });
 
   it("sanitizes invalid IP strings and ignores header injection attempts", () => {
-    const invalid = req({ "cf-connecting-ip": "malicious-payload; drop table--" });
+    const invalid = req({ "x-real-ip": "malicious-payload; drop table--" });
     // In test environment, invalid IP falls back to 'development'
     expect(limiter.check(invalid, "user1", 0)).toBe(true);
     expect(limiter.check(invalid, "user2", 0)).toBe(true);
 
-    const outOfRange = req({ "cf-connecting-ip": "999.999.999.999" });
+    const outOfRange = req({ "x-real-ip": "999.999.999.999" });
     expect(limiter.check(outOfRange, "user3", 0)).toBe(true);
   });
 
   it("bounds storage to prevent memory exhaustion under rotating actors", () => {
     const l = createRateLimiter({ windowMs: 1000, maxPerIp: 100, maxPerActor: 100 });
     for (let i = 0; i < 10_050; i++) {
-      l.check(req({ "cf-connecting-ip": "1.1.1.1" }), `actor-${i}`, 0);
+      l.check(req({ "x-real-ip": "1.1.1.1" }), `actor-${i}`, 0);
     }
     expect(l.size().actorCount).toBeLessThanOrEqual(10_000);
   });

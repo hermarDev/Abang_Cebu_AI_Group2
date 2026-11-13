@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { GET } from "./route";
 
 const { exchangeCodeForSession } = vi.hoisted(() => ({ exchangeCodeForSession: vi.fn() }));
@@ -10,6 +10,13 @@ function request(query: string) {
 
 describe("auth callback route", () => {
   beforeEach(() => exchangeCodeForSession.mockReset().mockResolvedValue({ error: null }));
+  afterEach(() => vi.unstubAllEnvs());
+
+  it("uses NEXT_PUBLIC_SITE_URL canonical origin when configured", async () => {
+    vi.stubEnv("NEXT_PUBLIC_SITE_URL", "https://abangcebu.tech");
+    const response = await GET(request("?code=test-code&next=%2F"));
+    expect(response.headers.get("location")).toBe("https://abangcebu.tech/");
+  });
 
   it("requires a PKCE code", async () => {
     const response = await GET(request("?type=recovery"));
