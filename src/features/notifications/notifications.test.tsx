@@ -208,4 +208,25 @@ describe("NotificationCenter", () => {
     expect(html).toContain("Network timeout");
     expect(html).toContain("Retry");
   });
+
+  it("does not render pagination controls inside the modal/flyout", () => {
+    const many = Array.from({ length: 25 }, (_, i) => ({
+      ...dummyNotifications[0],
+      id: `n-${i}`,
+    }));
+    const html = renderToStaticMarkup(
+      <NotificationCenter
+        notifications={many}
+        unreadCount={25}
+        loading={false}
+        error={null}
+        onRefresh={() => {}}
+        onMarkAsRead={() => {}}
+        onMarkAllAsRead={() => {}}
+      />
+    );
+
+    expect(html).not.toContain('aria-label="Pagination"');
+    expect(html).toContain("View all notifications");
+  });
 });

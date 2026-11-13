@@ -10,6 +10,7 @@ import { AppearanceControls } from "@/features/map/AppearanceControls";
 import { useFinderTheme } from "@/features/map/useFinderTheme";
 import { useUnreadMessageCount } from "@/features/messages/useUnreadMessageCount";
 import { useNotificationCenter } from "@/features/notifications/useNotificationCenter";
+import { NotificationsModal } from "@/features/notifications/NotificationsModal";
 
 const links = [
   { href: "/landlord/dashboard", label: "Dashboard", Icon: LayoutDashboard },
@@ -25,6 +26,7 @@ export function LandlordMobileNav({ userId = null, unreadCount: providedUnread, 
   const unreadNotifications = providedNotifications ?? polledNotifications;
   const unreadCount = providedUnread ?? polledUnread;
   const [open, setOpen] = useState(false);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
   const { preference, resolvedTheme, setPreference } = useFinderTheme();
   const itemClass = "flex min-h-14 min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-lg px-0.5 text-[.65rem] font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring";
 
@@ -37,9 +39,12 @@ export function LandlordMobileNav({ userId = null, unreadCount: providedUnread, 
     </nav>
     <Modal open={open} onClose={() => setOpen(false)} title="More landlord options" className="max-h-[calc(100dvh-2rem)] overflow-y-auto">
       <AppearanceControls preference={preference} resolvedTheme={resolvedTheme} onPreferenceChange={setPreference} expanded />
-      <Link
-        href="/notifications"
-        onClick={() => setOpen(false)}
+      <button
+        type="button"
+        onClick={() => {
+          setOpen(false);
+          setNotificationsOpen(true);
+        }}
         className="mt-4 flex min-h-11 w-full items-center gap-3 rounded-lg px-3 text-sm font-medium hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
       >
         <Bell size={19} aria-hidden="true" />
@@ -49,6 +54,10 @@ export function LandlordMobileNav({ userId = null, unreadCount: providedUnread, 
             {unreadNotifications > 99 ? "99+" : unreadNotifications}
           </span>
         )}
+      </button>
+      <Link href="/notifications" onClick={() => setOpen(false)} className="flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
+        <Bell size={19} aria-hidden="true" />
+        View all notifications
       </Link>
       <Link href="/landlord/map" onClick={() => setOpen(false)} className="flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"><MapPinned size={19} aria-hidden="true" />Property map</Link>
       <Link href="/landlord/messages" onClick={() => setOpen(false)} className="flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"><MessageSquare size={19} aria-hidden="true" />Messages{unreadCount > 0 && <span aria-label={`${unreadCount} unread messages`} className="ml-auto rounded-full bg-action px-1.5 text-xs font-bold leading-5 text-action-foreground">{unreadCount > 99 ? "99+" : unreadCount}</span>}</Link>
@@ -56,5 +65,10 @@ export function LandlordMobileNav({ userId = null, unreadCount: providedUnread, 
       <div className="my-2 h-px bg-border/80" role="separator" />
       <LogoutLink onClick={() => setOpen(false)} iconSize={19} className="flex w-full gap-3" />
     </Modal>
+    <NotificationsModal
+      userId={userId}
+      open={notificationsOpen}
+      onClose={() => setNotificationsOpen(false)}
+    />
   </>;
 }
