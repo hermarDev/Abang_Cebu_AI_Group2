@@ -10,7 +10,7 @@ vi.mock("@/components/ui/AppToaster", () => ({ notify: vi.fn() }));
 const hooks = vi.hoisted(() => ({
   cursor: 0,
   values: [] as unknown[],
-  setters: [] as Array<ReturnType<typeof vi.fn>>,
+  setters: [] as Array<ReturnType<typeof vi.fn<(value: unknown) => void>>>,
   effects: [] as Array<() => void | (() => void)>,
   refCursor: 0,
   refs: [] as Array<{ current: unknown }>,
