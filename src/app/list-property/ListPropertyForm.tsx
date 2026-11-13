@@ -723,15 +723,15 @@ export function ListPropertyForm({ userId, restoreTarget }: { userId: string; re
     </section>}
     {notice && <p role={notice.success ? "status" : "alert"} className={notice.success ? "m-0 rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3 text-sm text-foreground" : "m-0 rounded-xl border border-destructive/40 bg-destructive/10 p-3 text-sm text-foreground"}>{notice.text}</p>}
 
-    <section className="rounded-2xl border border-border bg-card p-4 shadow-xs sm:p-5" aria-label="Listing progress">
-      <div className="mb-3 flex items-center justify-between gap-3 text-sm">
+    <section className="rounded-2xl border border-border bg-card p-3 shadow-xs sm:p-4" aria-label="Listing progress">
+      <div className="mb-2 flex items-center justify-between gap-3 text-sm">
         <span className="font-semibold">Step {step + 1} of {steps.length}</span>
         <span className="text-right text-muted-foreground">{steps[step]}</span>
       </div>
       <div className="h-2 overflow-hidden rounded-full bg-muted" role="progressbar" aria-label="Listing progress" aria-valuemin={1} aria-valuemax={steps.length} aria-valuenow={step + 1}>
         <div className="h-full rounded-full bg-action transition-[width] duration-200" style={{ width: `${((step + 1) / steps.length) * 100}%` }} />
       </div>
-      <ol className="mt-3 grid grid-cols-5 gap-1.5 text-center text-xs sm:gap-2">
+      <ol className="mt-2 grid grid-cols-5 gap-1.5 text-center text-xs sm:gap-2">
         {steps.map((label, index) => {
           const isCurrent = step === index;
           const isAccessible = index <= maxVisitedStep || index === step + 1;
@@ -760,9 +760,11 @@ export function ListPropertyForm({ userId, restoreTarget }: { userId: string; re
     <div className="grid gap-4" data-step-panel="0" hidden={step !== 0} style={step === 0 ? undefined : { display: "none" }}>
       <section className={section} aria-labelledby="property-details-heading">
         <div className="flex items-start gap-3"><span className="grid size-11 shrink-0 place-items-center rounded-xl bg-accent text-action"><MapPin size={19} aria-hidden="true" /></span><div><h2 id="property-details-heading" className="m-0 text-lg font-semibold">Property details</h2><p className="mb-0 mt-1 text-sm text-muted-foreground">Tell renters what makes your place a good fit.</p></div></div>
-        <label className="grid gap-1.5 text-sm font-medium"><span>Property name</span><input className={input} name="title" required maxLength={200} placeholder="e.g. Mabolo Studio near IT Park" /></label>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <label className="grid gap-1.5 text-sm font-medium"><span>Property name</span><input className={input} name="title" required maxLength={200} placeholder="e.g. Mabolo Studio near IT Park" /></label>
+          <label className="grid gap-1.5 text-sm font-medium"><span>Property type</span><select className={input} name="propertyType" value={propertyType} required onChange={(event) => { const next = event.target.value; setPropertyType(next); const allowed = unitTypesByPropertyType[next] ?? allUnitTypes; const rental = formRef.current?.elements.namedItem("rentalType") as HTMLSelectElement | null; if (rental && allowed && !allowed.includes(rental.value)) rental.value = allowed[0]; }}><option value="" disabled>Select a property type</option>{propertyTypes.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
+        </div>
         <label className="grid gap-1.5 text-sm font-medium"><span>Description</span><span className="text-xs font-normal text-muted-foreground">Minimum 20 characters describing layout, inclusions, and house rules.</span><textarea className="min-h-28 w-full rounded-lg border border-border bg-background p-3 text-sm font-normal text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring" name="description" required minLength={20} maxLength={4000} placeholder="Describe the space, included features, and helpful renter details." /></label>
-        <label className="grid gap-1.5 text-sm font-medium"><span>Property type</span><select className={input} name="propertyType" value={propertyType} required onChange={(event) => { const next = event.target.value; setPropertyType(next); const allowed = unitTypesByPropertyType[next] ?? allUnitTypes; const rental = formRef.current?.elements.namedItem("rentalType") as HTMLSelectElement | null; if (rental && allowed && !allowed.includes(rental.value)) rental.value = allowed[0]; }}><option value="" disabled>Select a property type</option>{propertyTypes.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
         <fieldset className="grid gap-4 rounded-xl border border-border bg-muted/20 p-4 sm:grid-cols-2">
           <legend className="px-1 text-sm font-semibold">First rental unit</legend>
           <p className="m-0 text-sm text-muted-foreground sm:col-span-2">Add the type and monthly rent for the first unit at this property.</p>

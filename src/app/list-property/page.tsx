@@ -51,9 +51,9 @@ export default async function ListPropertyPage({ searchParams }: { searchParams:
         </>
       }
     >
-      <div className="mx-auto grid w-full max-w-4xl gap-4">
+      <div className="mx-auto grid w-full max-w-4xl gap-3">
         <Link href="/landlord/properties" aria-label="Back to My properties" className="inline-flex min-h-11 w-fit items-center gap-2 rounded-lg px-2 text-sm font-semibold text-action focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"><ArrowLeft size={17} aria-hidden="true" /> Back to My properties</Link>
-        <section className="rounded-2xl border border-border bg-card p-4 shadow-xs sm:p-5">
+        <section className="px-2">
           <h1 className="m-0 text-2xl font-bold tracking-tight sm:text-3xl">List your property</h1>
           <p role="status" className="mb-0 mt-1.5 text-sm text-muted-foreground">Save a draft at any step, then submit your listing for review when it is ready.</p>
         </section>
