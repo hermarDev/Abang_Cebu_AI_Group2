@@ -210,14 +210,14 @@ describe("RestoredFinderShell", () => {
     const budgetOptions = budgetInputs.filter((element) => element.props.type === "radio");
     const customBudgetInput = budgetInputs.find((element) => element.props.type === "number");
     const typeOptions = findElementsByType(typePopover.props.children, "input");
-    expect(budgetOptions).toHaveLength(8);
+    expect(budgetOptions).toHaveLength(5);
     expect(customBudgetInput?.props["aria-label"]).toBe("Custom maximum monthly rent");
     expect(typeOptions).toHaveLength(8);
     const rerenderQuickFilters = () => {
       hooks.index = 0;
       return (quickFilterComponent!.type as (props: Record<string, unknown>) => ReactNode)({ ...quickFilterComponent!.props, onChange });
     };
-    (budgetOptions[3].props.onChange as () => void)();
+    (budgetOptions[1].props.onChange as () => void)();
     const budgetForm = findByType(findPopoverRoots(rerenderQuickFilters())[0].props.children, "form");
     expect(budgetForm).toBeDefined();
     const budgetEvent = { preventDefault: vi.fn() };

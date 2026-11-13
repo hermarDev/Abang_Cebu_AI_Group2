@@ -34,7 +34,7 @@ test("dismisses quick filters before opening advanced Filters and preserves appl
   await budget.focus();
   await page.keyboard.press("Enter");
   await expect(budgetPopover).toBeVisible();
-  await page.getByRole("radio", { name: "Up to ₱2,500", exact: true }).check();
+  await page.getByRole("spinbutton", { name: "Custom maximum monthly rent" }).fill("2500");
   await page.getByRole("button", { name: "Apply budget" }).click();
   await propertyType.focus();
   await page.keyboard.press("Enter");
