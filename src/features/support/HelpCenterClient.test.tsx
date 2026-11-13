@@ -29,9 +29,9 @@ describe("HelpCenterClient", () => {
     );
 
     expect(html).toContain('placeholder="Search guides, questions, or keywords…');
-    expect(html).toContain('aria-label="Search guides and FAQs"');
+    expect(html).toContain('aria-label="Search help articles"');
     expect(html).toContain('aria-live="polite"');
-    expect(html).toContain(`Showing all ${HELP_FAQ_ITEMS.length} guides`);
+    expect(html).toContain(`${HELP_FAQ_ITEMS.length} articles`);
   });
 
   it("renders category filter chips from HELP_FAQ_CATEGORIES with aria-pressed state", () => {

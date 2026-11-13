@@ -41,7 +41,7 @@ describe("SupportCenterClient", () => {
       />
     );
 
-    expect(html).toContain("Your requests");
+    expect(html).toContain("Your support requests");
     expect(html).not.toContain("Sign in to track requests");
   });
 

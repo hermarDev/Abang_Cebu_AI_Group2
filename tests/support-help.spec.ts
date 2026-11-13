@@ -18,7 +18,7 @@ for (const width of [320, 430, 1280]) {
 
       // search filters articles
       await search.fill("deposit");
-      await expect(page.getByRole("status").filter({ hasText: /1 article/i }).first()).toBeVisible();
+      await expect(page.getByRole("status").filter({ hasText: /1 of 12 articles/i }).first()).toBeVisible();
 
       // accordion keyboard + click interaction
       const firstItem = page.getByRole("button", { name: /deposit|stay safe/i }).first();
@@ -35,7 +35,7 @@ for (const width of [320, 430, 1280]) {
 
       // category chip filter
       await page.getByRole("button", { name: "For landlords", exact: true }).click();
-      await expect(page.getByRole("status").filter({ hasText: /3 articles/i }).first()).toBeVisible();
+      await expect(page.getByRole("status").filter({ hasText: /3 of 12 articles/i }).first()).toBeVisible();
 
       // no horizontal overflow
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
@@ -55,7 +55,7 @@ test("guest can open support page, sees form with neutral placeholders, and cann
   expect(await page.locator('input[placeholder*="Juan"]').count()).toBe(0);
 
   // guest notice
-  await expect(page.getByText(/sign in.*track your requests/i)).toBeVisible();
+  await expect(page.getByRole("link", { name: /sign in to track requests/i })).toBeVisible();
   await expect(page.getByRole("region", { name: /your support requests/i })).toHaveCount(0);
 });
 

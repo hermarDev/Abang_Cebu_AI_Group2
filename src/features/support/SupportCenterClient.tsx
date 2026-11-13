@@ -293,14 +293,6 @@ export function SupportCenterClient({
       return;
     }
 
-    // Turnstile check
-    if (turnstileRequired && !turnstileToken) {
-      const message = "Complete the security verification before submitting.";
-      setFormError(message);
-      notify("warning", "turnstile-required", message);
-      return;
-    }
-
     // Attachment validation
     const attachmentError = validateSupportAttachmentFiles(files);
     if (attachmentError) {
@@ -326,6 +318,14 @@ export function SupportCenterClient({
       setErrors(validation.errors);
       setFormError(validation.message);
       focusFirstError(validation.errors);
+      return;
+    }
+
+    // Turnstile check after field validation so users see all field errors first
+    if (turnstileRequired && !turnstileToken) {
+      const message = "Complete the security verification before submitting.";
+      setFormError(message);
+      notify("warning", "turnstile-required", message);
       return;
     }
 
@@ -814,7 +814,7 @@ export function SupportCenterClient({
                 <div className="flex items-center justify-end pt-3">
                   <Button
                     type="submit"
-                    disabled={submitting || (turnstileRequired && !turnstileToken)}
+                    disabled={submitting}
                     className="min-w-32"
                   >
                     <Send size={16} aria-hidden="true" />
