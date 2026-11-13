@@ -72,7 +72,10 @@
 }
 
 .filterPopover:focus { outline: none; }
-.filterPopover fieldset { max-height: min(58dvh, 24rem); overflow-y: auto; }
+.filterPopover .typeList { max-height: min(58dvh, 24rem); overflow-y: auto; }
+.budgetPopover { max-height: min(70dvh, 30rem, var(--radix-popover-content-available-height)); }
+.budgetPopover .choiceList { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.budgetPopover .anyBudget { grid-column: 1 / -1; }
 .choiceList, .typeList { display: grid; gap: .2rem; border: 0; padding: 0; }
 .choiceList label, .typeList label { display: flex; min-height: 2.9rem; align-items: center; gap: .7rem; border-radius: .5rem; padding: .5rem .6rem; color: var(--card-foreground); cursor: pointer; font-size: .88rem; }
 .choiceList label:hover, .typeList label:hover { background: var(--accent); }

@@ -38,7 +38,7 @@ for (const width of [320, 375, 390, 430, 768, 1024, 1440]) {
       expect(box!.height).toBeGreaterThanOrEqual(44);
     }
     await filters.getByRole("button", { name: /^Budget/ }).click();
-    await page.getByRole("radio", { name: "Up to ₱2,500", exact: true }).check();
+    await page.getByRole("spinbutton", { name: "Custom maximum monthly rent" }).fill("2500");
     await page.getByRole("button", { name: "Apply budget" }).click();
     await filters.getByRole("button", { name: /^Property type/ }).click();
     await page.getByRole("checkbox", { name: "Private room", exact: true }).check();
