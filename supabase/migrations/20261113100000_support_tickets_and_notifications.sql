@@ -377,8 +377,8 @@ BEGIN
 END;
 $$;
 
-REVOKE ALL ON FUNCTION public.admin_list_support_tickets(text, text, text, integer, integer, uuid) FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION public.admin_list_support_tickets(text, text, text, integer, integer, uuid) TO authenticated;
+REVOKE ALL ON FUNCTION public.admin_list_support_tickets(text, text, text, integer, integer, uuid) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.admin_list_support_tickets(text, text, text, integer, integer, uuid) TO authenticated, service_role;
 
 -- Admin support ticket update RPC (audited + idempotent + optimistic concurrency).
 CREATE OR REPLACE FUNCTION public.admin_update_support_ticket(
@@ -492,8 +492,8 @@ BEGIN
 END;
 $$;
 
-REVOKE ALL ON FUNCTION public.admin_update_support_ticket(uuid, uuid, text, text, text, text, timestamptz, boolean) FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION public.admin_update_support_ticket(uuid, uuid, text, text, text, text, timestamptz, boolean) TO authenticated;
+REVOKE ALL ON FUNCTION public.admin_update_support_ticket(uuid, uuid, text, text, text, text, timestamptz, boolean) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.admin_update_support_ticket(uuid, uuid, text, text, text, text, timestamptz, boolean) TO authenticated, service_role;
 
 -- Update admin_dashboard_overview to include openSupportTicketCount while keeping all existing fields intact.
 CREATE OR REPLACE FUNCTION public.admin_dashboard_overview()
