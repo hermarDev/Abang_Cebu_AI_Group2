@@ -183,9 +183,6 @@
 
 .mapButton:hover { background: var(--accent); }
 .brandRow p { margin: 0; color: var(--muted-foreground); font-size: 13px; }
-.faq { padding: 4px 12px; color: var(--muted-foreground); font-size: 13px; }
-.faq h3 { margin: 8px 0 4px; color: var(--card-foreground); font-size: inherit; font-weight: 600; }
-.faq p { margin: 0 0 8px; }
 .content > * { flex-shrink: 0; }
 
 @media (prefers-reduced-motion: no-preference) {

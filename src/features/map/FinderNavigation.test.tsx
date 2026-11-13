@@ -112,3 +112,14 @@ it("shows workspace section header for landlord and admin", () => {
   expect(adminHtml).toContain("Workspace");
   expect(adminHtml).toContain("Admin workspace");
 });
+
+it("links Help Center and Contact support without inline FAQ or mailto", () => {
+  const html = renderToStaticMarkup(<FinderNavigation open onClose={() => {}} preference="system" resolvedTheme="light" onPreferenceChange={() => {}} onAccount={() => {}} onHelp={() => {}} />);
+  expect(html).toContain('href="/help"');
+  expect(html).toContain("Help Center");
+  expect(html).toContain('href="/support"');
+  expect(html).toContain("Contact support");
+  expect(html).not.toContain("Help &amp; FAQ");
+  expect(html).not.toContain("finder-faq");
+  expect(html).not.toContain("mailto:support@abangcebu.ai");
+});

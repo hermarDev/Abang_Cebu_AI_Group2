@@ -7,7 +7,8 @@
 
 export type AdminAuditActionType =
   | 'property_approved' | 'property_rejected' | 'property_unpublished' | 'property_restored'
-  | 'account_suspended' | 'account_reinstated' | 'report_resolved' | 'report_dismissed' | 'report_evidence_viewed';
+  | 'account_suspended' | 'account_reinstated' | 'report_resolved' | 'report_dismissed' | 'report_evidence_viewed'
+  | 'support_ticket_updated';
 
 export type Json =
   | string
@@ -207,7 +208,7 @@ export interface Database {
           operation_id: string;
           admin_id: string;
           action_type: AdminAuditActionType;
-          target_type: 'property' | 'listing' | 'account' | 'report';
+          target_type: 'property' | 'listing' | 'account' | 'report' | 'support_ticket';
           target_id: string;
           previous_state: Json;
           new_state: Json;
@@ -312,6 +313,35 @@ export interface Database {
           { foreignKeyName: "abuse_reports_target_user_id_fkey"; columns: ["target_user_id"]; isOneToOne: false; referencedRelation: "profiles"; referencedColumns: ["id"]; }
         ];
       };
+      support_tickets: {
+        Row: {
+          id: string;
+          ticket_number: string;
+          operation_id: string;
+          user_id: string | null;
+          requester_name: string;
+          requester_email: string;
+          requester_role: 'guest' | 'renter' | 'landlord' | 'admin';
+          category: 'account_access' | 'rental_search' | 'listing_submission' | 'messaging_safety' | 'bug_report' | 'billing_or_policy' | 'other';
+          subject: string;
+          description: string;
+          related_listing_id: string | null;
+          attachments: Json;
+          status: 'open' | 'in_progress' | 'resolved' | 'closed';
+          priority: 'low' | 'normal' | 'high' | 'urgent';
+          admin_response: string | null;
+          assigned_admin_id: string | null;
+          resolved_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [
+          { foreignKeyName: "support_tickets_user_id_fkey"; columns: ["user_id"]; isOneToOne: false; referencedRelation: "profiles"; referencedColumns: ["id"]; },
+          { foreignKeyName: "support_tickets_assigned_admin_id_fkey"; columns: ["assigned_admin_id"]; isOneToOne: false; referencedRelation: "profiles"; referencedColumns: ["id"]; }
+        ];
+      };
     };
     Views: Record<string, never>;
     Functions: {
@@ -350,6 +380,9 @@ export interface Database {
       submit_property_from_draft: { Args: { p_operation_id: string; p_draft_id: string; p_expected_revision: number }; Returns: Json; };
       release_property_draft_media: { Args: { p_draft_id: string; p_operation_id: string }; Returns: string; };
       get_public_submitted_properties: { Args: Record<PropertyKey, never>; Returns: Json; };
+      submit_support_ticket: { Args: { p_operation_id: string; p_requester_name: string; p_requester_email: string; p_category: string; p_subject: string; p_description: string; p_related_listing_id?: string | null; p_attachments?: Json; p_ticket_id?: string | null }; Returns: Json; };
+      admin_list_support_tickets: { Args: { p_status?: string | null; p_category?: string | null; p_search?: string | null; p_limit?: number; p_offset?: number }; Returns: Json; };
+      admin_update_support_ticket: { Args: { p_ticket_id: string; p_operation_id: string; p_status: string; p_priority?: string | null; p_admin_response?: string | null; p_reason?: string | null }; Returns: Json; };
     };
     Enums: {
       user_role: UserRole;
@@ -380,9 +413,10 @@ export type NotificationType =
   | 'listing_review'
   | 'listing_pending'
   | 'report'
-  | 'security';
+  | 'security'
+  | 'support';
 
-export type NotificationEntityType = 'conversation' | 'property' | 'report' | 'account';
+export type NotificationEntityType = 'conversation' | 'property' | 'report' | 'account' | 'support_ticket';
 
 export interface NotificationItem {
   id: string;

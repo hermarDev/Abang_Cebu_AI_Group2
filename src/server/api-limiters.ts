@@ -35,3 +35,9 @@ export const propertyDraftsLimiter = createRateLimiter({
   maxPerIp: 60,
   maxPerActor: 30,
 });
+
+export const supportTicketsLimiter = createRateLimiter({
+  windowMs: 15 * 60 * 1000,
+  maxPerIp: 5,
+  maxPerActor: 8,
+});

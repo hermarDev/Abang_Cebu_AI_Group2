@@ -54,7 +54,10 @@ describe("landlord dashboard", () => {
     expect(mocks.statusRpc).toHaveBeenCalledWith("landlord_rejection_feedback");
     expect(html).toMatch(/<a[^>]*aria-label="Open property map"[^>]*class="hidden lg:inline-flex [^"]*"[^>]*><svg[^>]*lucide-map-pinned/);
     expect(html).toContain("Support");
-    expect(html).toContain("Contact Support");
+    expect(html).toContain('href="/help"');
+    expect(html).toContain("Help Center");
+    expect(html).toContain('href="/support"');
+    expect(html).toContain("Contact support");
     expect(html).not.toContain("Back to map");
     expect(html).toContain('href="/auth/logout"');
     expect(html).toContain("Log out");

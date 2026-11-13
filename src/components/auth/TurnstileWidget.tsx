@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 
-type TurnstileAction = "signup" | "login" | "recovery";
+type TurnstileAction = "signup" | "login" | "recovery" | "support";
 
 type Turnstile = {
   render: (container: HTMLElement, options: {

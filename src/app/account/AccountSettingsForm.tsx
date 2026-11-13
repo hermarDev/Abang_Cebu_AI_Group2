@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useTransition, type ChangeEvent, type FormEvent } from "react";
 import { Camera, Eye, EyeOff, KeyRound, LogOut, Mail, ShieldCheck, UserRound, X, ZoomIn } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { notify } from "@/components/ui/AppToaster";
 import { Button } from "@/components/ui/Button";
@@ -327,7 +328,7 @@ export function AccountSettingsForm({ profile }: { profile: AccountProfile }) {
         <div className="my-4 h-px bg-border/80" role="separator" />
         <LogoutLink className="w-full" />
       </section>
-      <p className="px-1 text-sm leading-relaxed text-muted-foreground">Need help with your account? <a className="font-medium text-action hover:underline" href="mailto:support@abangcebu.ai">Contact support</a>.</p>
+      <p className="px-1 text-sm leading-relaxed text-muted-foreground">Need help with your account? <Link className="font-medium text-action hover:underline" href="/support">Contact support</Link> or browse the <Link className="font-medium text-action hover:underline" href="/help">Help Center</Link>.</p>
     </aside>
     <PasswordDialog open={passwordPreviewOpen} onClose={() => setPasswordPreviewOpen(false)} onSuccess={(result) => notify("success", "account-password-updated", result.message)} />
     <Modal

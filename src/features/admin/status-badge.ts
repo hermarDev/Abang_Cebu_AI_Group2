@@ -11,8 +11,14 @@ export function statusBadgeVariant(status: string): StatusBadgeVariant {
     case "active": return "success";
     case "suspended": return "destructive";
     case "open": return "warning";
-    case "resolved": return "secondary";
+    case "in_progress": return "default";
+    case "resolved": return "success";
+    case "closed": return "secondary";
     case "dismissed": return "secondary";
+    case "urgent": return "destructive";
+    case "high": return "warning";
+    case "normal": return "outline";
+    case "low": return "secondary";
     default: return "outline";
   }
 }
