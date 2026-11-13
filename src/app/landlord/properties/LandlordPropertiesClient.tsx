@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -13,7 +13,8 @@ import {
   Pencil,
 } from "lucide-react";
 import { cn } from "@/components/ui/cn";
-import type { LandlordManagedProperty } from "@/server/landlord-properties";
+import type { LandlordManagedProperty, LandlordPortfolioErrors } from "@/server/landlord-properties";
+import { formatListingAddress, formatPropertyType } from "@/features/landlord/property-display";
 import { PropertyDetailsSheet } from "@/features/rentals/PropertyDetailsSheet";
 import type { RentalResult } from "@/contracts/preview";
 
@@ -28,7 +29,7 @@ interface TabDef {
 const TABS: TabDef[] = [
   { key: "all", label: "All", filter: () => true },
   { key: "published", label: "Published", filter: (p) => p.status === "published" },
-  { key: "pending", label: "Under review", filter: (p) => p.status === "pending" },
+  { key: "pending", label: "Under review", filter: (p) => p.status === "pending" || Boolean(p.hasPendingRevision) },
   { key: "rejected", label: "Changes requested", filter: (p) => p.status === "rejected" },
   { key: "draft", label: "Drafts", filter: (p) => p.status === "draft" },
   { key: "archived", label: "Archived", filter: (p) => p.status === "archived" },
@@ -49,13 +50,32 @@ function statusBadgeClass(status: LandlordManagedProperty["status"]): string {
   }
 }
 
-export function LandlordPropertiesClient({ properties }: { properties: LandlordManagedProperty[] }) {
+export function LandlordPropertiesClient({
+  properties,
+  errors,
+  truncated,
+}: {
+  properties: LandlordManagedProperty[];
+  errors?: LandlordPortfolioErrors;
+  truncated?: boolean;
+}) {
   const searchParams = useSearchParams();
-  const rawStatus = (searchParams?.get("status") || "all").toLowerCase() as TabKey;
-  const initialTab: TabKey = TABS.some((t) => t.key === rawStatus) ? rawStatus : "all";
+  const searchKey = searchParams?.toString() ?? "";
+  const parseStatus = (value: string | null | undefined): TabKey => {
+    const normalized = (value || "all").toLowerCase() as TabKey;
+    return TABS.some((t) => t.key === normalized) ? normalized : "all";
+  };
+  const initialTab = parseStatus(searchParams?.get("status"));
   const highlightId = searchParams?.get("highlight") || null;
   const [activeTab, setActiveTab] = useState<TabKey>(initialTab);
+  const prevSearchKeyRef = useRef(searchKey);
   const [selectedProperty, setSelectedProperty] = useState<LandlordManagedProperty | null>(null);
+
+  useEffect(() => {
+    if (prevSearchKeyRef.current === searchKey) return;
+    prevSearchKeyRef.current = searchKey;
+    setActiveTab(parseStatus(searchParams?.get("status")));
+  }, [searchKey, searchParams]);
 
   useEffect(() => {
     if (!highlightId) return;
@@ -77,6 +97,7 @@ export function LandlordPropertiesClient({ properties }: { properties: LandlordM
     };
     for (const p of properties) {
       if (p.status in map) map[p.status]++;
+      if (p.hasPendingRevision && p.status !== "pending") map.pending++;
     }
     return map;
   }, [properties]);
@@ -109,6 +130,8 @@ export function LandlordPropertiesClient({ properties }: { properties: LandlordM
     };
   }, [selectedProperty]);
 
+  const hasError = Boolean(errors && Object.values(errors).some(Boolean));
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -125,6 +148,34 @@ export function LandlordPropertiesClient({ properties }: { properties: LandlordM
           <span>Add property</span>
         </Link>
       </div>
+
+      {/* Partial error / truncation notifications */}
+      {hasError && (
+        <div
+          role="alert"
+          className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-destructive/30 bg-destructive/10 p-4 text-sm text-foreground"
+        >
+          <p className="m-0 font-medium">
+            Some property information could not be loaded. Please refresh the page to try again.
+          </p>
+          <button
+            type="button"
+            onClick={() => window.location.reload()}
+            className="inline-flex min-h-9 items-center justify-center rounded-xl border border-border bg-card px-3 text-xs font-semibold hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+          >
+            Refresh
+          </button>
+        </div>
+      )}
+
+      {truncated && (
+        <div
+          role="status"
+          className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-800 dark:text-amber-300"
+        >
+          Showing the first 1,000 properties. Your portfolio contains more items than can be displayed at once.
+        </div>
+      )}
 
       {/* Filter tabs / status pills */}
       <div className="flex flex-wrap gap-2 border-b border-border/80 pb-4" role="tablist" aria-label="Filter properties by status">
@@ -181,13 +232,13 @@ export function LandlordPropertiesClient({ properties }: { properties: LandlordM
           )}
         </div>
       ) : (
-        <div className="grid gap-3 sm:gap-4">
+        <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-3 sm:gap-4">
           {filtered.map((property) => (
             <article
               key={property.id}
               id={`property-${property.id}`}
               className={cn(
-                "group relative flex flex-col gap-4 rounded-2xl border bg-card p-4 transition hover:border-action/40 hover:shadow-sm sm:flex-row sm:items-center sm:justify-between",
+                "group relative flex min-w-0 flex-col gap-4 rounded-2xl border bg-card p-4 transition hover:border-action/40 hover:shadow-sm sm:flex-row sm:items-center sm:justify-between",
                 highlightId === property.id ? "border-action ring-2 ring-action/20" : "border-border"
               )}
             >
@@ -210,8 +261,8 @@ export function LandlordPropertiesClient({ properties }: { properties: LandlordM
                 </div>
 
                 <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <h2 className="truncate text-base font-bold text-foreground sm:text-lg">
+                  <div className="flex min-w-0 flex-wrap items-center gap-2">
+                    <h2 className="min-w-0 max-w-full truncate text-base font-bold text-foreground sm:text-lg">
                       {property.title}
                     </h2>
                     <span
@@ -221,10 +272,15 @@ export function LandlordPropertiesClient({ properties }: { properties: LandlordM
                     >
                       {property.statusLabel}
                     </span>
+                    {property.hasPendingRevision && (
+                      <span className="inline-flex items-center rounded-full border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-[0.68rem] font-semibold text-amber-700 dark:text-amber-400">
+                        Revision under review
+                      </span>
+                    )}
                   </div>
 
-                  <p className="mt-1 truncate text-xs text-muted-foreground sm:text-sm">
-                    {[property.address, property.city].filter(Boolean).join(", ") || "No address specified"}
+                  <p className="mt-1 min-w-0 max-w-full truncate text-xs text-muted-foreground sm:text-sm">
+                    {formatListingAddress(property.address, property.city) || "No address specified"}
                   </p>
 
                   <div className="mt-1 flex flex-wrap items-baseline gap-1 text-sm font-bold text-foreground">
@@ -237,13 +293,13 @@ export function LandlordPropertiesClient({ properties }: { properties: LandlordM
                       <span className="text-xs font-normal text-muted-foreground">Price not set</span>
                     )}
                     <span className="text-muted-foreground/40">·</span>
-                    <span className="text-xs font-normal capitalize text-muted-foreground">
-                      {property.propertyType.replaceAll("_", " ")}
+                    <span className="text-xs font-normal text-muted-foreground">
+                      {formatPropertyType(property.propertyType)}
                     </span>
                   </div>
 
                   {property.rejectionReason && (
-                    <div className="mt-2 rounded-lg border border-destructive/30 bg-destructive/10 p-2 text-xs text-foreground">
+                    <div className="mt-2 break-words rounded-lg border border-destructive/30 bg-destructive/10 p-2 text-xs text-foreground">
                       <span className="font-semibold text-destructive">Feedback: </span>
                       {property.rejectionReason}
                     </div>

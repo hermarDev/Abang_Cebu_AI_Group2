@@ -184,4 +184,74 @@ describe("LandlordPropertiesPage", () => {
     expect(html).toContain('href="/list-property?draftId=draft-2&amp;revision=3"');
     expect(html).toContain('href="/list-property?draftId=draft-standalone&amp;revision=1"');
   });
+
+  it("renders a partial-error alert banner when any source query fails", async () => {
+    mocks.listings.mockResolvedValueOnce({ data: null, error: { message: "Failed to load listings" } });
+    const html = renderToStaticMarkup(await LandlordPropertiesPage());
+
+    expect(html).toContain('role=\"alert\"');
+    expect(html).toContain("Some property information could not be loaded");
+    expect(html).toContain("Refresh");
+    // Succeeded items are still displayed
+    expect(html).toContain("Cebu It Park");
+  });
+
+  it("renders a truncation notice when truncated flag is true", async () => {
+    mocks.properties.mockResolvedValueOnce({
+      data: Array.from({ length: 1000 }, (_, i) => ({
+        id: `prop-${i}`,
+        title: `Property ${i}`,
+        status: "pending",
+        property_type: "studio",
+        street_address: "Address",
+        city: "Cebu City",
+      })),
+      error: null,
+    });
+    const html = renderToStaticMarkup(await LandlordPropertiesPage());
+
+    expect(html).toContain("Showing the first 1,000 properties");
+  });
+
+  it("displays Revision under review badge for approved properties with pending revision", async () => {
+    mocks.properties.mockResolvedValueOnce({
+      data: [
+        {
+          id: "prop-1",
+          title: "Published With Edit",
+          status: "approved",
+          property_type: "condo",
+          street_address: "Apas, Cebu City",
+          city: "Cebu City",
+        },
+      ],
+      error: null,
+    });
+    mocks.submissions.mockResolvedValueOnce({
+      data: [
+        {
+          property_id: "prop-1",
+          draft_id: "draft-edit",
+          expected_revision: 3,
+          superseded_by: null,
+          review_status: "pending",
+          snapshot_payload: null,
+          snapshot_media: [],
+        },
+      ],
+      error: null,
+    });
+    mocks.units.mockResolvedValueOnce({
+      data: [{ property_id: "prop-1", monthly_rent: 35000, is_available: true }],
+      error: null,
+    });
+
+    const html = renderToStaticMarkup(await LandlordPropertiesPage());
+
+    expect(html).toContain("Published With Edit");
+    expect(html).toContain("Published · Available");
+    expect(html).toContain("Revision under review");
+    expect(html).toContain("Condominium");
+    expect(html).toContain("Apas, Cebu City");
+  });
 });
