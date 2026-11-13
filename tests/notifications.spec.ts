@@ -42,7 +42,7 @@ async function seedAuthenticatedLandlord(page: import("@playwright/test").Page) 
 }
 
 test.describe("notifications hub", () => {
-  test("flyout exposes persistent actions, per-item dismiss, and hub link", async ({ page }) => {
+  test("bell links to the notifications hub with persistent actions, per-item dismiss, and badge", async ({ page }) => {
     await seedAuthenticatedLandlord(page);
     await page.route(url => url.pathname === "/api/notifications", route => {
       if (route.request().method() === "GET") {
@@ -52,15 +52,15 @@ test.describe("notifications hub", () => {
     });
 
     await page.goto("/");
-    await page.getByRole("button", { name: /Notifications/ }).first().click();
+    const bell = page.getByRole("link", { name: /Notifications/ }).first();
+    await expect(bell).toBeVisible();
+    await expect(bell).toHaveAttribute("href", "/notifications");
+    await bell.click();
+    await page.waitForURL("**/notifications");
 
-    const center = page.getByText("Notifications", { exact: true }).last();
-    await expect(center).toBeVisible();
-
-    // Header actions are always reachable in the flyout.
+    // Hub header actions are reachable.
     await expect(page.getByRole("button", { name: /Mark all read/i })).toBeVisible();
     await expect(page.getByRole("button", { name: /Clear read/i })).toBeVisible();
-    await expect(page.getByRole("link", { name: /View all notifications/i })).toBeVisible();
 
     // Per-item dismiss is exposed with an accessible name.
     await expect(page.getByRole("button", { name: "Dismiss notification: New message" })).toHaveCount(1);

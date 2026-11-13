@@ -6,6 +6,7 @@ import { BrandLogo } from "@/components/brand";
 import {
   Search,
   Bookmark,
+  Bell,
   MessageSquare,
   MessageCircle,
   CircleHelp,
@@ -13,7 +14,6 @@ import {
   Map,
   LogIn,
   LayoutDashboard,
-  ExternalLink,
 } from "lucide-react";
 import { AppearanceControls } from "./AppearanceControls";
 import { AccountMenu } from "@/components/ui/AccountMenu";
@@ -157,8 +157,8 @@ export function FinderNavigation({
                 </Link>
               )}
               <Link href="/notifications" className={styles.navItem} onClick={onClose}>
-                <ExternalLink aria-hidden="true" />
-                <span>View all notifications</span>
+                <Bell aria-hidden="true" />
+                <span>Notifications</span>
               </Link>
             </section>
           )}

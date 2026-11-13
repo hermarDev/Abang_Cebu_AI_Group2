@@ -351,7 +351,7 @@ export function RestoredFinderShell({ rentalStatus: statusOverride, initialAccou
     <MapSearch className={styles.headerSearch} disabled={false} onSelect={setSelectedPlace} />
   </header>
   {authenticated ? <div className={styles.headerUserActions}>
-    <NotificationBell userId={userId} userRole={userRole} />
+    <NotificationBell userId={userId} />
     <AccountMenu displayName={displayName} avatarUrl={avatarUrl} role={userRole ?? "Renter"} variant="header" />
   </div> : <button className={styles.signIn} aria-label="Open account dialog" onClick={() => setAccountOpen(true)}><LogIn size={19} aria-hidden="true" /><span>Log in</span></button>}
   <QuickFilters filters={filters} onChange={setFilters} onOpenFilters={() => setAdvancedOpen(true)} mapRadius={mapRadius} onRadiusChange={setMapRadius} />
