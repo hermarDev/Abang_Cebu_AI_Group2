@@ -49,6 +49,22 @@ describe("password reset PKCE callback", () => {
     expect(createServerClient).not.toHaveBeenCalled();
   });
 
+  it.each([
+    ["", "public-anon-key"],
+    ["https://placeholder.supabase.co", "public-anon-key"],
+    ["https://project.supabase.co", ""],
+    ["https://project.supabase.co", "placeholder-anon-key"],
+  ])("fails closed in production when provider configuration is missing or a placeholder", async (url, key) => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("NEXT_PUBLIC_SITE_URL", "https://example.com");
+    vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", url);
+    vi.stubEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY", key);
+    const response = await GET(request("?code=one-time-code&type=recovery&next=%2Freset-password"));
+    expect(response.status).toBe(503);
+    expect(createServerClient).not.toHaveBeenCalled();
+    expect(exchangeCodeForSession).not.toHaveBeenCalled();
+  });
+
   it("exchanges a recovery code, persists Supabase cookies, and sets short-lived HttpOnly marker", async () => {
     const response = await GET(request("?code=one-time-code&type=recovery&next=%2Freset-password"));
     expect(createServerClient).toHaveBeenCalledWith("https://project.supabase.co", "public-anon-key", expect.any(Object));

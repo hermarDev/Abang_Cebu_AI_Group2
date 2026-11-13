@@ -34,12 +34,21 @@ export async function GET(request: Request) {
     );
   }
 
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (process.env.NODE_ENV === "production" && (!supabaseUrl || supabaseUrl.includes("placeholder.supabase.co") || !supabaseKey || supabaseKey === "placeholder-anon-key")) {
+    return NextResponse.json(
+      { success: false, error: { code: "AUTH_PASSWORD_RESET_UNAVAILABLE", message: "Password recovery is temporarily unavailable." } },
+      { status: 503, headers: { "Cache-Control": "no-store" } },
+    );
+  }
+
   const cookieStore = await cookies();
   const response = NextResponse.redirect(new URL(next, origin));
   const cookiesToSet: Array<{ name: string; value: string; options?: Record<string, unknown> }> = [];
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL || "https://placeholder.supabase.co",
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "placeholder-anon-key",
+    supabaseUrl || "https://placeholder.supabase.co",
+    supabaseKey || "placeholder-anon-key",
     {
       cookies: {
         getAll: () => cookieStore.getAll(),
