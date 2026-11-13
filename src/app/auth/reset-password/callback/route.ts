@@ -73,7 +73,7 @@ export async function GET(request: Request) {
   }
   response.cookies.set(PASSWORD_RESET_RECOVERY_COOKIE, "1", {
     httpOnly: true,
-    secure: url.protocol === "https:",
+    secure: new URL(origin).protocol === "https:",
     sameSite: "lax",
     path: "/",
     maxAge: 10 * 60,

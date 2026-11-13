@@ -88,6 +88,16 @@ describe("password reset PKCE callback", () => {
     expect(cookies.some((cookie) => cookie.includes("abangcebu-password-reset=1") && cookie.includes("HttpOnly"))).toBe(true);
   });
 
+  it("sets a secure recovery cookie when canonical HTTPS terminates at a proxy", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("NEXT_PUBLIC_SITE_URL", "https://recovery.example");
+    const response = await GET(request("?code=one-time-code&type=recovery&next=%2Freset-password"));
+    const marker = response.headers.getSetCookie().find(cookie => cookie.startsWith("abangcebu-password-reset=1"));
+    expect(marker).toContain("Secure");
+    expect(marker).toContain("HttpOnly");
+    expect(response.headers.get("location")).toBe("https://recovery.example/reset-password");
+  });
+
   it("rejects unsafe redirects before exchanging the code", async () => {
     const response = await GET(request("?code=one-time-code&type=recovery&next=%2F%2Fevil.example"));
     expect(response.headers.get("location")).toContain("invalid_recovery_link");
