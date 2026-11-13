@@ -36,6 +36,7 @@ ENV NEXT_PUBLIC_TURNSTILE_SITE_KEY=$NEXT_PUBLIC_TURNSTILE_SITE_KEY
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
 
+RUN node scripts/validate-public-build-env.mjs
 RUN pnpm run build
 
 # Stage 4: Production runtime
