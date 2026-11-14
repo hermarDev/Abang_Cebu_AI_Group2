@@ -54,6 +54,20 @@ describe("admin dashboard", () => {
     expect(html).toContain('href="/admin/audit"');
     for (const href of ["/admin/reviews", "/admin/accounts", "/admin/reports"]) expect(html).toContain(`href="${href}`);
   });
+  it("keeps recent activity compact and links to the full audit log", async () => {
+    const entries = Array.from({ length: 10 }, (_, i) => ({
+      id: `entry-${i}`, actionType: "property_approved", adminName: `Admin ${i}`,
+      targetType: "property", targetId: `property-${i}`,
+      createdAt: "2026-11-09T01:00:00Z", newState: { detailedPayload: "large audit details" },
+    }));
+    mocks.rpc.mockResolvedValueOnce({ data: { ...overview, recentAuditEntries: entries }, error: null });
+    const html = renderToStaticMarkup(await AdminDashboardPage());
+    expect(html).toContain("Admin 0");
+    expect(html).toContain("Admin 4");
+    expect(html).not.toContain("Admin 5");
+    expect(html).not.toContain("large audit details");
+    expect(html).toContain('href="/admin/audit"');
+  });
   it.each([
     { data: null, error: { message: "timeout" } },
     { data: { ...overview, pendingReviewCount: null }, error: null },

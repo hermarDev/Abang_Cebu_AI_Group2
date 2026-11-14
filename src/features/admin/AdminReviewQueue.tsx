@@ -68,6 +68,15 @@ export type PendingRevision = {
   snapshotMedia: Record<string, unknown>[];
   reviewStatus: string;
   createdAt: string;
+  // FVO fields on the revision itself (top-level camelCase)
+  fieldVerificationStatus?: string | null;
+  fieldVerifiedBy?: string | null;
+  fieldVerifiedAt?: string | null;
+  fieldVerificationMethod?: string | null;
+  fieldVerificationNotes?: string | null;
+  fieldVerificationProof?: Array<{ kind: string; object_path: string; signedUrl?: string | null }> | null;
+  fieldVerificationProxyName?: string | null;
+  fieldVerificationProxyRelationship?: string | null;
 };
 
 export const reviewTabs = [
@@ -159,29 +168,26 @@ export function PropertyDetails({
 }) {
   const data = revision?.snapshotPayload.property as Record<string, unknown> | undefined;
   const unit = revision?.snapshotPayload.unit as Record<string, unknown> | undefined;
-  if (revision) property = {
-    id: property.id, status: property.status, landlordName: property.landlordName,
-    title: data?.title as string, description: data?.description as string,
-    propertyType: data?.property_type as string, rentalType: unit?.rental_type as string,
-    monthlyRent: unit?.monthly_rent as number, floorAreaSqm: unit?.floor_area_sqm as number,
-    maxOccupants: unit?.max_occupants as number,
-    streetAddress: data?.street_address as string, barangay: data?.barangay as string, city: data?.city as string,
-    postalCode: data?.postal_code as string, latitude: data?.latitude as number, longitude: data?.longitude as number,
-    photoUrls: [], permitUrls: [],
-  };
   const isRevision = !!revision;
 
   // Extract data from either property or revision (revision uses snake_case keys from DB)
-  const title = (data?.title as string) ?? property.title;
-  const description = (data?.description as string) ?? property.description;
+  // Live fields (title, description, streetAddress, photoUrls, permitUrls) must NOT fall back when revision is present
+  const parseNumeric = (value: unknown): number | undefined =>
+    typeof value === "number" && Number.isFinite(value)
+      ? value
+      : typeof value === "string" && value.trim() !== "" && Number.isFinite(Number(value))
+        ? Number(value)
+        : undefined;
+  const title = isRevision ? (data?.title as string) : property.title;
+  const description = isRevision ? (data?.description as string) : property.description;
   const propertyType = (data?.property_type as string) ?? property.propertyType;
-  const rentalType = (data?.rental_type as string) ?? property.rentalType;
-  const floorAreaSqm = (data?.floor_area_sqm as number) ?? property.floorAreaSqm;
-  const maxOccupants = (data?.max_occupants as number) ?? property.maxOccupants;
-  const monthlyRent = (data?.monthly_rent as number) ?? property.monthlyRent;
-  const streetAddress = (data?.street_address as string) ?? property.streetAddress;
+  const rentalType = isRevision ? (unit?.rental_type as string) : property.rentalType;
+  const floorAreaSqm = isRevision ? parseNumeric(unit?.floor_area_sqm) : property.floorAreaSqm;
+  const maxOccupants = isRevision ? parseNumeric(unit?.max_occupants) : property.maxOccupants;
+  const monthlyRent = isRevision ? parseNumeric(unit?.monthly_rent) : property.monthlyRent;
+  const streetAddress = isRevision ? (data?.street_address as string) : property.streetAddress;
   const barangay = (data?.barangay as string) ?? property.barangay;
-  const city = (data?.city as string) ?? property.city;
+  const city = isRevision ? (data?.city as string) : property.city;
   const postalCode = (data?.postal_code as string) ?? property.postalCode;
   const latitude = (data?.latitude as number) ?? property.latitude;
   const longitude = (data?.longitude as number) ?? property.longitude;
@@ -189,10 +195,32 @@ export function PropertyDetails({
   const permitNumber = (data?.permit_number as string) ?? property.permitNumber;
   const permitLgu = (data?.permit_lgu as string) ?? property.permitLgu;
   const permitExpiresOn = (data?.permit_expires_on as string) ?? property.permitExpiresOn;
-  const permitNotRequiredConfirmed = (data?.permit_not_required_confirmed as boolean) ?? property.permitNotRequiredConfirmed;
+  // Parse permit_not_required_confirmed accurately (=== true || === "true")
+  const permitNotRequiredConfirmedRaw = data?.permit_not_required_confirmed ?? property.permitNotRequiredConfirmed;
+  const permitNotRequiredConfirmed = permitNotRequiredConfirmedRaw === true || permitNotRequiredConfirmedRaw === "true";
   const permitExemptionReason = (data?.permit_exemption_reason as string) ?? property.permitExemptionReason;
   const documentCategories = (data?.document_categories as string) ?? property.documentCategories;
   const documentApplicabilityDecision = (data?.document_applicability_decision as string) ?? property.documentApplicabilityDecision;
+
+  // FVO fields: prefer revision.fieldVerification* ?? property.fieldVerification*
+  const fieldVerificationStatus = isRevision
+    ? (revision?.fieldVerificationStatus ?? property.fieldVerificationStatus)
+    : property.fieldVerificationStatus;
+  const fieldVerificationMethod = isRevision
+    ? (revision?.fieldVerificationMethod ?? property.fieldVerificationMethod)
+    : property.fieldVerificationMethod;
+  const fieldVerificationNotes = isRevision
+    ? (revision?.fieldVerificationNotes ?? property.fieldVerificationNotes)
+    : property.fieldVerificationNotes;
+  const fieldVerificationProof = isRevision
+    ? (revision?.fieldVerificationProof ?? property.fieldVerificationProof)
+    : property.fieldVerificationProof;
+  const fieldVerificationProxyName = isRevision
+    ? (revision?.fieldVerificationProxyName ?? property.fieldVerificationProxyName)
+    : property.fieldVerificationProxyName;
+  const fieldVerificationProxyRelationship = isRevision
+    ? (revision?.fieldVerificationProxyRelationship ?? property.fieldVerificationProxyRelationship)
+    : property.fieldVerificationProxyRelationship;
 
   // Get photos and permits from revision media or property
   const photoUrls = revision?.snapshotMedia
@@ -256,39 +284,39 @@ export function PropertyDetails({
           </span>
           <Badge
             variant={
-              property.fieldVerificationStatus === "verified"
+              fieldVerificationStatus === "verified"
                 ? "default"
-                : property.fieldVerificationStatus === "flagged"
+                : fieldVerificationStatus === "flagged"
                   ? "destructive"
                   : "warning"
             }
           >
-            {property.fieldVerificationStatus === "verified"
+            {fieldVerificationStatus === "verified"
               ? "Field Verified"
-              : property.fieldVerificationStatus === "flagged"
+              : fieldVerificationStatus === "flagged"
                 ? "Flagged"
                 : "Awaiting Field Verification"}
           </Badge>
         </div>
 
-        {property.fieldVerificationStatus === "verified" && (
+        {fieldVerificationStatus === "verified" && (
           <div className="space-y-1 text-xs text-muted-foreground pt-1 border-t border-border/60">
             <p className="m-0 font-medium text-foreground">
-              Method: {property.fieldVerificationMethod === "site_visit" ? "Site visit" : property.fieldVerificationMethod === "video_call" ? "Video call" : "Proxy meeting"}
+              Method: {fieldVerificationMethod === "site_visit" ? "Site visit" : fieldVerificationMethod === "video_call" ? "Video call" : "Proxy meeting"}
             </p>
-            {property.fieldVerificationNotes && (
-              <p className="m-0 whitespace-pre-wrap break-words">{property.fieldVerificationNotes}</p>
+            {fieldVerificationNotes && (
+              <p className="m-0 whitespace-pre-wrap break-words">{fieldVerificationNotes}</p>
             )}
-            {property.fieldVerificationProxyName && (
+            {fieldVerificationProxyName && (
               <p className="m-0">
-                Proxy: {property.fieldVerificationProxyName} ({property.fieldVerificationProxyRelationship})
+                Proxy: {fieldVerificationProxyName} ({fieldVerificationProxyRelationship})
               </p>
             )}
-            {Array.isArray(property.fieldVerificationProof) && property.fieldVerificationProof.length > 0 && (
+            {Array.isArray(fieldVerificationProof) && fieldVerificationProof.length > 0 && (
               <div className="pt-1">
                 <span className="font-medium text-foreground">Proof documents/photos:</span>
                 <ul className="m-0 mt-1 flex flex-wrap gap-2 p-0 list-none">
-                  {property.fieldVerificationProof.map((proof, idx) => (
+                  {fieldVerificationProof.map((proof, idx) => (
                     <li key={proof.object_path || idx}>
                       {proof.signedUrl ? (
                         <a
@@ -309,10 +337,10 @@ export function PropertyDetails({
           </div>
         )}
 
-        {property.fieldVerificationStatus === "flagged" && (
+        {fieldVerificationStatus === "flagged" && (
           <div className="text-xs text-destructive pt-1 border-t border-border/60">
             <p className="m-0 font-medium">Officer flagged issues with this submission.</p>
-            {property.fieldVerificationNotes && <p className="m-0 mt-1">{property.fieldVerificationNotes}</p>}
+            {fieldVerificationNotes && <p className="m-0 mt-1">{fieldVerificationNotes}</p>}
           </div>
         )}
       </div>
@@ -321,7 +349,7 @@ export function PropertyDetails({
         {rows.map(([label, value]) => <div key={label} className="contents"><dt className="font-medium text-muted-foreground">{label}</dt><dd className="m-0 break-words">{value ?? "—"}</dd></div>)}
       </dl>
 
-      <ChecklistView property={{ ...property, monthlyRent, propertyType, rentalType, floorAreaSqm, maxOccupants, streetAddress, barangay, city, photoUrls, permitUrls }} />
+      <ChecklistView property={{ ...property, monthlyRent, propertyType, rentalType, floorAreaSqm, maxOccupants, streetAddress, barangay, city, photoUrls, permitUrls, fieldVerificationStatus }} />
 
       {!!photoUrls.length && (
         <div>
@@ -365,6 +393,20 @@ export function PropertyDetails({
 export function ReviewCard({ property, onAction, onInspect }: { property: AdminProperty; onAction: (property: AdminProperty, action: ReviewAction) => void; onInspect: (property: AdminProperty) => void }) {
   const specs = unitSpecs(property);
   const place = [property.streetAddress, property.barangay, property.city].filter(Boolean).join(", ");
+
+  // FVO status indicator for pending and pending-revision items
+  const showFVOStatus = property.status === "pending" || property.hasPendingRevision;
+  const fvoStatusText = property.fieldVerificationStatus === "verified"
+    ? "Field verified"
+    : property.fieldVerificationStatus === "flagged"
+      ? "Flagged by officer"
+      : "Awaiting field verification";
+  const fvoStatusVariant = property.fieldVerificationStatus === "verified"
+    ? "default"
+    : property.fieldVerificationStatus === "flagged"
+      ? "destructive"
+      : "warning";
+
   return <article className="grid gap-3 rounded-xl border border-border bg-card p-4 transition hover:border-action/30" aria-label={property.title ?? "Property"}>
     <div className="flex flex-wrap items-start justify-between gap-2">
       <div className="min-w-0 flex-1">
@@ -376,6 +418,11 @@ export function ReviewCard({ property, onAction, onInspect }: { property: AdminP
         </div>
         <p className="m-0 mt-1 text-sm text-muted-foreground">{property.landlordName ?? "Unknown landlord"} · {typeof property.monthlyRent === "number" ? `${peso.format(property.monthlyRent)}/month` : "Rent not set"}</p>
         {place && <p className="m-0 mt-1 text-sm text-muted-foreground">{place}</p>}
+        {showFVOStatus && (
+          <Badge variant={fvoStatusVariant} className="mt-1.5">
+            {fvoStatusText}
+          </Badge>
+        )}
       </div>
       <div className="flex flex-wrap items-center gap-1.5">
         {property.hasPendingRevision && <Badge variant="warning">Update pending review</Badge>}
@@ -558,10 +605,45 @@ export function AdminReviewQueue({ userId, initialStatus = "pending", initialSea
     <Modal open={!!inspecting} onClose={closeInspect} title={inspecting?.hasPendingRevision ? "Inspect pending revision" : inspecting?.title || "Untitled property"} description="Property details and permits" className="max-h-[calc(100dvh-2rem)] lg:max-h-[85dvh] max-w-2xl overflow-y-auto">
       {inspectLoading ? <p role="status">Loading submitted revision…</p> : inspectError ? <Alert variant="error">{inspectError}</Alert> : inspecting && (!inspecting.hasPendingRevision || inspectingRevision) && <>
         <PropertyDetails property={inspecting} revision={inspectingRevision} />
-        {inspectingRevision && <div className="mt-4 flex flex-wrap gap-2">{(["approve", "reject"] as const).map((action) => <Button key={action} onClick={() => {
-          const property = { ...inspecting, submissionDraftId: inspectingRevision.draftId, submissionExpectedRevision: inspectingRevision.expectedRevision };
-          closeInspect(); open(property, action);
-        }}>{action === "approve" ? "Approve revision" : "Request revision changes"}</Button>)}</div>}
+        {inspectingRevision && <div className="mt-4 flex flex-wrap gap-2">
+          {(() => {
+            const effectiveFieldVerificationStatus = inspectingRevision.fieldVerificationStatus ?? inspecting.fieldVerificationStatus;
+            const isApproveBlocked = effectiveFieldVerificationStatus !== "verified";
+            const blockReason = effectiveFieldVerificationStatus === "flagged" ? "Flagged by officer" : "Awaiting field verification";
+            return ([
+              <Button
+                key="approve"
+                onClick={() => {
+                  const property = { ...inspecting, submissionDraftId: inspectingRevision.draftId, submissionExpectedRevision: inspectingRevision.expectedRevision };
+                  closeInspect(); open(property, "approve");
+                }}
+                variant="primary"
+                disabled={isApproveBlocked}
+                title={isApproveBlocked ? "Field verification must be completed before approval" : undefined}
+              >
+                Approve revision
+              </Button>,
+              <Button
+                key="reject"
+                onClick={() => {
+                  const property = { ...inspecting, submissionDraftId: inspectingRevision.draftId, submissionExpectedRevision: inspectingRevision.expectedRevision };
+                  closeInspect(); open(property, "reject");
+                }}
+                variant="outline"
+              >
+                Request revision changes
+              </Button>,
+              isApproveBlocked && (
+                <span
+                  key="fvo-block-note"
+                  className={effectiveFieldVerificationStatus === "flagged" ? "self-center text-xs font-medium text-destructive" : "self-center text-xs text-muted-foreground"}
+                >
+                  Approval blocked: {blockReason}
+                </span>
+              )
+            ]);
+          })()}
+        </div>}
       </>}
     </Modal>
     <Modal open={!!dialog} onClose={close} title={copy?.title ?? ""} description={dialog ? `${dialog.property.title ?? "Property"} · ${statusLabel(dialog.property)}` : undefined} className="max-h-[calc(100dvh-2rem)] lg:max-h-[85dvh] overflow-y-auto">

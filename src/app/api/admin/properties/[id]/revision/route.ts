@@ -20,7 +20,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     // Submission RLS permits owner reads only; privileged access follows the active-admin guard.
     const admin = createAdminClient();
     const { data: submission, error } = await admin.from("property_submissions")
-      .select("operation_id, draft_id, expected_revision, snapshot_payload, snapshot_media, review_status, created_at")
+      .select("operation_id, draft_id, expected_revision, snapshot_payload, snapshot_media, review_status, created_at, field_verification_status, field_verified_by, field_verified_at, field_verification_method, field_verification_notes, field_verification_proof, field_verification_proxy_name, field_verification_proxy_relationship")
       .eq("property_id", id).eq("draft_id", draftId).eq("expected_revision", revision)
       .eq("review_status", "pending").is("superseded_by", null).maybeSingle();
     if (error) return jsonError("Failed to load revision.", 503);
@@ -37,10 +37,36 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
       for (const entry of data ?? []) if (entry.path && entry.signedUrl) signed.set(entry.path, entry.signedUrl);
       if (paths.some((path) => !signed.has(path))) return jsonError("Submission media could not be loaded.", 503);
     }
+
+    // Sign field_verification_proof object paths using field-verification-media bucket
+    let fieldVerificationProof: unknown = submission.field_verification_proof;
+    if (Array.isArray(fieldVerificationProof)) {
+      const proofPaths = [...new Set(fieldVerificationProof.flatMap((proof) => object(proof) && typeof proof.object_path === "string" ? [proof.object_path as string] : []))];
+      const proofSigned = new Map<string, string>();
+      if (proofPaths.length) {
+        try {
+          const { data: urls } = await admin.storage.from("field-verification-media").createSignedUrls(proofPaths, 900);
+          for (const entry of urls ?? []) if (entry?.path && entry.signedUrl) proofSigned.set(entry.path, entry.signedUrl);
+        } catch {
+          // Degrade gracefully: signedUrl stays null
+        }
+      }
+      fieldVerificationProof = fieldVerificationProof.map((proof) => object(proof) && typeof proof.object_path === "string"
+        ? { ...proof, signedUrl: proofSigned.get(proof.object_path) ?? null } : proof);
+    }
+
     return jsonOk({ revision: {
       id: submission.operation_id, draftId: submission.draft_id, expectedRevision: submission.expected_revision,
       snapshotPayload: payload, snapshotMedia: media.map((item) => ({ kind: item.kind, url: signed.get(item.object_path) })),
       reviewStatus: submission.review_status, createdAt: submission.created_at,
+      fieldVerificationStatus: submission.field_verification_status,
+      fieldVerifiedBy: submission.field_verified_by,
+      fieldVerifiedAt: submission.field_verified_at,
+      fieldVerificationMethod: submission.field_verification_method,
+      fieldVerificationNotes: submission.field_verification_notes,
+      fieldVerificationProof,
+      fieldVerificationProxyName: submission.field_verification_proxy_name,
+      fieldVerificationProxyRelationship: submission.field_verification_proxy_relationship,
     } });
   } catch {
     return jsonError("Revision could not be loaded. Please retry.", 503);
