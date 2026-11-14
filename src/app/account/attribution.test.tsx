@@ -36,4 +36,16 @@ describe("account map attribution", () => {
       expect(html).toContain("bg-background");
     }
   });
+
+  it("renders a full-width sticky top bar and un-boxed page heading aligned to max-w-5xl", async () => {
+    fixture.profile = { full_name: "Admin User", phone_number: null, role: "admin", avatar_url: null };
+    const html = renderToStaticMarkup(await AccountPage());
+    expect(html).toContain("border-b border-border/70 bg-background/95");
+    expect(html).not.toContain("bg-white/90");
+    expect(html).not.toContain("dark:bg-slate-950/90");
+    expect(html).not.toContain("max-w-6xl");
+    expect(html).toContain("max-w-5xl");
+    expect(html).not.toContain("Your account");
+    fixture.profile = null;
+  });
 });

@@ -27,23 +27,23 @@ export default async function AccountPage() {
 
   return <main className="relative isolate h-[100dvh] overflow-hidden bg-background text-foreground">
     <div className="absolute inset-0 z-10 overflow-y-auto overscroll-contain">
-    <div className="mx-auto w-full max-w-6xl px-4 pt-5 pb-[calc(5rem+env(safe-area-inset-bottom))] sm:px-6 sm:pt-8 lg:px-8 lg:pb-20">
-      <header className="sticky top-3 z-20 flex items-center justify-between gap-4 rounded-2xl border border-border/70 bg-white/90 p-3 shadow-sm backdrop-blur-sm dark:bg-slate-950/90 sm:px-5">
-        <Link href={profile?.role === "admin" ? "/admin/dashboard" : profile?.role === "landlord" ? "/landlord/dashboard" : "/"} className="inline-flex min-h-11 items-center gap-2 rounded-lg px-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
-          <ArrowLeft size={18} aria-hidden="true" /> {profile?.role === "admin" ? "Back to admin workspace" : profile?.role === "landlord" ? "Back to workspace" : "Back to map"}
-        </Link>
-        <BrandLogo className="h-auto w-32" />
+      <header className="sticky top-0 z-20 border-b border-border/70 bg-background/95 backdrop-blur-sm">
+        <div className="mx-auto flex w-full max-w-5xl items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
+          <Link href={profile?.role === "admin" ? "/admin/dashboard" : profile?.role === "landlord" ? "/landlord/dashboard" : "/"} className="inline-flex min-h-11 items-center gap-2 rounded-lg px-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
+            <ArrowLeft size={18} aria-hidden="true" /> {profile?.role === "admin" ? "Back to admin workspace" : profile?.role === "landlord" ? "Back to workspace" : "Back to map"}
+          </Link>
+          <BrandLogo className="h-auto w-32" />
+        </div>
       </header>
 
-      <div className="relative z-10 mx-auto mt-8 w-full max-w-5xl">
-        <div className="rounded-2xl border border-border/70 bg-white/90 p-5 shadow-sm backdrop-blur-sm dark:bg-slate-950/90 sm:p-6">
-          <p className="text-sm font-semibold uppercase tracking-[.14em] text-action">Your account</p>
-          <h1 className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl">Account settings</h1>
-          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground sm:text-base">Update your profile details and manage your sign-in security.</p>
+      <div className="mx-auto w-full max-w-5xl px-4 pt-6 pb-[calc(5.5rem+env(safe-area-inset-bottom))] sm:px-6 sm:pt-8 lg:px-8 lg:pb-16">
+        <div>
+          <h1 className="mt-1.5 text-2xl font-bold tracking-tight sm:text-3xl">Account settings</h1>
+          <p className="mt-1.5 max-w-2xl text-sm leading-relaxed text-muted-foreground sm:text-base">Update your profile details and manage your sign-in security.</p>
         </div>
 
         {profileError || !profile ? (
-          <section className="mt-7 rounded-2xl border border-border bg-card p-6 text-card-foreground shadow-sm" role="alert">
+          <section className="mt-6 rounded-2xl border border-border bg-card p-6 text-card-foreground shadow-sm" role="alert">
             <h2 className="text-lg font-semibold">We couldn’t load your account</h2>
             <p className="mt-2 text-sm text-muted-foreground">Refresh the page to try again. If the problem continues, contact support.</p>
           </section>
@@ -52,7 +52,6 @@ export default async function AccountPage() {
         )}
       </div>
     </div>
-  </div>
-  {profile?.role === "landlord" && <LandlordMobileNav userId={user.id} />}
+    {profile?.role === "landlord" && <LandlordMobileNav userId={user.id} />}
   </main>;
 }
