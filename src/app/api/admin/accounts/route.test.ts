@@ -130,9 +130,12 @@ describe("POST /api/admin/accounts", () => {
       expect(mocks.createUser).not.toHaveBeenCalled();
     });
 
-    it("returns 400 for password less than 8 chars", async () => {
-      const res = await post({ ...validStaff, password: "short" });
-      expect(res.status).toBe(400);
+    it("returns 400 for password less than 8 chars or failing complexity", async () => {
+      const shortRes = await post({ ...validStaff, password: "short" });
+      expect(shortRes.status).toBe(400);
+      const weakRes = await post({ ...validStaff, password: "weakpassword" });
+      expect(weakRes.status).toBe(400);
+      expect(mocks.createUser).not.toHaveBeenCalled();
     });
 
     it("returns 400 for invalid role", async () => {

@@ -84,13 +84,29 @@ describe("AdminAccountsManager", () => {
     expect(hiddenHtml).toContain('aria-label="Show password"');
     expect(hiddenHtml).toContain("size-11");
     expect(hiddenHtml).toContain("pr-12");
+    expect(hiddenHtml).toContain("Password requirements");
+    expect(hiddenHtml).toContain('aria-describedby="staff-password-requirements"');
+    expect(hiddenHtml).toContain("The password must be at least 8 characters.");
+    expect(hiddenHtml).toContain("The password must contain at least one uppercase and one lowercase letter.");
+    expect(hiddenHtml).toContain("The password must contain at least one symbol.");
+    expect(hiddenHtml).toContain("The password must contain at least one number.");
+
+    const weakHtml = renderToStaticMarkup(
+      <CreateStaffAccountForm
+        {...baseProps}
+        fullName="Staff User"
+        email="staff@abangcebu.ph"
+        password="weakpassword"
+      />
+    );
+    expect(weakHtml).toMatch(/<button[^>]*type="submit"[^>]*disabled=""/);
 
     const revealedHtml = renderToStaticMarkup(
       <CreateStaffAccountForm
         {...baseProps}
         fullName="Staff User"
         email="staff@abangcebu.ph"
-        password="Password123"
+        password="Password123!"
         showPassword
         error="Email already registered."
       />
@@ -99,5 +115,6 @@ describe("AdminAccountsManager", () => {
     expect(revealedHtml).toContain('aria-label="Hide password"');
     expect(revealedHtml).toContain('role="alert"');
     expect(revealedHtml).toContain("Email already registered.");
+    expect(revealedHtml).not.toMatch(/<button[^>]*type="submit"[^>]*disabled=""/);
   });
 });
