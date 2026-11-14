@@ -103,32 +103,92 @@ RESET ROLE;
 INSERT INTO public.support_tickets(id, operation_id, user_id, requester_name, requester_email, requester_role, category, subject, description, related_listing_id, reported_landlord_id, status, priority, attachments)
 VALUES ('77100000-0000-4000-8000-000000000001', gen_random_uuid(), 'bb100000-0000-4000-8000-000000000001', 'Renter Requester', 'renter@test.local', 'renter', 'messaging_safety', 'Noise complaint', 'Loud tenant late at night', 'ee100000-0000-4000-8000-000000000001', 'bb100000-0000-4000-8000-000000000002', 'open', 'normal', '[]'::jsonb);
 
+-- Landlord cannot select open ticket prior to awaiting_landlord status
 SET LOCAL ROLE authenticated;
-SELECT set_config('request.jwt.claim.sub', 'bb100000-0000-4000-8000-000000000005', true);
+SELECT set_config('request.jwt.claim.sub', 'bb100000-0000-4000-8000-000000000002', true);
+DO $$ BEGIN
+  IF EXISTS (SELECT 1 FROM public.support_tickets WHERE id = '77100000-0000-4000-8000-000000000001') THEN
+    RAISE EXCEPTION 'reported landlord was able to read open ticket before awaiting_landlord';
+  END IF;
+END $$;
 
 -- Support lists tickets
+SELECT set_config('request.jwt.claim.sub', 'bb100000-0000-4000-8000-000000000005', true);
 DO $$ DECLARE tickets jsonb; BEGIN
   tickets := public.support_desk_list_tickets('open');
   IF jsonb_array_length(tickets) < 1 THEN RAISE EXCEPTION 'support desk list tickets failed'; END IF;
 END $$;
 
--- Support requests landlord response
-SELECT public.support_desk_act_on_ticket(
-  '77100000-0000-4000-8000-000000000001', gen_random_uuid(), 'request_landlord_response',
-  'Please clarify house rules on noise curfews', 'bb100000-0000-4000-8000-000000000002'
-);
+-- Support requests landlord response with idempotency check
+DO $$ DECLARE
+  v_op uuid := gen_random_uuid();
+  r1 jsonb;
+  r2 jsonb;
+BEGIN
+  r1 := public.support_desk_act_on_ticket(
+    '77100000-0000-4000-8000-000000000001', v_op, 'request_landlord_response',
+    'Please clarify house rules on noise curfews', 'bb100000-0000-4000-8000-000000000002'
+  );
+  r2 := public.support_desk_act_on_ticket(
+    '77100000-0000-4000-8000-000000000001', v_op, 'request_landlord_response',
+    'Please clarify house rules on noise curfews', 'bb100000-0000-4000-8000-000000000002'
+  );
+  IF (r2->>'replayed')::boolean IS NOT true THEN
+    RAISE EXCEPTION 'support desk act on ticket replay failed: %', r2;
+  END IF;
+END $$;
 
--- Landlord responds
+-- Landlord can now see the awaiting_landlord ticket
 SELECT set_config('request.jwt.claim.sub', 'bb100000-0000-4000-8000-000000000002', true);
-SELECT public.landlord_respond_to_support_ticket(
-  '77100000-0000-4000-8000-000000000001', gen_random_uuid(), 'I have issued a verbal reminder to the occupants'
-);
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM public.support_tickets WHERE id = '77100000-0000-4000-8000-000000000001') THEN
+    RAISE EXCEPTION 'reported landlord cannot read awaiting_landlord ticket';
+  END IF;
+END $$;
+
+-- Landlord responds with idempotency check
+DO $$ DECLARE
+  v_op uuid := gen_random_uuid();
+  r1 jsonb;
+  r2 jsonb;
+BEGIN
+  r1 := public.landlord_respond_to_support_ticket(
+    '77100000-0000-4000-8000-000000000001', v_op, 'I have issued a verbal reminder to the occupants'
+  );
+  r2 := public.landlord_respond_to_support_ticket(
+    '77100000-0000-4000-8000-000000000001', v_op, 'I have issued a verbal reminder to the occupants'
+  );
+  IF (r2->>'replayed')::boolean IS NOT true THEN
+    RAISE EXCEPTION 'landlord respond replay failed: %', r2;
+  END IF;
+END $$;
+
+-- Second new response fails because status is now in_progress
+DO $$ BEGIN
+  BEGIN
+    PERFORM public.landlord_respond_to_support_ticket(
+      '77100000-0000-4000-8000-000000000001', gen_random_uuid(), 'Another reply'
+    );
+    RAISE EXCEPTION 'landlord was able to respond to ticket not awaiting landlord';
+  EXCEPTION WHEN invalid_parameter_value THEN NULL; END;
+END $$;
 
 -- Support marks resolved
 SELECT set_config('request.jwt.claim.sub', 'bb100000-0000-4000-8000-000000000005', true);
 SELECT public.support_desk_act_on_ticket(
   '77100000-0000-4000-8000-000000000001', gen_random_uuid(), 'resolve', 'Complaint settled through landlord intervention'
 );
+
+-- Trying to request landlord response on resolved ticket fails transition guard
+DO $$ BEGIN
+  BEGIN
+    PERFORM public.support_desk_act_on_ticket(
+      '77100000-0000-4000-8000-000000000001', gen_random_uuid(), 'request_landlord_response',
+      'Try reopening illegally', 'bb100000-0000-4000-8000-000000000002'
+    );
+    RAISE EXCEPTION 'support desk was able to transition resolved ticket to awaiting_landlord';
+  EXCEPTION WHEN invalid_parameter_value THEN NULL; END;
+END $$;
 
 -- ============================================================================
 -- Test 4: Dual-Button Mutual Rental Agreement

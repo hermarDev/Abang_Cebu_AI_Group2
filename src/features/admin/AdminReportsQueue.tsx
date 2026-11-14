@@ -26,6 +26,13 @@ export type AdminReport = {
   resolutionNote?: string | null;
   createdAt: string;
   evidenceSnapshot?: { messages?: EvidenceMessage[]; listing?: { title?: string; status?: string } } | null;
+  isEscalatedSupportTicket?: boolean;
+  recommendedAdminAction?: string | null;
+  escalationReason?: string | null;
+  reportedLandlordId?: string | null;
+  relatedListingId?: string | null;
+  landlordInquiryNote?: string | null;
+  landlordResponse?: string | null;
 };
 type Decision = "resolved" | "dismissed";
 type Dialog = { report: AdminReport; decision: Decision; operationId: string };
@@ -37,47 +44,158 @@ const isClosed = (status: string) => status === "resolved" || status === "dismis
 export const inspectReport = (userId: string, reportId: string) =>
   adminCall<{ report?: AdminReport }>(`/api/admin/reports/${reportId}?operationId=${newOperationId()}`, userId);
 
-export const submitReportDecision = (userId: string, { report, decision, operationId }: Dialog, note: string, suspend: boolean, unpublish: boolean) =>
-  adminCall<unknown>(`/api/admin/reports/${report.id}`, userId, {
-    operationId, decision, resolutionNote: note.trim(),
-    suspendTargetUser: decision === "resolved" && suspend, unpublishTargetListing: decision === "resolved" && unpublish,
-  });
+export const submitReportDecision = async (
+  userId: string,
+  { report, decision, operationId }: Dialog,
+  note: string,
+  suspend: boolean,
+  unpublish: boolean,
+) => {
+  if (report.isEscalatedSupportTicket) {
+    if (decision === "resolved") {
+      if (suspend && report.targetUserId) {
+        await adminCall(`/api/admin/accounts`, userId, {
+          targetUserId: report.targetUserId,
+          operationId: newOperationId(),
+          suspend: true,
+          reason: note.trim(),
+          unpublishListings: unpublish,
+        });
+      } else if (unpublish && report.relatedListingId) {
+        await adminCall(`/api/admin/properties/${report.relatedListingId}/lifecycle`, userId, {
+          operationId: newOperationId(),
+          action: "unpublish",
+          reason: note.trim(),
+        });
+      }
+    }
+    return adminCall<unknown>(`/api/support-desk/tickets/${report.id}`, userId, {
+      operationId,
+      action: "resolve",
+      note: decision === "resolved" ? note.trim() : `Dismissed by admin: ${note.trim()}`,
+    });
+  }
 
-export function ReportRow({ report, onInspect, onDecide }: { report: AdminReport; onInspect: (report: AdminReport) => void; onDecide: (report: AdminReport, decision: Decision) => void }) {
-  return <li className="grid gap-3 rounded-xl border border-border bg-card p-4 transition hover:border-action/30">
-    <div className="flex flex-wrap items-center gap-2">
-      <Badge variant={report.category === "harassment" || report.category === "scam" || report.category === "safety" ? "destructive" : "outline"}>{label(report.category)}</Badge>
-      <Badge variant={statusBadgeVariant(report.status)}>{label(report.status)}</Badge>
-      <span className="text-sm text-muted-foreground">{label(report.targetType)} report · {formatAdminDate(report.createdAt)}</span>
-    </div>
-    <p className="m-0 text-sm text-muted-foreground">
-      Reporter: <span className="font-medium text-foreground">{report.reporterName?.trim() || "Unknown"}</span>
-      {" · "}Reported: <span className="font-medium text-foreground">{report.targetUserName?.trim() || "Unknown"}</span>
-    </p>
-    <p className="m-0 whitespace-pre-wrap break-words">{report.details}</p>
-    {report.resolutionNote && <p className="m-0 text-sm text-muted-foreground">Resolution note: {report.resolutionNote}</p>}
-    <div className="flex flex-wrap gap-2">
-      <Button size="sm" variant="outline" onClick={() => onInspect(report)}>Inspect evidence</Button>
-      {!isClosed(report.status) && <>
-        <Button size="sm" variant="primary" onClick={() => onDecide(report, "resolved")}>Resolve</Button>
-        <Button size="sm" variant="outline" onClick={() => onDecide(report, "dismissed")}>Dismiss</Button>
-      </>}
-    </div>
-  </li>;
+  return adminCall<unknown>(`/api/admin/reports/${report.id}`, userId, {
+    operationId,
+    decision,
+    resolutionNote: note.trim(),
+    suspendTargetUser: decision === "resolved" && suspend,
+    unpublishTargetListing: decision === "resolved" && unpublish,
+  });
+};
+
+export function ReportRow({
+  report,
+  onInspect,
+  onDecide,
+}: {
+  report: AdminReport;
+  onInspect: (report: AdminReport) => void;
+  onDecide: (report: AdminReport, decision: Decision) => void;
+}) {
+  return (
+    <li className="grid gap-3 rounded-xl border border-border bg-card p-4 transition hover:border-action/30">
+      <div className="flex flex-wrap items-center gap-2">
+        {report.isEscalatedSupportTicket ? (
+          <Badge variant="destructive">Support Escalation</Badge>
+        ) : (
+          <Badge
+            variant={
+              report.category === "harassment" || report.category === "scam" || report.category === "safety"
+                ? "destructive"
+                : "outline"
+            }
+          >
+            {label(report.category)}
+          </Badge>
+        )}
+        <Badge variant={statusBadgeVariant(report.status)}>{label(report.status)}</Badge>
+        {report.recommendedAdminAction && (
+          <Badge variant="destructive">Recommended: {label(report.recommendedAdminAction)}</Badge>
+        )}
+        <span className="text-sm text-muted-foreground">
+          {label(report.targetType)} report · {formatAdminDate(report.createdAt)}
+        </span>
+      </div>
+      <p className="m-0 text-sm text-muted-foreground">
+        Reporter: <span className="font-medium text-foreground">{report.reporterName?.trim() || "Unknown"}</span>
+        {" · "}Reported:{" "}
+        <span className="font-medium text-foreground">{report.targetUserName?.trim() || "Unknown"}</span>
+      </p>
+      <p className="m-0 whitespace-pre-wrap break-words">{report.details}</p>
+      {report.resolutionNote && (
+        <p className="m-0 text-sm text-muted-foreground">Resolution note: {report.resolutionNote}</p>
+      )}
+      <div className="flex flex-wrap gap-2">
+        <Button size="sm" variant="outline" onClick={() => onInspect(report)}>
+          Inspect evidence
+        </Button>
+        {!isClosed(report.status) && (
+          <>
+            <Button size="sm" variant="primary" onClick={() => onDecide(report, "resolved")}>
+              Resolve
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => onDecide(report, "dismissed")}>
+              Dismiss
+            </Button>
+          </>
+        )}
+      </div>
+    </li>
+  );
 }
 
 export function EvidenceView({ report }: { report: AdminReport }) {
   const messages = report.evidenceSnapshot?.messages ?? [];
   const listing = report.evidenceSnapshot?.listing;
-  return <div className="grid gap-3">
-    <Alert variant="info">Viewing this evidence is recorded in the admin audit log. Only the messages captured at report time are shown.</Alert>
-    {listing && <p className="m-0 text-sm">Listing: <span className="font-medium">{listing.title ?? "Untitled"}</span> ({listing.status ?? "unknown"})</p>}
-    {messages.length === 0 ? !listing && <Empty>No message evidence was captured for this report.</Empty>
-      : <ol className="m-0 grid list-none gap-2 p-0">{messages.map((m) => <li key={m.id} className={`rounded-lg border p-3 text-sm ${m.reported ? "border-destructive" : "border-border"}`}>
-        <p className="m-0 text-xs text-muted-foreground">{m.senderId === report.targetUserId ? "Reported user" : "Reporter"} · {formatAdminDate(m.createdAt)}{m.reported ? " · Reported message" : ""}</p>
-        <p className="m-0 mt-1 whitespace-pre-wrap break-words">{m.body}</p>
-      </li>)}</ol>}
-  </div>;
+  return (
+    <div className="grid gap-3">
+      {report.isEscalatedSupportTicket ? (
+        <div className="grid gap-2 text-sm">
+          <Alert variant="info">This complaint was escalated by Customer Support for administrative review and enforcement.</Alert>
+          <p className="m-0 font-semibold text-foreground">Escalation Summary</p>
+          <p className="m-0 whitespace-pre-wrap break-words rounded-lg border border-border p-3 text-muted-foreground">
+            {report.details}
+          </p>
+          {report.recommendedAdminAction && (
+            <p className="m-0 text-xs font-semibold text-destructive">
+              Recommended action: {label(report.recommendedAdminAction)}
+            </p>
+          )}
+        </div>
+      ) : (
+        <>
+          <Alert variant="info">
+            Viewing this evidence is recorded in the admin audit log. Only the messages captured at report time are shown.
+          </Alert>
+          {listing && (
+            <p className="m-0 text-sm">
+              Listing: <span className="font-medium">{listing.title ?? "Untitled"}</span> ({listing.status ?? "unknown"})
+            </p>
+          )}
+          {messages.length === 0 ? (
+            !listing && <Empty>No message evidence was captured for this report.</Empty>
+          ) : (
+            <ol className="m-0 grid list-none gap-2 p-0">
+              {messages.map((m) => (
+                <li
+                  key={m.id}
+                  className={`rounded-lg border p-3 text-sm ${m.reported ? "border-destructive" : "border-border"}`}
+                >
+                  <p className="m-0 text-xs text-muted-foreground">
+                    {m.senderId === report.targetUserId ? "Reported user" : "Reporter"} · {formatAdminDate(m.createdAt)}
+                    {m.reported ? " · Reported message" : ""}
+                  </p>
+                  <p className="m-0 mt-1 whitespace-pre-wrap break-words">{m.body}</p>
+                </li>
+              ))}
+            </ol>
+          )}
+        </>
+      )}
+    </div>
+  );
 }
 
 export function AdminReportsQueue({ userId, initialStatus }: { userId: string; initialStatus?: string }) {
@@ -102,18 +220,85 @@ export function AdminReportsQueue({ userId, initialStatus }: { userId: string; i
       setError(null);
       const result = await adminCall<{ reports?: AdminReport[] }>(`/api/admin/reports?status=${status}`, userId, undefined, abort.signal);
       if (abort.signal.aborted) return;
-      if (result.ok) setReports(Array.isArray(result.data.reports) ? result.data.reports : []);
-      else { setError(result.message); notify("error", "admin-reports-load", result.message); }
+      let combined: AdminReport[] = [];
+      if (result.ok) {
+        combined = Array.isArray(result.data.reports) ? [...result.data.reports] : [];
+      } else {
+        setError(result.message);
+        notify("error", "admin-reports-load", result.message);
+        return;
+      }
+
+      if (status === "open" || status === "all") {
+        try {
+          const escRes = await fetch(`/api/support-desk/tickets?status=escalated`, {
+            headers: { "x-expected-user-id": userId },
+            signal: abort.signal,
+          });
+          if (escRes.ok) {
+            const escJson = await escRes.json();
+            const escalatedTickets = Array.isArray(escJson.tickets) ? escJson.tickets : [];
+            const mappedEscalations: AdminReport[] = escalatedTickets.map((t: {
+              id: string;
+              requesterName?: string;
+              reportedLandlordId?: string;
+              reportedLandlordName?: string;
+              category?: string;
+              subject?: string;
+              description?: string;
+              escalationReason?: string;
+              recommendedAdminAction?: string;
+              supportResolutionNote?: string;
+              escalatedToAdminAt?: string;
+              createdAt?: string;
+              relatedListingId?: string;
+            }) => ({
+              id: t.id,
+              reporterName: t.requesterName,
+              targetType: "support_escalation",
+              targetUserId: t.reportedLandlordId,
+              targetUserName: t.reportedLandlordName,
+              category: t.category ?? "safety",
+              details: `${t.subject ?? ""}\n\n${t.description ?? ""}\n\nEscalation Reason: ${t.escalationReason ?? "None"}${t.recommendedAdminAction ? `\nRecommended action: ${label(t.recommendedAdminAction)}` : ""}`,
+              status: "open",
+              resolutionNote: t.supportResolutionNote,
+              createdAt: t.escalatedToAdminAt || t.createdAt || new Date().toISOString(),
+              isEscalatedSupportTicket: true,
+              recommendedAdminAction: t.recommendedAdminAction,
+              escalationReason: t.escalationReason,
+              reportedLandlordId: t.reportedLandlordId,
+              relatedListingId: t.relatedListingId,
+            }));
+            combined = [...mappedEscalations, ...combined];
+          }
+        } catch {
+          // Non-blocking
+        }
+      }
+      setReports(combined);
     })();
     return () => abort.abort();
   }, [status, userId, reloadKey]);
 
   async function inspect(report: AdminReport) {
+    if (report.isEscalatedSupportTicket) {
+      setEvidence(report);
+      return;
+    }
     const result = await inspectReport(userId, report.id);
     if (result.ok && result.data.report) setEvidence(result.data.report);
     else notify("error", "admin-report-evidence", result.ok ? "Evidence could not be loaded." : result.message);
   }
-  const decide = (report: AdminReport, decision: Decision) => { setDialog({ report, decision, operationId: newOperationId() }); setNote(""); setSuspend(false); setUnpublish(false); setDialogError(null); };
+  const decide = (report: AdminReport, decision: Decision) => {
+    setDialog({ report, decision, operationId: newOperationId() });
+    setNote("");
+    const isEscalated = !!report.isEscalatedSupportTicket;
+    const shouldSuspend = isEscalated && (report.recommendedAdminAction === "suspend_account" || report.recommendedAdminAction === "both");
+    const shouldUnpublish = isEscalated && (report.recommendedAdminAction === "unpublish_listing" || report.recommendedAdminAction === "both");
+    setSuspend(shouldSuspend);
+    setUnpublish(shouldUnpublish);
+    setDialogError(null);
+  };
   const close = () => { if (!saving) setDialog(null); };
 
   async function confirm() {

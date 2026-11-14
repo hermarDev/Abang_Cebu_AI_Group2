@@ -392,9 +392,24 @@ DROP POLICY IF EXISTS support_tickets_staff_read ON public.support_tickets;
 CREATE POLICY support_tickets_staff_read ON public.support_tickets FOR SELECT TO authenticated
   USING (
     user_id = auth.uid()
-    OR reported_landlord_id = auth.uid()
+    OR (reported_landlord_id = auth.uid() AND status IN ('awaiting_landlord', 'in_progress'))
     OR EXISTS (SELECT 1 FROM public.profiles p WHERE p.id = auth.uid() AND p.role::text IN ('customer_support', 'admin') AND NOT p.is_suspended)
   );
+
+CREATE TABLE IF NOT EXISTS public.support_ticket_operations (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  ticket_id uuid NOT NULL REFERENCES public.support_tickets(id) ON DELETE CASCADE,
+  actor_id uuid NOT NULL REFERENCES public.profiles(id) ON DELETE RESTRICT,
+  operation_id uuid NOT NULL,
+  action text NOT NULL,
+  response_payload jsonb NOT NULL DEFAULT '{}'::jsonb,
+  created_at timestamptz NOT NULL DEFAULT pg_catalog.clock_timestamp(),
+  UNIQUE (actor_id, operation_id)
+);
+CREATE INDEX IF NOT EXISTS idx_support_ticket_operations_ticket ON public.support_ticket_operations(ticket_id);
+ALTER TABLE public.support_ticket_operations ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON public.support_ticket_operations FROM PUBLIC, anon, authenticated;
+GRANT ALL ON public.support_ticket_operations TO service_role;
 
 CREATE OR REPLACE FUNCTION public.support_desk_list_tickets(
   p_status text DEFAULT NULL, p_category text DEFAULT NULL, p_search text DEFAULT NULL,
@@ -465,6 +480,9 @@ DECLARE
   v_actor uuid := auth.uid();
   v_ticket public.support_tickets%ROWTYPE;
   v_trimmed_note text := pg_catalog.btrim(COALESCE(p_note, ''));
+  v_op public.support_ticket_operations%ROWTYPE;
+  v_landlord_id uuid;
+  v_res jsonb;
 BEGIN
   IF v_actor IS NULL OR NOT EXISTS (SELECT 1 FROM public.profiles p WHERE p.id = v_actor AND p.role::text IN ('customer_support','admin') AND NOT p.is_suspended) THEN
     RAISE EXCEPTION 'active support or admin required' USING ERRCODE = '42501';
@@ -475,21 +493,57 @@ BEGIN
     RAISE EXCEPTION 'invalid support desk action parameters' USING ERRCODE = '22023';
   END IF;
 
+  PERFORM pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended('support-desk-act:' || v_actor::text || ':' || p_operation_id::text, 0));
+
+  SELECT * INTO v_op FROM public.support_ticket_operations WHERE actor_id = v_actor AND operation_id = p_operation_id;
+  IF FOUND THEN
+    IF v_op.ticket_id <> p_ticket_id THEN
+      RAISE EXCEPTION 'operation id already used for different ticket' USING ERRCODE = '23505';
+    END IF;
+    RETURN v_op.response_payload || pg_catalog.jsonb_build_object('replayed', true);
+  END IF;
+
   SELECT * INTO v_ticket FROM public.support_tickets WHERE id = p_ticket_id FOR UPDATE;
   IF NOT FOUND THEN RAISE EXCEPTION 'support ticket not found' USING ERRCODE = 'P0002'; END IF;
 
+  -- Status transition guards
+  IF p_action = 'request_landlord_response' AND v_ticket.status NOT IN ('open', 'in_progress') THEN
+    RAISE EXCEPTION 'invalid status transition for request_landlord_response' USING ERRCODE = '22023';
+  ELSIF p_action = 'resolve' AND v_ticket.status NOT IN ('open', 'in_progress', 'awaiting_landlord') THEN
+    RAISE EXCEPTION 'invalid status transition for resolve' USING ERRCODE = '22023';
+  ELSIF p_action = 'escalate_to_admin' AND v_ticket.status NOT IN ('open', 'in_progress', 'awaiting_landlord') THEN
+    RAISE EXCEPTION 'invalid status transition for escalate_to_admin' USING ERRCODE = '22023';
+  END IF;
+
   IF p_action = 'request_landlord_response' THEN
-    IF p_reported_landlord_id IS NULL AND v_ticket.reported_landlord_id IS NULL THEN
+    v_landlord_id := COALESCE(p_reported_landlord_id, v_ticket.reported_landlord_id);
+    IF v_landlord_id IS NULL THEN
       RAISE EXCEPTION 'reported landlord required to request response' USING ERRCODE = '22023';
     END IF;
+    IF NOT EXISTS (SELECT 1 FROM public.profiles p WHERE p.id = v_landlord_id AND p.role = 'landlord' AND NOT p.is_suspended) THEN
+      RAISE EXCEPTION 'reported landlord must be an active landlord profile' USING ERRCODE = '22023';
+    END IF;
+
     UPDATE public.support_tickets SET
       status = 'awaiting_landlord',
-      reported_landlord_id = COALESCE(p_reported_landlord_id, reported_landlord_id),
+      reported_landlord_id = v_landlord_id,
       landlord_inquiry_note = v_trimmed_note,
       landlord_inquiry_sent_at = pg_catalog.now(),
       handled_by_support_id = v_actor,
       updated_at = pg_catalog.now()
     WHERE id = p_ticket_id;
+
+    INSERT INTO public.notifications (recipient_id, actor_id, type, title, body, link, entity_type, entity_id)
+    VALUES (
+      v_landlord_id,
+      v_actor,
+      'report',
+      'Customer Support Inquiry',
+      'Support inquiry regarding ticket: ' || left(v_trimmed_note, 100),
+      '/support',
+      'report',
+      p_ticket_id
+    );
 
   ELSIF p_action = 'resolve' THEN
     UPDATE public.support_tickets SET
@@ -514,7 +568,11 @@ BEGIN
     WHERE id = p_ticket_id;
   END IF;
 
-  RETURN pg_catalog.jsonb_build_object('ticketId', p_ticket_id, 'action', p_action, 'success', true);
+  v_res := pg_catalog.jsonb_build_object('ticketId', p_ticket_id, 'action', p_action, 'success', true);
+  INSERT INTO public.support_ticket_operations (ticket_id, actor_id, operation_id, action, response_payload)
+  VALUES (p_ticket_id, v_actor, p_operation_id, p_action, v_res);
+
+  RETURN v_res;
 END;
 $$;
 REVOKE ALL ON FUNCTION public.support_desk_act_on_ticket(uuid,uuid,text,text,uuid,text) FROM PUBLIC, anon, authenticated;
@@ -527,6 +585,8 @@ DECLARE
   v_actor uuid := auth.uid();
   v_ticket public.support_tickets%ROWTYPE;
   v_trimmed text := pg_catalog.btrim(COALESCE(p_response, ''));
+  v_op public.support_ticket_operations%ROWTYPE;
+  v_res jsonb;
 BEGIN
   IF v_actor IS NULL OR NOT EXISTS (SELECT 1 FROM public.profiles p WHERE p.id = v_actor AND p.role = 'landlord' AND NOT p.is_suspended) THEN
     RAISE EXCEPTION 'active landlord required' USING ERRCODE = '42501';
@@ -535,10 +595,23 @@ BEGIN
     RAISE EXCEPTION 'invalid response parameters' USING ERRCODE = '22023';
   END IF;
 
+  PERFORM pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended('landlord-respond:' || v_actor::text || ':' || p_operation_id::text, 0));
+
+  SELECT * INTO v_op FROM public.support_ticket_operations WHERE actor_id = v_actor AND operation_id = p_operation_id;
+  IF FOUND THEN
+    IF v_op.ticket_id <> p_ticket_id THEN
+      RAISE EXCEPTION 'operation id already used for different ticket' USING ERRCODE = '23505';
+    END IF;
+    RETURN v_op.response_payload || pg_catalog.jsonb_build_object('replayed', true);
+  END IF;
+
   SELECT * INTO v_ticket FROM public.support_tickets WHERE id = p_ticket_id FOR UPDATE;
   IF NOT FOUND THEN RAISE EXCEPTION 'ticket not found' USING ERRCODE = 'P0002'; END IF;
   IF v_ticket.reported_landlord_id IS DISTINCT FROM v_actor THEN
     RAISE EXCEPTION 'not authorized to respond to this ticket' USING ERRCODE = '42501';
+  END IF;
+  IF v_ticket.status <> 'awaiting_landlord' THEN
+    RAISE EXCEPTION 'ticket is not awaiting landlord response' USING ERRCODE = '22023';
   END IF;
 
   UPDATE public.support_tickets SET
@@ -548,7 +621,20 @@ BEGIN
     updated_at = pg_catalog.now()
   WHERE id = p_ticket_id;
 
-  RETURN pg_catalog.jsonb_build_object('ticketId', p_ticket_id, 'success', true);
+  INSERT INTO public.notifications (recipient_id, actor_id, type, title, body, link, entity_type, entity_id)
+  SELECT p.id, v_actor, 'report', 'Landlord Responded to Complaint',
+         'Landlord responded to complaint ticket',
+         '/support-desk/tickets?ticketId=' || p_ticket_id::text,
+         'report', p_ticket_id
+  FROM public.profiles p
+  WHERE (p.id = v_ticket.handled_by_support_id OR (v_ticket.handled_by_support_id IS NULL AND p.role = 'customer_support' AND NOT p.is_suspended))
+  LIMIT 5;
+
+  v_res := pg_catalog.jsonb_build_object('ticketId', p_ticket_id, 'success', true);
+  INSERT INTO public.support_ticket_operations (ticket_id, actor_id, operation_id, action, response_payload)
+  VALUES (p_ticket_id, v_actor, p_operation_id, 'landlord_response', v_res);
+
+  RETURN v_res;
 END;
 $$;
 REVOKE ALL ON FUNCTION public.landlord_respond_to_support_ticket(uuid,uuid,text) FROM PUBLIC, anon, authenticated;

@@ -49,4 +49,51 @@ describe("AdminReportsQueue", () => {
     respond(409, { error: "This report changed." });
     expect(await submitReportDecision("admin-a", { report, decision: "resolved", operationId: "op-3" }, "Valid note", false, false)).toEqual({ ok: false, message: "This report changed." });
   });
+
+  it("handles escalated support tickets with recommended suspension and resolution", async () => {
+    const escalatedTicketReport: AdminReport = {
+      id: "ticket-esc-1",
+      reporterName: "Renter Requester",
+      targetType: "support_escalation",
+      targetUserId: "landlord-reported-1",
+      targetUserName: "Bad Landlord",
+      category: "messaging_safety",
+      details: "Threatened eviction without due process\n\nEscalation Reason: Extreme harassment\nRecommended action: Suspend account",
+      status: "open",
+      createdAt: "2026-11-14T02:00:00Z",
+      isEscalatedSupportTicket: true,
+      recommendedAdminAction: "suspend_account",
+      reportedLandlordId: "landlord-reported-1",
+    };
+
+    const rendered = row(escalatedTicketReport);
+    expect(rendered).toContain("Support Escalation");
+    expect(rendered).toContain("Recommended: Suspend account");
+
+    respond(200, { success: true });
+    await submitReportDecision(
+      "admin-a",
+      { report: escalatedTicketReport, decision: "resolved", operationId: "op-esc-1" },
+      "Confirmed harassment violation",
+      true,
+      false,
+    );
+
+    const calls = vi.mocked(fetch).mock.calls;
+    expect(calls.length).toBeGreaterThanOrEqual(2);
+    // Suspends account:
+    expect(String(calls[0][0])).toBe("/api/admin/accounts");
+    expect(JSON.parse(calls[0][1]!.body as string)).toMatchObject({
+      targetUserId: "landlord-reported-1",
+      suspend: true,
+      reason: "Confirmed harassment violation",
+    });
+    // Resolves support ticket:
+    expect(String(calls[1][0])).toBe("/api/support-desk/tickets/ticket-esc-1");
+    expect(JSON.parse(calls[1][1]!.body as string)).toMatchObject({
+      operationId: "op-esc-1",
+      action: "resolve",
+      note: "Confirmed harassment violation",
+    });
+  });
 });
