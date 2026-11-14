@@ -58,13 +58,15 @@ const filterTabs = [
 export function VerificationQueue({
   userId,
   initialQueue,
+  initialOffset = 0,
 }: {
   userId: string;
   initialQueue?: VerificationQueueItem[];
+  initialOffset?: number;
 }) {
   const [filter, setFilter] = useState("pending_verification");
   const [search, setSearch] = useState("");
-  const [offset, setOffset] = useState(0);
+  const [offset, setOffset] = useState(initialOffset);
   const pageSize = 50;
   const [queue, setQueue] = useState<VerificationQueueItem[] | null>(initialQueue ?? null);
   const [error, setError] = useState<string | null>(null);
@@ -354,7 +356,7 @@ export function VerificationQueue({
         </div>
       )}
 
-      {queue && queue.length > 0 && (
+      {queue && (queue.length > 0 || offset > 0) && (
         <div className="flex items-center justify-between pt-2">
           <Button
             size="sm"
@@ -365,7 +367,7 @@ export function VerificationQueue({
             Previous
           </Button>
           <span className="text-xs text-muted-foreground">
-            Showing {offset + 1}–{offset + queue.length}
+            {queue.length > 0 ? `Showing ${offset + 1}–${offset + queue.length}` : `Page ${Math.floor(offset / pageSize) + 1} (empty)`}
           </span>
           <Button
             size="sm"

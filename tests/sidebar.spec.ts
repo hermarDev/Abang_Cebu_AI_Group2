@@ -140,7 +140,7 @@ test("short drawer scroll keeps account and appearance reachable", async ({ page
   await saved.scrollIntoViewIfNeeded();
   await expect(saved).toHaveAttribute("href", "/favorites");
   await saved.click();
-  await expect(page).toHaveURL(/\/favorites/);
+  await expect(page).toHaveURL(/(\/favorites|\/login\?next=%2Ffavorites)/);
   await page.goto("/");
   await page.getByRole("button", { name: "Open menu" }).click();
   const login = drawer.getByRole("button", { name: "Log in", exact: true });

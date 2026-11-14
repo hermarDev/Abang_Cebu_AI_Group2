@@ -376,7 +376,7 @@ export interface Database {
       admin_list_audit_logs: { Args: { p_target_type?: string | null; p_limit?: number; p_offset?: number }; Returns: Json; };
       verifier_list_queue: { Args: { p_status?: string | null; p_search?: string | null; p_limit?: number; p_offset?: number }; Returns: Json; };
       verifier_submit_verification: { Args: { p_property_id: string; p_operation_id: string; p_submission_draft_id: string; p_submission_expected_revision: number; p_status: string; p_method: string; p_notes: string; p_proof?: Json; p_proxy_name?: string | null; p_proxy_relationship?: string | null }; Returns: Json; };
-      support_desk_list_tickets: { Args: { p_status?: string | null; p_category?: string | null; p_search?: string | null; p_limit?: number; p_offset?: number; p_ticket_id?: string | null }; Returns: Json; };
+      support_desk_list_tickets: { Args: { p_status?: string | null; p_category?: string | null; p_search?: string | null; p_limit?: number; p_offset?: number; p_ticket_id?: string | null; p_cursor_created_at?: string | null; p_cursor_id?: string | null }; Returns: Json; };
       support_desk_act_on_ticket: { Args: { p_ticket_id: string; p_operation_id: string; p_action: string; p_note: string; p_reported_landlord_id?: string | null; p_recommended_admin_action?: string | null }; Returns: Json; };
       landlord_respond_to_support_ticket: { Args: { p_ticket_id: string; p_operation_id: string; p_response: string }; Returns: Json; };
       landlord_set_unit_availability: { Args: { p_unit_id: string; p_is_available: boolean }; Returns: Json; };

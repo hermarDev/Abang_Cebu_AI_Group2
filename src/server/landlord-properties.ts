@@ -166,6 +166,7 @@ export async function fetchLandlordPortfolio(
     monthly_rent: number | null;
     max_occupants: number | null;
     is_available: boolean;
+    is_retired?: boolean | null;
   }[] = [];
 
   if (propertyIds.length) {
@@ -174,12 +175,12 @@ export async function fetchLandlordPortfolio(
       const chunk = propertyIds.slice(i, i + UNIT_BATCH_SIZE);
       const unitsRes = await supabase
         .from("rental_units")
-        .select("id,property_id,unit_number,rental_type,monthly_rent,max_occupants,is_available")
+        .select("id,property_id,unit_number,rental_type,monthly_rent,max_occupants,is_available,is_retired")
         .in("property_id", chunk);
       if (unitsRes.error) {
         unitsError = true;
       } else {
-        units.push(...(unitsRes.data ?? []));
+        units.push(...(unitsRes.data ?? []).filter((u) => !(u as { is_retired?: boolean | null }).is_retired));
       }
     }
   }

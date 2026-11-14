@@ -51,4 +51,16 @@ describe("VerificationQueue", () => {
     expect(html).toContain("Previous");
     expect(html).toContain("Next");
   });
+
+  it("keeps pagination controls visible on empty pages after offset 0", () => {
+    const htmlAtZero = renderToStaticMarkup(
+      <VerificationQueue userId="officer-1" initialQueue={[]} initialOffset={0} />
+    );
+    expect(htmlAtZero).not.toContain("Previous");
+    const htmlAtFifty = renderToStaticMarkup(
+      <VerificationQueue userId="officer-1" initialQueue={[]} initialOffset={50} />
+    );
+    expect(htmlAtFifty).toContain("Previous");
+    expect(htmlAtFifty).toContain("Next");
+  });
 });

@@ -182,9 +182,54 @@ export function SupportTicketRow({
   );
 }
 
+export async function loadSupportDeskTickets(
+  userId: string,
+  status: string,
+  search: string,
+  signal?: AbortSignal,
+): Promise<SupportDeskTicket[]> {
+  const allTickets: SupportDeskTicket[] = [];
+  const seenIds = new Set<string>();
+  const batchSize = 100;
+  let cursorCreatedAt: string | undefined;
+  let cursorId: string | undefined;
+
+  while (true) {
+    const query = new URLSearchParams({
+      status,
+      limit: String(batchSize),
+      ...(search.trim() ? { search: search.trim() } : {}),
+      ...(cursorCreatedAt && cursorId ? { cursorCreatedAt, cursorId } : {}),
+    });
+    const res = await fetch(`/api/support-desk/tickets?${query.toString()}`, {
+      headers: { "x-expected-user-id": userId },
+      signal,
+    });
+    if (signal?.aborted) return allTickets;
+    const json = await res.json();
+    if (!res.ok) {
+      throw new Error(json.error || "Failed to load tickets.");
+    }
+    const batch: SupportDeskTicket[] = Array.isArray(json.tickets) ? json.tickets : [];
+    for (const item of batch) {
+      if (item?.id && !seenIds.has(item.id)) {
+        seenIds.add(item.id);
+        allTickets.push(item);
+      }
+    }
+    if (batch.length < batchSize) break;
+    const last = batch[batch.length - 1];
+    if (!last?.createdAt || !last?.id) break;
+    cursorCreatedAt = last.createdAt;
+    cursorId = last.id;
+  }
+
+  return allTickets;
+}
+
 export function SupportDeskQueue({
   userId,
-  initialStatus,
+  initialStatus = "open",
 }: {
   userId: string;
   initialStatus?: string;
@@ -214,36 +259,15 @@ export function SupportDeskQueue({
       setTickets(null);
       setError(null);
       try {
-        let allTickets: SupportDeskTicket[] = [];
-        let offset = 0;
-        const batchSize = 100;
-        while (true) {
-          const query = new URLSearchParams({
-            status,
-            limit: String(batchSize),
-            offset: String(offset),
-            ...(search.trim() ? { search: search.trim() } : {}),
-          });
-          const res = await fetch(`/api/support-desk/tickets?${query.toString()}`, {
-            headers: { "x-expected-user-id": userId },
-            signal: abort.signal,
-          });
-          if (abort.signal.aborted) return;
-          const json = await res.json();
-          if (!res.ok) {
-            setError(json.error || "Failed to load tickets.");
-            notify("error", "support-queue-load", json.error || "Failed to load tickets.");
-            return;
-          }
-          const batch = Array.isArray(json.tickets) ? json.tickets : [];
-          allTickets = [...allTickets, ...batch];
-          if (batch.length < batchSize) break;
-          offset += batch.length;
-        }
-        setTickets(allTickets);
-      } catch {
+        const allTickets = await loadSupportDeskTickets(userId, status, search, abort.signal);
         if (!abort.signal.aborted) {
-          setError("Network error while loading tickets.");
+          setTickets(allTickets);
+        }
+      } catch (err) {
+        if (!abort.signal.aborted) {
+          const message = err instanceof Error ? err.message : "Network error while loading tickets.";
+          setError(message);
+          notify("error", "support-queue-load", message);
         }
       }
     })();

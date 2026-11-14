@@ -74,6 +74,27 @@ describe("GET /api/support-desk/tickets", () => {
     );
   });
 
+  it("rejects partial or invalid cursor parameters with 400", async () => {
+    expect((await get("?cursorCreatedAt=2026-11-14T00:00:00Z")).status).toBe(400);
+    expect((await get("?cursorId=12345678-1234-4234-8234-123456789abc")).status).toBe(400);
+    expect((await get("?cursorCreatedAt=not-a-date&cursorId=12345678-1234-4234-8234-123456789abc")).status).toBe(400);
+    expect((await get("?cursorCreatedAt=2026-11-14T00:00:00Z&cursorId=bad")).status).toBe(400);
+  });
+
+  it("forwards keyset cursor parameters when provided", async () => {
+    const cursorId = "12345678-1234-4234-8234-123456789abc";
+    const res = await get(`?status=open&limit=100&cursorCreatedAt=2026-11-14T01:00:00.000Z&cursorId=${cursorId}`);
+    expect(res.status).toBe(200);
+    expect(mocks.supportDeskRpc).toHaveBeenCalledWith(
+      expect.anything(),
+      "support_desk_list_tickets",
+      expect.objectContaining({
+        p_cursor_created_at: "2026-11-14T01:00:00.000Z",
+        p_cursor_id: cursorId,
+      }),
+    );
+  });
+
   it("maps 42501 error to 403 forbidden", async () => {
     mocks.supportDeskRpc.mockResolvedValue({
       data: null,

@@ -53,7 +53,16 @@ INSERT INTO public.rental_units(id, property_id, unit_number, rental_type, month
  ('11100000-0000-4000-8000-000000000002', 'ee100000-0000-4000-8000-000000000001', 'Room 2', 'private_room', 5000, 2, true);
 
 INSERT INTO public.property_submissions(owner_id, operation_id, draft_id, expected_revision, property_id, snapshot_payload, snapshot_media, review_status)
-VALUES ('bb100000-0000-4000-8000-000000000002', 'ff100000-0000-4000-8000-000000000001', 'dd100000-0000-4000-8000-000000000001', 1, 'ee100000-0000-4000-8000-000000000001', '{"property":{},"unit":{}}', '[]', 'pending');
+VALUES (
+  'bb100000-0000-4000-8000-000000000002',
+  'ff100000-0000-4000-8000-000000000001',
+  'dd100000-0000-4000-8000-000000000001',
+  1,
+  'ee100000-0000-4000-8000-000000000001',
+  '{"property":{},"unit":{"rental_type":"private_room","monthly_rent":"4500"},"units":[{"unit_number":"Room 1","monthly_rent":"4500","max_occupants":"1","rental_type":"private_room"},{"unit_number":"Room 2","monthly_rent":"5000","max_occupants":"2","rental_type":"private_room"}]}'::jsonb,
+  '[]',
+  'pending'
+);
 
 SET LOCAL ROLE authenticated;
 SELECT set_config('request.jwt.claim.sub', 'bb100000-0000-4000-8000-000000000003', true);
@@ -84,12 +93,36 @@ DO $$ BEGIN
   EXCEPTION WHEN invalid_parameter_value THEN NULL; END;
 END $$;
 
+-- Proof must belong to property and exist in storage.objects
+DO $$ BEGIN
+  BEGIN
+    PERFORM public.verifier_submit_verification(
+      'ee100000-0000-4000-8000-000000000001', gen_random_uuid(), 'dd100000-0000-4000-8000-000000000001', 1,
+      'verified', 'site_visit', 'Verified premises in person',
+      '[{"kind":"photo","object_path":"bb100000-0000-4000-8000-000000000004/22222222-2222-4222-8222-222222222222/33333333-3333-4333-8333-333333333333/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.jpg"}]'::jsonb
+    );
+    RAISE EXCEPTION 'cross-property or missing proof accepted';
+  EXCEPTION WHEN invalid_parameter_value THEN NULL; END;
+END $$;
+
+RESET ROLE;
+INSERT INTO storage.objects (bucket_id, name, owner, owner_id)
+VALUES (
+  'field-verification-media',
+  'bb100000-0000-4000-8000-000000000004/ee100000-0000-4000-8000-000000000001/33333333-3333-4333-8333-333333333333/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.jpg',
+  'bb100000-0000-4000-8000-000000000004',
+  'bb100000-0000-4000-8000-000000000004'
+)
+ON CONFLICT DO NOTHING;
+SET LOCAL ROLE authenticated;
+SELECT set_config('request.jwt.claim.sub', 'bb100000-0000-4000-8000-000000000004', true);
+
 -- Valid verification with proof
 SELECT public.verifier_submit_verification(
   'ee100000-0000-4000-8000-000000000001', 'aa100000-0000-4000-8000-000000000001',
   'dd100000-0000-4000-8000-000000000001', 1, 'verified', 'site_visit',
   'Verified premises in person and inspected perimeter fence',
-  '[{"kind":"photo","object_path":"11111111-1111-4111-8111-111111111111/22222222-2222-4222-8222-222222222222/33333333-3333-4333-8333-333333333333/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.jpg"}]'::jsonb
+  '[{"kind":"photo","object_path":"bb100000-0000-4000-8000-000000000004/ee100000-0000-4000-8000-000000000001/33333333-3333-4333-8333-333333333333/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.jpg"}]'::jsonb
 );
 
 -- Admin can now approve
@@ -250,6 +283,107 @@ DO $$ BEGIN
   -- 0 units available: property automatically hidden from public map
   IF EXISTS (SELECT 1 FROM public.get_public_submitted_rentals() WHERE id = 'ee100000-0000-4000-8000-000000000001') THEN
     RAISE EXCEPTION 'property with 0 available units leaked to public map';
+  END IF;
+END $$;
+
+-- ============================================================================
+-- Test 6: CodeRabbit Remediation Assertions (Replay, Cascade, Cursor, Unit Retirement)
+-- ============================================================================
+-- 6a. admin_assign_staff_role replay safety & conflict
+RESET ROLE;
+SET LOCAL ROLE authenticated;
+SELECT set_config('request.jwt.claim.sub', 'bb100000-0000-4000-8000-000000000003', true);
+DO $$ DECLARE
+  v_op uuid := gen_random_uuid();
+  r1 jsonb;
+  r2 jsonb;
+BEGIN
+  r1 := public.admin_assign_staff_role('bb100000-0000-4000-8000-000000000004', v_op, 'verification_officer', 'Assigned Verifier');
+  r2 := public.admin_assign_staff_role('bb100000-0000-4000-8000-000000000004', v_op, 'verification_officer', 'Assigned Verifier');
+  IF (r2->>'replayed')::boolean IS NOT true THEN
+    RAISE EXCEPTION 'admin_assign_staff_role replay failed: %', r2;
+  END IF;
+  BEGIN
+    PERFORM public.admin_assign_staff_role('bb100000-0000-4000-8000-000000000004', v_op, 'customer_support', 'Assigned Verifier');
+    RAISE EXCEPTION 'admin_assign_staff_role allowed conflicting replay';
+  EXCEPTION WHEN unique_violation THEN NULL; END;
+END $$;
+
+-- 6b. admin_staff_creation_ops cascades on auth.users deletion
+RESET ROLE;
+INSERT INTO auth.users(id, raw_user_meta_data)
+VALUES ('bb100000-0000-4000-8000-000000000099', '{"role":"customer_support","full_name":"Temp Staff"}')
+ON CONFLICT (id) DO NOTHING;
+INSERT INTO public.admin_staff_creation_ops(operation_id, user_id, role, full_name, email)
+VALUES (gen_random_uuid(), 'bb100000-0000-4000-8000-000000000099', 'customer_support', 'Temp Staff', 'temp@test.local');
+DELETE FROM auth.users WHERE id = 'bb100000-0000-4000-8000-000000000099';
+DO $$ BEGIN
+  IF EXISTS (SELECT 1 FROM public.admin_staff_creation_ops WHERE user_id = 'bb100000-0000-4000-8000-000000000099') THEN
+    RAISE EXCEPTION 'admin_staff_creation_ops row remained after auth.users delete';
+  END IF;
+END $$;
+
+-- 6c. support_desk_list_tickets keyset cursor stability
+RESET ROLE;
+INSERT INTO public.support_tickets(id, operation_id, user_id, requester_name, requester_email, requester_role, category, subject, description, status, priority, attachments, created_at)
+VALUES
+  ('77100000-0000-4000-8000-000000000011', gen_random_uuid(), 'bb100000-0000-4000-8000-000000000001', 'R1', 'r1@test.local', 'renter', 'other', 'Cursor A', 'Cursor pagination test ticket description A', 'open', 'normal', '[]'::jsonb, '2026-11-14T10:00:00Z'),
+  ('77100000-0000-4000-8000-000000000012', gen_random_uuid(), 'bb100000-0000-4000-8000-000000000001', 'R2', 'r2@test.local', 'renter', 'other', 'Cursor B', 'Cursor pagination test ticket description B', 'open', 'normal', '[]'::jsonb, '2026-11-14T09:00:00Z');
+SET LOCAL ROLE authenticated;
+SELECT set_config('request.jwt.claim.sub', 'bb100000-0000-4000-8000-000000000005', true);
+DO $$ DECLARE
+  page1 jsonb;
+  page2 jsonb;
+BEGIN
+  page1 := public.support_desk_list_tickets('open', NULL, 'Cursor', 1, 0, NULL, NULL, NULL);
+  IF jsonb_array_length(page1) <> 1 OR (page1->0->>'id') <> '77100000-0000-4000-8000-000000000011' THEN
+    RAISE EXCEPTION 'cursor page1 mismatch: %', page1;
+  END IF;
+  page2 := public.support_desk_list_tickets('open', NULL, 'Cursor', 1, 0, NULL, (page1->0->>'createdAt')::timestamptz, (page1->0->>'id')::uuid);
+  IF jsonb_array_length(page2) <> 1 OR (page2->0->>'id') <> '77100000-0000-4000-8000-000000000012' THEN
+    RAISE EXCEPTION 'cursor page2 mismatch: %', page2;
+  END IF;
+END $$;
+
+-- 6d. review_property multi-unit retirement preserves rental_agreements & applies shared specs
+RESET ROLE;
+INSERT INTO public.property_submissions(owner_id, operation_id, draft_id, expected_revision, property_id, snapshot_payload, snapshot_media, review_status, field_verification_status)
+VALUES (
+  'bb100000-0000-4000-8000-000000000002',
+  'ff100000-0000-4000-8000-000000000002',
+  'dd100000-0000-4000-8000-000000000001',
+  2,
+  'ee100000-0000-4000-8000-000000000001',
+  '{
+    "property":{"title":"Boarding House One Revised","description":"Updated boarding house description in Apas","property_type":"boarding_house"},
+    "unit":{"rental_type":"private_room","monthly_rent":"5500","floor_area_sqm":"22.5","bedrooms":"2","bathrooms":"1.5","furnished_status":"semi_furnished"},
+    "units":[{"unit_number":"Room 2","monthly_rent":"5500","max_occupants":"2","rental_type":"private_room"}]
+  }'::jsonb,
+  '[]'::jsonb,
+  'pending',
+  'verified'
+);
+UPDATE public.property_submissions
+  SET superseded_by = 'ff100000-0000-4000-8000-000000000002'
+  WHERE owner_id = 'bb100000-0000-4000-8000-000000000002'
+    AND operation_id = 'ff100000-0000-4000-8000-000000000001';
+
+SET LOCAL ROLE authenticated;
+SELECT set_config('request.jwt.claim.sub', 'bb100000-0000-4000-8000-000000000003', true);
+SELECT public.review_property('ee100000-0000-4000-8000-000000000001', gen_random_uuid(), 'approved', NULL, 'dd100000-0000-4000-8000-000000000001', 2);
+
+RESET ROLE;
+DO $$ BEGIN
+  -- Room 1 (omitted from revision) must be retired, not deleted, so its rental_agreement remains intact
+  IF NOT EXISTS (SELECT 1 FROM public.rental_units WHERE id = '11100000-0000-4000-8000-000000000001' AND is_retired = true AND is_available = false) THEN
+    RAISE EXCEPTION 'omitted unit Room 1 was not retired cleanly';
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM public.rental_agreements WHERE unit_id = '11100000-0000-4000-8000-000000000001' AND status = 'agreed') THEN
+    RAISE EXCEPTION 'rental agreement on retired Room 1 was lost';
+  END IF;
+  -- Room 2 must receive updated shared specs
+  IF NOT EXISTS (SELECT 1 FROM public.rental_units WHERE id = '11100000-0000-4000-8000-000000000002' AND is_retired = false AND floor_area_sqm = 22.5 AND bedrooms = 2 AND bathrooms = 1.5 AND furnished_status = 'semi_furnished') THEN
+    RAISE EXCEPTION 'shared specs were not applied to Room 2 on multi-unit approval';
   END IF;
 END $$;
 

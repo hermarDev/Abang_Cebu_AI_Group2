@@ -641,6 +641,7 @@ function MessagingInboxInner({
     setReplyingTo(null);
     setStagedAttachments([]);
     setPropertySheetOpen(false);
+    setAgreementLoading(false);
     selectedRef.current = id;
     setSelectedId(id);
     if (typeof window !== "undefined") {

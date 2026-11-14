@@ -26,6 +26,8 @@ export async function GET(request: Request) {
   const category = params.get("category");
   const search = params.get("search");
   const ticketId = params.get("ticketId");
+  const cursorCreatedAt = params.get("cursorCreatedAt");
+  const cursorId = params.get("cursorId");
 
   const page = pageParams(params);
   if (!page) return jsonError("Invalid ticket filter.", 400);
@@ -38,14 +40,30 @@ export async function GET(request: Request) {
     return jsonError("Invalid ticket filter.", 400);
   }
 
-  const { data, error } = await supportDeskRpc(session.supabase, "support_desk_list_tickets", {
+  if ((cursorCreatedAt === null) !== (cursorId === null)) {
+    return jsonError("Invalid ticket filter.", 400);
+  }
+  if (
+    cursorCreatedAt !== null &&
+    (Number.isNaN(Date.parse(cursorCreatedAt)) || !validUuid(cursorId))
+  ) {
+    return jsonError("Invalid ticket filter.", 400);
+  }
+
+  const rpcArgs: Record<string, unknown> = {
     p_status: status,
     p_category: category,
     p_search: search,
     p_limit: page.limit,
     p_offset: page.offset,
     p_ticket_id: ticketId,
-  });
+  };
+  if (cursorCreatedAt !== null && cursorId !== null) {
+    rpcArgs.p_cursor_created_at = cursorCreatedAt;
+    rpcArgs.p_cursor_id = cursorId;
+  }
+
+  const { data, error } = await supportDeskRpc(session.supabase, "support_desk_list_tickets", rpcArgs);
 
   if (error?.code === "42501") {
     return jsonError("Support workspace access is restricted to active customer support staff and administrators.", 403);

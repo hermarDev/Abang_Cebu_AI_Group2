@@ -44,8 +44,9 @@ export default async function LandlordMapPage(props?: { searchParams?: Promise<{
   const initialSelectedId = typeof selected === "string" ? selected : undefined;
   const propertyIds = (submitted ?? []).map(row => row.id);
   const { data: units, error: unitsError } = propertyIds.length
-    ? await supabase.from("rental_units").select("property_id,monthly_rent,is_available").in("property_id", propertyIds)
+    ? await supabase.from("rental_units").select("property_id,monthly_rent,is_available,is_retired").in("property_id", propertyIds)
     : { data: [], error: null };
+  const activeUnits = (units ?? []).filter((item) => !(item as { is_retired?: boolean | null }).is_retired);
 
   const draftTargets = new Map<string, { draftId: string; revision: number }>();
   const activeSubmissions = new Map<string, SubmissionRow>();
@@ -67,7 +68,7 @@ export default async function LandlordMapPage(props?: { searchParams?: Promise<{
   }
 
   const properties: LandlordPropertyMapItem[] = (submitted ?? []).filter(hasCoordinates).map(row => {
-    const unit = (units ?? []).find(item => item.property_id === row.id);
+    const unit = activeUnits.find(item => item.property_id === row.id);
     const target = draftTargets.get(row.id);
     const active = activeSubmissions.get(row.id);
     const amenities = amenityLabels(active?.snapshot_payload?.amenities);

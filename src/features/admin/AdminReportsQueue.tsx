@@ -35,7 +35,13 @@ export type AdminReport = {
   landlordResponse?: string | null;
 };
 type Decision = "resolved" | "dismissed";
-type Dialog = { report: AdminReport; decision: Decision; operationId: string };
+type Dialog = {
+  report: AdminReport;
+  decision: Decision;
+  operationId: string;
+  suspendOperationId: string;
+  unpublishOperationId: string;
+};
 
 const tabs = [{ value: "open", label: "Open" }, { value: "resolved", label: "Resolved" }, { value: "dismissed", label: "Dismissed" }, { value: "all", label: "All" }];
 const label = (value: string) => value.replace(/_/g, " ").replace(/^./, (c) => c.toUpperCase());
@@ -46,17 +52,19 @@ export const inspectReport = (userId: string, reportId: string) =>
 
 export const submitReportDecision = async (
   userId: string,
-  { report, decision, operationId }: Dialog,
+  { report, decision, operationId, suspendOperationId, unpublishOperationId }: Dialog,
   note: string,
   suspend: boolean,
   unpublish: boolean,
 ) => {
   if (report.isEscalatedSupportTicket) {
     if (decision === "resolved") {
+      if (suspend && !report.targetUserId) return { ok: false as const, message: "No account is linked to this escalation." };
+      if (unpublish && !report.relatedListingId) return { ok: false as const, message: "No listing is linked to this escalation." };
       if (suspend && report.targetUserId) {
         const suspendResult = await adminCall(`/api/admin/accounts`, userId, {
           targetUserId: report.targetUserId,
-          operationId: newOperationId(),
+          operationId: suspendOperationId,
           suspend: true,
           reason: note.trim(),
           unpublishListings: false,
@@ -66,7 +74,7 @@ export const submitReportDecision = async (
       if (unpublish && report.relatedListingId) {
         const lifecycleResult = await adminCall(`/api/admin/properties/lifecycle`, userId, {
           propertyId: report.relatedListingId,
-          operationId: newOperationId(),
+          operationId: unpublishOperationId,
           action: "unpublish",
           reason: note.trim(),
         });
@@ -203,14 +211,20 @@ export function EvidenceView({ report }: { report: AdminReport }) {
 }
 
 export async function loadEscalations(userId: string, signal?: AbortSignal): Promise<AdminReport[]> {
-  const res = await fetch(`/api/support-desk/tickets?status=escalated`, {
-    headers: { "x-expected-user-id": userId },
-    signal,
-  });
-  if (!res.ok) throw new Error("Escalated support tickets could not be loaded. Please retry.");
-  const json = await res.json();
-  if (!Array.isArray(json?.tickets)) throw new Error("Invalid response from support desk tickets.");
-  return json.tickets.map((t: {
+  const tickets: unknown[] = [];
+  const limit = 100;
+  for (let offset = 0; ; offset += limit) {
+    const res = await fetch(`/api/support-desk/tickets?status=escalated&limit=${limit}&offset=${offset}`, {
+      headers: { "x-expected-user-id": userId },
+      signal,
+    });
+    if (!res.ok) throw new Error("Escalated support tickets could not be loaded. Please retry.");
+    const json = await res.json();
+    if (!Array.isArray(json?.tickets)) throw new Error("Invalid response from support desk tickets.");
+    tickets.push(...json.tickets);
+    if (json.tickets.length < limit) break;
+  }
+  return (tickets as {
     id: string;
     requesterName?: string;
     reportedLandlordId?: string;
@@ -224,7 +238,7 @@ export async function loadEscalations(userId: string, signal?: AbortSignal): Pro
     escalatedToAdminAt?: string;
     createdAt?: string;
     relatedListingId?: string;
-  }) => ({
+  }[]).map((t) => ({
     id: t.id,
     reporterName: t.requesterName,
     targetType: "support_escalation",
@@ -301,7 +315,7 @@ export function AdminReportsQueue({ userId, initialStatus }: { userId: string; i
     else notify("error", "admin-report-evidence", result.ok ? "Evidence could not be loaded." : result.message);
   }
   const decide = (report: AdminReport, decision: Decision) => {
-    setDialog({ report, decision, operationId: newOperationId() });
+    setDialog({ report, decision, operationId: newOperationId(), suspendOperationId: newOperationId(), unpublishOperationId: newOperationId() });
     setNote("");
     const isEscalated = !!report.isEscalatedSupportTicket;
     const shouldSuspend = isEscalated && (report.recommendedAdminAction === "suspend_account" || report.recommendedAdminAction === "both");
