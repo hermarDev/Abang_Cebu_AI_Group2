@@ -68,14 +68,14 @@ export function AccountRow({ account, onAction, onInspect }: { account: AdminAcc
     </div>
     <div className="flex items-center gap-2 pt-2 border-t border-border/60 sm:border-t-0 sm:pt-0 sm:shrink-0">
       {onInspect && (
-        <Button size="sm" variant="outline" onClick={() => onInspect(account)} aria-label={`Inspect account ${account.fullName || account.id}`}>
+        <Button size="sm" variant="outline" onClick={() => onInspect(account)} aria-label={`Inspect account ${account.fullName || account.id}`} className="flex-1 sm:flex-initial">
           Inspect account
         </Button>
       )}
       {account.role === "admin" ? (
-        <span className="text-sm font-medium text-muted-foreground px-2">Protected admin</span>
+        <span className="flex-1 text-center text-sm font-medium text-muted-foreground px-2 sm:flex-initial sm:text-left">Protected admin</span>
       ) : (
-        <Button size="sm" variant={account.isSuspended ? "outline" : "destructive"} onClick={() => onAction(account)}>
+        <Button size="sm" variant={account.isSuspended ? "outline" : "destructive"} onClick={() => onAction(account)} className="flex-1 sm:flex-initial">
           {account.isSuspended ? "Reinstate account" : "Suspend account"}
         </Button>
       )}
@@ -133,105 +133,107 @@ export function CreateStaffAccountForm({
         e.preventDefault();
         onSubmit();
       }}
-      className="grid gap-4"
+      className="flex min-h-0 flex-1 flex-col"
     >
-      <div className="grid gap-1.5">
-        <label htmlFor="staff-role" className="text-sm font-medium text-foreground">
-          Staff role
-        </label>
-        <Select
-          id="staff-role"
-          aria-label="Staff role"
-          options={[
-            { value: "verification_officer", label: "Field Verification Officer" },
-            { value: "customer_support", label: "Customer Support" },
-          ]}
-          value={role}
-          onValueChange={onRoleChange}
-          disabled={saving}
-        />
-      </div>
-
-      <div className="grid gap-1.5">
-        <label htmlFor="staff-fullname" className="text-sm font-medium text-foreground">
-          Full name
-        </label>
-        <Input
-          id="staff-fullname"
-          aria-label="Full name"
-          placeholder="Enter full name"
-          autoComplete="name"
-          value={fullName}
-          onChange={(e) => onFullNameChange(e.target.value)}
-          disabled={saving}
-          required
-        />
-      </div>
-
-      <div className="grid gap-1.5">
-        <label htmlFor="staff-email" className="text-sm font-medium text-foreground">
-          Email address
-        </label>
-        <Input
-          id="staff-email"
-          type="email"
-          aria-label="Email address"
-          placeholder="Enter email address"
-          autoComplete="email"
-          value={email}
-          onChange={(e) => onEmailChange(e.target.value)}
-          disabled={saving}
-          required
-        />
-      </div>
-
-      <div className="grid gap-1.5">
-        <label htmlFor="staff-password" className="text-sm font-medium text-foreground">
-          Password
-        </label>
-        <div
-          className="relative"
-          onBlur={(event) => {
-            if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
-              setPasswordTouched(true);
-            }
-          }}
-        >
-          <Input
-            id="staff-password"
-            type={showPassword ? "text" : "password"}
-            aria-label="Password"
-            placeholder="Enter secure password"
-            autoComplete="new-password"
-            maxLength={72}
-            value={password}
-            onChange={(e) => onPasswordChange(e.target.value)}
+      <div className="grid gap-3.5 overflow-y-auto overscroll-contain pr-0.5 pb-2">
+        <div className="grid gap-1.5">
+          <label htmlFor="staff-role" className="text-sm font-medium text-foreground">
+            Staff role
+          </label>
+          <Select
+            id="staff-role"
+            aria-label="Staff role"
+            options={[
+              { value: "verification_officer", label: "Field Verification Officer" },
+              { value: "customer_support", label: "Customer Support" },
+            ]}
+            value={role}
+            onValueChange={onRoleChange}
             disabled={saving}
-            aria-invalid={passwordTouched && !strength.isValid}
-            aria-describedby="staff-password-requirements"
-            className="pr-12"
-            required
-            minLength={8}
           />
-          <button
-            type="button"
-            onClick={onToggleShowPassword}
-            className="absolute right-0 top-0 grid size-11 place-items-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
-            aria-label={showPassword ? "Hide password" : "Show password"}
-          >
-            {showPassword ? <EyeOff size={19} aria-hidden="true" /> : <Eye size={19} aria-hidden="true" />}
-          </button>
         </div>
-        <PasswordRequirements
-          id="staff-password-requirements"
-          password={password}
-          emptyError={passwordTouched && !password}
-        />
+
+        <div className="grid gap-1.5">
+          <label htmlFor="staff-fullname" className="text-sm font-medium text-foreground">
+            Full name
+          </label>
+          <Input
+            id="staff-fullname"
+            aria-label="Full name"
+            placeholder="Enter full name"
+            autoComplete="name"
+            value={fullName}
+            onChange={(e) => onFullNameChange(e.target.value)}
+            disabled={saving}
+            required
+          />
+        </div>
+
+        <div className="grid gap-1.5">
+          <label htmlFor="staff-email" className="text-sm font-medium text-foreground">
+            Email address
+          </label>
+          <Input
+            id="staff-email"
+            type="email"
+            aria-label="Email address"
+            placeholder="Enter email address"
+            autoComplete="email"
+            value={email}
+            onChange={(e) => onEmailChange(e.target.value)}
+            disabled={saving}
+            required
+          />
+        </div>
+
+        <div className="grid gap-1.5">
+          <label htmlFor="staff-password" className="text-sm font-medium text-foreground">
+            Password
+          </label>
+          <div
+            className="relative"
+            onBlur={(event) => {
+              if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+                setPasswordTouched(true);
+              }
+            }}
+          >
+            <Input
+              id="staff-password"
+              type={showPassword ? "text" : "password"}
+              aria-label="Password"
+              placeholder="Enter secure password"
+              autoComplete="new-password"
+              maxLength={72}
+              value={password}
+              onChange={(e) => onPasswordChange(e.target.value)}
+              disabled={saving}
+              aria-invalid={passwordTouched && !strength.isValid}
+              aria-describedby="staff-password-requirements"
+              className="pr-12"
+              required
+              minLength={8}
+            />
+            <button
+              type="button"
+              onClick={onToggleShowPassword}
+              className="absolute right-0 top-0 grid size-11 place-items-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+              aria-label={showPassword ? "Hide password" : "Show password"}
+            >
+              {showPassword ? <EyeOff size={19} aria-hidden="true" /> : <Eye size={19} aria-hidden="true" />}
+            </button>
+          </div>
+          <PasswordRequirements
+            id="staff-password-requirements"
+            password={password}
+            emptyError={passwordTouched && !password}
+          />
+        </div>
+
+        {error && <Alert variant="error">{error}</Alert>}
       </div>
 
-      {error && <Alert variant="error">{error}</Alert>}
-
-      <div className="flex flex-wrap justify-end gap-2 pt-2">
+      <div className="mt-3 flex shrink-0 flex-wrap justify-end gap-2 border-t border-border pt-3">
         <Button
           type="button"
           variant="outline"
@@ -349,14 +351,14 @@ export function AdminAccountsManager({ userId, initialRole, initialStatus }: { u
   const paginatedAccounts = sortedAccounts.slice((validPage - 1) * pageSize, validPage * pageSize);
 
   return <section aria-label="Account management" className="grid gap-4">
-    <div className="flex flex-wrap items-center justify-between gap-3">
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[10rem_10rem_11rem_minmax(0,1fr)] flex-1 min-w-0">
+    <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+      <div className="grid w-full min-w-0 grid-cols-2 gap-2.5 sm:gap-3 lg:flex-1 lg:grid-cols-[10rem_10rem_11rem_minmax(0,1fr)]">
         <Select aria-label="Filter by role" options={roleOptions} value={role} onValueChange={(val) => { setRole(val); setPage(1); }} />
         <Select aria-label="Filter by status" options={statusOptions} value={status} onValueChange={(val) => { setStatus(val); setPage(1); }} />
-        <Select aria-label="Sort accounts" options={sortOptions} value={sortBy} onValueChange={(val) => { setSortBy(val); setPage(1); }} />
-        <Input type="search" aria-label="Search accounts" placeholder="Search account name…" value={search} onChange={(event) => { setSearch(event.target.value); setPage(1); }} />
+        <Select aria-label="Sort accounts" options={sortOptions} value={sortBy} onValueChange={(val) => { setSortBy(val); setPage(1); }} className="col-span-2 sm:col-span-1 lg:col-span-1" />
+        <Input type="search" aria-label="Search accounts" placeholder="Search account name…" value={search} onChange={(event) => { setSearch(event.target.value); setPage(1); }} className="col-span-2 sm:col-span-1 lg:col-span-1" />
       </div>
-      <Button variant="primary" onClick={() => { setStaffModalOpen(true); setStaffError(null); }} className="shrink-0 gap-1.5">
+      <Button variant="primary" onClick={() => { setStaffModalOpen(true); setStaffError(null); }} className="w-full shrink-0 gap-1.5 sm:w-auto sm:self-end lg:self-auto">
         <UserPlus size={16} aria-hidden="true" />
         Create Staff Account
       </Button>
@@ -385,7 +387,7 @@ export function AdminAccountsManager({ userId, initialRole, initialStatus }: { u
       onClose={() => { if (!staffSaving) { setStaffModalOpen(false); setShowPassword(false); } }}
       title="Create Staff Account"
       description="Create a dedicated officer or support account. Role privileges are assigned immediately."
-      className="max-h-[calc(100dvh-2rem)] lg:max-h-[85dvh] max-w-md overflow-y-auto"
+      className="flex max-h-[calc(100dvh-2rem)] lg:max-h-[85dvh] max-w-[34rem] flex-col overflow-hidden [&>div]:flex [&>div]:min-h-0 [&>div]:flex-1 [&>div]:flex-col [&>div]:p-5 sm:[&>div]:p-6 [&>div>header]:mb-3 [&>div>header]:shrink-0"
     >
       <CreateStaffAccountForm
         role={staffRole}

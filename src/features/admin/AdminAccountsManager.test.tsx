@@ -116,5 +116,21 @@ describe("AdminAccountsManager", () => {
     expect(revealedHtml).toContain('role="alert"');
     expect(revealedHtml).toContain("Email already registered.");
     expect(revealedHtml).not.toMatch(/<button[^>]*type="submit"[^>]*disabled=""/);
+    expect(revealedHtml).toContain("overflow-y-auto overscroll-contain");
+    expect(revealedHtml).toContain("shrink-0 flex-wrap justify-end gap-2 border-t border-border");
+  });
+
+  it("renders responsive mobile-first toolbar layout without squishing search or card actions", () => {
+    const html = renderToStaticMarkup(<AdminAccountsManager userId="admin-a" />);
+    expect(html).toContain("flex-col gap-3 lg:flex-row");
+    expect(html).toContain("grid-cols-2");
+    expect(html).toContain("w-full shrink-0 gap-1.5 sm:w-auto");
+
+    const rowHtml = renderToStaticMarkup(
+      <ul>
+        <AccountRow account={landlord} onAction={() => {}} onInspect={() => {}} />
+      </ul>
+    );
+    expect(rowHtml).toContain("flex-1 sm:flex-initial");
   });
 });
