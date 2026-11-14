@@ -24,13 +24,18 @@ export default async function AccountPage() {
     .eq("id", user.id)
     .maybeSingle();
   const avatarUrl = profile ? await signProfileAvatar(user.id, profile.avatar_url) : null;
+  const back = profile?.role === "admin" ? { href: "/admin/dashboard", label: "Back to admin workspace" }
+    : profile?.role === "landlord" ? { href: "/landlord/dashboard", label: "Back to workspace" }
+    : profile?.role === "customer_support" ? { href: "/support-desk/dashboard", label: "Back to support workspace" }
+    : profile?.role === "verification_officer" ? { href: "/verification/dashboard", label: "Back to verification workspace" }
+    : { href: "/", label: "Back to map" };
 
   return <main className="relative isolate h-[100dvh] overflow-hidden bg-background text-foreground">
     <div className="absolute inset-0 z-10 overflow-y-auto overscroll-contain">
     <div className="mx-auto w-full max-w-6xl px-4 pt-5 pb-[calc(5rem+env(safe-area-inset-bottom))] sm:px-6 sm:pt-8 lg:px-8 lg:pb-20">
       <header className="sticky top-3 z-20 flex items-center justify-between gap-4 rounded-2xl border border-border/70 bg-white/90 p-3 shadow-sm backdrop-blur-sm dark:bg-slate-950/90 sm:px-5">
-        <Link href={profile?.role === "admin" ? "/admin/dashboard" : profile?.role === "landlord" ? "/landlord/dashboard" : "/"} className="inline-flex min-h-11 items-center gap-2 rounded-lg px-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
-          <ArrowLeft size={18} aria-hidden="true" /> {profile?.role === "admin" ? "Back to admin workspace" : profile?.role === "landlord" ? "Back to workspace" : "Back to map"}
+        <Link href={back.href} className="inline-flex min-h-11 items-center gap-2 rounded-lg px-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
+          <ArrowLeft size={18} aria-hidden="true" /> {back.label}
         </Link>
         <BrandLogo className="h-auto w-32" />
       </header>
