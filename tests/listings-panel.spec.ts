@@ -8,7 +8,7 @@ for (const width of [320, 430, 1440]) {
     const panel = page.getByRole("complementary", { name: "Rental listings" });
     await expect(panel).toBeVisible();
     await panel.getByRole("button", { name: "Expand search", exact: true }).click();
-    await expect(panel.getByText("Search area: 5 km radius", { exact: true })).toBeVisible();
+    await expect(panel.getByText("Search area: 3 km radius", { exact: true })).toBeVisible();
     await panel.getByRole("button", { name: "Use sample data", exact: true }).click();
     await expect(panel.getByText("Sample data is on", { exact: true })).toBeVisible();
     await panel.getByRole("button", { name: "Return to live data", exact: true }).click();
@@ -25,7 +25,7 @@ for (const width of [320, 430, 1440]) {
       expect(Math.abs(closedButtonBox!.y - openPanelBox!.y)).toBeLessThanOrEqual(1);
       await reopen.click();
       await expect(panel).toBeVisible();
-      await expect(panel.getByText("Search area: 5 km radius", { exact: true })).toBeVisible();
+      await expect(panel.getByText("Search area: 3 km radius", { exact: true })).toBeVisible();
     }
   });
 }

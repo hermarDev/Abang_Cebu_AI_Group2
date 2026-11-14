@@ -27,7 +27,15 @@ for (const theme of ["light", "dark"]) {
     await expect(radius).toHaveValue("17");
     await dialog.getByRole("button", { name: "10 km", exact: true }).click();
     await expect(radius).toHaveValue("10");
-    await dialog.getByRole("button", { name: "Reset", exact: true }).click();
-    await expect(radius).toHaveValue("2");
+    await dialog.getByRole("button", { name: "Reset", exact: true }).click({ force: true });
+    await expect(dialog.getByRole("spinbutton", { name: "Search radius", exact: true })).toHaveValue("17");
+    await page.keyboard.press("Escape");
+    await expect(dialog).toBeHidden();
+    await trigger.click();
+    await expect(trigger).toBeVisible();
+    await trigger.click();
+    const newDialog = page.getByRole("dialog", { name: "Filters" });
+    await expect(newDialog).toBeVisible();
+    await expect(newDialog.getByRole("spinbutton", { name: "Search radius", exact: true })).toHaveValue("2");
   });
 }
