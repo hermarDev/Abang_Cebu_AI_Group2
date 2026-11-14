@@ -146,6 +146,36 @@ describe("NotificationCenter", () => {
     expect(adminHtml).toContain("New user reports, listing review submissions, and system alerts will appear here.");
   });
 
+  it("renders verification_officer and customer_support specific empty state descriptions", () => {
+    const fvoHtml = renderToStaticMarkup(
+      <NotificationCenter
+        notifications={[]}
+        unreadCount={0}
+        loading={false}
+        error={null}
+        userRole="verification_officer"
+        onRefresh={() => {}}
+        onMarkAsRead={() => {}}
+        onMarkAllAsRead={() => {}}
+      />
+    );
+    expect(fvoHtml).toContain("New listing verification requests and site visit alerts will appear here.");
+
+    const supportHtml = renderToStaticMarkup(
+      <NotificationCenter
+        notifications={[]}
+        unreadCount={0}
+        loading={false}
+        error={null}
+        userRole="customer_support"
+        onRefresh={() => {}}
+        onMarkAsRead={() => {}}
+        onMarkAllAsRead={() => {}}
+      />
+    );
+    expect(supportHtml).toContain("New support escalations, landlord replies, and ticket updates will appear here.");
+  });
+
   it("renders 'You’re all caught up!' when all notifications are read", () => {
     const readNotifications: NotificationItem[] = [
       {

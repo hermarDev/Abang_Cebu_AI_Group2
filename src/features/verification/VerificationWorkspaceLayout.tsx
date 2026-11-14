@@ -5,23 +5,39 @@ import Link from "next/link";
 import { BrandLogo } from "@/components/brand";
 import { usePathname } from "next/navigation";
 import {
+  Bell,
   ChevronLeft,
   ChevronRight,
   CircleHelp,
   ClipboardList,
+  Ellipsis,
   LayoutDashboard,
   UserRound,
 } from "lucide-react";
 import { AccountMenu } from "@/components/ui/AccountMenu";
+import { LogoutLink } from "@/components/ui/LogoutLink";
+import { Modal } from "@/components/ui/Modal";
 import { AppearanceControls } from "@/features/map/AppearanceControls";
 import { useFinderTheme } from "@/features/map/useFinderTheme";
 import { NotificationBell } from "@/features/notifications/NotificationBell";
 
-const links = [
-  { href: "/verification/dashboard", label: "Dashboard", Icon: LayoutDashboard },
-  { href: "/verification/queue", label: "Verification Queue", Icon: ClipboardList },
-  { href: "/help", label: "Help Center", Icon: CircleHelp },
-  { href: "/account", label: "Account settings", Icon: UserRound },
+const linkGroups = [
+  {
+    label: "Workspace",
+    links: [
+      { href: "/verification/dashboard", label: "Overview", Icon: LayoutDashboard },
+      { href: "/verification/queue", label: "Verification queue", Icon: ClipboardList },
+    ],
+  },
+  { label: "Support", links: [{ href: "/help", label: "Help Center", Icon: CircleHelp }] },
+  { label: "Account", links: [{ href: "/account", label: "Account settings", Icon: UserRound }] },
+];
+
+const mobileLinks = [
+  { href: "/verification/dashboard", label: "Overview", Icon: LayoutDashboard },
+  { href: "/verification/queue", label: "Queue", Icon: ClipboardList },
+  { href: "/help", label: "Help", Icon: CircleHelp },
+  { href: "/account", label: "Account", Icon: UserRound },
 ];
 
 const focusRing = "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring";
@@ -29,7 +45,81 @@ const isActivePath = (pathname: string, href: string) => pathname === href || pa
 
 function ThemeControls({ expanded }: { expanded: boolean }) {
   const { preference, resolvedTheme, setPreference } = useFinderTheme();
-  return <AppearanceControls preference={preference} resolvedTheme={resolvedTheme} onPreferenceChange={setPreference} expanded={expanded} />;
+  return (
+    <AppearanceControls
+      preference={preference}
+      resolvedTheme={resolvedTheme}
+      onPreferenceChange={setPreference}
+      expanded={expanded}
+    />
+  );
+}
+
+function VerificationMobileNav({ pathname }: { pathname: string }) {
+  const [open, setOpen] = useState(false);
+  const itemClass = `flex min-h-11 min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-lg px-0.5 text-[.65rem] font-medium ${focusRing}`;
+
+  return (
+    <>
+      <nav
+        aria-label="Verification mobile navigation"
+        className="fixed inset-x-0 bottom-0 z-40 flex items-center border-t border-border bg-card px-1 pb-[env(safe-area-inset-bottom)] text-card-foreground lg:hidden"
+      >
+        {mobileLinks.map(({ href, label, Icon }) => {
+          const active = isActivePath(pathname, href);
+          return (
+            <Link
+              key={href}
+              href={href}
+              aria-label={label}
+              aria-current={active ? "page" : undefined}
+              className={`${itemClass} ${active ? "text-action" : "text-muted-foreground hover:text-foreground"}`}
+            >
+              <Icon size={20} aria-hidden="true" />
+              <span>{label}</span>
+            </Link>
+          );
+        })}
+        <button
+          type="button"
+          aria-label="More verification options"
+          aria-expanded={open}
+          onClick={() => setOpen(true)}
+          className={`${itemClass} text-muted-foreground hover:text-foreground`}
+        >
+          <Ellipsis size={20} aria-hidden="true" />
+          <span>More</span>
+        </button>
+      </nav>
+      <Modal open={open} onClose={() => setOpen(false)} title="More verification options" className="max-h-[calc(100dvh-2rem)] overflow-y-auto">
+        <button
+          type="button"
+          onClick={() => {
+            setOpen(false);
+            const bell = document.querySelector<HTMLButtonElement>('header button[aria-label^="Notifications"]');
+            bell?.click();
+          }}
+          className={`flex min-h-11 w-full items-center gap-3 rounded-lg px-3 text-sm font-medium hover:bg-muted ${focusRing}`}
+        >
+          <Bell size={19} aria-hidden="true" />
+          Notifications
+        </button>
+        <Link href="/help" onClick={() => setOpen(false)} className={`flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium hover:bg-muted ${focusRing}`}>
+          <CircleHelp size={19} aria-hidden="true" />
+          Help Center
+        </Link>
+        <Link href="/account" onClick={() => setOpen(false)} className={`flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium hover:bg-muted ${focusRing}`}>
+          <UserRound size={19} aria-hidden="true" />
+          Account settings
+        </Link>
+        <div className="my-3">
+          <ThemeControls expanded />
+        </div>
+        <div className="my-2 h-px bg-border/80" role="separator" />
+        <LogoutLink onClick={() => setOpen(false)} iconSize={19} className="flex w-full gap-3" />
+      </Modal>
+    </>
+  );
 }
 
 export interface VerificationWorkspaceLayoutProps {
@@ -43,6 +133,7 @@ export interface VerificationWorkspaceLayoutProps {
 }
 
 export function VerificationWorkspaceLayout({
+  userId,
   displayName,
   avatarUrl,
   title,
@@ -63,89 +154,87 @@ export function VerificationWorkspaceLayout({
               AbangCebu · Field Verification
             </span>
           </Link>
-          <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
-            <NotificationBell />
-            <AccountMenu displayName={displayName} avatarUrl={avatarUrl} role="verification_officer" />
+          <div className="flex shrink-0 items-center gap-1 sm:gap-2">
+            {actions}
+            <NotificationBell userId={userId} userRole="verification_officer" />
+            <AccountMenu displayName={displayName} avatarUrl={avatarUrl} role="verification_officer" variant="header" />
           </div>
         </div>
       </header>
 
-      <div className="mx-auto max-w-[1920px] lg:flex">
-        <aside
-          aria-label="Field verification sidebar"
-          className={`hidden border-r border-border/80 bg-card/60 backdrop-blur lg:sticky lg:top-16 lg:flex lg:h-[calc(100dvh-4rem)] lg:flex-col lg:justify-between lg:transition-all lg:duration-200 ${
-            expanded ? "lg:w-64" : "lg:w-20"
-          }`}
-        >
-          <div className="flex flex-col gap-1 p-3">
-            <button
-              type="button"
-              aria-label={expanded ? "Collapse sidebar" : "Expand sidebar"}
-              onClick={() => setExpanded(!expanded)}
-              className={`flex min-h-11 items-center gap-3 rounded-lg px-3 text-xs font-semibold text-muted-foreground hover:bg-muted ${focusRing}`}
-            >
-              {expanded ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
-              {expanded && <span>Collapse sidebar</span>}
-            </button>
-            <nav className="flex flex-col gap-1 mt-2">
-              {links.map(({ href, label, Icon }) => {
-                const active = isActivePath(pathname, href);
-                return (
-                  <Link
-                    key={href}
-                    href={href}
-                    aria-current={active ? "page" : undefined}
-                    className={`flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium transition ${focusRing} ${
-                      active ? "bg-action/10 text-action font-semibold" : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                    }`}
-                  >
-                    <Icon size={18} aria-hidden="true" />
-                    {expanded && <span>{label}</span>}
-                  </Link>
-                );
-              })}
+      <div
+        className={`mx-auto grid max-w-[1920px] gap-4 px-3 py-4 sm:gap-5 sm:px-6 sm:py-6 lg:gap-6 lg:px-8 ${
+          expanded ? "lg:grid-cols-[248px_minmax(0,1fr)]" : "lg:grid-cols-[76px_minmax(0,1fr)]"
+        }`}
+      >
+        <aside className="hidden min-h-[calc(100dvh-5rem)] self-stretch lg:flex lg:flex-col" aria-label="Verification navigation">
+          <div className="flex min-h-0 flex-1 flex-col rounded-2xl border border-border bg-card p-2 shadow-sm">
+            <div className={`mb-1 flex min-h-10 items-center ${expanded ? "justify-between gap-2 px-2" : "justify-center"}`}>
+              {expanded && (
+                <p className="m-0 min-w-0 truncate text-xs font-bold uppercase tracking-[.12em] text-muted-foreground">
+                  Verification tools
+                </p>
+              )}
+              <button
+                type="button"
+                aria-label={expanded ? "Collapse sidebar" : "Expand sidebar"}
+                aria-expanded={expanded}
+                title={expanded ? "Collapse sidebar" : "Expand sidebar"}
+                onClick={() => setExpanded((value) => !value)}
+                className={`inline-flex size-9 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition hover:bg-muted hover:text-foreground ${focusRing}`}
+              >
+                {expanded ? <ChevronLeft size={18} aria-hidden="true" /> : <ChevronRight size={18} aria-hidden="true" />}
+              </button>
+            </div>
+            <nav className="grid gap-4" aria-label="Verification workspace">
+              {linkGroups.map(({ label: groupLabel, links }) => (
+                <section key={groupLabel} className="grid gap-1" aria-label={groupLabel}>
+                  {expanded && (
+                    <h3 className="mb-0 mt-1 px-3 text-[.68rem] font-extrabold uppercase tracking-[.12em] text-foreground">
+                      {groupLabel}
+                    </h3>
+                  )}
+                  {links.map(({ href, label, Icon }) => {
+                    const active = isActivePath(pathname, href);
+                    return (
+                      <Link
+                        key={href}
+                        href={href}
+                        aria-label={label}
+                        title={expanded ? undefined : label}
+                        aria-current={active ? "page" : undefined}
+                        className={`inline-flex min-h-12 items-center rounded-xl transition ${focusRing} ${
+                          expanded ? "justify-start gap-3 px-3" : "justify-center px-0"
+                        } ${active ? "bg-action/10 font-semibold text-action" : "font-medium text-muted-foreground hover:bg-muted hover:text-foreground"}`}
+                      >
+                        <Icon size={19} className="shrink-0" aria-hidden="true" />
+                        {expanded && <span className="truncate">{label}</span>}
+                      </Link>
+                    );
+                  })}
+                </section>
+              ))}
             </nav>
-          </div>
-          <div className="p-3 border-t border-border/60">
-            <ThemeControls expanded={expanded} />
+            <div className="mt-auto border-t border-border/80 pt-3">
+              <ThemeControls expanded={expanded} />
+            </div>
           </div>
         </aside>
 
-        <section className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8">
-          <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-            <div>
-              {title && <h1 className="m-0 text-2xl font-bold tracking-tight text-foreground">{title}</h1>}
-              {subtitle && <p className="m-0 mt-1 text-sm text-muted-foreground">{subtitle}</p>}
+        <div className="min-w-0 space-y-5 sm:space-y-6">
+          {(title || actions) && (
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                {title && <h1 className="m-0 text-3xl font-bold tracking-tight">{title}</h1>}
+                {subtitle && <p className="mt-2 text-muted-foreground">{subtitle}</p>}
+              </div>
+              {actions && <div className="flex items-center gap-2">{actions}</div>}
             </div>
-            {actions && <div className="flex items-center gap-2">{actions}</div>}
-          </div>
+          )}
           {children}
-        </section>
+        </div>
       </div>
-
-      {/* Mobile nav */}
-      <nav
-        aria-label="Field verification mobile navigation"
-        className="fixed inset-x-0 bottom-0 z-40 flex items-center border-t border-border bg-card px-1 pb-[env(safe-area-inset-bottom)] text-card-foreground lg:hidden"
-      >
-        {links.slice(0, 2).map(({ href, label, Icon }) => {
-          const active = isActivePath(pathname, href);
-          return (
-            <Link
-              key={href}
-              href={href}
-              aria-label={label}
-              aria-current={active ? "page" : undefined}
-              className={`flex min-h-11 min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-lg px-0.5 text-[.65rem] font-medium ${focusRing} ${
-                active ? "text-action font-semibold" : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              <Icon size={20} aria-hidden="true" />
-              <span>{label}</span>
-            </Link>
-          );
-        })}
-      </nav>
+      <VerificationMobileNav pathname={pathname} />
     </main>
   );
 }

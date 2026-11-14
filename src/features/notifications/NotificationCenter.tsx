@@ -230,6 +230,10 @@ export function NotificationCenter({
                   ? "New inquiries, renter messages, and listing reviews will appear here."
                   : userRole === "admin"
                   ? "New user reports, listing review submissions, and system alerts will appear here."
+                  : userRole === "verification_officer"
+                  ? "New listing verification requests and site visit alerts will appear here."
+                  : userRole === "customer_support"
+                  ? "New support escalations, landlord replies, and ticket updates will appear here."
                   : "New landlord replies, inquiry updates, and rental alerts will appear here."
                 : "You’ve read all your notifications."}
             </p>

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { NotificationsHubContent } from "@/features/notifications/NotificationsHubContent";
+import type { UserRole } from "@/types/database";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
@@ -61,7 +62,7 @@ export default async function NotificationsPage() {
   return (
     <NotificationsHubContent
       userId={user.id}
-      userRole={profile?.role as "renter" | "landlord" | "admin" | null}
+      userRole={profile?.role as UserRole | null}
     />
   );
 }
