@@ -1,4 +1,5 @@
 import { createAdminClient } from "@/lib/supabase/admin";
+import { validatePasswordStrength } from "@/types/auth";
 import {
   adminAccountsLimiter,
   adminRpc,
@@ -58,7 +59,7 @@ export async function POST(request: Request) {
       typeof email !== "string" ||
       !emailRegex.test(email) ||
       typeof password !== "string" ||
-      password.length < 8
+      !validatePasswordStrength(password).isValid
     ) {
       return jsonError("Invalid staff account parameters.", 400);
     }

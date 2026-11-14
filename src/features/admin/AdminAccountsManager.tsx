@@ -13,6 +13,8 @@ import { Modal } from "@/components/ui/Modal";
 import { Pagination } from "@/components/ui/Pagination";
 import { Select } from "@/components/ui/Select";
 import { Skeleton } from "@/components/ui/Skeleton";
+import { PasswordRequirements } from "@/components/auth/PasswordRequirements";
+import { validatePasswordStrength } from "@/types/auth";
 import { AdminReasonField } from "./AdminReasonField";
 import { adminCall, newOperationId, reasonProblem } from "./admin-api";
 import { statusBadgeVariant } from "./status-badge";
@@ -122,7 +124,9 @@ export function CreateStaffAccountForm({
   onCancel,
   onSubmit,
 }: CreateStaffAccountFormProps) {
-  const invalid = !fullName.trim() || !email.trim() || password.length < 8;
+  const [passwordTouched, setPasswordTouched] = useState(false);
+  const strength = validatePasswordStrength(password);
+  const invalid = !fullName.trim() || !email.trim() || !strength.isValid;
   return (
     <form
       onSubmit={(e) => {
@@ -183,18 +187,28 @@ export function CreateStaffAccountForm({
 
       <div className="grid gap-1.5">
         <label htmlFor="staff-password" className="text-sm font-medium text-foreground">
-          Password (min 8 characters)
+          Password
         </label>
-        <div className="relative">
+        <div
+          className="relative"
+          onBlur={(event) => {
+            if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+              setPasswordTouched(true);
+            }
+          }}
+        >
           <Input
             id="staff-password"
             type={showPassword ? "text" : "password"}
             aria-label="Password"
             placeholder="Enter secure password"
             autoComplete="new-password"
+            maxLength={72}
             value={password}
             onChange={(e) => onPasswordChange(e.target.value)}
             disabled={saving}
+            aria-invalid={passwordTouched && !strength.isValid}
+            aria-describedby="staff-password-requirements"
             className="pr-12"
             required
             minLength={8}
@@ -208,6 +222,11 @@ export function CreateStaffAccountForm({
             {showPassword ? <EyeOff size={19} aria-hidden="true" /> : <Eye size={19} aria-hidden="true" />}
           </button>
         </div>
+        <PasswordRequirements
+          id="staff-password-requirements"
+          password={password}
+          emptyError={passwordTouched && !password}
+        />
       </div>
 
       {error && <Alert variant="error">{error}</Alert>}
@@ -291,7 +310,7 @@ export function AdminAccountsManager({ userId, initialRole, initialStatus }: { u
   }
 
   async function handleCreateStaff() {
-    if (!staffFullName.trim() || !staffEmail.trim() || staffPassword.length < 8 || staffSaving) return;
+    if (!staffFullName.trim() || !staffEmail.trim() || !validatePasswordStrength(staffPassword).isValid || staffSaving) return;
     setStaffSaving(true);
     setStaffError(null);
     const res = await adminCall<{ success?: boolean }>("/api/admin/accounts", userId, {
