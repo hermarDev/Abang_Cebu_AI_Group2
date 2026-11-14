@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   FileCheck,
   FileText,
@@ -64,12 +64,18 @@ export function VerificationQueue({
 }) {
   const [filter, setFilter] = useState("pending_verification");
   const [search, setSearch] = useState("");
+  const [offset, setOffset] = useState(0);
+  const pageSize = 50;
   const [queue, setQueue] = useState<VerificationQueueItem[] | null>(initialQueue ?? null);
   const [error, setError] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
 
   // Verification modal action state
   const [activeItem, setActiveItem] = useState<VerificationQueueItem | null>(null);
+  const activeItemRef = useRef(activeItem);
+  useEffect(() => {
+    activeItemRef.current = activeItem;
+  }, [activeItem]);
   const [method, setMethod] = useState<"site_visit" | "video_call" | "proxy_meeting">("site_visit");
   const [proxyName, setProxyName] = useState("");
   const [proxyRelationship, setProxyRelationship] = useState("");
@@ -81,13 +87,15 @@ export function VerificationQueue({
   const [actionError, setActionError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (initialQueue && reloadKey === 0) return;
+    if (initialQueue && reloadKey === 0 && offset === 0) return;
     const abort = new AbortController();
     const timer = setTimeout(async () => {
       setQueue(null);
       setError(null);
       const query = new URLSearchParams({
         status: filter,
+        limit: String(pageSize),
+        offset: String(offset),
         ...(search.trim() ? { search: search.trim() } : {}),
       });
       try {
@@ -112,10 +120,11 @@ export function VerificationQueue({
       clearTimeout(timer);
       abort.abort();
     };
-  }, [filter, search, userId, reloadKey, initialQueue]);
+  }, [filter, search, offset, userId, reloadKey, initialQueue]);
 
   async function handleFileUpload(file: File) {
     if (!activeItem) return;
+    const targetId = activeItem.id;
     setUploading(true);
     setActionError(null);
     try {
@@ -124,7 +133,7 @@ export function VerificationQueue({
       formData.append("kind", uploadKind);
       formData.append("file", file);
 
-      const res = await fetch(`/api/verification/queue/${activeItem.id}/media`, {
+      const res = await fetch(`/api/verification/queue/${targetId}/media`, {
         method: "POST",
         headers: { "x-expected-user-id": userId },
         body: formData,
@@ -136,6 +145,7 @@ export function VerificationQueue({
       }
 
       const uploaded = await res.json();
+      if (!activeItemRef.current || activeItemRef.current.id !== targetId) return;
       setProofList((prev) => [
         ...prev,
         {
@@ -155,7 +165,7 @@ export function VerificationQueue({
   }
 
   async function submitVerification(status: "verified" | "flagged") {
-    if (!activeItem || actionSaving) return;
+    if (!activeItem || actionSaving || uploading) return;
     if (status === "verified" && proofList.length === 0) {
       setActionError("Verification requires at least one proof item (photo or document).");
       return;
@@ -238,7 +248,10 @@ export function VerificationQueue({
               size="sm"
               variant={filter === tab.value ? "primary" : "outline"}
               aria-pressed={filter === tab.value}
-              onClick={() => setFilter(tab.value)}
+              onClick={() => {
+                setFilter(tab.value);
+                setOffset(0);
+              }}
             >
               {tab.label}
             </Button>
@@ -250,7 +263,10 @@ export function VerificationQueue({
             aria-label="Search verification queue"
             placeholder="Search title, address, or landlord…"
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setOffset(0);
+            }}
           />
         </div>
       </div>
@@ -335,6 +351,30 @@ export function VerificationQueue({
               </div>
             </article>
           ))}
+        </div>
+      )}
+
+      {queue && queue.length > 0 && (
+        <div className="flex items-center justify-between pt-2">
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={offset === 0}
+            onClick={() => setOffset((o) => Math.max(0, o - pageSize))}
+          >
+            Previous
+          </Button>
+          <span className="text-xs text-muted-foreground">
+            Showing {offset + 1}–{offset + queue.length}
+          </span>
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={queue.length < pageSize}
+            onClick={() => setOffset((o) => o + pageSize)}
+          >
+            Next
+          </Button>
         </div>
       )}
 
@@ -491,14 +531,14 @@ export function VerificationQueue({
               <Button
                 variant="destructive"
                 onClick={() => submitVerification("flagged")}
-                disabled={actionSaving || notes.trim().length < 5}
+                disabled={actionSaving || uploading || notes.trim().length < 5}
               >
                 Flag Issue
               </Button>
               <Button
                 variant="primary"
                 onClick={() => submitVerification("verified")}
-                disabled={actionSaving || notes.trim().length < 5 || proofList.length === 0}
+                disabled={actionSaving || uploading || notes.trim().length < 5 || proofList.length === 0}
               >
                 Mark Verified & Notify Admin
               </Button>

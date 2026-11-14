@@ -72,7 +72,6 @@ import {
   type RentalMessageAttachment,
   type RentalMessageItem,
   type RentalQuotedMessage,
-  type RentalThreadAgreement,
   type RentalThreadDetail,
   type RentalThreadSummary,
   type ThreadDetailResponse,
@@ -348,19 +347,21 @@ function MessagingInboxInner({
   const [composeLoading, setComposeLoading] = useState(false);
   const [composeError, setComposeError] = useState<string | null>(null);
 
-  const [agreementState, setAgreementState] = useState<RentalThreadAgreement | null>(null);
   const [selectedUnitId, setSelectedUnitId] = useState<string | null>(null);
   const [agreementLoading, setAgreementLoading] = useState(false);
 
   const handleAgreementConsent = async (threadId: string, isAgree: boolean, unitId?: string | null) => {
     setAgreementLoading(true);
+    const generation = generationRef.current;
     try {
       const opId =
         typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
           ? crypto.randomUUID()
           : "00000000-0000-4000-8000-000000000000";
       const res = await setRentalAgreementConsent(threadId, userId, opId, isAgree, unitId);
-      setAgreementState(res.agreement);
+      if (!alive.current || selectedRef.current !== threadId || generationRef.current !== generation) return;
+      setDetail((cur) => (cur && cur.id === threadId ? { ...cur, agreement: res.agreement } : cur));
+      patchThread(threadId, { agreement: res.agreement });
       notify(
         "success",
         "rental-agreement",
@@ -373,7 +374,9 @@ function MessagingInboxInner({
     } catch (err) {
       notify("error", "rental-agreement", err instanceof Error ? err.message : "Failed to update agreement consent.");
     } finally {
-      setAgreementLoading(false);
+      if (alive.current && selectedRef.current === threadId && generationRef.current === generation) {
+        setAgreementLoading(false);
+      }
     }
   };
 
@@ -629,7 +632,6 @@ function MessagingInboxInner({
     generationRef.current++;
     olderLoaded.current = false;
     setDetail(null);
-    setAgreementState(null);
     setSelectedUnitId(null);
     setMessages([]);
     setHasMore(false);
@@ -1332,7 +1334,7 @@ function MessagingInboxInner({
 
               {/* In-Chat Dual-Button Mutual Rental Agreement Bar */}
               {(() => {
-                const currentAgreement = agreementState ?? thread.agreement;
+                const currentAgreement = thread.agreement;
                 const availableUnits = thread.availableUnits ?? [];
                 const activeAvailableUnits = availableUnits.filter((u) => u.isAvailable);
                 const activeUnitId = selectedUnitId ?? currentAgreement?.unitId ?? activeAvailableUnits[0]?.id ?? null;

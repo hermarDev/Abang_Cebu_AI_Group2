@@ -290,15 +290,17 @@ export function PropertyDetails({
                 <ul className="m-0 mt-1 flex flex-wrap gap-2 p-0 list-none">
                   {property.fieldVerificationProof.map((proof, idx) => (
                     <li key={proof.object_path || idx}>
-                      <a
-                        href={proof.signedUrl || "#"}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex min-h-9 items-center gap-1.5 text-action underline"
-                      >
-                        <FileText size={14} aria-hidden="true" />
-                        Proof {idx + 1} ({proof.kind})
-                      </a>
+                      {proof.signedUrl ? (
+                        <a
+                          href={proof.signedUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex min-h-9 items-center gap-1.5 text-action underline"
+                        >
+                          <FileText size={14} aria-hidden="true" />
+                          Proof {idx + 1} ({proof.kind})
+                        </a>
+                      ) : <span>Proof unavailable ({proof.kind})</span>}
                     </li>
                   ))}
                 </ul>

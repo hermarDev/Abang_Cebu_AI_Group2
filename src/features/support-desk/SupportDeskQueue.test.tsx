@@ -39,7 +39,7 @@ describe("SupportDeskQueue", () => {
     const html = renderToStaticMarkup(
       <SupportDeskQueue userId="supp-1" initialStatus="awaiting_landlord" />,
     );
-    for (const tab of ["Open", "Awaiting Landlord", "Escalated", "Resolved", "All"]) {
+    for (const tab of ["Open", "In Progress", "Awaiting Landlord", "Escalated", "Resolved", "All"]) {
       expect(html).toContain(tab);
     }
     expect(html).toMatch(/aria-pressed="true"[^>]*>Awaiting Landlord/);

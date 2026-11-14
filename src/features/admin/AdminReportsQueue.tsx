@@ -54,19 +54,23 @@ export const submitReportDecision = async (
   if (report.isEscalatedSupportTicket) {
     if (decision === "resolved") {
       if (suspend && report.targetUserId) {
-        await adminCall(`/api/admin/accounts`, userId, {
+        const suspendResult = await adminCall(`/api/admin/accounts`, userId, {
           targetUserId: report.targetUserId,
           operationId: newOperationId(),
           suspend: true,
           reason: note.trim(),
-          unpublishListings: unpublish,
+          unpublishListings: false,
         });
-      } else if (unpublish && report.relatedListingId) {
-        await adminCall(`/api/admin/properties/${report.relatedListingId}/lifecycle`, userId, {
+        if (!suspendResult.ok) return suspendResult;
+      }
+      if (unpublish && report.relatedListingId) {
+        const lifecycleResult = await adminCall(`/api/admin/properties/lifecycle`, userId, {
+          propertyId: report.relatedListingId,
           operationId: newOperationId(),
           action: "unpublish",
           reason: note.trim(),
         });
+        if (!lifecycleResult.ok) return lifecycleResult;
       }
     }
     return adminCall<unknown>(`/api/support-desk/tickets/${report.id}`, userId, {
@@ -198,6 +202,47 @@ export function EvidenceView({ report }: { report: AdminReport }) {
   );
 }
 
+export async function loadEscalations(userId: string, signal?: AbortSignal): Promise<AdminReport[]> {
+  const res = await fetch(`/api/support-desk/tickets?status=escalated`, {
+    headers: { "x-expected-user-id": userId },
+    signal,
+  });
+  if (!res.ok) throw new Error("Escalated support tickets could not be loaded. Please retry.");
+  const json = await res.json();
+  if (!Array.isArray(json?.tickets)) throw new Error("Invalid response from support desk tickets.");
+  return json.tickets.map((t: {
+    id: string;
+    requesterName?: string;
+    reportedLandlordId?: string;
+    reportedLandlordName?: string;
+    category?: string;
+    subject?: string;
+    description?: string;
+    escalationReason?: string;
+    recommendedAdminAction?: string;
+    supportResolutionNote?: string;
+    escalatedToAdminAt?: string;
+    createdAt?: string;
+    relatedListingId?: string;
+  }) => ({
+    id: t.id,
+    reporterName: t.requesterName,
+    targetType: "support_escalation",
+    targetUserId: t.reportedLandlordId,
+    targetUserName: t.reportedLandlordName,
+    category: t.category ?? "safety",
+    details: `${t.subject ?? ""}\n\n${t.description ?? ""}\n\nEscalation Reason: ${t.escalationReason ?? "None"}${t.recommendedAdminAction ? `\nRecommended action: ${label(t.recommendedAdminAction)}` : ""}`,
+    status: "open",
+    resolutionNote: t.supportResolutionNote,
+    createdAt: t.escalatedToAdminAt || t.createdAt || new Date().toISOString(),
+    isEscalatedSupportTicket: true,
+    recommendedAdminAction: t.recommendedAdminAction,
+    escalationReason: t.escalationReason,
+    reportedLandlordId: t.reportedLandlordId,
+    relatedListingId: t.relatedListingId,
+  }));
+}
+
 export function AdminReportsQueue({ userId, initialStatus }: { userId: string; initialStatus?: string }) {
   const [status, setStatus] = useState(tabs.some((t) => t.value === initialStatus) ? initialStatus! : "open");
   const [page, setPage] = useState(1);
@@ -231,48 +276,14 @@ export function AdminReportsQueue({ userId, initialStatus }: { userId: string; i
 
       if (status === "open" || status === "all") {
         try {
-          const escRes = await fetch(`/api/support-desk/tickets?status=escalated`, {
-            headers: { "x-expected-user-id": userId },
-            signal: abort.signal,
-          });
-          if (escRes.ok) {
-            const escJson = await escRes.json();
-            const escalatedTickets = Array.isArray(escJson.tickets) ? escJson.tickets : [];
-            const mappedEscalations: AdminReport[] = escalatedTickets.map((t: {
-              id: string;
-              requesterName?: string;
-              reportedLandlordId?: string;
-              reportedLandlordName?: string;
-              category?: string;
-              subject?: string;
-              description?: string;
-              escalationReason?: string;
-              recommendedAdminAction?: string;
-              supportResolutionNote?: string;
-              escalatedToAdminAt?: string;
-              createdAt?: string;
-              relatedListingId?: string;
-            }) => ({
-              id: t.id,
-              reporterName: t.requesterName,
-              targetType: "support_escalation",
-              targetUserId: t.reportedLandlordId,
-              targetUserName: t.reportedLandlordName,
-              category: t.category ?? "safety",
-              details: `${t.subject ?? ""}\n\n${t.description ?? ""}\n\nEscalation Reason: ${t.escalationReason ?? "None"}${t.recommendedAdminAction ? `\nRecommended action: ${label(t.recommendedAdminAction)}` : ""}`,
-              status: "open",
-              resolutionNote: t.supportResolutionNote,
-              createdAt: t.escalatedToAdminAt || t.createdAt || new Date().toISOString(),
-              isEscalatedSupportTicket: true,
-              recommendedAdminAction: t.recommendedAdminAction,
-              escalationReason: t.escalationReason,
-              reportedLandlordId: t.reportedLandlordId,
-              relatedListingId: t.relatedListingId,
-            }));
-            combined = [...mappedEscalations, ...combined];
-          }
-        } catch {
-          // Non-blocking
+          const mappedEscalations = await loadEscalations(userId, abort.signal);
+          combined = [...mappedEscalations, ...combined];
+        } catch (err) {
+          if (abort.signal.aborted) return;
+          const msg = err instanceof Error ? err.message : "Escalated complaints could not be loaded.";
+          setError(msg);
+          notify("error", "admin-reports-load", msg);
+          return;
         }
       }
       setReports(combined);

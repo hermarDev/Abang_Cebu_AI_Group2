@@ -42,6 +42,7 @@ test("registration retains and corrects a server field error", async ({ page }) 
   await name.fill("Test User");
   await email.fill("first@example.invalid");
   await password.fill("StrongPass1!");
+  await dialog.locator('[data-testid="turnstile-widget"]').click();
   await dialog.getByRole("button", { name: "Register as Renter" }).click();
   await expect(email).toHaveAttribute("aria-invalid", "true");
   await expect(dialog.getByText("This email is invalid.")).toBeVisible();

@@ -6,11 +6,12 @@ const mocks = vi.hoisted(() => ({
   rpc: vi.fn(),
   createSignedUrls: vi.fn(),
   createUser: vi.fn(),
+  deleteUser: vi.fn(),
 }));
 vi.mock("@/lib/supabase/admin", () => ({
   createAdminClient: () => ({
     storage: { from: () => ({ createSignedUrls: mocks.createSignedUrls }) },
-    auth: { admin: { createUser: mocks.createUser } },
+    auth: { admin: { createUser: mocks.createUser, deleteUser: mocks.deleteUser } },
   }),
 }));
 vi.mock("@/lib/supabase/server", () => ({ createClient: async () => ({
@@ -28,6 +29,7 @@ function setup() {
   mocks.rpc.mockResolvedValue({ data: [], error: null });
   mocks.createSignedUrls.mockResolvedValue({ data: [], error: null });
   mocks.createUser.mockResolvedValue({ data: { user: { id: "new-user-1" } }, error: null });
+  mocks.deleteUser.mockResolvedValue({ data: {}, error: null });
 }
 const guardCases = (call: (headers?: Record<string, string>) => Promise<Response>) => {
   it("401 unauthenticated", async () => {
@@ -115,6 +117,13 @@ describe("POST /api/admin/accounts", () => {
       password: "StrongPassword123!",
     };
 
+    it("does not create a user when the operation lookup fails", async () => {
+      mocks.rpc.mockResolvedValueOnce({ data: null, error: { message: "unavailable" } });
+      const res = await post(validStaff);
+      expect(res.status).toBe(503);
+      expect(mocks.createUser).not.toHaveBeenCalled();
+    });
+
     it("returns 400 for missing or invalid staff fields", async () => {
       const res = await post({ ...validStaff, email: "not-an-email" });
       expect(res.status).toBe(400);
@@ -158,6 +167,34 @@ describe("POST /api/admin/accounts", () => {
       expect(res.status).toBe(400);
       const json = await res.json();
       expect(json.error).toContain("A user with this email address already exists");
+    });
+
+    it("deletes created user and returns 503 when tracking fails", async () => {
+      mocks.rpc
+        .mockResolvedValueOnce({ data: null, error: null })
+        .mockResolvedValueOnce({ data: null, error: { message: "track failed" } });
+      const res = await post(validStaff);
+      expect(res.status).toBe(503);
+      expect(mocks.deleteUser).toHaveBeenCalledWith("new-user-1");
+    });
+
+    it("reconciles existing tracked user on retry without calling createUser again, and rejects mismatched retry params", async () => {
+      mocks.rpc
+        .mockResolvedValueOnce({ data: { user_id: "existing-u-1", role: "verification_officer", email: "jane.doe@example.com" }, error: null })
+        .mockResolvedValueOnce({ data: { success: true }, error: null });
+      const res = await post(validStaff);
+      expect(res.status).toBe(200);
+      expect(mocks.createUser).not.toHaveBeenCalled();
+      expect(mocks.rpc).toHaveBeenLastCalledWith("admin_assign_staff_role", {
+        p_target_user_id: "existing-u-1",
+        p_operation_id: B,
+        p_role: "verification_officer",
+        p_full_name: "Officer Jane Doe",
+      });
+
+      mocks.rpc.mockResolvedValueOnce({ data: { user_id: "existing-u-1", role: "customer_support", email: "jane.doe@example.com" }, error: null });
+      const mismatchRes = await post(validStaff);
+      expect(mismatchRes.status).toBe(409);
     });
   });
 });

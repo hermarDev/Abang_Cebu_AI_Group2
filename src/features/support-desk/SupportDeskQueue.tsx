@@ -56,6 +56,7 @@ export type SupportActionPayload = {
 
 const tabs = [
   { value: "open", label: "Open" },
+  { value: "in_progress", label: "In Progress" },
   { value: "awaiting_landlord", label: "Awaiting Landlord" },
   { value: "escalated", label: "Escalated" },
   { value: "resolved", label: "Resolved" },
@@ -213,22 +214,33 @@ export function SupportDeskQueue({
       setTickets(null);
       setError(null);
       try {
-        const query = new URLSearchParams({
-          status,
-          ...(search.trim() ? { search: search.trim() } : {}),
-        });
-        const res = await fetch(`/api/support-desk/tickets?${query.toString()}`, {
-          headers: { "x-expected-user-id": userId },
-          signal: abort.signal,
-        });
-        if (abort.signal.aborted) return;
-        const json = await res.json();
-        if (res.ok) {
-          setTickets(Array.isArray(json.tickets) ? json.tickets : []);
-        } else {
-          setError(json.error || "Failed to load tickets.");
-          notify("error", "support-queue-load", json.error || "Failed to load tickets.");
+        let allTickets: SupportDeskTicket[] = [];
+        let offset = 0;
+        const batchSize = 100;
+        while (true) {
+          const query = new URLSearchParams({
+            status,
+            limit: String(batchSize),
+            offset: String(offset),
+            ...(search.trim() ? { search: search.trim() } : {}),
+          });
+          const res = await fetch(`/api/support-desk/tickets?${query.toString()}`, {
+            headers: { "x-expected-user-id": userId },
+            signal: abort.signal,
+          });
+          if (abort.signal.aborted) return;
+          const json = await res.json();
+          if (!res.ok) {
+            setError(json.error || "Failed to load tickets.");
+            notify("error", "support-queue-load", json.error || "Failed to load tickets.");
+            return;
+          }
+          const batch = Array.isArray(json.tickets) ? json.tickets : [];
+          allTickets = [...allTickets, ...batch];
+          if (batch.length < batchSize) break;
+          offset += batch.length;
         }
+        setTickets(allTickets);
       } catch {
         if (!abort.signal.aborted) {
           setError("Network error while loading tickets.");

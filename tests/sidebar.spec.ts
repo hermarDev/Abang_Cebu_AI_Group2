@@ -15,8 +15,7 @@ for (const width of [320, 375, 390, 430, 768, 1440]) {
     const box = await drawer.boundingBox();
     expect(box!.x).toBeGreaterThanOrEqual(0);
     expect(box!.x + box!.width).toBeLessThanOrEqual(width);
-    await drawer.getByRole("button", { name: "Help & FAQ" }).click();
-    await expect(drawer.getByText("Use Budget, Property type, or Filters to narrow your search.")).toBeVisible();
+    await expect(drawer.getByRole("link", { name: "Help Center" })).toHaveAttribute("href", "/help");
     await drawer.getByRole("button", { name: "Help finding a rental" }).click();
     await expect(drawer).toHaveCount(0);
     const chat = page.getByRole("region", { name: "AbangCebu assistant" });
@@ -152,7 +151,7 @@ test("short drawer scroll keeps account and appearance reachable", async ({ page
   await page.getByRole("button", { name: "Open menu" }).click();
   await drawer.getByRole("button", { name: "Switch to dark mode", exact: true }).click();
   await expect(page.locator("main")).toHaveAttribute("data-theme", "dark");
-  await expect(drawer.getByRole("link", { name: "Contact support" })).toHaveAttribute("href", "mailto:support@abangcebu.ai");
+  await expect(drawer.getByRole("link", { name: "Contact support" })).toHaveAttribute("href", "/support");
   await drawer.getByRole("link", { name: "Find rentals" }).click();
   await expect(drawer).toHaveCount(0);
 });

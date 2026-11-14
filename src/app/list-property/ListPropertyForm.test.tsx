@@ -203,15 +203,17 @@ describe("ListPropertyForm", () => {
   });
 
   it("renders multi-unit inputs and saves units in draft payload for boarding_house", async () => {
-    fields.propertyType = "boarding_house";
-    fields.price = "4500";
-    hooks.save.mockResolvedValueOnce({ draftId: "draft-bh", revision: 1 });
-    render();
-    const select = find((el) => el.props.name === "propertyType");
-    (select.props.onChange as (event: unknown) => void)({ target: { value: "boarding_house" } });
-    await settle();
+      fields.propertyType = "boarding_house";
+      fields.price = "4500";
+      hooks.save.mockResolvedValueOnce({ draftId: "draft-bh", revision: 1 });
+      // propertyType is the 27th useState (index 26, 0-indexed from first useState at line 140)
+      hooks.values[26] = "boarding_house";
+      render();
+      const select = find((el) => el.props.name === "propertyType");
+      (select.props.onChange as (event: unknown) => void)({ target: { value: "boarding_house" } });
+      await settle();
 
-    const unitCountInput = find((el) => el.props.name === "unitCount");
+      const unitCountInput = find((el) => el.props.name === "unitCount");
     expect(unitCountInput).toBeTruthy();
     (unitCountInput.props.onChange as (event: unknown) => void)({ target: { value: "3" } });
     await settle();

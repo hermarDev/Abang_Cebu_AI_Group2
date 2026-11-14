@@ -1,6 +1,16 @@
+import path from "node:path";
+import fs from "node:fs/promises";
 import { test, expect } from "./fixtures";
 
+/* eslint-disable @typescript-eslint/no-require-imports -- Playwright CJS runtime loads esbuild/postcss from vitest/postcss packages. */
+const { build } = require(require.resolve("esbuild", { paths: [require.resolve("vitest/package.json")] }));
+const postcss = require("postcss");
+const tailwind = require("@tailwindcss/postcss");
+/* eslint-enable @typescript-eslint/no-require-imports */
+
 const LANDLORD_ID = "00000000-0000-0000-0000-00000000000a";
+const ROOT = process.cwd();
+const MOCK_PATH = path.join(ROOT, "tests/notification-harness/next-mock.jsx");
 
 const notifications = [
   {
@@ -33,17 +43,102 @@ const notifications = [
   },
 ];
 
-async function seedAuthenticatedLandlord(page: import("@playwright/test").Page) {
-  await page.route(url => url.pathname === "/auth/v1/token", route => route.fulfill({ json: {
-    access_token: "fixture-token", token_type: "bearer", expires_in: 3600, refresh_token: "fixture-refresh",
-    user: { id: LANDLORD_ID, aud: "authenticated", role: "authenticated", app_metadata: {}, user_metadata: {}, created_at: "2026-01-01T00:00:00Z" },
-  } }));
-  await page.route(url => url.pathname === "/rest/v1/profiles", route => route.fulfill({ json: { role: "landlord", is_suspended: false } }));
+let cachedCss: string | null = null;
+const cachedBundles = new Map<string, string>();
+
+async function getHarnessAssets(mode: "bell" | "hub"): Promise<{ html: string; js: string }> {
+  if (!cachedCss) {
+    const cssPath = path.join(ROOT, "src/app/globals.css");
+    const processed = await postcss([tailwind()]).process(await fs.readFile(cssPath, "utf8"), { from: cssPath });
+    cachedCss = processed.css;
+  }
+  let js = cachedBundles.get(mode);
+  if (!js) {
+    const entryCode = mode === "bell"
+      ? `import React from "react";
+import { createRoot } from "react-dom/client";
+import { NotificationBell } from "@/features/notifications/NotificationBell";
+createRoot(document.getElementById("root")!).render(<div className="p-8 flex justify-end"><NotificationBell userId="${LANDLORD_ID}" userRole="landlord" /></div>);`
+      : `import React from "react";
+import { createRoot } from "react-dom/client";
+import { NotificationsHubContent } from "@/features/notifications/NotificationsHubContent";
+createRoot(document.getElementById("root")!).render(<NotificationsHubContent userId="${LANDLORD_ID}" userRole="landlord" />);`;
+
+    const bundle = await build({
+      stdin: { contents: entryCode, resolveDir: ROOT, loader: "tsx" },
+      bundle: true,
+      write: false,
+      format: "iife",
+      platform: "browser",
+      jsx: "automatic",
+      loader: { ".module.css": "empty" },
+      nodePaths: [path.join(ROOT, "node_modules")],
+      alias: { "@": path.join(ROOT, "src") },
+      define: { "process.env.NODE_ENV": '"production"' },
+      plugins: [
+        {
+          name: "next-stubs",
+          setup(builder: {
+            onResolve: (opts: { filter: RegExp }, cb: (args: { path: string }) => { path: string; namespace: string }) => void;
+            onLoad: (opts: { filter: RegExp; namespace: string }, cb: () => { contents: string; loader: string; resolveDir: string }) => void;
+          }) {
+            builder.onResolve({ filter: /^next\/(image|link|navigation)$/ }, (args) => {
+              if (args.path === "next/link") return { path: MOCK_PATH, namespace: "mock-link" };
+              if (args.path === "next/navigation") return { path: MOCK_PATH, namespace: "mock-nav" };
+              return { path: MOCK_PATH, namespace: "mock-image" };
+            });
+            builder.onLoad({ filter: /.*/, namespace: "mock-link" }, () => ({
+              contents: `export { MockLink as default } from ${JSON.stringify(MOCK_PATH)};`,
+              loader: "jsx",
+              resolveDir: ROOT,
+            }));
+            builder.onLoad({ filter: /.*/, namespace: "mock-nav" }, () => ({
+              contents: `export { useRouter, usePathname } from ${JSON.stringify(MOCK_PATH)};`,
+              loader: "jsx",
+              resolveDir: ROOT,
+            }));
+            builder.onLoad({ filter: /.*/, namespace: "mock-image" }, () => ({
+              contents: `export { default } from ${JSON.stringify(MOCK_PATH)};`,
+              loader: "jsx",
+              resolveDir: ROOT,
+            }));
+          },
+        },
+      ],
+    });
+    const builtJs: string = bundle.outputFiles[0].text;
+    cachedBundles.set(mode, builtJs);
+    js = builtJs;
+  }
+
+  const html = `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>${cachedCss}</style>
+</head>
+<body>
+  <div id="root"></div>
+  <script src="/__harness__/bundle.js?mode=${mode}"></script>
+</body>
+</html>`;
+  return { html, js };
+}
+
+async function mountHarness(page: import("@playwright/test").Page, mode: "bell" | "hub") {
+  const { html, js } = await getHarnessAssets(mode);
+  await page.route("**/__harness__/bundle.js*", (route) =>
+    route.fulfill({ status: 200, contentType: "text/javascript; charset=utf-8", body: js }),
+  );
+  await page.route(`**/__harness__/${mode}`, (route) =>
+    route.fulfill({ status: 200, contentType: "text/html; charset=utf-8", body: html }),
+  );
+  await page.goto(`/__harness__/${mode}`);
 }
 
 test.describe("notifications hub", () => {
   test("flyout exposes persistent actions, per-item dismiss, hub link, and no pagination", async ({ page }) => {
-    await seedAuthenticatedLandlord(page);
     await page.route(url => url.pathname === "/api/notifications", route => {
       if (route.request().method() === "GET") {
         return route.fulfill({ json: { notifications, totalCount: 50, unreadCount: 1, hasMore: true } });
@@ -51,7 +146,7 @@ test.describe("notifications hub", () => {
       return route.fulfill({ json: { success: true } });
     });
 
-    await page.goto("/");
+    await mountHarness(page, "bell");
     await page.getByRole("button", { name: /Notifications/ }).first().click();
 
     const center = page.getByText("Notifications", { exact: true }).last();
@@ -68,7 +163,6 @@ test.describe("notifications hub", () => {
   });
 
   test("hub renders tabs, search, and bulk selection controls", async ({ page }) => {
-    await seedAuthenticatedLandlord(page);
     await page.route(url => url.pathname === "/api/notifications", route => {
       if (route.request().method() === "GET") {
         return route.fulfill({ json: {
@@ -79,12 +173,12 @@ test.describe("notifications hub", () => {
       return route.fulfill({ json: { success: true } });
     });
 
-    await page.goto("/notifications");
+    await mountHarness(page, "hub");
     await expect(page.getByRole("heading", { name: "Notifications", level: 1 })).toBeVisible();
-    await expect(page.getByRole("button", { name: "All" })).toBeVisible();
-    await expect(page.getByRole("button", { name: /Messages & Inquiries/ })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Listings" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "System" })).toBeVisible();
+    await expect(page.getByRole("button", { name: /^All\b/ })).toBeVisible();
+    await expect(page.getByRole("button", { name: /^Messages & Inquiries\b/ })).toBeVisible();
+    await expect(page.getByRole("button", { name: /^Listings\b/ })).toBeVisible();
+    await expect(page.getByRole("button", { name: /^System\b/ })).toBeVisible();
     await expect(page.getByLabel("Search notifications")).toBeVisible();
     await expect(page.getByLabel("Select all visible notifications")).toBeVisible();
     await expect(page.getByText("New message")).toBeVisible();
@@ -92,7 +186,6 @@ test.describe("notifications hub", () => {
   });
 
   test("clearing all requires confirmation", async ({ page }) => {
-    await seedAuthenticatedLandlord(page);
     await page.route(url => url.pathname === "/api/notifications", route => {
       if (route.request().method() === "GET") {
         return route.fulfill({ json: {
@@ -103,7 +196,7 @@ test.describe("notifications hub", () => {
       return route.fulfill({ json: { success: true } });
     });
 
-    await page.goto("/notifications");
+    await mountHarness(page, "hub");
     await page.getByRole("button", { name: "Clear all" }).click();
     await expect(page.getByText("Delete all?")).toBeVisible();
     await expect(page.getByRole("button", { name: "Yes" })).toBeVisible();
@@ -111,7 +204,6 @@ test.describe("notifications hub", () => {
   });
 
   test("deleting a single notification issues a scoped DELETE request", async ({ page }) => {
-    await seedAuthenticatedLandlord(page);
     const deletes: string[] = [];
     await page.route(url => url.pathname === "/api/notifications", route => {
       if (route.request().method() === "GET") {
@@ -127,8 +219,8 @@ test.describe("notifications hub", () => {
       return route.fulfill({ json: { success: true } });
     });
 
-    await page.goto("/notifications");
-    await page.getByRole("button", { name: "Dismiss notification: New message" }).click({ force: true });
+    await mountHarness(page, "hub");
+    await page.getByRole("button", { name: "Dismiss notification: New message" }).click();
     await expect.poll(() => deletes.length).toBeGreaterThan(0);
     expect(deletes[0]).toContain("id=n-1");
   });

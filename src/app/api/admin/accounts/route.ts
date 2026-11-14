@@ -63,39 +63,83 @@ export async function POST(request: Request) {
       return jsonError("Invalid staff account parameters.", 400);
     }
 
-    const admin = createAdminClient();
-    const { data: created, error: createError } = await admin.auth.admin.createUser({
-      email: email.trim(),
-      password,
-      email_confirm: true,
-      user_metadata: { full_name: fullName.trim(), role },
-    });
+    // Check if this operationId already created a user (retry reconciliation)
+    const { data: existingOp, error: opError } = await adminRpc(
+      session.supabase,
+      "admin_get_staff_creation_by_operation",
+      { p_operation_id: operationId }
+    );
 
-    if (createError || !created?.user) {
-      return jsonError(createError?.message || "Failed to create user in auth system.", 400);
+    if (opError) return jsonError("Staff account status could not be confirmed. Please retry.", 503);
+    const trackedOp = existingOp && typeof existingOp === "object" && "user_id" in existingOp && typeof existingOp.user_id === "string"
+      ? (existingOp as { user_id: string; role?: unknown; email?: unknown }) : null;
+    let targetUserId: string;
+    let isRetry = false;
+    const admin = createAdminClient();
+
+    if (trackedOp) {
+      if (trackedOp.role !== role || trackedOp.email !== email.trim()) {
+        return jsonError("Operation conflict. Reload and retry.", 409);
+      }
+      // Operation already has a created user - reconcile it
+      targetUserId = trackedOp.user_id;
+      isRetry = true;
+    } else {
+      // Create new auth user
+      const { data: created, error: createError } = await admin.auth.admin.createUser({
+        email: email.trim(),
+        password,
+        email_confirm: true,
+        user_metadata: { full_name: fullName.trim(), role },
+      });
+
+      if (createError || !created?.user) {
+        return jsonError(createError?.message || "Failed to create user in auth system.", 400);
+      }
+
+      targetUserId = created.user.id;
+
+      // Record the created user with operationId for retry tracking
+      const { error: trackError } = await adminRpc(
+        session.supabase,
+        "admin_track_staff_creation",
+        { p_operation_id: operationId, p_user_id: targetUserId, p_role: role, p_full_name: fullName.trim(), p_email: email.trim() }
+      );
+      if (trackError) {
+        await admin.auth.admin.deleteUser(targetUserId).catch(() => {});
+        return jsonError("Staff creation could not be tracked. Please retry.", 503);
+      }
     }
 
+    // Assign the staff role
     const { data: rpcData, error: rpcError } = await adminRpc(session.supabase, "admin_assign_staff_role", {
-      p_target_user_id: created.user.id,
+      p_target_user_id: targetUserId,
       p_operation_id: operationId,
       p_role: role,
       p_full_name: fullName.trim(),
     });
 
-    if (rpcError?.code === "42501") return jsonError("Admin permissions required.", 403);
+    if (rpcError?.code === "42501") {
+      if (!isRetry) await admin.auth.admin.deleteUser(targetUserId).catch(() => {});
+      return jsonError("Admin permissions required.", 403);
+    }
     if (rpcError?.code === "23505") return jsonError("Operation conflict. Reload and retry.", 409);
-    if (rpcError?.code === "22023") return jsonError("Invalid staff assignment data.", 400);
+    if (rpcError?.code === "22023") {
+      if (!isRetry) await admin.auth.admin.deleteUser(targetUserId).catch(() => {});
+      return jsonError("Invalid staff assignment data.", 400);
+    }
     if (rpcError) return jsonError("Staff account could not be assigned role. Please retry.", 503);
 
     return jsonOk({
       success: true,
       user: {
-        id: created.user.id,
+        id: targetUserId,
         email: email.trim(),
         fullName: fullName.trim(),
         role,
       },
       account: rpcData,
+      retried: isRetry,
     });
   }
 

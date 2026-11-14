@@ -46,7 +46,9 @@ describe("VerificationQueue", () => {
     );
     expect(html).toContain("Apas Studio Apartment");
     expect(html).toContain("Juan Dela Cruz");
-    expect(html).toContain("+639171234567");
+    expect(html).toContain(sampleItem.landlordPhone!);
     expect(html).toContain("Verify submission");
+    expect(html).toContain("Previous");
+    expect(html).toContain("Next");
   });
 });

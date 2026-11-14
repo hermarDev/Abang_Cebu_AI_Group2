@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const mocks = vi.hoisted(() => ({ getUser: vi.fn(), profile: vi.fn(), rpc: vi.fn(), createSignedUrls: vi.fn() }));
-vi.mock("@/lib/supabase/admin", () => ({ createAdminClient: () => ({ storage: { from: () => ({ createSignedUrls: mocks.createSignedUrls }) } }) }));
+const mocks = vi.hoisted(() => ({ getUser: vi.fn(), profile: vi.fn(), rpc: vi.fn(), from: vi.fn(), createSignedUrls: vi.fn() }));
+vi.mock("@/lib/supabase/admin", () => ({ createAdminClient: () => ({ storage: { from: mocks.from } }) }));
 vi.mock("@/lib/supabase/server", () => ({ createClient: async () => ({
   auth: { getUser: mocks.getUser },
   rpc: mocks.rpc,
@@ -15,6 +15,7 @@ function setup() {
   mocks.profile.mockResolvedValue({ data: { role: "admin", is_suspended: false }, error: null });
   mocks.rpc.mockResolvedValue({ data: [], error: null });
   mocks.createSignedUrls.mockResolvedValue({ data: [], error: null });
+  mocks.from.mockReturnValue({ createSignedUrls: mocks.createSignedUrls });
 }
 const guardCases = (call: (headers?: Record<string, string>) => Promise<Response>) => {
   it("401 unauthenticated", async () => {
@@ -71,6 +72,14 @@ describe("GET /api/admin/properties", () => {
     const res = await get();
     expect(res.status).toBe(200);
     expect((await res.json()).properties[0]).toMatchObject({ photoUrls: [], permitUrls: [] });
+  });
+  it("signs verification proof from its own bucket", async () => {
+    const proof = { kind: "photo", object_path: "verification/proof.jpg" };
+    mocks.rpc.mockResolvedValue({ data: [{ id: "x", fieldVerificationProof: [proof] }], error: null });
+    mocks.createSignedUrls.mockResolvedValue({ data: [{ path: proof.object_path, signedUrl: "https://s/proof" }], error: null });
+    const response = await get();
+    expect(mocks.from).toHaveBeenCalledWith("field-verification-media");
+    expect((await response.json()).properties[0].fieldVerificationProof).toEqual([{ ...proof, signedUrl: "https://s/proof" }]);
   });
   it("503 on rpc error", async () => {
     mocks.rpc.mockResolvedValue({ data: null, error: { message: "x" } });

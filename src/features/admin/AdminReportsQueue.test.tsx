@@ -2,7 +2,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@/components/ui/AppToaster", () => ({ notify: vi.fn() }));
-import { AdminReportsQueue, EvidenceView, inspectReport, ReportRow, submitReportDecision, type AdminReport } from "./AdminReportsQueue";
+import { AdminReportsQueue, EvidenceView, inspectReport, loadEscalations, ReportRow, submitReportDecision, type AdminReport } from "./AdminReportsQueue";
 
 const report: AdminReport = { id: "r1", reporterName: "Renter One", targetType: "message", targetUserId: "u3", targetUserName: "Landlord Three", category: "harassment", details: "Threatening messages about the deposit", status: "open", createdAt: "2026-11-09T01:00:00Z" };
 const respond = (status: number, body: unknown) => vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: status < 400, status, json: async () => body }));
@@ -16,6 +16,14 @@ describe("AdminReportsQueue", () => {
     for (const text of ["Open", "Resolved", "Dismissed", "All"]) expect(html).toContain(text);
     expect(html).toMatch(/aria-pressed="true"[^>]*>Resolved/);
     expect(html).toContain("animate-pulse");
+  });
+  it("rejects failed and malformed escalation responses rather than returning an empty queue", async () => {
+    respond(503, { error: "Unavailable" });
+    await expect(loadEscalations("admin-a", new AbortController().signal)).rejects.toThrow();
+    respond(200, {});
+    await expect(loadEscalations("admin-a", new AbortController().signal)).rejects.toThrow();
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("offline")));
+    await expect(loadEscalations("admin-a", new AbortController().signal)).rejects.toThrow();
   });
   it("shows report summary and actions for open reports only", () => {
     const open = row(report);
@@ -48,6 +56,24 @@ describe("AdminReportsQueue", () => {
     expect(JSON.parse(vi.mocked(fetch).mock.calls[1][1]!.body as string)).toMatchObject({ decision: "dismissed", suspendTargetUser: false, unpublishTargetListing: false });
     respond(409, { error: "This report changed." });
     expect(await submitReportDecision("admin-a", { report, decision: "resolved", operationId: "op-3" }, "Valid note", false, false)).toEqual({ ok: false, message: "This report changed." });
+  });
+
+  it("enforces only the reported property before resolving an escalation", async () => {
+    respond(200, {});
+    const escalation = { ...report, isEscalatedSupportTicket: true, relatedListingId: "property-1" };
+    await submitReportDecision("admin-a", { report: escalation, decision: "resolved", operationId: "op" }, "Reason", true, true);
+    const calls = vi.mocked(fetch).mock.calls;
+    expect(calls.map(([url]) => String(url))).toEqual(["/api/admin/accounts", "/api/admin/properties/lifecycle", "/api/support-desk/tickets/r1"]);
+    expect(JSON.parse(calls[0][1]!.body as string)).toMatchObject({ unpublishListings: false });
+    expect(JSON.parse(calls[1][1]!.body as string)).toMatchObject({ propertyId: "property-1", action: "unpublish" });
+  });
+
+  it("does not resolve an escalation if enforcement fails", async () => {
+    const fetchMock = vi.fn().mockResolvedValueOnce({ ok: true, status: 200, json: async () => ({}) }).mockResolvedValueOnce({ ok: false, status: 503, json: async () => ({ error: "Unavailable" }) });
+    vi.stubGlobal("fetch", fetchMock);
+    const escalation = { ...report, isEscalatedSupportTicket: true, relatedListingId: "property-1" };
+    expect(await submitReportDecision("admin-a", { report: escalation, decision: "resolved", operationId: "op" }, "Reason", true, true)).toEqual({ ok: false, message: "Unavailable" });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
   it("handles escalated support tickets with recommended suspension and resolution", async () => {

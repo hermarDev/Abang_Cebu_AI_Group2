@@ -186,5 +186,8 @@ describe("reviewChecklist", () => {
     expect(verifiedHtml).toContain("Site visit");
     expect(verifiedHtml).toContain("Building inspected in person.");
     expect(verifiedHtml).toContain("https://x/proof.jpg");
+    const unavailableHtml = renderToStaticMarkup(<PropertyDetails property={{ ...verifiedProperty, fieldVerificationProof: [{ kind: "photo", object_path: "p/1.jpg" }] }} />);
+    expect(unavailableHtml).toContain("Proof unavailable");
+    expect(unavailableHtml).not.toContain('href="#"');
   });
 });
