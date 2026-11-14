@@ -15,7 +15,7 @@ import type { UserRole } from './database';
  * Roles permitted during public self-registration.
  * Strictly prohibits 'admin' self-provisioning (Anti-Privilege Escalation Tier 1).
  */
-export type RegisterableRole = Exclude<UserRole, 'admin'>; // 'renter' | 'landlord'
+export type RegisterableRole = Extract<UserRole, 'renter' | 'landlord'>;
 
 /**
  * Payload submitted by the client during user registration.

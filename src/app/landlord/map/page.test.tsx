@@ -13,6 +13,7 @@ const builder = (table: string) => {
     in: (...args: unknown[]) => { mocks.inFilter(table, ...args); return chain; },
     order: () => chain,
     limit: () => chain,
+    range: () => chain,
     then: (resolve: (value: Result) => unknown, reject: (reason: unknown) => unknown) => Promise.resolve(result()).then(resolve, reject),
   };
   return chain;

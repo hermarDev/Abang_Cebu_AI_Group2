@@ -123,4 +123,23 @@ describe("PropertyDetailsSheet", () => {
     expect(html).toContain('aria-pressed="true"');
     expect(html).toContain('aria-label="Remove listing from saved"');
   });
+
+  it("renders multi-unit availability badge and unit pills for multi-unit property", () => {
+    const multiUnitRental: RentalResult = {
+      ...baseRental,
+      availableUnitsCount: 2,
+      totalUnitsCount: 3,
+      units: [
+        { id: "u-1", unitNumber: "Room 1", rentalType: "private_room", monthlyRent: 4500, maxOccupants: 1, isAvailable: false },
+        { id: "u-2", unitNumber: "Room 2", rentalType: "private_room", monthlyRent: 4500, maxOccupants: 1, isAvailable: true },
+        { id: "u-3", unitNumber: "Room 3", rentalType: "private_room", monthlyRent: 5000, maxOccupants: 2, isAvailable: true },
+      ],
+    };
+    const html = renderToStaticMarkup(<PropertyDetailsSheetBody rental={multiUnitRental} />);
+
+    expect(html).toContain("2 of 3 units available");
+    expect(html).toContain("Room 1 (Occupied)");
+    expect(html).toContain("Room 2 (Available — ₱4,500/mo)");
+    expect(html).toContain("Room 3 (Available — ₱5,000/mo)");
+  });
 });

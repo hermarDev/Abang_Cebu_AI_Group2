@@ -2,7 +2,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@/components/ui/AppToaster", () => ({ notify: vi.fn() }));
-import { AdminReportsQueue, EvidenceView, inspectReport, ReportRow, submitReportDecision, type AdminReport } from "./AdminReportsQueue";
+import { AdminReportsQueue, EvidenceView, inspectReport, loadEscalations, ReportRow, submitReportDecision, type AdminReport } from "./AdminReportsQueue";
 
 const report: AdminReport = { id: "r1", reporterName: "Renter One", targetType: "message", targetUserId: "u3", targetUserName: "Landlord Three", category: "harassment", details: "Threatening messages about the deposit", status: "open", createdAt: "2026-11-09T01:00:00Z" };
 const respond = (status: number, body: unknown) => vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: status < 400, status, json: async () => body }));
@@ -16,6 +16,23 @@ describe("AdminReportsQueue", () => {
     for (const text of ["Open", "Resolved", "Dismissed", "All"]) expect(html).toContain(text);
     expect(html).toMatch(/aria-pressed="true"[^>]*>Resolved/);
     expect(html).toContain("animate-pulse");
+  });
+  it("rejects failed and malformed escalation responses rather than returning an empty queue", async () => {
+    respond(503, { error: "Unavailable" });
+    await expect(loadEscalations("admin-a", new AbortController().signal)).rejects.toThrow();
+    respond(200, {});
+    await expect(loadEscalations("admin-a", new AbortController().signal)).rejects.toThrow();
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("offline")));
+    await expect(loadEscalations("admin-a", new AbortController().signal)).rejects.toThrow();
+  });
+  it("loads every escalation page and rejects a later page failure", async () => {
+    const batch = Array.from({ length: 100 }, (_, i) => ({ id: `ticket-${i}` }));
+    const fetchMock = vi.fn().mockResolvedValueOnce({ ok: true, json: async () => ({ tickets: batch }) }).mockResolvedValueOnce({ ok: true, json: async () => ({ tickets: [{ id: "last" }] }) });
+    vi.stubGlobal("fetch", fetchMock);
+    expect((await loadEscalations("admin-a")).map(item => item.id)).toEqual([...batch.map(item => item.id), "last"]);
+    expect(String(fetchMock.mock.calls[1][0])).toContain("offset=100");
+    fetchMock.mockReset().mockResolvedValueOnce({ ok: true, json: async () => ({ tickets: batch }) }).mockResolvedValueOnce({ ok: false });
+    await expect(loadEscalations("admin-a")).rejects.toThrow();
   });
   it("shows report summary and actions for open reports only", () => {
     const open = row(report);
@@ -42,11 +59,84 @@ describe("AdminReportsQueue", () => {
   });
   it("posts the decision with trimmed note; enforcement flags only apply when resolving", async () => {
     respond(200, { report: {} });
-    await submitReportDecision("admin-a", { report, decision: "resolved", operationId: "op-1" }, " Confirmed scam ", true, true);
+    await submitReportDecision("admin-a", { report, decision: "resolved", operationId: "op-1", suspendOperationId: "sop-1", unpublishOperationId: "uop-1" }, " Confirmed scam ", true, true);
     expect(JSON.parse(vi.mocked(fetch).mock.calls[0][1]!.body as string)).toEqual({ operationId: "op-1", decision: "resolved", resolutionNote: "Confirmed scam", suspendTargetUser: true, unpublishTargetListing: true });
-    await submitReportDecision("admin-a", { report, decision: "dismissed", operationId: "op-2" }, "No violation", true, true);
+    await submitReportDecision("admin-a", { report, decision: "dismissed", operationId: "op-2", suspendOperationId: "sop-2", unpublishOperationId: "uop-2" }, "No violation", true, true);
     expect(JSON.parse(vi.mocked(fetch).mock.calls[1][1]!.body as string)).toMatchObject({ decision: "dismissed", suspendTargetUser: false, unpublishTargetListing: false });
     respond(409, { error: "This report changed." });
-    expect(await submitReportDecision("admin-a", { report, decision: "resolved", operationId: "op-3" }, "Valid note", false, false)).toEqual({ ok: false, message: "This report changed." });
+    expect(await submitReportDecision("admin-a", { report, decision: "resolved", operationId: "op-3", suspendOperationId: "sop-3", unpublishOperationId: "uop-3" }, "Valid note", false, false)).toEqual({ ok: false, message: "This report changed." });
+  });
+
+  it("enforces only the reported property before resolving an escalation", async () => {
+    respond(200, {});
+    const escalation = { ...report, isEscalatedSupportTicket: true, relatedListingId: "property-1" };
+    await submitReportDecision("admin-a", { report: escalation, decision: "resolved", operationId: "op", suspendOperationId: "sop", unpublishOperationId: "uop" }, "Reason", true, true);
+    const calls = vi.mocked(fetch).mock.calls;
+    expect(calls.map(([url]) => String(url))).toEqual(["/api/admin/accounts", "/api/admin/properties/lifecycle", "/api/support-desk/tickets/r1"]);
+    expect(JSON.parse(calls[0][1]!.body as string)).toMatchObject({ unpublishListings: false });
+    expect(JSON.parse(calls[1][1]!.body as string)).toMatchObject({ propertyId: "property-1", action: "unpublish" });
+  });
+
+  it("rejects missing enforcement targets before making any requests", async () => {
+    respond(200, {});
+    const escalation = { ...report, isEscalatedSupportTicket: true, relatedListingId: null, targetUserId: null };
+    expect(await submitReportDecision("admin-a", { report: escalation, decision: "resolved", operationId: "op", suspendOperationId: "sop", unpublishOperationId: "uop" }, "Reason", false, true)).toMatchObject({ ok: false });
+    expect(await submitReportDecision("admin-a", { report: escalation, decision: "resolved", operationId: "op", suspendOperationId: "sop", unpublishOperationId: "uop" }, "Reason", true, false)).toMatchObject({ ok: false });
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it("does not resolve an escalation if enforcement fails", async () => {
+    const fetchMock = vi.fn().mockResolvedValueOnce({ ok: true, status: 200, json: async () => ({}) }).mockResolvedValueOnce({ ok: false, status: 503, json: async () => ({ error: "Unavailable" }) });
+    vi.stubGlobal("fetch", fetchMock);
+    const escalation = { ...report, isEscalatedSupportTicket: true, relatedListingId: "property-1" };
+    expect(await submitReportDecision("admin-a", { report: escalation, decision: "resolved", operationId: "op", suspendOperationId: "sop", unpublishOperationId: "uop" }, "Reason", true, true)).toEqual({ ok: false, message: "Unavailable" });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("handles escalated support tickets with recommended suspension and resolution", async () => {
+    const escalatedTicketReport: AdminReport = {
+      id: "ticket-esc-1",
+      reporterName: "Renter Requester",
+      targetType: "support_escalation",
+      targetUserId: "landlord-reported-1",
+      targetUserName: "Bad Landlord",
+      category: "messaging_safety",
+      details: "Threatened eviction without due process\n\nEscalation Reason: Extreme harassment\nRecommended action: Suspend account",
+      status: "open",
+      createdAt: "2026-11-14T02:00:00Z",
+      isEscalatedSupportTicket: true,
+      recommendedAdminAction: "suspend_account",
+      reportedLandlordId: "landlord-reported-1",
+    };
+
+    const rendered = row(escalatedTicketReport);
+    expect(rendered).toContain("Support Escalation");
+    expect(rendered).toContain("Recommended: Suspend account");
+
+    respond(200, { success: true });
+    await submitReportDecision(
+      "admin-a",
+      { report: escalatedTicketReport, decision: "resolved", operationId: "op-esc-1", suspendOperationId: "sop-esc-1", unpublishOperationId: "uop-esc-1" },
+      "Confirmed harassment violation",
+      true,
+      false,
+    );
+
+    const calls = vi.mocked(fetch).mock.calls;
+    expect(calls.length).toBeGreaterThanOrEqual(2);
+    // Suspends account:
+    expect(String(calls[0][0])).toBe("/api/admin/accounts");
+    expect(JSON.parse(calls[0][1]!.body as string)).toMatchObject({
+      targetUserId: "landlord-reported-1",
+      suspend: true,
+      reason: "Confirmed harassment violation",
+    });
+    // Resolves support ticket:
+    expect(String(calls[1][0])).toBe("/api/support-desk/tickets/ticket-esc-1");
+    expect(JSON.parse(calls[1][1]!.body as string)).toMatchObject({
+      operationId: "op-esc-1",
+      action: "resolve",
+      note: "Confirmed harassment violation",
+    });
   });
 });

@@ -41,6 +41,7 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   output: "standalone",
+  ...(process.env.PLAYWRIGHT_TEST === "1" ? { devIndicators: false as const } : {}),
   experimental: {
     serverActions: {
       bodySizeLimit: "3mb",

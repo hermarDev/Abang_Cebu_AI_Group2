@@ -7,10 +7,11 @@ import { Sheet } from "@/components/ui/Sheet";
 import { cn } from "@/components/ui/cn";
 import { useNotificationCenter } from "./useNotificationCenter";
 import { NotificationCenter } from "./NotificationCenter";
+import type { UserRole } from "@/types/database";
 
 export interface NotificationBellProps {
   userId?: string | null;
-  userRole?: "renter" | "landlord" | "admin" | null;
+  userRole?: UserRole | null;
   className?: string;
 }
 

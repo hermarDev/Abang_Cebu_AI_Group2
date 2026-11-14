@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Building2, ShieldAlert } from "lucide-react";
+import { Building2, Eye, EyeOff, ShieldAlert, UserPlus } from "lucide-react";
 import { Alert } from "@/components/ui/Alert";
 import { notify } from "@/components/ui/AppToaster";
 import { Badge } from "@/components/ui/Badge";
@@ -27,9 +27,20 @@ export type AdminAccount = {
 };
 type Dialog = { account: AdminAccount; suspend: boolean; operationId: string };
 
-const roleOptions = [{ value: "", label: "All roles" }, { value: "renter", label: "Renter" }, { value: "landlord", label: "Landlord" }, { value: "admin", label: "Admin" }];
+const roleOptions = [
+  { value: "", label: "All roles" },
+  { value: "renter", label: "Renter" },
+  { value: "landlord", label: "Landlord" },
+  { value: "admin", label: "Admin" },
+  { value: "verification_officer", label: "Field Verification Officer" },
+  { value: "customer_support", label: "Customer Support" },
+];
 const statusOptions = [{ value: "", label: "All statuses" }, { value: "active", label: "Active" }, { value: "suspended", label: "Suspended" }];
-const cap = (value: string) => value.charAt(0).toUpperCase() + value.slice(1);
+const cap = (value: string) => {
+  if (value === "verification_officer") return "Field Verification Officer";
+  if (value === "customer_support") return "Customer Support";
+  return value.charAt(0).toUpperCase() + value.slice(1);
+};
 
 export async function submitAccountChange(userId: string, { account, suspend, operationId }: Dialog, reason: string, unpublishListings: boolean) {
   const result = await adminCall<unknown>("/api/admin/accounts", userId, { targetUserId: account.id, operationId, suspend, reason: reason.trim(), unpublishListings: suspend && unpublishListings });
@@ -95,6 +106,16 @@ export function AdminAccountsManager({ userId, initialRole, initialStatus }: { u
   const [dialogError, setDialogError] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
 
+  // Staff creation state
+  const [staffModalOpen, setStaffModalOpen] = useState(false);
+  const [staffRole, setStaffRole] = useState("verification_officer");
+  const [staffFullName, setStaffFullName] = useState("");
+  const [staffEmail, setStaffEmail] = useState("");
+  const [staffPassword, setStaffPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [staffSaving, setStaffSaving] = useState(false);
+  const [staffError, setStaffError] = useState<string | null>(null);
+
   useEffect(() => {
     const abort = new AbortController();
     const timer = setTimeout(async () => {
@@ -125,6 +146,32 @@ export function AdminAccountsManager({ userId, initialRole, initialStatus }: { u
     notify("success", "admin-account-action", dialog.suspend ? "Account suspended." : "Account reinstated.");
   }
 
+  async function handleCreateStaff() {
+    if (!staffFullName.trim() || !staffEmail.trim() || staffPassword.length < 8 || staffSaving) return;
+    setStaffSaving(true);
+    setStaffError(null);
+    const res = await adminCall<{ success?: boolean }>("/api/admin/accounts", userId, {
+      action: "create_staff",
+      operationId: newOperationId(),
+      role: staffRole,
+      fullName: staffFullName.trim(),
+      email: staffEmail.trim(),
+      password: staffPassword,
+    });
+    setStaffSaving(false);
+    if (!res.ok) {
+      setStaffError(res.message);
+      notify("error", "admin-create-staff", res.message);
+      return;
+    }
+    notify("success", "admin-create-staff", "Staff account created successfully.");
+    setStaffModalOpen(false);
+    setStaffFullName("");
+    setStaffEmail("");
+    setStaffPassword("");
+    setReloadKey((k) => k + 1);
+  }
+
   const name = dialog?.account.fullName?.trim() || "this account";
   const sortedAccounts = accounts
     ? [...accounts].sort((a, b) => {
@@ -138,11 +185,17 @@ export function AdminAccountsManager({ userId, initialRole, initialStatus }: { u
   const paginatedAccounts = sortedAccounts.slice((validPage - 1) * pageSize, validPage * pageSize);
 
   return <section aria-label="Account management" className="grid gap-4">
-    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[10rem_10rem_11rem_minmax(0,1fr)]">
-      <Select aria-label="Filter by role" options={roleOptions} value={role} onValueChange={(val) => { setRole(val); setPage(1); }} />
-      <Select aria-label="Filter by status" options={statusOptions} value={status} onValueChange={(val) => { setStatus(val); setPage(1); }} />
-      <Select aria-label="Sort accounts" options={sortOptions} value={sortBy} onValueChange={(val) => { setSortBy(val); setPage(1); }} />
-      <Input type="search" aria-label="Search accounts" placeholder="Search account name…" value={search} onChange={(event) => { setSearch(event.target.value); setPage(1); }} />
+    <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[10rem_10rem_11rem_minmax(0,1fr)] flex-1 min-w-0">
+        <Select aria-label="Filter by role" options={roleOptions} value={role} onValueChange={(val) => { setRole(val); setPage(1); }} />
+        <Select aria-label="Filter by status" options={statusOptions} value={status} onValueChange={(val) => { setStatus(val); setPage(1); }} />
+        <Select aria-label="Sort accounts" options={sortOptions} value={sortBy} onValueChange={(val) => { setSortBy(val); setPage(1); }} />
+        <Input type="search" aria-label="Search accounts" placeholder="Search account name…" value={search} onChange={(event) => { setSearch(event.target.value); setPage(1); }} />
+      </div>
+      <Button variant="primary" onClick={() => { setStaffModalOpen(true); setStaffError(null); }} className="shrink-0 gap-1.5">
+        <UserPlus size={16} aria-hidden="true" />
+        Create Staff Account
+      </Button>
     </div>
     {error ? <Alert variant="error">{error} <Button size="sm" variant="outline" onClick={() => setReloadKey((k) => k + 1)}>Retry</Button></Alert>
       : accounts === null ? <div className="grid gap-3">{[0, 1, 2].map((i) => <Skeleton key={i} className="h-20" />)}</div>
@@ -161,6 +214,117 @@ export function AdminAccountsManager({ userId, initialRole, initialStatus }: { u
           <Button variant={dialog?.suspend ? "destructive" : "primary"} onClick={confirm} disabled={saving || invalid}>{saving ? "Saving…" : dialog?.suspend ? "Suspend account" : "Reinstate account"}</Button>
         </div>
       </div>
+    </Modal>
+
+    <Modal
+      open={staffModalOpen}
+      onClose={() => { if (!staffSaving) setStaffModalOpen(false); }}
+      title="Create Staff Account"
+      description="Create a dedicated officer or support account. Role privileges are assigned immediately."
+      className="max-h-[calc(100dvh-2rem)] lg:max-h-[85dvh] max-w-md overflow-y-auto"
+    >
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleCreateStaff();
+        }}
+        className="grid gap-4"
+      >
+        <div className="grid gap-1.5">
+          <label htmlFor="staff-role" className="text-xs font-medium text-foreground">
+            Staff role
+          </label>
+          <Select
+            id="staff-role"
+            aria-label="Staff role"
+            options={[
+              { value: "verification_officer", label: "Field Verification Officer" },
+              { value: "customer_support", label: "Customer Support" },
+            ]}
+            value={staffRole}
+            onValueChange={setStaffRole}
+          />
+        </div>
+
+        <div className="grid gap-1.5">
+          <label htmlFor="staff-fullname" className="text-xs font-medium text-foreground">
+            Full name
+          </label>
+          <Input
+            id="staff-fullname"
+            aria-label="Full name"
+            placeholder="e.g. Maria Santos"
+            value={staffFullName}
+            onChange={(e) => setStaffFullName(e.target.value)}
+            disabled={staffSaving}
+            required
+          />
+        </div>
+
+        <div className="grid gap-1.5">
+          <label htmlFor="staff-email" className="text-xs font-medium text-foreground">
+            Email address
+          </label>
+          <Input
+            id="staff-email"
+            type="email"
+            aria-label="Email address"
+            placeholder="e.g. maria.santos@abangcebu.ph"
+            value={staffEmail}
+            onChange={(e) => setStaffEmail(e.target.value)}
+            disabled={staffSaving}
+            required
+          />
+        </div>
+
+        <div className="grid gap-1.5">
+          <label htmlFor="staff-password" className="text-xs font-medium text-foreground">
+            Password (min 8 characters)
+          </label>
+          <div className="relative">
+            <Input
+              id="staff-password"
+              type={showPassword ? "text" : "password"}
+              aria-label="Password"
+              placeholder="Enter secure password"
+              value={staffPassword}
+              onChange={(e) => setStaffPassword(e.target.value)}
+              disabled={staffSaving}
+              className="pr-10"
+              required
+              minLength={8}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-muted-foreground hover:text-foreground"
+              aria-label={showPassword ? "Hide password" : "Show password"}
+            >
+              {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+            </button>
+          </div>
+        </div>
+
+        {staffError && <Alert variant="error">{staffError}</Alert>}
+
+        <div className="flex flex-wrap justify-end gap-2 pt-2">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setStaffModalOpen(false)}
+            disabled={staffSaving}
+          >
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            variant="primary"
+            disabled={staffSaving || !staffFullName.trim() || !staffEmail.trim() || staffPassword.length < 8}
+          >
+            {staffSaving ? "Creating account…" : "Create staff account"}
+          </Button>
+        </div>
+      </form>
     </Modal>
 
     <Modal

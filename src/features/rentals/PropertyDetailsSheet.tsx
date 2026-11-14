@@ -225,6 +225,11 @@ export function PropertyDetailsSheetBody({
           <span className="inline-flex items-center rounded-full border border-border bg-muted/60 px-2.5 py-0.5 text-xs font-semibold text-foreground">
             {propertyTypeLabel}
           </span>
+          {rental?.totalUnitsCount && rental.totalUnitsCount > 1 && (
+            <span className="inline-flex items-center rounded-full border border-sky-500/30 bg-sky-500/10 px-2.5 py-0.5 text-[0.68rem] font-semibold text-sky-700 dark:text-sky-300">
+              {rental.availableUnitsCount ?? 0} of {rental.totalUnitsCount} units available
+            </span>
+          )}
           {isVerified ? (
             <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 text-[0.68rem] font-semibold text-emerald-600 dark:text-emerald-400">
               <ShieldCheck size={12} aria-hidden="true" />
@@ -273,6 +278,38 @@ export function PropertyDetailsSheetBody({
           ))}
         </div>
       </div>
+
+      {/* Multi-unit room pills */}
+      {rental?.units && rental.units.length > 0 && (
+        <div className="space-y-2 border-t border-border pt-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground m-0">
+              Units &amp; Rooms
+            </h3>
+            {rental.totalUnitsCount && rental.totalUnitsCount > 1 && (
+              <span className="text-xs font-medium text-muted-foreground">
+                {rental.availableUnitsCount ?? 0} of {rental.totalUnitsCount} units available
+              </span>
+            )}
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {rental.units.map((unit) => (
+              <span
+                key={unit.id}
+                className={`inline-flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs ${
+                  unit.isAvailable
+                    ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-800 dark:text-emerald-300 font-medium"
+                    : "border-border bg-muted/40 text-muted-foreground line-through opacity-75"
+                }`}
+              >
+                <span>
+                  {unit.unitNumber} ({unit.isAvailable ? `Available — ₱${unit.monthlyRent?.toLocaleString("en-PH") ?? "0"}/mo` : "Occupied"})
+                </span>
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Amenities Section */}
       {rental?.amenities && rental.amenities.length > 0 && (

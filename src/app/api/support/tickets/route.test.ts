@@ -478,6 +478,7 @@ describe("GET /api/support/tickets", () => {
     const json = await res.json();
     expect(json.tickets).toHaveLength(1);
     expect(json.tickets[0].ticketNumber).toBe("SUP-01001");
+    expect(json.awaitingLandlordComplaints).toBeDefined();
   });
 });
 

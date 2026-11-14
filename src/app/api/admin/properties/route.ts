@@ -36,5 +36,25 @@ export async function GET(request: Request) {
     }
   }
   const urlsFor = (list: string[]) => list.map((p) => signed.get(p)).filter((u): u is string => Boolean(u));
-  return jsonOk({ properties: rows.map((row, i) => ({ ...row, photoUrls: urlsFor(photos[i]), permitUrls: urlsFor(permits[i]) })) });
+  const proofPaths = [...new Set(rows.flatMap((row) => Array.isArray(row.fieldVerificationProof)
+    ? row.fieldVerificationProof.flatMap((proof) => proof && typeof proof === "object" && typeof proof.object_path === "string" ? [proof.object_path as string] : [])
+    : []))];
+  const proofSigned = new Map<string, string>();
+  if (proofPaths.length) {
+    try {
+      const { data: urls } = await createAdminClient().storage.from("field-verification-media").createSignedUrls(proofPaths, 900);
+      for (const entry of urls ?? []) if (entry?.path && entry.signedUrl) proofSigned.set(entry.path, entry.signedUrl);
+    } catch {
+      // Proof remains unavailable when signing fails.
+    }
+  }
+  return jsonOk({ properties: rows.map((row, i) => ({
+    ...row,
+    photoUrls: urlsFor(photos[i]),
+    permitUrls: urlsFor(permits[i]),
+    fieldVerificationProof: Array.isArray(row.fieldVerificationProof)
+      ? row.fieldVerificationProof.map((proof) => proof && typeof proof === "object" && typeof proof.object_path === "string"
+        ? { ...proof, signedUrl: proofSigned.get(proof.object_path) ?? null } : proof)
+      : row.fieldVerificationProof,
+  })) });
 }

@@ -66,6 +66,7 @@ import {
   listingHref,
   mergeMessages,
   postThreadMessage,
+  setRentalAgreementConsent,
   uploadMessageAttachment,
   type ReportCategory,
   type RentalMessageAttachment,
@@ -346,6 +347,63 @@ function MessagingInboxInner({
   const [composeLoading, setComposeLoading] = useState(false);
   const [composeError, setComposeError] = useState<string | null>(null);
 
+  const [selectedUnitId, setSelectedUnitId] = useState<string | null>(null);
+  const [agreementLoading, setAgreementLoading] = useState(false);
+
+  const handleAgreementConsent = async (
+    threadId: string,
+    isAgree: boolean,
+    unitId?: string | null,
+    expectedVersion?: number | null
+  ) => {
+    setAgreementLoading(true);
+    const generation = generationRef.current;
+    try {
+      const opId =
+        typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+          ? crypto.randomUUID()
+          : "00000000-0000-4000-8000-000000000000";
+      const res = await setRentalAgreementConsent(threadId, userId, opId, isAgree, unitId, expectedVersion);
+      if (!alive.current || selectedRef.current !== threadId || generationRef.current !== generation) return;
+      const nextVersion = typeof res.agreement.version === "number" ? res.agreement.version : undefined;
+      setDetail((cur) => {
+        if (!cur || cur.id !== threadId) return cur;
+        const nextUnits =
+          res.agreement.bothAgreed && res.agreement.unitId && cur.availableUnits
+            ? cur.availableUnits.map((u) => (u.id === res.agreement.unitId ? { ...u, isAvailable: false } : u))
+            : cur.availableUnits;
+        return {
+          ...cur,
+          agreement: res.agreement,
+          ...(nextVersion !== undefined ? { agreementVersion: nextVersion } : {}),
+          ...(nextUnits ? { availableUnits: nextUnits } : {}),
+        };
+      });
+      patchThread(threadId, {
+        agreement: res.agreement,
+        ...(nextVersion !== undefined ? { agreementVersion: nextVersion } : {}),
+      });
+      notify(
+        "success",
+        "rental-agreement",
+        isAgree
+          ? res.agreement.bothAgreed
+            ? "Rental agreement confirmed!"
+            : "Agreement registered. Waiting for counterpart."
+          : "Agreement withdrawn."
+      );
+    } catch (err) {
+      if (alive.current && selectedRef.current === threadId && err instanceof Error && /changed|refresh/i.test(err.message)) {
+        void openThread(threadId);
+      }
+      notify("error", "rental-agreement", err instanceof Error ? err.message : "Failed to update agreement consent.");
+    } finally {
+      if (alive.current && selectedRef.current === threadId && generationRef.current === generation) {
+        setAgreementLoading(false);
+      }
+    }
+  };
+
   const scrollerRef = useRef<MessageScrollerHandle>(null);
   const stickToBottom = useRef(true);
   const selectedRef = useRef(selectedId);
@@ -598,6 +656,7 @@ function MessagingInboxInner({
     generationRef.current++;
     olderLoaded.current = false;
     setDetail(null);
+    setSelectedUnitId(null);
     setMessages([]);
     setHasMore(false);
     setLoadingOlder(false);
@@ -606,6 +665,7 @@ function MessagingInboxInner({
     setReplyingTo(null);
     setStagedAttachments([]);
     setPropertySheetOpen(false);
+    setAgreementLoading(false);
     selectedRef.current = id;
     setSelectedId(id);
     if (typeof window !== "undefined") {
@@ -1296,6 +1356,121 @@ function MessagingInboxInner({
                   </button>
                 </div>
               </div>
+
+              {/* In-Chat Dual-Button Mutual Rental Agreement Bar */}
+              {(() => {
+                const currentAgreement = thread.agreement;
+                const availableUnits = thread.availableUnits ?? [];
+                const activeAvailableUnits = availableUnits.filter((u) => u.isAvailable);
+                const activeUnitId = selectedUnitId ?? currentAgreement?.unitId ?? activeAvailableUnits[0]?.id ?? null;
+                const selectedUnitName =
+                  availableUnits.find((u) => u.id === activeUnitId)?.unitNumber ??
+                  currentAgreement?.unitNumber ??
+                  (activeAvailableUnits[0]?.unitNumber ?? "Room 1");
+                const isBothAgreed = Boolean(currentAgreement?.bothAgreed || currentAgreement?.status === "agreed");
+                const hasViewerAgreed =
+                  userRole === "renter"
+                    ? Boolean(currentAgreement?.renterAgreed || currentAgreement?.status === "renter_agreed")
+                    : Boolean(currentAgreement?.landlordAgreed || currentAgreement?.status === "landlord_agreed");
+
+                if (isBothAgreed) {
+                  return (
+                    <div
+                      role="status"
+                      className="flex flex-wrap items-center justify-between gap-2.5 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3.5 py-2.5 text-xs text-emerald-800 dark:text-emerald-300"
+                    >
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-[0.65rem] font-bold text-white">
+                          ✓
+                        </span>
+                        <span className="font-semibold text-xs sm:text-sm truncate">
+                          Rental Agreed · {selectedUnitName} is now rented to {currentAgreement?.renterName || thread.counterpart.fullName || "Renter"}
+                        </span>
+                      </div>
+                      <Badge variant="default" className="bg-emerald-600 text-white text-[0.68rem] shrink-0">
+                        Agreed
+                      </Badge>
+                    </div>
+                  );
+                }
+
+                const activeAgreementVersion = thread.agreementVersion ?? currentAgreement?.version ?? null;
+                return (
+                  <div className="rounded-xl border border-border bg-muted/30 p-2.5 text-xs">
+                    <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="font-semibold text-foreground">Rental Agreement</span>
+                        {activeAvailableUnits.length > 0 ? (
+                          <select
+                            value={activeUnitId ?? ""}
+                            onChange={(e) => setSelectedUnitId(e.target.value)}
+                            aria-label="Select rental unit"
+                            className="rounded-lg border border-border bg-background px-2 py-1 text-xs font-medium text-foreground focus-visible:outline-2 focus-visible:outline-ring"
+                          >
+                            {activeAvailableUnits.map((u) => (
+                              <option key={u.id} value={u.id}>
+                                {u.unitNumber} {u.monthlyRent ? `(₱${u.monthlyRent.toLocaleString("en-PH")}/mo)` : ""}
+                              </option>
+                            ))}
+                          </select>
+                        ) : (
+                          <span className="font-medium text-muted-foreground">{selectedUnitName}</span>
+                        )}
+                      </div>
+
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span
+                          className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[0.68rem] ${
+                            currentAgreement?.renterAgreed || currentAgreement?.status === "renter_agreed"
+                              ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 font-semibold"
+                              : "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300"
+                          }`}
+                        >
+                          Renter: {currentAgreement?.renterAgreed || currentAgreement?.status === "renter_agreed" ? "Agreed" : "Pending"}
+                        </span>
+                        <span
+                          className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[0.68rem] ${
+                            currentAgreement?.landlordAgreed || currentAgreement?.status === "landlord_agreed"
+                              ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 font-semibold"
+                              : "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300"
+                          }`}
+                        >
+                          Landlord: {currentAgreement?.landlordAgreed || currentAgreement?.status === "landlord_agreed" ? "Agreed" : "Pending"}
+                        </span>
+                      </div>
+
+                      <div>
+                        {hasViewerAgreed ? (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            disabled={agreementLoading}
+                            onClick={() => void handleAgreementConsent(thread.id, false, activeUnitId, activeAgreementVersion)}
+                            className="min-h-11 w-full sm:w-auto px-3.5 text-xs font-semibold"
+                          >
+                            {agreementLoading ? "Updating…" : "Withdraw Agreement"}
+                          </Button>
+                        ) : (
+                          <Button
+                            type="button"
+                            size="sm"
+                            disabled={agreementLoading}
+                            onClick={() => void handleAgreementConsent(thread.id, true, activeUnitId, activeAgreementVersion)}
+                            className="min-h-11 w-full sm:w-auto bg-action px-3.5 text-xs font-semibold text-action-foreground hover:bg-action-hover"
+                          >
+                            {agreementLoading
+                              ? "Submitting…"
+                              : userRole === "renter"
+                              ? `I Agree to Rent ${selectedUnitName}`
+                              : `I Agree to Rent ${selectedUnitName} to this Renter`}
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
             </header>
 
             <div className="relative flex-1 min-h-0 flex flex-col">

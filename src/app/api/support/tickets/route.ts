@@ -63,19 +63,29 @@ export async function GET(request: Request) {
       ? Math.min(Math.max(1, Number(limitParam)), 50)
       : 50;
 
-  const { data, error } = await supabase
-    .from("support_tickets")
-    .select("*")
-    .eq("user_id", user.id)
-    .order("created_at", { ascending: false })
-    .limit(limit);
+  const [ticketsData, landlordComplaintsData] = await Promise.all([
+    supabase
+      .from("support_tickets")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(limit),
+    supabase
+      .from("support_tickets")
+      .select("*")
+      .eq("reported_landlord_id", user.id)
+      .eq("status", "awaiting_landlord")
+      .order("created_at", { ascending: false })
+      .limit(limit),
+  ]);
 
-  if (error) {
+  if (ticketsData.error) {
     return reply({ error: "Could not load support tickets." }, 503);
   }
 
-  const tickets = (data ?? []).map(mapSupportTicketRow);
-  return reply({ tickets }, 200);
+  const tickets = (ticketsData.data ?? []).map(mapSupportTicketRow);
+  const awaitingLandlordComplaints = (landlordComplaintsData.data ?? []).map(mapSupportTicketRow);
+  return reply({ tickets, awaitingLandlordComplaints }, 200);
 }
 
 export async function POST(request: Request) {

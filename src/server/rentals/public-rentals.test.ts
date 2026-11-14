@@ -19,7 +19,7 @@ function mockSupabase(listingsResult: unknown, submittedResult: unknown) {
 }
 
 describe("loadPublicRentals", () => {
-  it("combines published listings with approved and pending submitted rentals under one visibility and mapping contract", async () => {
+  it("combines published listings with approved submitted rentals only and preserves multi-unit fields", async () => {
     const owner = "aaaaaaaa-0000-4000-8000-000000000001";
     const photo = `${owner}/bbbbbbbb-0000-4000-8000-000000000001/cccccccc-0000-4000-8000-000000000001/${"a".repeat(64)}.jpg`;
     mocks.createSignedUrls.mockResolvedValue({ data: [{ path: photo, signedUrl: "https://signed.test/photo.jpg", error: null }], error: null });
@@ -60,6 +60,11 @@ describe("loadPublicRentals", () => {
             city: "Cebu City",
             moderation_status: "approved",
             photo_paths: [photo],
+            available_units_count: 2,
+            total_units_count: 3,
+            units: [
+              { id: "u-1", unitNumber: "Room 1", rentalType: "entire_place", monthlyRent: 13500, maxOccupants: 2, isAvailable: true },
+            ],
           },
           {
             id: "sub-pending",
@@ -99,10 +104,14 @@ describe("loadPublicRentals", () => {
     if (result.status !== "ok") return;
     expect(result.rentals.map((r) => [r.id, r.propertyType, r.verificationStatus])).toEqual([
       ["sub-approved", "condo", "property_verified"],
-      ["sub-pending", "boarding_house", "unverified"],
       ["listing-1", "studio", "unverified"],
     ]);
     expect(result.rentals[0].imageUrls).toEqual(["https://signed.test/photo.jpg"]);
+    expect(result.rentals[0].availableUnitsCount).toBe(2);
+    expect(result.rentals[0].totalUnitsCount).toBe(3);
+    expect(result.rentals[0].units).toEqual([
+      { id: "u-1", unitNumber: "Room 1", rentalType: "entire_place", monthlyRent: 13500, maxOccupants: 2, isAvailable: true },
+    ]);
   });
 
   it("returns unavailable when both sources fail", async () => {

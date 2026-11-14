@@ -22,7 +22,7 @@ import { BrandLogo } from "@/components/brand";
 import { notify } from "@/components/ui/AppToaster";
 import { cn } from "@/components/ui/cn";
 import { Pagination } from "@/components/ui/Pagination";
-import type { NotificationItem, NotificationType } from "@/types/database";
+import type { NotificationItem, NotificationType, UserRole } from "@/types/database";
 import { formatRelativeTime } from "./NotificationCenter";
 import { fetchNotificationsClient, useNotificationCenter } from "./useNotificationCenter";
 import styles from "./NotificationsHubContent.module.css";
@@ -31,7 +31,7 @@ export type NotificationTab = "all" | "unread" | "messages" | "listings" | "syst
 
 export interface NotificationsHubContentProps {
   userId: string;
-  userRole?: "renter" | "landlord" | "admin" | null;
+  userRole?: UserRole | null;
 }
 
 const PAGE_SIZE = 20;
@@ -240,7 +240,15 @@ export function NotificationsHubContent({ userId, userRole }: NotificationsHubCo
   };
 
   const backLink =
-    userRole === "landlord" ? "/landlord/dashboard" : userRole === "admin" ? "/admin/dashboard" : "/";
+    userRole === "landlord"
+      ? "/landlord/dashboard"
+      : userRole === "admin"
+        ? "/admin/dashboard"
+        : userRole === "verification_officer"
+          ? "/verification/dashboard"
+          : userRole === "customer_support"
+            ? "/support-desk/dashboard"
+            : "/";
 
   return (
     <main className="min-h-[100dvh] bg-background text-foreground p-4 sm:p-6 lg:p-8">

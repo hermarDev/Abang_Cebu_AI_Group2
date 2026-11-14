@@ -15,6 +15,15 @@ import type {
 export type Coordinate = [longitude: number, latitude: number];
 export type RentalType = "room" | "bedspace" | "boarding-house" | PropertyType;
 
+export type RentalUnitSummary = {
+  id: string;
+  unitNumber: string;
+  rentalType: string;
+  monthlyRent: number;
+  maxOccupants: number;
+  isAvailable: boolean;
+};
+
 export type Rental = {
   id: string;
   title: string;
@@ -30,6 +39,9 @@ export type Rental = {
   area: number;
   tone: "sage" | "sand" | "clay" | "blue";
   available: boolean;
+  availableUnitsCount?: number | null;
+  totalUnitsCount?: number | null;
+  units?: RentalUnitSummary[];
 
   // Real Cebu rental dimensions (nullable for strict unknown semantics)
   propertyType?: PropertyType;

@@ -18,7 +18,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { cn } from "@/components/ui/cn";
-import type { NotificationItem, NotificationType } from "@/types/database";
+import type { NotificationItem, NotificationType, UserRole } from "@/types/database";
 import styles from "./NotificationCenter.module.css";
 
 export function formatRelativeTime(dateString: string): string {
@@ -68,7 +68,7 @@ export interface NotificationCenterProps {
   onClearNotifications?: (scope: "read" | "all") => void;
   onClose?: () => void;
   className?: string;
-  userRole?: "renter" | "landlord" | "admin" | null;
+  userRole?: UserRole | null;
 }
 
 export function NotificationCenter({

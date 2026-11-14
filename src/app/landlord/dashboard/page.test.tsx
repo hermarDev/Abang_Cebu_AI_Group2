@@ -38,7 +38,22 @@ vi.mock("@/lib/supabase/server", () => ({ createClient: async () => ({
     : table === "properties"
       ? { select: () => ({ eq: mocks.landlordEq }) }
       : table === "rental_units"
-        ? { select: () => ({ in: mocks.units }) }
+        ? {
+            select: () => ({
+              in: (...args: unknown[]) => ({
+                eq: () => ({
+                  order: () => ({
+                    order: () => ({
+                      range: () => mocks.units(...args),
+                    }),
+                  }),
+                  range: () => mocks.units(...args),
+                  then: (res: (v: unknown) => unknown, rej: (e: unknown) => unknown) =>
+                    Promise.resolve(mocks.units(...args)).then(res, rej),
+                }),
+              }),
+            }),
+          }
       : table === "property_submissions"
         ? { select: () => ({ eq: mocks.submissionEq }) }
       : table === "property_drafts"

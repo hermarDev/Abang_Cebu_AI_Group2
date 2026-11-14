@@ -6,15 +6,23 @@ export function restoredMediaName(sha256: string, contentType: string, originalN
   return `${sha256}.${extension}`;
 }
 
-type DraftValues = {
+export type UnitDraftItem = {
+  unitNumber: string;
+  monthlyRent: string;
+  maxOccupants: string;
+  rentalType: string;
+};
+
+export type DraftValues = {
   title: string; description: string; propertyType: string; rentalType: string; price: string;
   address: string; barangay: string; city: string; bathroomType: string; maxOccupants: string;
   amenities: string[]; permitApplicability: string; permitNumber: string; permitLgu: string;
   permitExpiresOn: string; permitNotRequiredConfirmed: boolean; location: PlaceResult | null; tenantPolicy?: string;
   preserved?: { property: Record<string, string | number | null>; unit: Record<string, string | number | null>; emptyPermitConfirmation: boolean };
+  units?: UnitDraftItem[];
 };
 
-type DraftInput = Omit<DraftValues, "permitNumber" | "permitLgu" | "permitExpiresOn"> & Partial<Pick<DraftValues, "permitNumber" | "permitLgu" | "permitExpiresOn">>;
+export type DraftInput = Omit<DraftValues, "permitNumber" | "permitLgu" | "permitExpiresOn"> & Partial<Pick<DraftValues, "permitNumber" | "permitLgu" | "permitExpiresOn">>;
 
 export function createDraftPayload(values: DraftInput) {
   return {
@@ -30,6 +38,16 @@ export function createDraftPayload(values: DraftInput) {
     },
     unit: { ...values.preserved?.unit, rental_type: values.rentalType, monthly_rent: values.price, bathroom_type: values.bathroomType, max_occupants: values.maxOccupants, tenant_policy: values.tenantPolicy ?? "any" },
     amenities: values.amenities,
+    ...(values.units && values.units.length > 0
+      ? {
+          units: values.units.map((u) => ({
+            unit_number: u.unitNumber,
+            monthly_rent: u.monthlyRent,
+            max_occupants: u.maxOccupants,
+            rental_type: u.rentalType,
+          })),
+        }
+      : {}),
   };
 }
 
@@ -44,7 +62,7 @@ export function restoreDraftValues(value: unknown): DraftValues {
   const extraUnit = ["security_deposit", "advance_rent", "bedrooms", "bathrooms", "floor_area_sqm", "furnished_status", "available_from", "minimum_lease_months"];
   const allowedProperty = [...Object.keys(prototype.property), ...extraProperty];
   const allowedUnit = [...Object.keys(prototype.unit), ...extraUnit];
-  if (Object.keys(payload).some((key) => !["property", "unit", "amenities"].includes(key)) ||
+  if (Object.keys(payload).some((key) => !["property", "unit", "amenities", "units"].includes(key)) ||
       Object.keys(payload.property).some((key) => !allowedProperty.includes(key)) ||
       Object.keys(payload.unit).some((key) => !allowedUnit.includes(key))) return unsupported();
   const p = { ...prototype.property, ...payload.property };
@@ -71,6 +89,27 @@ export function restoreDraftValues(value: unknown): DraftValues {
   const preserved = { property: propertyExtras, unit: unitExtras, emptyPermitConfirmation: p.permit_not_required_confirmed === "" };
   const locationParts = [p.location_id, p.location_name, p.location_detail, p.latitude, p.longitude];
   if (!locationParts.every((part) => part === null) && !((p.location_id === null || typeof p.location_id === "string") && (p.location_name === null || typeof p.location_name === "string") && (p.location_detail === null || typeof p.location_detail === "string") && typeof p.latitude === "number" && Number.isFinite(p.latitude) && p.latitude >= -90 && p.latitude <= 90 && typeof p.longitude === "number" && Number.isFinite(p.longitude) && p.longitude >= -180 && p.longitude <= 180)) return unsupported();
+  let restoredUnits: UnitDraftItem[] | undefined;
+  if ("units" in payload && (payload as { units?: unknown }).units !== undefined) {
+    const rawUnits = (payload as { units?: unknown }).units;
+    if (!Array.isArray(rawUnits) || rawUnits.length > 50) return unsupported();
+    restoredUnits = [];
+    for (const raw of rawUnits) {
+      if (!raw || typeof raw !== "object" || Array.isArray(raw)) return unsupported();
+      const u = raw as Record<string, unknown>;
+      const unitNumber = String(u.unit_number ?? u.unitNumber ?? "");
+      let monthlyRent = u.monthly_rent ?? u.monthlyRent ?? "";
+      if (typeof monthlyRent === "number" && Number.isFinite(monthlyRent)) monthlyRent = String(monthlyRent);
+      let maxOccupants = u.max_occupants ?? u.maxOccupants ?? "";
+      if (typeof maxOccupants === "number" && Number.isFinite(maxOccupants)) maxOccupants = String(maxOccupants);
+      const rentalType = String(u.rental_type ?? u.rentalType ?? "");
+      if (unitNumber.length > 50) return unsupported();
+      if (typeof monthlyRent !== "string" || (monthlyRent !== "" && !/^(?:0|[1-9]\d*)(?:\.\d+)?$/.test(monthlyRent))) return unsupported();
+      if (typeof maxOccupants !== "string" || (maxOccupants !== "" && !/^\d+$/.test(maxOccupants))) return unsupported();
+      if (!["", "entire_place", "private_room", "shared_room", "bedspace"].includes(rentalType)) return unsupported();
+      restoredUnits.push({ unitNumber, monthlyRent, maxOccupants, rentalType });
+    }
+  }
   return {
     title: p.title, description: p.description, propertyType: p.property_type, rentalType: u.rental_type,
     price: u.monthly_rent, address: p.street_address, barangay: p.barangay, city: p.city,
@@ -78,6 +117,7 @@ export function restoreDraftValues(value: unknown): DraftValues {
     permitApplicability: p.permit_applicability, permitNumber: p.permit_number, permitLgu: p.permit_lgu,
     permitExpiresOn: p.permit_expires_on, permitNotRequiredConfirmed: p.permit_not_required_confirmed === "true", tenantPolicy: u.tenant_policy,
     ...(Object.keys(propertyExtras).length || Object.keys(unitExtras).length || preserved.emptyPermitConfirmation ? { preserved } : {}),
+    ...(restoredUnits ? { units: restoredUnits } : {}),
     location: p.longitude !== null && p.latitude !== null
       ? { id: p.location_id ?? `pin-${p.longitude}-${p.latitude}`, name: p.location_name ?? "Dropped pin", detail: p.location_detail ?? "", coordinates: [p.longitude, p.latitude] }
       : null,

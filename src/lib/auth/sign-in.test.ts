@@ -73,6 +73,20 @@ describe("signInWithEmail", () => {
     expect(signOut).not.toHaveBeenCalled();
   });
 
+  it("allows active verification_officer and customer_support accounts to sign in", async () => {
+    maybeSingle.mockResolvedValueOnce({ data: { role: "verification_officer", is_suspended: false }, error: null });
+    await expect(signInWithEmail("verifier@example.com", "Password1!")).resolves.toEqual({
+      success: true,
+      role: "verification_officer",
+    });
+    maybeSingle.mockResolvedValueOnce({ data: { role: "customer_support", is_suspended: false }, error: null });
+    await expect(signInWithEmail("support@example.com", "Password1!")).resolves.toEqual({
+      success: true,
+      role: "customer_support",
+    });
+    expect(signOut).not.toHaveBeenCalled();
+  });
+
   it("signs out and rejects unknown roles", async () => {
     maybeSingle.mockResolvedValue({ data: { role: "superuser", is_suspended: false }, error: null });
     await expect(signInWithEmail("x@example.com", "Password1!")).resolves.toEqual({
@@ -189,16 +203,43 @@ describe("getPostLoginRedirect", () => {
     expect(getPostLoginRedirect("//attacker.example", "admin")).toBe("/admin/dashboard");
   });
 
-  it("keeps landlords and renters out of admin routes", () => {
+  it("keeps landlords and renters out of admin, verification, and support-desk routes", () => {
     expect(getPostLoginRedirect("/admin/reviews", "landlord")).toBe("/landlord/dashboard");
+    expect(getPostLoginRedirect("/verification/dashboard", "landlord")).toBe("/landlord/dashboard");
+    expect(getPostLoginRedirect("/support-desk/dashboard", "landlord")).toBe("/landlord/dashboard");
     expect(getPostLoginRedirect("/admin/reviews", "renter")).toBe("/");
     expect(getPostLoginRedirect("/landlord/dashboard", "renter")).toBe("/");
+    expect(getPostLoginRedirect("/verification/dashboard", "renter")).toBe("/");
+    expect(getPostLoginRedirect("/support-desk/dashboard", "renter")).toBe("/");
+  });
+
+  it("routes verification_officer and customer_support to their dedicated workspaces", () => {
+    expect(getPostLoginRedirect(null, "verification_officer")).toBe("/verification/dashboard");
+    expect(getPostLoginRedirect("/", "verification_officer")).toBe("/verification/dashboard");
+    expect(getPostLoginRedirect("/map", "verification_officer")).toBe("/verification/dashboard");
+    expect(getPostLoginRedirect("/landlord/dashboard", "verification_officer")).toBe("/verification/dashboard");
+    expect(getPostLoginRedirect("/admin/dashboard", "verification_officer")).toBe("/verification/dashboard");
+    expect(getPostLoginRedirect("/support-desk/dashboard", "verification_officer")).toBe("/verification/dashboard");
+    expect(getPostLoginRedirect("/verification/queue", "verification_officer")).toBe("/verification/queue");
+
+    expect(getPostLoginRedirect(null, "customer_support")).toBe("/support-desk/dashboard");
+    expect(getPostLoginRedirect("/", "customer_support")).toBe("/support-desk/dashboard");
+    expect(getPostLoginRedirect("/map", "customer_support")).toBe("/support-desk/dashboard");
+    expect(getPostLoginRedirect("/landlord/dashboard", "customer_support")).toBe("/support-desk/dashboard");
+    expect(getPostLoginRedirect("/admin/dashboard", "customer_support")).toBe("/support-desk/dashboard");
+    expect(getPostLoginRedirect("/verification/dashboard", "customer_support")).toBe("/support-desk/dashboard");
+    expect(getPostLoginRedirect("/support-desk/tickets", "customer_support")).toBe("/support-desk/tickets");
+
+    expect(getPostLoginRedirect("/verification/dashboard", "admin")).toBe("/admin/dashboard");
+    expect(getPostLoginRedirect("/support-desk/dashboard", "admin")).toBe("/admin/dashboard");
   });
 });
 
 describe("isAllowedSessionRole", () => {
-  it("accepts renter, landlord, admin only", () => {
-    expect(["renter", "landlord", "admin"].every(isAllowedSessionRole)).toBe(true);
+  it("accepts renter, landlord, verification_officer, customer_support, admin only", () => {
+    expect(
+      ["renter", "landlord", "verification_officer", "customer_support", "admin"].every(isAllowedSessionRole),
+    ).toBe(true);
     expect([null, undefined, "", "root", 1].some(isAllowedSessionRole)).toBe(false);
   });
 });

@@ -162,15 +162,15 @@ describe("favorites account consistency", () => {
       }],
     });
   });
-  it("allows saving and reading a pending condominium submission with normalized propertyType", async () => {
+  it("allows saving and reading an approved condominium submission with normalized propertyType", async () => {
     mocks.listing.mockResolvedValue({ data: null, error: null });
     mocks.favorites.mockResolvedValue({ data: [{ listing_id: listingId, created_at: "2026-11-08" }], error: null });
     mocks.sessionRows.mockResolvedValue({ data: [], error: null });
     mocks.rpc.mockResolvedValue({
       data: [{
         id: listingId,
-        title: "Pending Condo",
-        description: "Awaiting review",
+        title: "Approved Condo",
+        description: "Reviewed and approved",
         price: 13500,
         property_type: "condominium",
         rental_type: "entire_place",
@@ -178,7 +178,7 @@ describe("favorites account consistency", () => {
         city: "Cebu City",
         latitude: 10.33,
         longitude: 123.9,
-        moderation_status: "pending",
+        moderation_status: "approved",
         photo_paths: [],
       }],
       error: null,
@@ -189,7 +189,7 @@ describe("favorites account consistency", () => {
     expect(await getResponse?.json()).toEqual({
       favorites: [expect.objectContaining({
         id: listingId,
-        title: "Pending Condo",
+        title: "Approved Condo",
         propertyType: "condo",
         isAvailable: true,
       })],

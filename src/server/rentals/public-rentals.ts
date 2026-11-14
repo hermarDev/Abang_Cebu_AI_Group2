@@ -8,9 +8,8 @@ export const LISTING_PROJECTION = "id,title,description,price,currency,rental_pe
 
 const MEDIA_PATH = /^[0-9a-f-]+\/[0-9a-f-]+\/[0-9a-f-]+\/[0-9a-f]{64}\.(?:jpg|png|webp)$/i;
 
-// Public moderation policy (CODE-01): `pending` submissions stay discoverable
-// but are always labeled unverified; only `approved` map to `property_verified`.
-export const PUBLIC_SUBMITTED_STATUSES = ["approved", "pending"] as const;
+// Public moderation policy (CODE-01): only `approved` properties are visible on the public renter map.
+export const PUBLIC_SUBMITTED_STATUSES = ["approved"] as const;
 
 function isSubmittedStatus(value: unknown): value is (typeof PUBLIC_SUBMITTED_STATUSES)[number] {
   return typeof value === "string" && (PUBLIC_SUBMITTED_STATUSES as readonly string[]).includes(value);

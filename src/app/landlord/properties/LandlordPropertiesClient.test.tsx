@@ -87,4 +87,35 @@ describe("LandlordPropertiesClient", () => {
     expect(html).toContain("Pending Condo");
     expect(html).not.toContain("Live Condo");
   });
+
+  it("renders multi-unit availability summary and unit occupancy controls for multi-unit properties", () => {
+    mockState.status = "";
+    const html = renderToStaticMarkup(
+      <LandlordPropertiesClient
+        properties={[
+          makeProp({
+            id: "p-bh",
+            title: "Mabolo Boarding House",
+            propertyType: "boarding_house",
+            totalUnitsCount: 3,
+            availableUnitsCount: 2,
+            status: "published",
+            statusLabel: "Published · 2 of 3 units available",
+            units: [
+              { id: "u-1", unitNumber: "Room 1", rentalType: "private_room", monthlyRent: 4500, maxOccupants: 1, isAvailable: true },
+              { id: "u-2", unitNumber: "Room 2", rentalType: "private_room", monthlyRent: 4500, maxOccupants: 1, isAvailable: false },
+              { id: "u-3", unitNumber: "Room 3", rentalType: "private_room", monthlyRent: 5000, maxOccupants: 2, isAvailable: true },
+            ],
+          }),
+        ]}
+      />
+    );
+
+    expect(html).toContain("2 of 3 units available");
+    expect(html).toContain("Room 1");
+    expect(html).toContain("Room 2");
+    expect(html).toContain("Room 3");
+    expect(html).toContain("Mark occupied");
+    expect(html).toContain("Mark available");
+  });
 });

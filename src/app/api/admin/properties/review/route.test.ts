@@ -61,4 +61,14 @@ describe("admin property review", () => {
     mocks.rpc.mockResolvedValueOnce({ data: null, error: { code: "40001" } });
     expect((await POST(request(approve()))).status).toBe(409);
   });
+  it("maps unverified approval trigger error (40001) with helpful message", async () => {
+    mocks.rpc.mockResolvedValueOnce({
+      data: null,
+      error: { code: "40001", message: "field verification required before admin approval" },
+    });
+    const res = await POST(request(approve()));
+    expect(res.status).toBe(409);
+    const json = await res.json();
+    expect(json.error).toContain("Field verification is required");
+  });
 });
