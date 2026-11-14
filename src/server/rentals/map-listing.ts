@@ -1,4 +1,4 @@
-import type { RentalResult } from "@/contracts/preview";
+import type { RentalResult, RentalUnitSummary } from "@/contracts/preview";
 
 const propertyTypes = ["bedspace", "boarding_house", "private_room", "shared_room", "studio", "apartment", "condo", "house"] as const;
 
@@ -95,7 +95,31 @@ export function mapSubmittedRental(value: unknown, signedUrlsByPath: ReadonlyMap
   if (maxOccupants !== null && !Number.isInteger(maxOccupants)) throw new Error("Invalid listing");
   const policy = typeof row.tenant_policy === "string" ? row.tenant_policy : typeof policyObject.tenant_policy === "string" ? policyObject.tenant_policy : null;
   const curfew = policyObject.curfew_policy ?? policyObject.curfew_type;
-  const status = choice(row.moderation_status, ["approved", "pending"] as const);
+  const status = choice(row.moderation_status, ["approved"] as const);
+  const availableUnitsCount = typeof row.available_units_count === "number" && Number.isFinite(row.available_units_count)
+    ? number(row.available_units_count, 0, Number.MAX_SAFE_INTEGER)
+    : undefined;
+  const totalUnitsCount = typeof row.total_units_count === "number" && Number.isFinite(row.total_units_count)
+    ? number(row.total_units_count, 1, Number.MAX_SAFE_INTEGER)
+    : undefined;
+  const units: RentalUnitSummary[] | undefined = Array.isArray(row.units)
+    ? row.units.flatMap((item, idx) => {
+        if (!item || typeof item !== "object" || Array.isArray(item)) return [];
+        const u = item as Record<string, unknown>;
+        return [{
+          id: typeof u.id === "string" && u.id.trim() ? u.id.trim() : `unit-${idx + 1}`,
+          unitNumber: typeof (u.unitNumber ?? u.unit_number) === "string" && String(u.unitNumber ?? u.unit_number).trim()
+            ? String(u.unitNumber ?? u.unit_number).trim()
+            : "Room 1",
+          rentalType: typeof (u.rentalType ?? u.rental_type) === "string" && String(u.rentalType ?? u.rental_type).trim()
+            ? String(u.rentalType ?? u.rental_type).trim()
+            : String(rentalType ?? "private_room"),
+          monthlyRent: Number(u.monthlyRent ?? u.monthly_rent ?? row.price ?? 0),
+          maxOccupants: Number(u.maxOccupants ?? u.max_occupants ?? maxOccupants ?? 1),
+          isAvailable: Boolean(u.isAvailable ?? u.is_available ?? true),
+        }];
+      })
+    : undefined;
   const photos = Array.isArray(row.photo_paths) ? row.photo_paths : [];
   const seenKeys = new Set<string>();
   const imageUrls = photos.flatMap((path) => {
@@ -123,5 +147,8 @@ export function mapSubmittedRental(value: unknown, signedUrlsByPath: ReadonlyMap
     waterPricingType: water ? "included" : null, electricityPricingType: power ? "included" : null,
     motorcycleParking, carParking,
     verificationStatus: status === "approved" ? "property_verified" : "unverified", directLandlord: true,
+    ...(availableUnitsCount !== undefined ? { availableUnitsCount } : {}),
+    ...(totalUnitsCount !== undefined ? { totalUnitsCount } : {}),
+    ...(units ? { units } : {}),
   };
 }

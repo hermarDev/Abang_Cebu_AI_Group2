@@ -8,7 +8,8 @@
 export type AdminAuditActionType =
   | 'property_approved' | 'property_rejected' | 'property_unpublished' | 'property_restored'
   | 'account_suspended' | 'account_reinstated' | 'report_resolved' | 'report_dismissed' | 'report_evidence_viewed'
-  | 'support_ticket_updated';
+  | 'property_location_corrected' | 'support_ticket_updated'
+  | 'staff_account_created' | 'property_field_verified' | 'property_field_flagged';
 
 export type Json =
   | string
@@ -18,7 +19,7 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[];
 
-export type UserRole = 'renter' | 'landlord' | 'admin';
+export type UserRole = 'renter' | 'landlord' | 'verification_officer' | 'customer_support' | 'admin';
 
 export type KycStatus = 'pending' | 'verified' | 'rejected';
 
@@ -321,16 +322,26 @@ export interface Database {
           user_id: string | null;
           requester_name: string;
           requester_email: string;
-          requester_role: 'guest' | 'renter' | 'landlord' | 'admin';
+          requester_role: 'guest' | 'renter' | 'landlord' | 'verification_officer' | 'customer_support' | 'admin';
           category: 'account_access' | 'rental_search' | 'listing_submission' | 'messaging_safety' | 'bug_report' | 'billing_or_policy' | 'other';
           subject: string;
           description: string;
           related_listing_id: string | null;
           attachments: Json;
-          status: 'open' | 'in_progress' | 'resolved' | 'closed';
+          status: 'open' | 'in_progress' | 'awaiting_landlord' | 'escalated' | 'resolved' | 'closed';
           priority: 'low' | 'normal' | 'high' | 'urgent';
           admin_response: string | null;
           assigned_admin_id: string | null;
+          reported_landlord_id?: string | null;
+          landlord_inquiry_note?: string | null;
+          landlord_inquiry_sent_at?: string | null;
+          landlord_response?: string | null;
+          landlord_responded_at?: string | null;
+          handled_by_support_id?: string | null;
+          support_resolution_note?: string | null;
+          escalated_to_admin_at?: string | null;
+          escalation_reason?: string | null;
+          recommended_admin_action?: 'suspend_account' | 'unpublish_listing' | 'both' | 'review' | null;
           resolved_at: string | null;
           created_at: string;
           updated_at: string;
@@ -357,11 +368,19 @@ export interface Database {
       review_landlord_listing: { Args: { listing_id: string; decision: string; reason?: string | null }; Returns: boolean; };
       admin_dashboard_overview: { Args: Record<PropertyKey, never>; Returns: Json; };
       admin_list_properties: { Args: { p_status?: string | null; p_search?: string | null; p_limit?: number; p_offset?: number }; Returns: Json; };
-      review_property: { Args: { p_property_id: string; p_operation_id: string; p_decision: string; p_note: string | null; p_submission_draft_id?: string | null; p_submission_expected_revision?: number | null }; Returns: Json; };
+      review_property: { Args: { p_property_id: string; p_operation_id: string; p_decision: string; p_note: string | null; p_submission_draft_id?: string | null; p_submission_expected_revision?: number | null; p_document_decision?: string | null; p_require_field_verification?: boolean | null }; Returns: Json; };
       admin_set_property_lifecycle: { Args: { p_property_id: string; p_operation_id: string; p_action: 'unpublish' | 'restore'; p_reason: string }; Returns: Json; };
       admin_list_accounts: { Args: { p_role?: string | null; p_suspended?: boolean | null; p_search?: string | null; p_limit?: number; p_offset?: number }; Returns: Json; };
       admin_set_account_suspension: { Args: { p_target_user_id: string; p_operation_id: string; p_suspend: boolean; p_reason: string; p_unpublish_listings?: boolean }; Returns: Json; };
+      admin_assign_staff_role: { Args: { p_target_user_id: string; p_operation_id: string; p_role: string; p_full_name?: string | null }; Returns: Json; };
       admin_list_audit_logs: { Args: { p_target_type?: string | null; p_limit?: number; p_offset?: number }; Returns: Json; };
+      verifier_list_queue: { Args: { p_status?: string | null; p_search?: string | null; p_limit?: number; p_offset?: number }; Returns: Json; };
+      verifier_submit_verification: { Args: { p_property_id: string; p_operation_id: string; p_submission_draft_id: string; p_submission_expected_revision: number; p_status: string; p_method: string; p_notes: string; p_proof?: Json; p_proxy_name?: string | null; p_proxy_relationship?: string | null }; Returns: Json; };
+      support_desk_list_tickets: { Args: { p_status?: string | null; p_category?: string | null; p_search?: string | null; p_limit?: number; p_offset?: number; p_ticket_id?: string | null }; Returns: Json; };
+      support_desk_act_on_ticket: { Args: { p_ticket_id: string; p_operation_id: string; p_action: string; p_note: string; p_reported_landlord_id?: string | null; p_recommended_admin_action?: string | null }; Returns: Json; };
+      landlord_respond_to_support_ticket: { Args: { p_ticket_id: string; p_operation_id: string; p_response: string }; Returns: Json; };
+      landlord_set_unit_availability: { Args: { p_unit_id: string; p_is_available: boolean }; Returns: Json; };
+      set_rental_agreement_consent: { Args: { p_conversation_id: string; p_operation_id: string; p_agree?: boolean; p_unit_id?: string | null }; Returns: Json; };
       send_initial_rental_inquiry: { Args: { p_listing_id: string; p_operation_id: string; p_body: string }; Returns: Json; };
       send_rental_message: { Args: { p_conversation_id: string; p_operation_id: string; p_body: string }; Returns: Json; };
       mark_rental_conversation_read: { Args: { p_conversation_id: string }; Returns: Json; };

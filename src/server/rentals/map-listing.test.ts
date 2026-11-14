@@ -63,7 +63,7 @@ describe("mapSubmittedRental", () => {
     address: "123 Gorordo Ave", city: "Cebu City", max_occupants: 2, moderation_status: "approved", photo_paths: [],
   };
 
-  it.each(["rejected", "archived", "draft"])("rejects %s submitted properties from public map results", (moderation_status) => {
+  it.each(["pending", "rejected", "archived", "draft"])("rejects %s submitted properties from public map results", (moderation_status) => {
     expect(() => mapSubmittedRental({ ...submitted, moderation_status })).toThrow("Invalid listing");
   });
 
@@ -71,11 +71,21 @@ describe("mapSubmittedRental", () => {
     expect(mapSubmittedRental(submitted)).toMatchObject({ id: submitted.id, verificationStatus: "property_verified", directLandlord: true });
   });
 
-  it("maps pending submitted properties as unverified", () => {
-    expect(mapSubmittedRental({ ...submitted, moderation_status: "pending" })).toMatchObject({
-      id: submitted.id,
-      verificationStatus: "unverified",
-      directLandlord: true,
+  it("maps multi-unit counts and unit summaries when provided", () => {
+    const result = mapSubmittedRental({
+      ...submitted,
+      available_units_count: 2,
+      total_units_count: 3,
+      units: [
+        { id: "u-1", unit_number: "Room 1", rental_type: "private_room", monthly_rent: 8500, max_occupants: 2, is_available: true },
+        { id: "u-2", unitNumber: "Room 2", rentalType: "private_room", monthlyRent: 9000, maxOccupants: 2, isAvailable: false },
+      ],
     });
+    expect(result.availableUnitsCount).toBe(2);
+    expect(result.totalUnitsCount).toBe(3);
+    expect(result.units).toEqual([
+      { id: "u-1", unitNumber: "Room 1", rentalType: "private_room", monthlyRent: 8500, maxOccupants: 2, isAvailable: true },
+      { id: "u-2", unitNumber: "Room 2", rentalType: "private_room", monthlyRent: 9000, maxOccupants: 2, isAvailable: false },
+    ]);
   });
 });
