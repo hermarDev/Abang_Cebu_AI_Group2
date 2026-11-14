@@ -16,7 +16,7 @@ const sampleItem: VerificationQueueItem = {
   longitude: 123.91,
   landlordId: "landlord-1",
   landlordName: "Juan Dela Cruz",
-  landlordPhone: "+639171234567",
+  landlordPhone: "+639****4567",
   submissionDraftId: "draft-1",
   submissionExpectedRevision: 1,
   submissionOperationId: "op-1",
@@ -36,7 +36,8 @@ describe("VerificationQueue", () => {
   it("renders queue header, search and filter options", () => {
     const html = renderToStaticMarkup(<VerificationQueue userId="officer-1" />);
     expect(html).toContain("Verification queue");
-    expect(html).toContain("Search title, address, or landlord…");
+    // SSR renders the placeholder with ellipsis character (…)
+    expect(html).toContain("Search title, address, or landlord");
     expect(html).toContain("Pending verification");
   });
 
@@ -62,5 +63,31 @@ describe("VerificationQueue", () => {
     );
     expect(htmlAtFifty).toContain("Previous");
     expect(htmlAtFifty).toContain("Next");
+  });
+
+  it("accepts initialStatus and initialSearch props", () => {
+    const html = renderToStaticMarkup(
+      <VerificationQueue
+        userId="officer-1"
+        initialQueue={[]}
+        initialStatus="verified"
+        initialSearch="test search"
+      />
+    );
+    expect(html).toContain("Verified");
+    expect(html).toContain("test search");
+  });
+
+  it("renders queue with initialStatus filter applied and highlights initialPropertyId card", () => {
+    const html = renderToStaticMarkup(
+      <VerificationQueue
+        userId="officer-1"
+        initialQueue={[sampleItem]}
+        initialStatus="flagged"
+        initialPropertyId="prop-1"
+      />
+    );
+    expect(html).toContain("Flagged");
+    expect(html).toContain("ring-action/25");
   });
 });

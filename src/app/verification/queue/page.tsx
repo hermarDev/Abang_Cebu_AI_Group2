@@ -3,10 +3,22 @@ import { createClient } from "@/lib/supabase/server";
 import { signProfileAvatar } from "@/lib/profile-avatar";
 import { VerificationWorkspaceLayout } from "@/features/verification/VerificationWorkspaceLayout";
 import { VerificationQueue } from "@/features/verification/VerificationQueue";
+import { isUuid } from "@/server/verification-access";
 
 export const dynamic = "force-dynamic";
 
-export default async function VerificationQueuePage() {
+interface SearchParams {
+  status?: string;
+  propertyId?: string;
+  search?: string;
+}
+
+export default async function VerificationQueuePage({
+  searchParams,
+}: {
+  searchParams: Promise<SearchParams>;
+}) {
+  const resolvedParams = await searchParams;
   const supabase = await createClient();
   const {
     data: { user },
@@ -31,6 +43,13 @@ export default async function VerificationQueuePage() {
 
   const avatarUrl = await signProfileAvatar(user.id, profile.avatar_url);
 
+  const validStatuses = ["pending_verification", "verified", "flagged", "all"] as const;
+  const initialStatus = validStatuses.includes(resolvedParams.status as typeof validStatuses[number])
+    ? (resolvedParams.status as typeof validStatuses[number])
+    : "pending_verification";
+
+  const initialPropertyId = isUuid(resolvedParams.propertyId) ? resolvedParams.propertyId : undefined;
+
   return (
     <VerificationWorkspaceLayout
       userId={user.id}
@@ -39,7 +58,12 @@ export default async function VerificationQueuePage() {
       title="Verification Queue"
       subtitle="Inspect landlord listings, review submitted property coordinates and log verification decisions."
     >
-      <VerificationQueue userId={user.id} />
+      <VerificationQueue
+        userId={user.id}
+        initialStatus={initialStatus}
+        initialPropertyId={initialPropertyId}
+        initialSearch={resolvedParams.search}
+      />
     </VerificationWorkspaceLayout>
   );
 }

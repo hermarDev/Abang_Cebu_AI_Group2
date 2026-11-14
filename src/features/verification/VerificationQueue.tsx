@@ -59,19 +59,28 @@ export function VerificationQueue({
   userId,
   initialQueue,
   initialOffset = 0,
+  initialStatus,
+  initialPropertyId,
+  initialSearch,
 }: {
   userId: string;
   initialQueue?: VerificationQueueItem[];
   initialOffset?: number;
+  initialStatus?: "pending_verification" | "verified" | "flagged" | "all";
+  initialPropertyId?: string;
+  initialSearch?: string;
 }) {
-  const [filter, setFilter] = useState("pending_verification");
-  const [search, setSearch] = useState("");
+  const [filter, setFilter] = useState<"pending_verification" | "verified" | "flagged" | "all">(
+    initialStatus ?? "pending_verification"
+  );
+  const [search, setSearch] = useState(initialSearch ?? "");
   const [offset, setOffset] = useState(initialOffset);
   const pageSize = 50;
   const [queue, setQueue] = useState<VerificationQueueItem[] | null>(initialQueue ?? null);
   const [error, setError] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
   const skipInitialFetchRef = useRef(Boolean(initialQueue) && initialOffset === 0);
+  const handledPropertyIdRef = useRef<string | null>(null);
 
   // Verification modal action state
   const [activeItem, setActiveItem] = useState<VerificationQueueItem | null>(null);
@@ -88,6 +97,36 @@ export function VerificationQueue({
   const [uploadKind, setUploadKind] = useState<"photo" | "document" | "meeting_minutes">("photo");
   const [actionSaving, setActionSaving] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
+
+  // Handle deep-linking: when initialPropertyId is provided, highlight and open modal once per propertyId
+  useEffect(() => {
+    if (!initialPropertyId || !queue || handledPropertyIdRef.current === initialPropertyId) return;
+    const matchingItem = queue.find((item) => item.id === initialPropertyId);
+    if (matchingItem) {
+      handledPropertyIdRef.current = initialPropertyId;
+      openActionModal(matchingItem);
+      return;
+    }
+
+    const abort = new AbortController();
+    fetch(`/api/verification/queue/${encodeURIComponent(initialPropertyId)}`, {
+      headers: { "x-expected-user-id": userId },
+      signal: abort.signal,
+    })
+      .then(async (res) => {
+        if (!res.ok) return;
+        const data = await res.json();
+        const item = (data?.property ?? data) as VerificationQueueItem | undefined;
+        if (item?.id && handledPropertyIdRef.current !== initialPropertyId && !abort.signal.aborted) {
+          handledPropertyIdRef.current = initialPropertyId;
+          openActionModal(item);
+        }
+      })
+      .catch(() => {
+        // Ignore fetch errors for deep-link
+      });
+    return () => abort.abort();
+  }, [initialPropertyId, queue, userId]);
 
   useEffect(() => {
     if (skipInitialFetchRef.current) {
@@ -255,7 +294,7 @@ export function VerificationQueue({
               variant={filter === tab.value ? "primary" : "outline"}
               aria-pressed={filter === tab.value}
               onClick={() => {
-                setFilter(tab.value);
+                setFilter(tab.value as "pending_verification" | "verified" | "flagged" | "all");
                 setOffset(0);
               }}
             >
@@ -297,7 +336,9 @@ export function VerificationQueue({
           {queue.map((item) => (
             <article
               key={item.id}
-              className="grid gap-3 rounded-xl border border-border bg-card p-4 transition hover:border-action/30"
+              className={`grid gap-3 rounded-xl border bg-card p-4 transition hover:border-action/30 ${
+                initialPropertyId === item.id ? "border-action ring-2 ring-action/25" : "border-border"
+              }`}
             >
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <div className="min-w-0 flex-1">
