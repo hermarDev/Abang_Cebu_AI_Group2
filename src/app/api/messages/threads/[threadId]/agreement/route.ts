@@ -16,9 +16,16 @@ export async function POST(request: Request, context: Context) {
     const { threadId } = await context.params;
     if (!uuidPattern.test(threadId)) return badThread();
 
-    const { operationId, agree, unitId } = await readJson(request);
+    const { operationId, agree, unitId, expectedVersion } = await readJson(request);
     if (typeof operationId !== "string" || !uuidPattern.test(operationId)) {
       return reply({ error: "Invalid request id." }, 400);
+    }
+    if (
+      expectedVersion !== undefined &&
+      expectedVersion !== null &&
+      (typeof expectedVersion !== "number" || !Number.isInteger(expectedVersion) || expectedVersion < 0)
+    ) {
+      return reply({ error: "Invalid agreement version." }, 400);
     }
     const isAgree = agree !== false;
     const effectiveUnitId = typeof unitId === "string" && uuidPattern.test(unitId) ? unitId : null;
@@ -28,6 +35,7 @@ export async function POST(request: Request, context: Context) {
       p_operation_id: operationId,
       p_agree: isAgree,
       p_unit_id: effectiveUnitId,
+      ...(typeof expectedVersion === "number" ? { p_expected_version: expectedVersion } : {}),
     });
 
     if (error) {

@@ -171,17 +171,27 @@ export async function fetchLandlordPortfolio(
 
   if (propertyIds.length) {
     const UNIT_BATCH_SIZE = 100;
+    const UNIT_PAGE_SIZE = 1000;
     for (let i = 0; i < propertyIds.length; i += UNIT_BATCH_SIZE) {
       const chunk = propertyIds.slice(i, i + UNIT_BATCH_SIZE);
-      const unitsRes = await supabase
-        .from("rental_units")
-        .select("id,property_id,unit_number,rental_type,monthly_rent,max_occupants,is_available,is_retired")
-        .in("property_id", chunk);
-      if (unitsRes.error) {
-        unitsError = true;
-      } else {
-        units.push(...(unitsRes.data ?? []).filter((u) => !(u as { is_retired?: boolean | null }).is_retired));
+      for (let from = 0; ; from += UNIT_PAGE_SIZE) {
+        const unitsRes = await supabase
+          .from("rental_units")
+          .select("id,property_id,unit_number,rental_type,monthly_rent,max_occupants,is_available")
+          .in("property_id", chunk)
+          .eq("is_retired", false)
+          .order("created_at", { ascending: true })
+          .order("id", { ascending: true })
+          .range(from, from + UNIT_PAGE_SIZE - 1);
+        if (unitsRes.error) {
+          unitsError = true;
+          break;
+        }
+        const batch = unitsRes.data ?? [];
+        units.push(...batch);
+        if (batch.length < UNIT_PAGE_SIZE) break;
       }
+      if (unitsError) break;
     }
   }
 
@@ -389,8 +399,7 @@ export async function fetchLandlordPortfolio(
     (listings && listings.length >= 1000) ||
     (properties && properties.length >= 1000) ||
     (submissions && submissions.length >= 1000) ||
-    (drafts && drafts.length >= 1000) ||
-    (units && units.length >= 1000),
+    (drafts && drafts.length >= 1000),
   );
 
   return {

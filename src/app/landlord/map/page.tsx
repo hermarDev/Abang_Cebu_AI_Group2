@@ -43,10 +43,33 @@ export default async function LandlordMapPage(props?: { searchParams?: Promise<{
   const selected = params?.selected;
   const initialSelectedId = typeof selected === "string" ? selected : undefined;
   const propertyIds = (submitted ?? []).map(row => row.id);
-  const { data: units, error: unitsError } = propertyIds.length
-    ? await supabase.from("rental_units").select("property_id,monthly_rent,is_available,is_retired").in("property_id", propertyIds)
-    : { data: [], error: null };
-  const activeUnits = (units ?? []).filter((item) => !(item as { is_retired?: boolean | null }).is_retired);
+  const activeUnits: { property_id: string; monthly_rent: number | string | null; is_available: boolean }[] = [];
+  let unitsError: unknown = null;
+  if (propertyIds.length) {
+    const UNIT_BATCH_SIZE = 100;
+    const UNIT_PAGE_SIZE = 1000;
+    for (let i = 0; i < propertyIds.length; i += UNIT_BATCH_SIZE) {
+      const chunk = propertyIds.slice(i, i + UNIT_BATCH_SIZE);
+      for (let from = 0; ; from += UNIT_PAGE_SIZE) {
+        const res = await supabase
+          .from("rental_units")
+          .select("property_id,monthly_rent,is_available")
+          .in("property_id", chunk)
+          .eq("is_retired", false)
+          .order("created_at", { ascending: true })
+          .order("id", { ascending: true })
+          .range(from, from + UNIT_PAGE_SIZE - 1);
+        if (res.error) {
+          unitsError = res.error;
+          break;
+        }
+        const batch = res.data ?? [];
+        activeUnits.push(...batch);
+        if (batch.length < UNIT_PAGE_SIZE) break;
+      }
+      if (unitsError) break;
+    }
+  }
 
   const draftTargets = new Map<string, { draftId: string; revision: number }>();
   const activeSubmissions = new Map<string, SubmissionRow>();

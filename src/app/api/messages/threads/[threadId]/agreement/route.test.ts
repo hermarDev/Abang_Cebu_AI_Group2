@@ -75,4 +75,19 @@ describe("POST /api/messages/threads/[threadId]/agreement", () => {
       p_unit_id: null,
     });
   });
+
+  it("forwards expectedVersion and rejects invalid expectedVersion with 400", async () => {
+    const resValid = await post({ operationId: opUuid, agree: true, unitId: unitUuid, expectedVersion: 2 });
+    expect(resValid.status).toBe(200);
+    expect(mocks.rpc).toHaveBeenCalledWith("set_rental_agreement_consent", {
+      p_conversation_id: threadUuid,
+      p_operation_id: opUuid,
+      p_agree: true,
+      p_unit_id: unitUuid,
+      p_expected_version: 2,
+    });
+
+    const resInvalid = await post({ operationId: opUuid, agree: true, expectedVersion: -1 });
+    expect(resInvalid.status).toBe(400);
+  });
 });

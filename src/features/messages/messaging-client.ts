@@ -3,6 +3,7 @@ import { normalizeApiError, type ApiErrorKind } from "@/lib/api-error";
 export type ThreadCounterpart = { id: string; fullName: string | null; avatarUrl: string | null; role: "renter" | "landlord" | "admin"; isSuspended?: boolean };
 export type RentalThreadAgreement = {
   id?: string;
+  agreementId?: string;
   unitId?: string | null;
   unitNumber?: string | null;
   status?: "pending_both" | "renter_agreed" | "landlord_agreed" | "agreed" | "cancelled";
@@ -10,6 +11,7 @@ export type RentalThreadAgreement = {
   landlordAgreed?: boolean;
   bothAgreed?: boolean;
   renterName?: string | null;
+  version?: number;
 };
 export type RentalThreadUnit = {
   id: string;
@@ -40,6 +42,7 @@ export type RentalThreadSummary = {
   lastMessagePreview: string | null;
   lastMessageAt: string | null;
   createdAt?: string;
+  agreementVersion?: number;
   agreement?: RentalThreadAgreement | null;
   availableUnits?: RentalThreadUnit[];
 };
@@ -194,12 +197,16 @@ export type InquiryIntent = { operationId: string; listingId: string; body: stri
 
 export type AgreementConsentResponse = {
   agreement: {
+    id?: string;
     agreementId: string;
     unitId: string | null;
+    unitNumber?: string | null;
     status: "pending_both" | "renter_agreed" | "landlord_agreed" | "agreed" | "cancelled";
     renterAgreed?: boolean;
     landlordAgreed?: boolean;
     bothAgreed?: boolean;
+    renterName?: string | null;
+    version?: number;
   };
 };
 
@@ -209,16 +216,27 @@ export async function setRentalAgreementConsent(
   operationId: string,
   agree: boolean,
   unitId?: string | null,
+  expectedVersionOrFetch?: number | null | typeof fetch,
   fetchImpl: typeof fetch = fetch
 ): Promise<AgreementConsentResponse> {
+  let expectedVersion: number | null | undefined;
+  let effectiveFetch = fetchImpl;
+  if (typeof expectedVersionOrFetch === "function") {
+    effectiveFetch = expectedVersionOrFetch;
+  } else {
+    expectedVersion = expectedVersionOrFetch;
+  }
+  const payload: Record<string, unknown> = { operationId, agree, unitId: unitId ?? null };
+  if (typeof expectedVersion === "number") payload.expectedVersion = expectedVersion;
+
   return apiJson<AgreementConsentResponse>(
     `/api/messages/threads/${encodeURIComponent(threadId)}/agreement`,
     userId,
     {
       method: "POST",
-      body: JSON.stringify({ operationId, agree, unitId: unitId ?? null }),
+      body: JSON.stringify(payload),
     },
-    fetchImpl
+    effectiveFetch
   );
 }
 

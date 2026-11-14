@@ -71,6 +71,7 @@ export function VerificationQueue({
   const [queue, setQueue] = useState<VerificationQueueItem[] | null>(initialQueue ?? null);
   const [error, setError] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
+  const skipInitialFetchRef = useRef(Boolean(initialQueue) && initialOffset === 0);
 
   // Verification modal action state
   const [activeItem, setActiveItem] = useState<VerificationQueueItem | null>(null);
@@ -89,7 +90,10 @@ export function VerificationQueue({
   const [actionError, setActionError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (initialQueue && reloadKey === 0 && offset === 0) return;
+    if (skipInitialFetchRef.current) {
+      skipInitialFetchRef.current = false;
+      return;
+    }
     const abort = new AbortController();
     const timer = setTimeout(async () => {
       setQueue(null);

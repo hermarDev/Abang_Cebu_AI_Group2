@@ -387,6 +387,58 @@ DO $$ BEGIN
   END IF;
 END $$;
 
+-- ============================================================================
+-- Test 7: CodeRabbit Round 2 Assertions (Conversation Detail Units/Agreement, Version Serialization, Staff Requester Role)
+-- ============================================================================
+-- 7a. support_tickets accepts verification_officer and customer_support requester roles
+RESET ROLE;
+INSERT INTO public.support_tickets(id, operation_id, user_id, requester_name, requester_email, requester_role, category, subject, description, status, priority, attachments)
+VALUES
+  ('77100000-0000-4000-8000-000000000021', gen_random_uuid(), 'bb100000-0000-4000-8000-000000000004', 'Verifier', 'v@test.local', 'verification_officer', 'other', 'Verifier Ticket', 'Staff ticket description for verification officer', 'open', 'normal', '[]'::jsonb),
+  ('77100000-0000-4000-8000-000000000022', gen_random_uuid(), 'bb100000-0000-4000-8000-000000000005', 'Support', 's@test.local', 'customer_support', 'other', 'Support Ticket', 'Staff ticket description for customer support', 'open', 'normal', '[]'::jsonb);
+
+-- 7b. get_rental_conversation_detail returns agreement, agreementVersion, and active availableUnits (excluding retired Room 1)
+--     and set_rental_agreement_consent rejects stale expected_version with 40001
+INSERT INTO public.rental_units(id, property_id, unit_number, rental_type, monthly_rent, max_occupants, is_available, is_retired)
+VALUES
+  ('11100000-0000-4000-8000-000000000003', 'ee100000-0000-4000-8000-000000000001', 'Room 3', 'private_room', 6000, 1, true, false),
+  ('11100000-0000-4000-8000-000000000004', 'ee100000-0000-4000-8000-000000000001', 'Room 4', 'private_room', 6500, 1, true, false)
+ON CONFLICT (id) DO NOTHING;
+
+SET LOCAL ROLE authenticated;
+SELECT set_config('request.jwt.claim.sub', 'bb100000-0000-4000-8000-000000000001', true);
+DO $$ DECLARE
+  detail jsonb;
+  units jsonb;
+  seq integer;
+  res jsonb;
+BEGIN
+  detail := public.get_rental_conversation_detail('cc100000-0000-4000-8000-000000000001', NULL, 10);
+  units := detail->'thread'->'availableUnits';
+  IF jsonb_array_length(units) <> 3 THEN
+    RAISE EXCEPTION 'expected 3 active (non-retired) units in conversation detail, got %', units;
+  END IF;
+  IF EXISTS (SELECT 1 FROM jsonb_array_elements(units) e WHERE e->>'id' = '11100000-0000-4000-8000-000000000001') THEN
+    RAISE EXCEPTION 'retired Room 1 leaked into conversation detail availableUnits';
+  END IF;
+  IF (detail->'thread'->'agreement'->>'status') <> 'agreed' THEN
+    RAISE EXCEPTION 'expected agreed historical agreement on thread detail, got %', detail->'thread'->'agreement';
+  END IF;
+
+  seq := (detail->'thread'->>'agreementVersion')::integer;
+  -- Advance agreement with current expected version on available Room 3
+  res := public.set_rental_agreement_consent('cc100000-0000-4000-8000-000000000001', gen_random_uuid(), true, '11100000-0000-4000-8000-000000000003', seq);
+  IF (res->>'version')::integer <> seq + 1 THEN
+    RAISE EXCEPTION 'expected version increment to %, got %', seq + 1, res;
+  END IF;
+
+  -- Stale version must fail with SQLSTATE 40001
+  BEGIN
+    PERFORM public.set_rental_agreement_consent('cc100000-0000-4000-8000-000000000001', gen_random_uuid(), true, '11100000-0000-4000-8000-000000000004', seq);
+    RAISE EXCEPTION 'stale agreement version was allowed to overwrite newer unit selection';
+  EXCEPTION WHEN serialization_failure THEN NULL; END;
+END $$;
+
 DO $$ BEGIN
   RAISE NOTICE 'PASS: All roles, verification, support, multi-unit and agreement assertions passed.';
 END $$;

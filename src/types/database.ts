@@ -380,7 +380,7 @@ export interface Database {
       support_desk_act_on_ticket: { Args: { p_ticket_id: string; p_operation_id: string; p_action: string; p_note: string; p_reported_landlord_id?: string | null; p_recommended_admin_action?: string | null }; Returns: Json; };
       landlord_respond_to_support_ticket: { Args: { p_ticket_id: string; p_operation_id: string; p_response: string }; Returns: Json; };
       landlord_set_unit_availability: { Args: { p_unit_id: string; p_is_available: boolean }; Returns: Json; };
-      set_rental_agreement_consent: { Args: { p_conversation_id: string; p_operation_id: string; p_agree?: boolean; p_unit_id?: string | null }; Returns: Json; };
+      set_rental_agreement_consent: { Args: { p_conversation_id: string; p_operation_id: string; p_agree?: boolean; p_unit_id?: string | null; p_expected_version?: number | null }; Returns: Json; };
       send_initial_rental_inquiry: { Args: { p_listing_id: string; p_operation_id: string; p_body: string }; Returns: Json; };
       send_rental_message: { Args: { p_conversation_id: string; p_operation_id: string; p_body: string }; Returns: Json; };
       mark_rental_conversation_read: { Args: { p_conversation_id: string }; Returns: Json; };

@@ -67,7 +67,18 @@ function createMockSupabase(): SupabaseClient {
       if (table === "rental_units") {
         return {
           select: () => ({
-            in: mocks.units,
+            in: (...inArgs: unknown[]) => ({
+              eq: () => ({
+                order: () => ({
+                  order: () => ({
+                    range: () => mocks.units(...inArgs),
+                  }),
+                }),
+                range: () => mocks.units(...inArgs),
+                then: (res: (v: unknown) => unknown, rej: (e: unknown) => unknown) =>
+                  Promise.resolve(mocks.units(...inArgs)).then(res, rej),
+              }),
+            }),
           }),
         };
       }
@@ -414,6 +425,43 @@ describe("fetchLandlordPortfolio", () => {
     expect(mocks.units.mock.calls[0][1]).toHaveLength(100);
     expect(mocks.units.mock.calls[1][1]).toHaveLength(25);
     expect(result.items.find((i) => i.id === "prop-1")?.editHref).toBe("/list-property?draftId=draft-live&revision=4");
+  });
+
+  it("paginates rental_units pages past 1000 rows without flagging truncated", async () => {
+    const supabase = createMockSupabase();
+    mocks.properties.mockResolvedValue({
+      data: [{ id: "prop-1", title: "Big Boarding House", status: "approved" }],
+      error: null,
+    });
+    const firstPage = Array.from({ length: 1000 }, (_, i) => ({
+      id: `u-${i}`,
+      property_id: "prop-1",
+      unit_number: `Room ${i + 1}`,
+      rental_type: "private_room",
+      monthly_rent: 4000,
+      max_occupants: 1,
+      is_available: true,
+    }));
+    const secondPage = [
+      {
+        id: "u-1000",
+        property_id: "prop-1",
+        unit_number: "Room 1001",
+        rental_type: "private_room",
+        monthly_rent: 4500,
+        max_occupants: 1,
+        is_available: true,
+      },
+    ];
+    mocks.units
+      .mockResolvedValueOnce({ data: firstPage, error: null })
+      .mockResolvedValueOnce({ data: secondPage, error: null });
+
+    const result = await fetchLandlordPortfolio(supabase, "user-1");
+
+    expect(mocks.units).toHaveBeenCalledTimes(2);
+    expect(result.truncated).toBe(false);
+    expect(result.items.find((i) => i.id === "prop-1")?.units).toHaveLength(1001);
   });
 
   it("photoPaths fails closed when expectedOwnerId or draft_id is missing", () => {
