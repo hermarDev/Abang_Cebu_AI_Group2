@@ -49,6 +49,12 @@ export type SupportTicketRecord = {
   attachments: SupportAttachmentMeta[];
   status: SupportTicketStatus;
   priority: SupportTicketPriority;
+  reportedLandlordId?: string | null;
+  reportedLandlordName?: string | null;
+  landlordInquiryNote?: string | null;
+  landlordInquirySentAt?: string | null;
+  landlordResponse?: string | null;
+  landlordRespondedAt?: string | null;
   adminResponse: string | null;
   assignedAdminId: string | null;
   assignedAdminName?: string | null;

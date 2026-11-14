@@ -132,6 +132,10 @@ export function SupportCenterClient({
 
   // Request History State (Authenticated users)
   const [tickets, setTickets] = useState<SupportTicketRecord[]>([]);
+  const [awaitingLandlordComplaints, setAwaitingLandlordComplaints] = useState<SupportTicketRecord[]>([]);
+  const [landlordResponseText, setLandlordResponseText] = useState<Record<string, string>>({});
+  const [landlordSubmittingId, setLandlordSubmittingId] = useState<string | null>(null);
+  const [landlordResponseError, setLandlordResponseError] = useState<string | null>(null);
   const [historyLoading, setHistoryLoading] = useState(authenticated);
   const [historyError, setHistoryError] = useState<string | null>(null);
   const [expandedTicketIds, setExpandedTicketIds] = useState<Set<string>>(() => new Set());
@@ -170,6 +174,7 @@ export function SupportCenterClient({
             ? payload.tickets
             : [];
         setTickets(ticketList);
+        setAwaitingLandlordComplaints(Array.isArray(payload?.awaitingLandlordComplaints) ? payload.awaitingLandlordComplaints : []);
       } catch (err) {
         if (signal?.aborted) return;
         setHistoryError(
@@ -183,6 +188,35 @@ export function SupportCenterClient({
     },
     [authenticated, userId]
   );
+
+  const handleLandlordResponse = async (ticketId: string) => {
+    if (!userId || landlordSubmittingId) return;
+    const responseText = (landlordResponseText[ticketId] ?? "").trim();
+    if (responseText.length < 5) {
+      setLandlordResponseError("Please provide a response of at least 5 characters.");
+      return;
+    }
+    setLandlordSubmittingId(ticketId);
+    setLandlordResponseError(null);
+    try {
+      const response = await fetch(`/api/support/tickets/${encodeURIComponent(ticketId)}/respond`, {
+        method: "POST",
+        headers: { "content-type": "application/json", "x-expected-user-id": userId },
+        body: JSON.stringify({ operationId: generateUuid(), response: responseText }),
+      });
+      const payload = await response.json().catch(() => null);
+      if (!response.ok) {
+        throw new Error(payload?.error || "Could not submit your response.");
+      }
+      notify("success", "support-landlord-response", "Your response has been sent to Customer Support.");
+      setLandlordResponseText((previous) => ({ ...previous, [ticketId]: "" }));
+      await fetchTickets();
+    } catch (err) {
+      setLandlordResponseError(err instanceof Error ? err.message : "Could not submit your response.");
+    } finally {
+      setLandlordSubmittingId(null);
+    }
+  };
 
   useEffect(() => {
     if (!authenticated || !userId) return;
@@ -904,6 +938,34 @@ export function SupportCenterClient({
 
             {/* Right Column: Request History (Authenticated) or Sign-in Guidance (Guest) */}
             <aside className="space-y-6">
+              {authenticated && userRole === "landlord" && awaitingLandlordComplaints.length > 0 && (
+                <section className="rounded-2xl border border-action/30 bg-action/5 p-5 text-card-foreground shadow-sm sm:p-6" aria-labelledby="landlord-complaints-heading">
+                  <h2 id="landlord-complaints-heading" className="m-0 text-base font-semibold">Complaints Awaiting Your Response</h2>
+                  <p className="mt-1 text-xs text-muted-foreground">Customer Support requested your response to the following complaints.</p>
+                  {landlordResponseError && <Alert variant="error" className="mt-3">{landlordResponseError}</Alert>}
+                  <div className="mt-4 grid gap-4">
+                    {awaitingLandlordComplaints.map((complaint) => (
+                      <div key={complaint.id} className="rounded-xl border border-border bg-card p-4">
+                        <h3 className="m-0 text-sm font-semibold">{complaint.subject}</h3>
+                        {complaint.landlordInquiryNote && <p className="mt-2 text-sm"><strong>Support inquiry:</strong> {complaint.landlordInquiryNote}</p>}
+                        <label htmlFor={`landlord-response-${complaint.id}`} className="mt-3 block text-sm font-medium">Your response</label>
+                        <textarea
+                          id={`landlord-response-${complaint.id}`}
+                          rows={3}
+                          maxLength={2000}
+                          value={landlordResponseText[complaint.id] ?? ""}
+                          onChange={(event) => setLandlordResponseText((previous) => ({ ...previous, [complaint.id]: event.target.value }))}
+                          disabled={landlordSubmittingId !== null}
+                          className="mt-1 w-full rounded-lg border border-border bg-background p-2 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+                        />
+                        <Button size="sm" onClick={() => void handleLandlordResponse(complaint.id)} disabled={landlordSubmittingId !== null || (landlordResponseText[complaint.id] ?? "").trim().length < 5}>
+                          {landlordSubmittingId === complaint.id ? "Sending…" : "Submit response"}
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              )}
               {authenticated ? (
               <section
               className="rounded-2xl border border-border/70 bg-card p-5 text-card-foreground shadow-sm sm:p-6"
