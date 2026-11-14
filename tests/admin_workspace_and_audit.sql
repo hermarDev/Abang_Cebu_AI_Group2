@@ -42,6 +42,11 @@ INSERT INTO public.property_submissions(owner_id, operation_id, draft_id, expect
  ('a3000000-0000-4000-8000-000000000006', 'e3000000-0000-4000-8000-000000000004', 'd3000000-0000-4000-8000-000000000003', 2, 'b3000000-0000-4000-8000-000000000005', '{"property":{},"unit":{}}', '[]', NULL),
  ('a3000000-0000-4000-8000-000000000006', 'e3000000-0000-4000-8000-000000000005', 'd3000000-0000-4000-8000-000000000004', 1, 'b3000000-0000-4000-8000-000000000006', '{"property":{},"unit":{}}', '[]', NULL);
 
+UPDATE public.property_submissions SET field_verification_status = 'verified'
+WHERE (property_id = 'b3000000-0000-4000-8000-000000000001' AND draft_id = 'd3000000-0000-4000-8000-000000000001' AND expected_revision = 1)
+   OR (property_id = 'b3000000-0000-4000-8000-000000000002' AND draft_id = 'd3000000-0000-4000-8000-000000000002' AND expected_revision = 1)
+   OR (property_id = 'b3000000-0000-4000-8000-000000000005' AND draft_id = 'd3000000-0000-4000-8000-000000000003' AND expected_revision = 2);
+
 SET LOCAL ROLE authenticated;
 
 -- 1. Non-admin and suspended admin are rejected by every admin RPC.

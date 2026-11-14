@@ -36,13 +36,22 @@ DO $$ BEGIN
  EXCEPTION WHEN insufficient_privilege THEN NULL; END;
 END $$;
 SELECT set_config('request.jwt.claim.sub','af100000-0000-4000-8000-000000000003',true);
+-- Seed storage.objects row in bucket field-verification-media with property ID bf100000-0000-4000-8000-000000000001 as segment 2 of object_path
+INSERT INTO storage.objects (bucket_id, name, owner, owner_id)
+VALUES (
+  'field-verification-media',
+  'af100000-0000-4000-8000-000000000003/bf100000-0000-4000-8000-000000000001/33333333-3333-4333-8333-333333333333/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.jpg',
+  'af100000-0000-4000-8000-000000000003',
+  'af100000-0000-4000-8000-000000000003'
+)
+ON CONFLICT DO NOTHING;
 SELECT public.verifier_submit_verification(
   'bf100000-0000-4000-8000-000000000001','cf100000-0000-4000-8000-000000000001','df100000-0000-4000-8000-000000000001',1,'verified','site_visit','Valid notes',
-  '[{"kind":"photo","object_path":"11111111-1111-4111-8111-111111111111/22222222-2222-4222-8222-222222222222/33333333-3333-4333-8333-333333333333/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.jpg"}]'::jsonb
+  '[{"kind":"photo","object_path":"af100000-0000-4000-8000-000000000003/bf100000-0000-4000-8000-000000000001/33333333-3333-4333-8333-333333333333/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.jpg"}]'::jsonb
 );
 SELECT public.verifier_submit_verification(
   'bf100000-0000-4000-8000-000000000001','cf100000-0000-4000-8000-000000000001','df100000-0000-4000-8000-000000000001',1,'verified','site_visit','Valid notes',
-  '[{"kind":"photo","object_path":"11111111-1111-4111-8111-111111111111/22222222-2222-4222-8222-222222222222/33333333-3333-4333-8333-333333333333/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.jpg"}]'::jsonb
+  '[{"kind":"photo","object_path":"af100000-0000-4000-8000-000000000003/bf100000-0000-4000-8000-000000000001/33333333-3333-4333-8333-333333333333/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.jpg"}]'::jsonb
 );
 SELECT set_config('request.jwt.claim.sub','af100000-0000-4000-8000-000000000002',true);
 SELECT public.review_property('bf100000-0000-4000-8000-000000000001','cf100000-0000-4000-8000-000000000002','approved',NULL,'df100000-0000-4000-8000-000000000001',1);

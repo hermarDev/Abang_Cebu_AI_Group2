@@ -13,7 +13,8 @@ import {
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { signProfileAvatar } from "@/lib/profile-avatar";
-import { AdminAuditEntries, type AuditEntry } from "@/features/admin/AdminAuditEntries";
+import type { AuditEntry } from "@/features/admin/AdminAuditEntries";
+import { formatAdminDate } from "@/features/admin/admin-api";
 import { AdminWorkspaceLayout } from "@/features/admin/AdminWorkspaceLayout";
 
 export const dynamic = "force-dynamic";
@@ -266,7 +267,17 @@ export default async function AdminDashboardPage() {
               </Link>
             </div>
             {recent.length ? (
-              <AdminAuditEntries entries={recent} />
+              <ul className="m-0 grid list-none divide-y divide-border rounded-xl border border-border bg-card p-0">
+                {recent.slice(0, 5).map((entry, index) => (
+                  <li key={entry.id ?? index} className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 px-4 py-3 text-sm">
+                    <div className="min-w-0 break-words">
+                      <span className="font-semibold">{entry.actionType?.replace(/_/g, " ") ?? "Action"}</span>
+                      <span className="text-muted-foreground"> · {entry.adminName ?? "Unknown admin"} · {entry.targetType ?? "target"}</span>
+                    </div>
+                    <time dateTime={entry.createdAt} className="text-xs text-muted-foreground">{formatAdminDate(entry.createdAt)}</time>
+                  </li>
+                ))}
+              </ul>
             ) : (
               <p className="m-0 text-sm text-muted-foreground">No moderation activity yet.</p>
             )}

@@ -368,7 +368,7 @@ export interface Database {
       review_landlord_listing: { Args: { listing_id: string; decision: string; reason?: string | null }; Returns: boolean; };
       admin_dashboard_overview: { Args: Record<PropertyKey, never>; Returns: Json; };
       admin_list_properties: { Args: { p_status?: string | null; p_search?: string | null; p_limit?: number; p_offset?: number }; Returns: Json; };
-      review_property: { Args: { p_property_id: string; p_operation_id: string; p_decision: string; p_note: string | null; p_submission_draft_id?: string | null; p_submission_expected_revision?: number | null; p_document_decision?: string | null; p_require_field_verification?: boolean | null }; Returns: Json; };
+      review_property: { Args: { p_property_id: string; p_operation_id: string; p_decision: string; p_note: string | null; p_submission_draft_id?: string | null; p_submission_expected_revision?: number | null; p_document_decision?: string | null }; Returns: Json; };
       admin_set_property_lifecycle: { Args: { p_property_id: string; p_operation_id: string; p_action: 'unpublish' | 'restore'; p_reason: string }; Returns: Json; };
       admin_list_accounts: { Args: { p_role?: string | null; p_suspended?: boolean | null; p_search?: string | null; p_limit?: number; p_offset?: number }; Returns: Json; };
       admin_set_account_suspension: { Args: { p_target_user_id: string; p_operation_id: string; p_suspend: boolean; p_reason: string; p_unpublish_listings?: boolean }; Returns: Json; };

@@ -443,4 +443,97 @@ DO $$ BEGIN
   RAISE NOTICE 'PASS: All roles, verification, support, multi-unit and agreement assertions passed.';
 END $$;
 
+-- ============================================================================
+-- Test 8: Full Revised-Approved-Listing FVO Flow
+-- verifier_list_queue -> pre-FVO review_property rejected with serialization_failure
+-- -> storage.objects + verifier_submit_verification -> admin_list_properties
+-- -> review_property approved
+-- ============================================================================
+RESET ROLE;
+INSERT INTO public.property_drafts(id, owner_id, operation_id, payload, original_payload, revision)
+VALUES ('dd200000-0000-4000-8000-000000000001', 'bb100000-0000-4000-8000-000000000002', gen_random_uuid(), '{"property":{},"unit":{}}', '{"property":{},"unit":{}}', 2);
+
+INSERT INTO public.properties(id, landlord_id, title, description, property_type, street_address, barangay, city, coordinates, status)
+VALUES ('ee200000-0000-4000-8000-000000000001', 'bb100000-0000-4000-8000-000000000002', 'Revised Property', 'Updated description', 'boarding_house', 'Street 2', 'Apas', 'Cebu City', extensions.ST_SetSRID(extensions.ST_MakePoint(123.9, 10.3), 4326), 'approved');
+
+INSERT INTO public.rental_units(property_id, rental_type, monthly_rent) VALUES
+ ('ee200000-0000-4000-8000-000000000001', 'private_room', 5500);
+
+INSERT INTO public.property_submissions(owner_id, operation_id, draft_id, expected_revision, property_id, snapshot_payload, snapshot_media, review_status)
+VALUES (
+  'bb100000-0000-4000-8000-000000000002',
+  'ff200000-0000-4000-8000-000000000001',
+  'dd200000-0000-4000-8000-000000000001',
+  2,
+  'ee200000-0000-4000-8000-000000000001',
+  '{"property":{"title":"Revised Property v2"},"unit":{"rental_type":"private_room","monthly_rent":"6200"}}'::jsonb,
+  '[]',
+  'pending'
+);
+
+SET LOCAL ROLE authenticated;
+SELECT set_config('request.jwt.claim.sub', 'bb100000-0000-4000-8000-000000000003', true);
+
+-- 1. Pre-FVO review_property rejected with serialization_failure (require_verified_property_review)
+DO $$ BEGIN
+  BEGIN
+    PERFORM public.review_property('ee200000-0000-4000-8000-000000000001', gen_random_uuid(), 'approved', NULL, 'dd200000-0000-4000-8000-000000000001', 2);
+    RAISE EXCEPTION 'admin approval allowed without field verification on revised listing';
+  EXCEPTION WHEN serialization_failure THEN NULL; END;
+END $$;
+
+-- 2. Verifier lists queue and sees the property
+SELECT set_config('request.jwt.claim.sub', 'bb100000-0000-4000-8000-000000000004', true);
+DO $$ DECLARE q jsonb; BEGIN
+  q := public.verifier_list_queue('pending_verification', 'Revised Property', 10, 0);
+  IF jsonb_array_length(q) < 1 THEN RAISE EXCEPTION 'queue did not return revised pending verification'; END IF;
+END $$;
+
+-- 3. Seed storage.objects for field-verification-media with correct property ID segment
+RESET ROLE;
+INSERT INTO storage.objects (bucket_id, name, owner, owner_id)
+VALUES (
+  'field-verification-media',
+  'bb100000-0000-4000-8000-000000000004/ee200000-0000-4000-8000-000000000001/44444444-4444-4444-8444-444444444444/bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.jpg',
+  'bb100000-0000-4000-8000-000000000004',
+  'bb100000-0000-4000-8000-000000000004'
+)
+ON CONFLICT DO NOTHING;
+
+SET LOCAL ROLE authenticated;
+SELECT set_config('request.jwt.claim.sub', 'bb100000-0000-4000-8000-000000000004', true);
+
+-- 4. Verifier submits verification with proof
+SELECT public.verifier_submit_verification(
+  'ee200000-0000-4000-8000-000000000001', 'aa200000-0000-4000-8000-000000000001',
+  'dd200000-0000-4000-8000-000000000001', 2, 'verified', 'site_visit',
+  'Verified revised premises in person',
+  '[{"kind":"photo","object_path":"bb100000-0000-4000-8000-000000000004/ee200000-0000-4000-8000-000000000001/44444444-4444-4444-8444-444444444444/bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.jpg"}]'::jsonb
+);
+
+-- 5. Admin lists properties and sees verified status
+SELECT set_config('request.jwt.claim.sub', 'bb100000-0000-4000-8000-000000000003', true);
+DO $$ DECLARE props jsonb; BEGIN
+  props := public.admin_list_properties('pending', 'Revised Property', 10, 0);
+  IF jsonb_array_length(props) <> 1 THEN RAISE EXCEPTION 'admin_list_properties did not return revised property'; END IF;
+  IF (props->0->>'hasPendingRevision')::boolean IS NOT TRUE THEN RAISE EXCEPTION 'hasPendingRevision expected true, got %', props->0->>'hasPendingRevision'; END IF;
+  IF props->0->>'fieldVerificationStatus' <> 'verified' THEN RAISE EXCEPTION 'fieldVerificationStatus not verified in admin_list_properties: %', props->0->>'fieldVerificationStatus'; END IF;
+END $$;
+
+-- 6. Admin approves the revised listing and updated snapshot takes effect
+SELECT public.review_property('ee200000-0000-4000-8000-000000000001', gen_random_uuid(), 'approved', NULL, 'dd200000-0000-4000-8000-000000000001', 2);
+RESET ROLE;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM public.properties WHERE id = 'ee200000-0000-4000-8000-000000000001' AND status = 'approved' AND title = 'Revised Property v2') THEN
+    RAISE EXCEPTION 'approved revision did not update property title';
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM public.rental_units WHERE property_id = 'ee200000-0000-4000-8000-000000000001' AND NOT is_retired AND monthly_rent = 6200) THEN
+    RAISE EXCEPTION 'approved revision did not update unit monthly_rent';
+  END IF;
+END $$;
+
+DO $$ BEGIN
+  RAISE NOTICE 'PASS: Full revised-approved-listing FVO flow verified.';
+END $$;
+
 ROLLBACK;
