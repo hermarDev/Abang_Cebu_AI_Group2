@@ -136,6 +136,48 @@ describe("fetchLandlordPortfolio", () => {
     expect(result.items[0].hasPendingRevision).toBe(false);
   });
 
+  it("summarizes multi-unit property availability with counts and individual unit details", async () => {
+    const supabase = createMockSupabase();
+    mocks.properties.mockResolvedValue({
+      data: [
+        {
+          id: "prop-bh",
+          title: "Apas Boarding House",
+          description: "Rooms for rent",
+          property_type: "boarding_house",
+          street_address: "Apas",
+          city: "Cebu City",
+          status: "approved",
+          created_at: "2026-01-01",
+        },
+      ],
+      error: null,
+    });
+    mocks.units.mockResolvedValue({
+      data: [
+        { id: "u-1", property_id: "prop-bh", unit_number: "Room 1", rental_type: "private_room", monthly_rent: 4500, max_occupants: 1, is_available: true },
+        { id: "u-2", property_id: "prop-bh", unit_number: "Room 2", rental_type: "private_room", monthly_rent: 4500, max_occupants: 1, is_available: false },
+        { id: "u-3", property_id: "prop-bh", unit_number: "Room 3", rental_type: "private_room", monthly_rent: 5000, max_occupants: 2, is_available: true },
+      ],
+      error: null,
+    });
+
+    const result = await fetchLandlordPortfolio(supabase, "user-1");
+    const item = result.items[0];
+    expect(item.totalUnitsCount).toBe(3);
+    expect(item.availableUnitsCount).toBe(2);
+    expect(item.statusLabel).toBe("Published · 2 of 3 units available");
+    expect(item.units).toHaveLength(3);
+    expect(item.units?.[0]).toEqual({
+      id: "u-1",
+      unitNumber: "Room 1",
+      rentalType: "private_room",
+      monthlyRent: 4500,
+      maxOccupants: 1,
+      isAvailable: true,
+    });
+  });
+
   it("identifies hasPendingRevision when approved property has an active pending submission", async () => {
     const supabase = createMockSupabase();
     mocks.properties.mockResolvedValue({

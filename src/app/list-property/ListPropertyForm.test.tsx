@@ -202,6 +202,41 @@ describe("ListPropertyForm", () => {
     expect(button("Saving…")).toBeTruthy();
   });
 
+  it("renders multi-unit inputs and saves units in draft payload for boarding_house", async () => {
+    fields.propertyType = "boarding_house";
+    fields.price = "4500";
+    hooks.save.mockResolvedValueOnce({ draftId: "draft-bh", revision: 1 });
+    render();
+    const select = find((el) => el.props.name === "propertyType");
+    (select.props.onChange as (event: unknown) => void)({ target: { value: "boarding_house" } });
+    await settle();
+
+    const unitCountInput = find((el) => el.props.name === "unitCount");
+    expect(unitCountInput).toBeTruthy();
+    (unitCountInput.props.onChange as (event: unknown) => void)({ target: { value: "3" } });
+    await settle();
+
+    const renderedText = text(render());
+    expect(renderedText).toContain("Room 1");
+    expect(renderedText).toContain("Room 2");
+    expect(renderedText).toContain("Room 3");
+
+    (button("Save draft").props.onClick as () => void)();
+    await settle();
+    expect(hooks.save).toHaveBeenCalledWith(
+      expect.objectContaining({
+        values: expect.objectContaining({
+          units: expect.arrayContaining([
+            expect.objectContaining({ unitNumber: "Room 1" }),
+            expect.objectContaining({ unitNumber: "Room 2" }),
+            expect.objectContaining({ unitNumber: "Room 3" }),
+          ]),
+        }),
+      }),
+      expect.anything()
+    );
+  });
+
   it("handles HTTP 409 draft conflict by remaining on form without redirecting", async () => {
     hooks.save.mockResolvedValueOnce({ draftId: "draft-1", revision: 2 });
     submitReplies.push({ status: 409, body: { error: "This draft changed or was already submitted. Reload the draft before submitting.", code: "draft_conflict" } });

@@ -98,6 +98,49 @@ describe("MessagingInbox rendering", () => {
     expect(html).toContain("Unarchive");
   });
 
+  it("renders the in-chat dual-button mutual rental agreement bar for active threads", () => {
+    const activeThread = thread({
+      availableUnits: [
+        { id: "u1", unitNumber: "Room 1", isAvailable: true, monthlyRent: 4500 },
+        { id: "u2", unitNumber: "Room 2", isAvailable: false, monthlyRent: 5000 },
+      ],
+      agreement: {
+        status: "pending_both",
+        unitId: "u1",
+        renterAgreed: false,
+        landlordAgreed: false,
+      },
+    });
+
+    const renterHtml = render({ initialThreads: [activeThread], initialThreadId: "t1", userRole: "renter" });
+    expect(renterHtml).toContain("Rental Agreement");
+    expect(renterHtml).toContain("Room 1");
+    expect(renterHtml).toContain("Renter: Pending");
+    expect(renterHtml).toContain("Landlord: Pending");
+    expect(renterHtml).toContain("I Agree to Rent Room 1");
+
+    const landlordHtml = render({ initialThreads: [activeThread], initialThreadId: "t1", userRole: "landlord" });
+    expect(landlordHtml).toContain("I Agree to Rent Room 1 to this Renter");
+  });
+
+  it("renders emerald success banner when both have agreed", () => {
+    const agreedThread = thread({
+      agreement: {
+        status: "agreed",
+        unitId: "u1",
+        unitNumber: "Room 1",
+        bothAgreed: true,
+        renterAgreed: true,
+        landlordAgreed: true,
+        renterName: "Maria Santos",
+      },
+    });
+
+    const html = render({ initialThreads: [agreedThread], initialThreadId: "t1", userRole: "renter" });
+    expect(html).toContain("Rental Agreed");
+    expect(html).toContain("Room 1 is now rented");
+  });
+
   it("renders the modern inline composer with send icon and helper text", () => {
     const html = render({ initialThreads: [thread()], initialThreadId: "t1" });
     expect(html).toContain('aria-label="Send message"');
