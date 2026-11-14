@@ -2,7 +2,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@/components/ui/AppToaster", () => ({ notify: vi.fn() }));
-import { AccountRow, AdminAccountsManager, submitAccountChange, type AdminAccount } from "./AdminAccountsManager";
+import { AccountRow, AdminAccountsManager, CreateStaffAccountForm, submitAccountChange, type AdminAccount } from "./AdminAccountsManager";
 
 const landlord: AdminAccount = { id: "u1", fullName: "Lana Lord", role: "landlord", isSuspended: false, propertyCount: 4, livePropertyCount: 2, openReportCount: 1 };
 const respond = (status: number, body: unknown) => vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: status < 400, status, json: async () => body }));
@@ -55,5 +55,49 @@ describe("AdminAccountsManager", () => {
   it("renders Create Staff Account button", () => {
     const html = renderToStaticMarkup(<AdminAccountsManager userId="admin-a" />);
     expect(html).toContain("Create Staff Account");
+  });
+
+  it("renders staff creation form with neutral placeholders and 44px password toggle", () => {
+    const baseProps = {
+      role: "verification_officer",
+      onRoleChange: () => {},
+      fullName: "",
+      onFullNameChange: () => {},
+      email: "",
+      onEmailChange: () => {},
+      password: "",
+      onPasswordChange: () => {},
+      showPassword: false,
+      onToggleShowPassword: () => {},
+      saving: false,
+      error: null,
+      onCancel: () => {},
+      onSubmit: () => {},
+    };
+    const hiddenHtml = renderToStaticMarkup(<CreateStaffAccountForm {...baseProps} />);
+    expect(hiddenHtml).toContain('placeholder="Enter full name"');
+    expect(hiddenHtml).toContain('placeholder="Enter email address"');
+    expect(hiddenHtml).toContain('placeholder="Enter secure password"');
+    expect(hiddenHtml).not.toContain("Maria Santos");
+    expect(hiddenHtml).not.toContain("maria.santos");
+    expect(hiddenHtml).toContain('type="password"');
+    expect(hiddenHtml).toContain('aria-label="Show password"');
+    expect(hiddenHtml).toContain("size-11");
+    expect(hiddenHtml).toContain("pr-12");
+
+    const revealedHtml = renderToStaticMarkup(
+      <CreateStaffAccountForm
+        {...baseProps}
+        fullName="Staff User"
+        email="staff@abangcebu.ph"
+        password="Password123"
+        showPassword
+        error="Email already registered."
+      />
+    );
+    expect(revealedHtml).toContain('type="text"');
+    expect(revealedHtml).toContain('aria-label="Hide password"');
+    expect(revealedHtml).toContain('role="alert"');
+    expect(revealedHtml).toContain("Email already registered.");
   });
 });

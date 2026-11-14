@@ -89,6 +89,150 @@ const sortOptions = [
   { value: "reports_desc", label: "Most reports" },
 ];
 
+export type CreateStaffAccountFormProps = {
+  role: string;
+  onRoleChange: (value: string) => void;
+  fullName: string;
+  onFullNameChange: (value: string) => void;
+  email: string;
+  onEmailChange: (value: string) => void;
+  password: string;
+  onPasswordChange: (value: string) => void;
+  showPassword: boolean;
+  onToggleShowPassword: () => void;
+  saving: boolean;
+  error: string | null;
+  onCancel: () => void;
+  onSubmit: () => void;
+};
+
+export function CreateStaffAccountForm({
+  role,
+  onRoleChange,
+  fullName,
+  onFullNameChange,
+  email,
+  onEmailChange,
+  password,
+  onPasswordChange,
+  showPassword,
+  onToggleShowPassword,
+  saving,
+  error,
+  onCancel,
+  onSubmit,
+}: CreateStaffAccountFormProps) {
+  const invalid = !fullName.trim() || !email.trim() || password.length < 8;
+  return (
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        onSubmit();
+      }}
+      className="grid gap-4"
+    >
+      <div className="grid gap-1.5">
+        <label htmlFor="staff-role" className="text-sm font-medium text-foreground">
+          Staff role
+        </label>
+        <Select
+          id="staff-role"
+          aria-label="Staff role"
+          options={[
+            { value: "verification_officer", label: "Field Verification Officer" },
+            { value: "customer_support", label: "Customer Support" },
+          ]}
+          value={role}
+          onValueChange={onRoleChange}
+          disabled={saving}
+        />
+      </div>
+
+      <div className="grid gap-1.5">
+        <label htmlFor="staff-fullname" className="text-sm font-medium text-foreground">
+          Full name
+        </label>
+        <Input
+          id="staff-fullname"
+          aria-label="Full name"
+          placeholder="Enter full name"
+          autoComplete="name"
+          value={fullName}
+          onChange={(e) => onFullNameChange(e.target.value)}
+          disabled={saving}
+          required
+        />
+      </div>
+
+      <div className="grid gap-1.5">
+        <label htmlFor="staff-email" className="text-sm font-medium text-foreground">
+          Email address
+        </label>
+        <Input
+          id="staff-email"
+          type="email"
+          aria-label="Email address"
+          placeholder="Enter email address"
+          autoComplete="email"
+          value={email}
+          onChange={(e) => onEmailChange(e.target.value)}
+          disabled={saving}
+          required
+        />
+      </div>
+
+      <div className="grid gap-1.5">
+        <label htmlFor="staff-password" className="text-sm font-medium text-foreground">
+          Password (min 8 characters)
+        </label>
+        <div className="relative">
+          <Input
+            id="staff-password"
+            type={showPassword ? "text" : "password"}
+            aria-label="Password"
+            placeholder="Enter secure password"
+            autoComplete="new-password"
+            value={password}
+            onChange={(e) => onPasswordChange(e.target.value)}
+            disabled={saving}
+            className="pr-12"
+            required
+            minLength={8}
+          />
+          <button
+            type="button"
+            onClick={onToggleShowPassword}
+            className="absolute right-0 top-0 grid size-11 place-items-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+            aria-label={showPassword ? "Hide password" : "Show password"}
+          >
+            {showPassword ? <EyeOff size={19} aria-hidden="true" /> : <Eye size={19} aria-hidden="true" />}
+          </button>
+        </div>
+      </div>
+
+      {error && <Alert variant="error">{error}</Alert>}
+
+      <div className="flex flex-wrap justify-end gap-2 pt-2">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onCancel}
+          disabled={saving}
+        >
+          Cancel
+        </Button>
+        <Button
+          type="submit"
+          variant="primary"
+          disabled={saving || invalid}
+        >
+          {saving ? "Creating account…" : "Create staff account"}
+        </Button>
+      </div>
+    </form>
+  );
+}
+
 export function AdminAccountsManager({ userId, initialRole, initialStatus }: { userId: string; initialRole?: string; initialStatus?: string }) {
   const [role, setRole] = useState(known(roleOptions, initialRole));
   const [status, setStatus] = useState(known(statusOptions, initialStatus));
@@ -166,6 +310,7 @@ export function AdminAccountsManager({ userId, initialRole, initialStatus }: { u
     }
     notify("success", "admin-create-staff", "Staff account created successfully.");
     setStaffModalOpen(false);
+    setShowPassword(false);
     setStaffFullName("");
     setStaffEmail("");
     setStaffPassword("");
@@ -218,113 +363,27 @@ export function AdminAccountsManager({ userId, initialRole, initialStatus }: { u
 
     <Modal
       open={staffModalOpen}
-      onClose={() => { if (!staffSaving) setStaffModalOpen(false); }}
+      onClose={() => { if (!staffSaving) { setStaffModalOpen(false); setShowPassword(false); } }}
       title="Create Staff Account"
       description="Create a dedicated officer or support account. Role privileges are assigned immediately."
       className="max-h-[calc(100dvh-2rem)] lg:max-h-[85dvh] max-w-md overflow-y-auto"
     >
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          handleCreateStaff();
-        }}
-        className="grid gap-4"
-      >
-        <div className="grid gap-1.5">
-          <label htmlFor="staff-role" className="text-xs font-medium text-foreground">
-            Staff role
-          </label>
-          <Select
-            id="staff-role"
-            aria-label="Staff role"
-            options={[
-              { value: "verification_officer", label: "Field Verification Officer" },
-              { value: "customer_support", label: "Customer Support" },
-            ]}
-            value={staffRole}
-            onValueChange={setStaffRole}
-          />
-        </div>
-
-        <div className="grid gap-1.5">
-          <label htmlFor="staff-fullname" className="text-xs font-medium text-foreground">
-            Full name
-          </label>
-          <Input
-            id="staff-fullname"
-            aria-label="Full name"
-            placeholder="e.g. Maria Santos"
-            value={staffFullName}
-            onChange={(e) => setStaffFullName(e.target.value)}
-            disabled={staffSaving}
-            required
-          />
-        </div>
-
-        <div className="grid gap-1.5">
-          <label htmlFor="staff-email" className="text-xs font-medium text-foreground">
-            Email address
-          </label>
-          <Input
-            id="staff-email"
-            type="email"
-            aria-label="Email address"
-            placeholder="e.g. maria.santos@abangcebu.ph"
-            value={staffEmail}
-            onChange={(e) => setStaffEmail(e.target.value)}
-            disabled={staffSaving}
-            required
-          />
-        </div>
-
-        <div className="grid gap-1.5">
-          <label htmlFor="staff-password" className="text-xs font-medium text-foreground">
-            Password (min 8 characters)
-          </label>
-          <div className="relative">
-            <Input
-              id="staff-password"
-              type={showPassword ? "text" : "password"}
-              aria-label="Password"
-              placeholder="Enter secure password"
-              value={staffPassword}
-              onChange={(e) => setStaffPassword(e.target.value)}
-              disabled={staffSaving}
-              className="pr-10"
-              required
-              minLength={8}
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-muted-foreground hover:text-foreground"
-              aria-label={showPassword ? "Hide password" : "Show password"}
-            >
-              {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-            </button>
-          </div>
-        </div>
-
-        {staffError && <Alert variant="error">{staffError}</Alert>}
-
-        <div className="flex flex-wrap justify-end gap-2 pt-2">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => setStaffModalOpen(false)}
-            disabled={staffSaving}
-          >
-            Cancel
-          </Button>
-          <Button
-            type="submit"
-            variant="primary"
-            disabled={staffSaving || !staffFullName.trim() || !staffEmail.trim() || staffPassword.length < 8}
-          >
-            {staffSaving ? "Creating account…" : "Create staff account"}
-          </Button>
-        </div>
-      </form>
+      <CreateStaffAccountForm
+        role={staffRole}
+        onRoleChange={setStaffRole}
+        fullName={staffFullName}
+        onFullNameChange={setStaffFullName}
+        email={staffEmail}
+        onEmailChange={setStaffEmail}
+        password={staffPassword}
+        onPasswordChange={setStaffPassword}
+        showPassword={showPassword}
+        onToggleShowPassword={() => setShowPassword((prev) => !prev)}
+        saving={staffSaving}
+        error={staffError}
+        onCancel={() => { if (!staffSaving) { setStaffModalOpen(false); setShowPassword(false); } }}
+        onSubmit={handleCreateStaff}
+      />
     </Modal>
 
     <Modal
