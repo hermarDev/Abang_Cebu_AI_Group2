@@ -26,6 +26,17 @@ describe("account map attribution", () => {
     fixture.profile = null;
   });
 
+  it.each([
+    ["customer_support", "/support-desk/dashboard", "Back to support workspace"],
+    ["verification_officer", "/verification/dashboard", "Back to verification workspace"],
+  ])("returns %s to its workspace", async (role, href, label) => {
+    fixture.profile = { full_name: "Staff", phone_number: null, role, avatar_url: null };
+    const html = renderToStaticMarkup(await AccountPage());
+    expect(html).toContain(`href="${href}"`);
+    expect(html).toContain(label);
+    fixture.profile = null;
+  });
+
   it("renders a neutral background without a map or credits", async () => {
     for (const style of ["/styles/osm.json", "https://example.test/custom-style.json"]) {
       vi.stubEnv("NEXT_PUBLIC_MAP_STYLE_URL", style);
