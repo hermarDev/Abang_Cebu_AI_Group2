@@ -157,7 +157,7 @@ export function SupportDeskWorkspaceLayout({
           <div className="flex shrink-0 items-center gap-1 sm:gap-2">
             {actions}
             <NotificationBell userId={userId} userRole="customer_support" />
-            <AccountMenu displayName={displayName} avatarUrl={avatarUrl} role="Support" variant="header" />
+            <AccountMenu displayName={displayName} avatarUrl={avatarUrl} role="customer_support" variant="header" />
           </div>
         </div>
       </header>

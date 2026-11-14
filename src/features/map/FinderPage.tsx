@@ -21,7 +21,7 @@ export async function FinderPage({ initialErrorMessage, verifiedSession }: { ini
     const metadataName = [user.user_metadata.full_name, user.user_metadata.name].find((value): value is string => typeof value === "string" && Boolean(value.trim()));
     displayName = profile?.full_name?.trim() || (typeof metadataName === "string" ? metadataName.trim() : null) || user.email?.split("@")[0] || null;
     avatarUrl = await signProfileAvatar(user.id, profile?.avatar_url);
-    if (profile?.role === "renter" || profile?.role === "landlord" || profile?.role === "admin") userRole = profile.role;
+    if (profile?.role === "renter" || profile?.role === "landlord" || profile?.role === "admin" || profile?.role === "verification_officer" || profile?.role === "customer_support") userRole = profile.role;
   }
 
   return <RestoredFinderShell authenticated={authenticated} userRole={userRole} userId={authenticated ? user?.id ?? null : null} displayName={displayName} avatarUrl={avatarUrl} initialAccountOpen={Boolean(initialErrorMessage)} initialErrorMessage={initialErrorMessage} />;

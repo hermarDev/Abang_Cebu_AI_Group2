@@ -53,7 +53,7 @@ export function AccountMenu({
     }
   };
 
-  const formattedRole = role ? (role.charAt(0).toUpperCase() + role.slice(1).toLowerCase()) : null;
+  const formattedRole = role === "verification_officer" ? "Field Verification Officer" : role === "customer_support" ? "Customer Support" : role ? (role.charAt(0).toUpperCase() + role.slice(1).toLowerCase()) : null;
   const labelText = displayName ? `Account options for ${displayName}` : "Account options";
 
   if (variant === "sidebar") {
