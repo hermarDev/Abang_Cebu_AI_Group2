@@ -3,6 +3,17 @@ import { describe, expect, it } from "vitest";
 import { AccountMenu } from "./AccountMenu";
 
 describe("AccountMenu", () => {
+  it.each([
+    ["verification_officer", "Field Verification Officer"],
+    ["customer_support", "Customer Support"],
+  ])("renders %s as %s in both menu variants", (role, label) => {
+    for (const variant of ["header", "sidebar"] as const) {
+      const html = renderToStaticMarkup(<AccountMenu role={role} variant={variant} />);
+      expect(html).toContain(label);
+      expect(html).not.toContain("Renter");
+    }
+  });
+
   it("renders header variant with trigger, identity row, settings and logout links", () => {
     const html = renderToStaticMarkup(
       <AccountMenu
