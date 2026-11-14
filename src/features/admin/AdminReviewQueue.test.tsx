@@ -23,7 +23,7 @@ vi.mock("react", async (original) => {
 vi.mock("@/components/ui/AppToaster", () => ({ notify: vi.fn() }));
 import { AdminReviewQueue, actionsFor, PropertyDetails, ReviewCard, statusLabel, submitReviewAction, type AdminProperty } from "./AdminReviewQueue";
 
-const property: AdminProperty = { id: "p1", title: "Lahug room", status: "pending", monthlyRent: 5000, landlordName: "Lana Lord", barangay: "Lahug", city: "Cebu City", submissionDraftId: "d1", submissionExpectedRevision: 3, photoUrls: ["https://x/photo.jpg"], permitUrls: ["https://x/permit.pdf"], moderationNote: "Earlier note", description: "Bright room near IT Park", propertyType: "apartment", rentalType: "whole_unit", floorAreaSqm: 24, maxOccupants: 2, streetAddress: "1 Salinas Dr", postalCode: "6000", latitude: 10.33, longitude: 123.9 };
+const property: AdminProperty = { id: "p1", title: "Lahug room", status: "pending", monthlyRent: 5000, landlordName: "Lana Lord", barangay: "Lahug", city: "Cebu City", submissionDraftId: "d1", submissionExpectedRevision: 3, photoUrls: ["https://x/photo.jpg"], permitUrls: ["https://x/permit.pdf"], fieldVerificationStatus: "verified", moderationNote: "Earlier note", description: "Bright room near IT Park", propertyType: "apartment", rentalType: "whole_unit", floorAreaSqm: 24, maxOccupants: 2, streetAddress: "1 Salinas Dr", postalCode: "6000", latitude: 10.33, longitude: 123.9 };
 const ctx = (action: "approve" | "reject" | "unpublish" | "restore", p = property) => ({ property: p, action, operationId: "op-1" });
 const respond = (status: number, body: unknown) => vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: status < 400, status, json: async () => body }));
 
@@ -148,6 +148,7 @@ describe("reviewChecklist", () => {
     expect(empty.find((c) => c.label === "Monthly rent")?.ok).toBe(false);
     expect(empty.find((c) => c.label === "Photos")?.ok).toBe(false);
     expect(empty.find((c) => c.label === "Permit documents")?.ok).toBe(false);
+    expect(empty.find((c) => c.label === "Field verification")?.ok).toBe(false);
 
     const full = reviewChecklist({
       id: "p-full", status: "pending",
@@ -158,7 +159,32 @@ describe("reviewChecklist", () => {
       monthlyRent: 8000,
       photoUrls: ["https://x/p1.jpg"],
       permitUrls: ["https://x/permit.pdf"],
+      fieldVerificationStatus: "verified",
     });
     expect(full.every((c) => c.ok)).toBe(true);
+  });
+
+  it("renders Field Verification status pill and details in inspection modal", () => {
+    const unverifiedProperty: AdminProperty = {
+      ...property,
+      fieldVerificationStatus: "pending_verification",
+    };
+    const unverifiedHtml = renderToStaticMarkup(<PropertyDetails property={unverifiedProperty} />);
+    expect(unverifiedHtml).toContain("Awaiting Field Verification");
+
+    const verifiedProperty: AdminProperty = {
+      ...property,
+      fieldVerificationStatus: "verified",
+      fieldVerificationMethod: "site_visit",
+      fieldVerificationNotes: "Building inspected in person. Safety guidelines met.",
+      fieldVerificationProof: [
+        { kind: "photo", object_path: "p/1.jpg", signedUrl: "https://x/proof.jpg" },
+      ],
+    };
+    const verifiedHtml = renderToStaticMarkup(<PropertyDetails property={verifiedProperty} />);
+    expect(verifiedHtml).toContain("Field Verified");
+    expect(verifiedHtml).toContain("Site visit");
+    expect(verifiedHtml).toContain("Building inspected in person.");
+    expect(verifiedHtml).toContain("https://x/proof.jpg");
   });
 });

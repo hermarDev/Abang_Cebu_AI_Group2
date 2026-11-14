@@ -50,6 +50,14 @@ export type AdminProperty = {
   permitExemptionReason?: string | null;
   documentCategories?: string | null;
   documentApplicabilityDecision?: string | null;
+  fieldVerificationStatus?: string | null;
+  fieldVerifiedBy?: string | null;
+  fieldVerifiedAt?: string | null;
+  fieldVerificationMethod?: string | null;
+  fieldVerificationNotes?: string | null;
+  fieldVerificationProof?: Array<{ kind: string; object_path: string; signedUrl?: string | null }> | null;
+  fieldVerificationProxyName?: string | null;
+  fieldVerificationProxyRelationship?: string | null;
 };
 
 export type PendingRevision = {
@@ -119,12 +127,14 @@ const peso = new Intl.NumberFormat("en-PH", { style: "currency", currency: "PHP"
 
 export function reviewChecklist(p: AdminProperty): Array<{ label: string; ok: boolean; detail: string }> {
   const address = [p.streetAddress, p.barangay, p.city].filter(Boolean).join(", ");
+  const isFieldVerified = p.fieldVerificationStatus === "verified";
   return [
     { label: "Address", ok: Boolean(p.streetAddress && p.city), detail: address || "Missing street address or city" },
     { label: "Location pin", ok: typeof p.latitude === "number" && typeof p.longitude === "number", detail: typeof p.latitude === "number" && typeof p.longitude === "number" ? `${p.latitude}, ${p.longitude}` : "No coordinates" },
     { label: "Monthly rent", ok: typeof p.monthlyRent === "number" && p.monthlyRent > 0, detail: typeof p.monthlyRent === "number" && p.monthlyRent > 0 ? peso.format(p.monthlyRent) : "Not set" },
     { label: "Photos", ok: Boolean(p.photoUrls?.length), detail: p.photoUrls?.length ? `${p.photoUrls.length} submitted` : "None submitted" },
     { label: "Permit documents", ok: Boolean(p.permitUrls?.length), detail: p.permitUrls?.length ? `${p.permitUrls.length} file(s) to inspect` : "None uploaded. This view does not show the landlord's residential exemption declaration." },
+    { label: "Field verification", ok: isFieldVerified, detail: isFieldVerified ? "Field verified by officer" : p.fieldVerificationStatus === "flagged" ? "Flagged by officer" : "Awaiting field verification" },
   ];
 }
 
@@ -237,6 +247,73 @@ export function PropertyDetails({
           The live listing remains visible to renters while this revision awaits review.
         </Alert>
       )}
+
+      {/* Field Verification Officer status banner */}
+      <div className="rounded-xl border border-border bg-card p-4 space-y-2">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            Field verification
+          </span>
+          <Badge
+            variant={
+              property.fieldVerificationStatus === "verified"
+                ? "default"
+                : property.fieldVerificationStatus === "flagged"
+                  ? "destructive"
+                  : "warning"
+            }
+          >
+            {property.fieldVerificationStatus === "verified"
+              ? "Field Verified"
+              : property.fieldVerificationStatus === "flagged"
+                ? "Flagged"
+                : "Awaiting Field Verification"}
+          </Badge>
+        </div>
+
+        {property.fieldVerificationStatus === "verified" && (
+          <div className="space-y-1 text-xs text-muted-foreground pt-1 border-t border-border/60">
+            <p className="m-0 font-medium text-foreground">
+              Method: {property.fieldVerificationMethod === "site_visit" ? "Site visit" : property.fieldVerificationMethod === "video_call" ? "Video call" : "Proxy meeting"}
+            </p>
+            {property.fieldVerificationNotes && (
+              <p className="m-0 whitespace-pre-wrap break-words">{property.fieldVerificationNotes}</p>
+            )}
+            {property.fieldVerificationProxyName && (
+              <p className="m-0">
+                Proxy: {property.fieldVerificationProxyName} ({property.fieldVerificationProxyRelationship})
+              </p>
+            )}
+            {Array.isArray(property.fieldVerificationProof) && property.fieldVerificationProof.length > 0 && (
+              <div className="pt-1">
+                <span className="font-medium text-foreground">Proof documents/photos:</span>
+                <ul className="m-0 mt-1 flex flex-wrap gap-2 p-0 list-none">
+                  {property.fieldVerificationProof.map((proof, idx) => (
+                    <li key={proof.object_path || idx}>
+                      <a
+                        href={proof.signedUrl || "#"}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex min-h-9 items-center gap-1.5 text-action underline"
+                      >
+                        <FileText size={14} aria-hidden="true" />
+                        Proof {idx + 1} ({proof.kind})
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        )}
+
+        {property.fieldVerificationStatus === "flagged" && (
+          <div className="text-xs text-destructive pt-1 border-t border-border/60">
+            <p className="m-0 font-medium">Officer flagged issues with this submission.</p>
+            {property.fieldVerificationNotes && <p className="m-0 mt-1">{property.fieldVerificationNotes}</p>}
+          </div>
+        )}
+      </div>
       <p className="m-0 whitespace-pre-wrap break-words text-sm">{description ?? "No description provided."}</p>
       <dl className="m-0 grid grid-cols-[auto_minmax(0,1fr)] gap-x-3 gap-y-1 text-sm">
         {rows.map(([label, value]) => <div key={label} className="contents"><dt className="font-medium text-muted-foreground">{label}</dt><dd className="m-0 break-words">{value ?? "—"}</dd></div>)}
@@ -314,7 +391,21 @@ export function ReviewCard({ property, onAction, onInspect }: { property: AdminP
     {property.moderationNote && <p className="m-0 rounded-lg bg-muted p-2 text-sm">Moderation note: {property.moderationNote}</p>}
     <div className="flex flex-wrap gap-2 pt-1 border-t border-border/60">
       <Button size="sm" variant="outline" onClick={() => onInspect(property)}>Inspect details & permits</Button>
-      {actionsFor(property.status).map((action) => <Button key={action} size="sm" variant={action === "approve" ? "primary" : "outline"} onClick={() => onAction(property, action)}>{actionCopy[action].button}</Button>)}
+      {actionsFor(property.status).map((action) => {
+        const isApproveBlocked = action === "approve" && property.fieldVerificationStatus !== "verified";
+        return (
+          <Button
+            key={action}
+            size="sm"
+            variant={action === "approve" ? "primary" : "outline"}
+            disabled={isApproveBlocked}
+            title={isApproveBlocked ? "Field verification must be completed before approval" : undefined}
+            onClick={() => onAction(property, action)}
+          >
+            {actionCopy[action].button}
+          </Button>
+        );
+      })}
     </div>
   </article>;
 }

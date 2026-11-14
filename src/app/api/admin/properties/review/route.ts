@@ -45,7 +45,12 @@ export async function POST(request: Request) {
   }
   const { data, error } = result;
   if (error?.code === "23505") return reply("This review operation conflicts with an earlier attempt.", 409);
-  if (error?.code === "40001") return reply("This property changed after it was submitted. Reload and review the current submission.", 409);
+  if (error?.code === "40001") {
+    if (error?.message && error.message.includes("field verification required")) {
+      return reply("Field verification is required before admin approval can be granted.", 409);
+    }
+    return reply("This property changed after it was submitted. Reload and review the current submission.", 409);
+  }
   if (error?.code === "42501" || error?.code === "22023") return reply("This property is not pending review.", 409);
   if (error) return reply("The review could not be saved. Please retry.", 503);
   if (!data || typeof data !== "object" || !("status" in data)) return reply("Review could not be confirmed. Please retry.", 503);

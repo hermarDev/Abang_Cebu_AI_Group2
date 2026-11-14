@@ -110,10 +110,11 @@ BEGIN
   END IF;
 
   -- Verification requires proof objects with valid kind and storage paths
-  IF p_status = 'verified' THEN
-    IF pg_catalog.jsonb_array_length(v_proof) < 1 THEN
-      RAISE EXCEPTION 'verification requires at least one proof item' USING ERRCODE = '22023';
-    END IF;
+  IF p_status = 'verified' AND pg_catalog.jsonb_array_length(v_proof) < 1 THEN
+    RAISE EXCEPTION 'verification requires at least one proof item' USING ERRCODE = '22023';
+  END IF;
+
+  IF pg_catalog.jsonb_array_length(v_proof) > 0 THEN
     FOR v_proof_elem IN SELECT * FROM pg_catalog.jsonb_array_elements(v_proof) LOOP
       IF pg_catalog.jsonb_typeof(v_proof_elem) <> 'object'
          OR v_proof_elem->>'kind' IS NULL OR v_proof_elem->>'kind' NOT IN ('photo','document','meeting_minutes')

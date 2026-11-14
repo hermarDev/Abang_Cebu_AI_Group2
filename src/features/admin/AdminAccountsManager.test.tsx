@@ -51,4 +51,9 @@ describe("AdminAccountsManager", () => {
     );
     expect(html).toContain("Inspect account");
   });
+
+  it("renders Create Staff Account button", () => {
+    const html = renderToStaticMarkup(<AdminAccountsManager userId="admin-a" />);
+    expect(html).toContain("Create Staff Account");
+  });
 });

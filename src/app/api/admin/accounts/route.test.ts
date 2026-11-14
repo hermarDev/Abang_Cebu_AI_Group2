@@ -1,7 +1,18 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const mocks = vi.hoisted(() => ({ getUser: vi.fn(), profile: vi.fn(), rpc: vi.fn(), createSignedUrls: vi.fn() }));
-vi.mock("@/lib/supabase/admin", () => ({ createAdminClient: () => ({ storage: { from: () => ({ createSignedUrls: mocks.createSignedUrls }) } }) }));
+const mocks = vi.hoisted(() => ({
+  getUser: vi.fn(),
+  profile: vi.fn(),
+  rpc: vi.fn(),
+  createSignedUrls: vi.fn(),
+  createUser: vi.fn(),
+}));
+vi.mock("@/lib/supabase/admin", () => ({
+  createAdminClient: () => ({
+    storage: { from: () => ({ createSignedUrls: mocks.createSignedUrls }) },
+    auth: { admin: { createUser: mocks.createUser } },
+  }),
+}));
 vi.mock("@/lib/supabase/server", () => ({ createClient: async () => ({
   auth: { getUser: mocks.getUser },
   rpc: mocks.rpc,
@@ -16,6 +27,7 @@ function setup() {
   mocks.profile.mockResolvedValue({ data: { role: "admin", is_suspended: false }, error: null });
   mocks.rpc.mockResolvedValue({ data: [], error: null });
   mocks.createSignedUrls.mockResolvedValue({ data: [], error: null });
+  mocks.createUser.mockResolvedValue({ data: { user: { id: "new-user-1" } }, error: null });
 }
 const guardCases = (call: (headers?: Record<string, string>) => Promise<Response>) => {
   it("401 unauthenticated", async () => {
@@ -91,5 +103,61 @@ describe("POST /api/admin/accounts", () => {
     const res = await post(valid);
     expect(res.status).toBe(429);
     expect(res.headers.get("Retry-After")).toBeTruthy();
+  });
+
+  describe("staff creation (action = create_staff)", () => {
+    const validStaff = {
+      action: "create_staff",
+      operationId: B,
+      role: "verification_officer",
+      fullName: "Officer Jane Doe",
+      email: "jane.doe@example.com",
+      password: "StrongPassword123!",
+    };
+
+    it("returns 400 for missing or invalid staff fields", async () => {
+      const res = await post({ ...validStaff, email: "not-an-email" });
+      expect(res.status).toBe(400);
+      expect(mocks.createUser).not.toHaveBeenCalled();
+    });
+
+    it("returns 400 for password less than 8 chars", async () => {
+      const res = await post({ ...validStaff, password: "short" });
+      expect(res.status).toBe(400);
+    });
+
+    it("returns 400 for invalid role", async () => {
+      const res = await post({ ...validStaff, role: "admin" });
+      expect(res.status).toBe(400);
+    });
+
+    it("creates staff user and assigns role via RPC", async () => {
+      mocks.rpc.mockResolvedValue({ data: { success: true }, error: null });
+      const res = await post(validStaff);
+      expect(res.status).toBe(200);
+      expect(mocks.createUser).toHaveBeenCalledWith({
+        email: "jane.doe@example.com",
+        password: "StrongPassword123!",
+        email_confirm: true,
+        user_metadata: { full_name: "Officer Jane Doe", role: "verification_officer" },
+      });
+      expect(mocks.rpc).toHaveBeenCalledWith("admin_assign_staff_role", {
+        p_target_user_id: "new-user-1",
+        p_operation_id: B,
+        p_role: "verification_officer",
+        p_full_name: "Officer Jane Doe",
+      });
+    });
+
+    it("returns 400 when auth.admin.createUser fails", async () => {
+      mocks.createUser.mockResolvedValue({
+        data: null,
+        error: { message: "A user with this email address already exists" },
+      });
+      const res = await post(validStaff);
+      expect(res.status).toBe(400);
+      const json = await res.json();
+      expect(json.error).toContain("A user with this email address already exists");
+    });
   });
 });
