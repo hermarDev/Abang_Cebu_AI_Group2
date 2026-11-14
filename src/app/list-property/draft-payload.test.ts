@@ -110,4 +110,23 @@ describe("property draft payload", () => {
     const restored = restoreDraftValues(payload);
     expect(restored).toEqual(values);
   });
+  it("stores and round-trips multi-unit boarding house units in draft payload", () => {
+    const values = {
+      title: "Apas Boarding House", description: "Rooms near IT park", propertyType: "boarding_house", rentalType: "private_room",
+      price: "4500", address: "123 Apas", barangay: "Apas", city: "Cebu City",
+      bathroomType: "shared", maxOccupants: "1", amenities: ["wifi"],
+      permitApplicability: "required", permitNumber: "BP-001", permitLgu: "Cebu City", permitExpiresOn: "2027-12-31", permitNotRequiredConfirmed: false, tenantPolicy: "any", location: null,
+      units: [
+        { unitNumber: "Room 1", monthlyRent: "4500", maxOccupants: "1", rentalType: "private_room" },
+        { unitNumber: "Room 2", monthlyRent: "5000", maxOccupants: "2", rentalType: "private_room" },
+      ],
+    };
+    const payload = createDraftPayload(values);
+    expect(payload.units).toEqual([
+      { unit_number: "Room 1", monthly_rent: "4500", max_occupants: "1", rental_type: "private_room" },
+      { unit_number: "Room 2", monthly_rent: "5000", max_occupants: "2", rental_type: "private_room" },
+    ]);
+    const restored = restoreDraftValues(payload);
+    expect(restored.units).toEqual(values.units);
+  });
 });

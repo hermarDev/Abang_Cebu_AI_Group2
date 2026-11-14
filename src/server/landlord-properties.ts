@@ -58,6 +58,15 @@ export function amenityLabels(value: unknown): string[] {
     .filter(Boolean);
 }
 
+export type ManagedUnit = {
+  id: string;
+  unitNumber: string;
+  rentalType: string;
+  monthlyRent: number | null;
+  maxOccupants: number | null;
+  isAvailable: boolean;
+};
+
 export type LandlordManagedProperty = {
   id: string;
   title: string;
@@ -67,6 +76,9 @@ export type LandlordManagedProperty = {
   price: number | null;
   isAvailable: boolean;
   availabilityKnown?: boolean;
+  totalUnitsCount?: number;
+  availableUnitsCount?: number;
+  units?: ManagedUnit[];
   /** unified status: "published" | "pending" | "rejected" | "draft" | "archived" */
   status: "published" | "pending" | "rejected" | "draft" | "archived";
   statusLabel: string;
@@ -146,7 +158,15 @@ export async function fetchLandlordPortfolio(
 
   const propertyIds = (properties ?? []).map((p) => p.id);
   let unitsError = false;
-  const units: { property_id: string; monthly_rent: number | null; is_available: boolean }[] = [];
+  const units: {
+    id: string;
+    property_id: string;
+    unit_number: string | null;
+    rental_type: string | null;
+    monthly_rent: number | null;
+    max_occupants: number | null;
+    is_available: boolean;
+  }[] = [];
 
   if (propertyIds.length) {
     const UNIT_BATCH_SIZE = 100;
@@ -154,7 +174,7 @@ export async function fetchLandlordPortfolio(
       const chunk = propertyIds.slice(i, i + UNIT_BATCH_SIZE);
       const unitsRes = await supabase
         .from("rental_units")
-        .select("property_id,monthly_rent,is_available")
+        .select("id,property_id,unit_number,rental_type,monthly_rent,max_occupants,is_available")
         .in("property_id", chunk);
       if (unitsRes.error) {
         unitsError = true;
@@ -212,7 +232,10 @@ export async function fetchLandlordPortfolio(
 
   // 1. Submitted properties (approved/published, pending, rejected, archived)
   for (const p of properties ?? []) {
-    const unit = units.find((u) => u.property_id === p.id);
+    const propUnits = units.filter((u) => u.property_id === p.id);
+    const totalUnitsCount = propUnits.length;
+    const availableUnitsCount = propUnits.filter((u) => u.is_available).length;
+    const unit = propUnits[0];
     const sub = activeSubmissions.get(p.id);
     const target = draftTargets.get(p.id);
     const photos = photoPaths(sub, userId).map((path) => signed.get(path)).filter((u): u is string => Boolean(u));
@@ -229,6 +252,12 @@ export async function fetchLandlordPortfolio(
       if (!availabilityKnown) {
         statusLabel = "Published · Availability unknown";
         isAvailable = false;
+      } else if (totalUnitsCount > 1) {
+        isAvailable = availableUnitsCount > 0;
+        statusLabel =
+          availableUnitsCount > 0
+            ? `Published · ${availableUnitsCount} of ${totalUnitsCount} units available`
+            : `Occupied · 0 of ${totalUnitsCount} available`;
       } else {
         isAvailable = unit?.is_available ?? false;
         statusLabel = unit?.is_available ? "Published · Available" : "Published · Unavailable";
@@ -246,6 +275,15 @@ export async function fetchLandlordPortfolio(
         ? `/list-property?draftId=${encodeURIComponent(target.draftId)}&revision=${target.revision}${status === "published" ? "&lockedLocation=1" : ""}`
         : null;
 
+    const mappedUnits: ManagedUnit[] = propUnits.map((u, idx) => ({
+      id: u.id,
+      unitNumber: u.unit_number || `Room ${idx + 1}`,
+      rentalType: u.rental_type || "private_room",
+      monthlyRent: typeof u.monthly_rent === "number" ? u.monthly_rent : null,
+      maxOccupants: typeof u.max_occupants === "number" ? u.max_occupants : null,
+      isAvailable: Boolean(u.is_available),
+    }));
+
     items.push({
       id: p.id,
       title: p.title || "Untitled property",
@@ -255,6 +293,9 @@ export async function fetchLandlordPortfolio(
       price: typeof unit?.monthly_rent === "number" ? unit.monthly_rent : null,
       isAvailable,
       availabilityKnown,
+      totalUnitsCount: totalUnitsCount > 1 ? totalUnitsCount : undefined,
+      availableUnitsCount: totalUnitsCount > 1 ? availableUnitsCount : undefined,
+      units: mappedUnits.length > 0 ? mappedUnits : undefined,
       status,
       statusLabel,
       hasPendingRevision,

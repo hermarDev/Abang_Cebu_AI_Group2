@@ -1,6 +1,22 @@
 import { normalizeApiError, type ApiErrorKind } from "@/lib/api-error";
 
 export type ThreadCounterpart = { id: string; fullName: string | null; avatarUrl: string | null; role: "renter" | "landlord" | "admin"; isSuspended?: boolean };
+export type RentalThreadAgreement = {
+  id?: string;
+  unitId?: string | null;
+  unitNumber?: string | null;
+  status?: "pending_both" | "renter_agreed" | "landlord_agreed" | "agreed" | "cancelled";
+  renterAgreed?: boolean;
+  landlordAgreed?: boolean;
+  bothAgreed?: boolean;
+  renterName?: string | null;
+};
+export type RentalThreadUnit = {
+  id: string;
+  unitNumber: string;
+  isAvailable: boolean;
+  monthlyRent?: number;
+};
 export type RentalThreadSummary = {
   id: string;
   listingSource?: string;
@@ -24,6 +40,8 @@ export type RentalThreadSummary = {
   lastMessagePreview: string | null;
   lastMessageAt: string | null;
   createdAt?: string;
+  agreement?: RentalThreadAgreement | null;
+  availableUnits?: RentalThreadUnit[];
 };
 export type RentalThreadDetail = RentalThreadSummary;
 export type RentalMessageAttachment = {
@@ -173,6 +191,36 @@ export async function uploadMessageAttachment(
 }
 
 export type InquiryIntent = { operationId: string; listingId: string; body: string };
+
+export type AgreementConsentResponse = {
+  agreement: {
+    agreementId: string;
+    unitId: string | null;
+    status: "pending_both" | "renter_agreed" | "landlord_agreed" | "agreed" | "cancelled";
+    renterAgreed?: boolean;
+    landlordAgreed?: boolean;
+    bothAgreed?: boolean;
+  };
+};
+
+export async function setRentalAgreementConsent(
+  threadId: string,
+  userId: string,
+  operationId: string,
+  agree: boolean,
+  unitId?: string | null,
+  fetchImpl: typeof fetch = fetch
+): Promise<AgreementConsentResponse> {
+  return apiJson<AgreementConsentResponse>(
+    `/api/messages/threads/${encodeURIComponent(threadId)}/agreement`,
+    userId,
+    {
+      method: "POST",
+      body: JSON.stringify({ operationId, agree, unitId: unitId ?? null }),
+    },
+    fetchImpl
+  );
+}
 
 /** One POST per intent; the same operationId on retry lets the server dedupe an inquiry that actually landed. */
 export async function postListingInquiry(userId: string, { listingId, operationId, body }: InquiryIntent, fetchImpl: typeof fetch = fetch) {

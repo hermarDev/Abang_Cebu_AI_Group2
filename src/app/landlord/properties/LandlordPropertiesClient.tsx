@@ -17,6 +17,7 @@ import type { LandlordManagedProperty, LandlordPortfolioErrors } from "@/server/
 import { formatListingAddress, formatPropertyType } from "@/features/landlord/property-display";
 import { PropertyDetailsSheet } from "@/features/rentals/PropertyDetailsSheet";
 import type { RentalResult } from "@/contracts/preview";
+import { createClient } from "@/lib/supabase/client";
 
 type TabKey = "all" | "published" | "pending" | "rejected" | "draft" | "archived";
 
@@ -70,6 +71,26 @@ export function LandlordPropertiesClient({
   const [activeTab, setActiveTab] = useState<TabKey>(initialTab);
   const prevSearchKeyRef = useRef(searchKey);
   const [selectedProperty, setSelectedProperty] = useState<LandlordManagedProperty | null>(null);
+  const [unitAvailability, setUnitAvailability] = useState<Record<string, boolean>>({});
+  const [togglingUnitId, setTogglingUnitId] = useState<string | null>(null);
+
+  const handleToggleUnit = async (unitId: string, currentAvailable: boolean) => {
+    setTogglingUnitId(unitId);
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.rpc("landlord_set_unit_availability", {
+        p_unit_id: unitId,
+        p_is_available: !currentAvailable,
+      });
+      if (!error) {
+        setUnitAvailability((prev) => ({ ...prev, [unitId]: !currentAvailable }));
+      }
+    } catch {
+      // ignore
+    } finally {
+      setTogglingUnitId(null);
+    }
+  };
 
   useEffect(() => {
     if (prevSearchKeyRef.current === searchKey) return;
@@ -302,6 +323,38 @@ export function LandlordPropertiesClient({
                     <div className="mt-2 break-words rounded-lg border border-destructive/30 bg-destructive/10 p-2 text-xs text-foreground">
                       <span className="font-semibold text-destructive">Feedback: </span>
                       {property.rejectionReason}
+                    </div>
+                  )}
+
+                  {property.units && property.units.length > 1 && (
+                    <div className="mt-3 rounded-xl border border-border/70 bg-muted/30 p-2.5">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-xs font-semibold text-foreground">Room availability</span>
+                        <span className="text-[0.7rem] text-muted-foreground">
+                          {property.units.filter((u) => unitAvailability[u.id] ?? u.isAvailable).length} of {property.units.length} available
+                        </span>
+                      </div>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {property.units.map((u) => {
+                          const isAvail = unitAvailability[u.id] ?? u.isAvailable;
+                          return (
+                            <div key={u.id} className="flex items-center gap-1.5 rounded-lg border border-border bg-card px-2 py-1 text-xs">
+                              <span className="font-medium text-foreground">{u.unitNumber}</span>
+                              <span className={`text-[0.65rem] ${isAvail ? "text-emerald-600 dark:text-emerald-400 font-semibold" : "text-muted-foreground"}`}>
+                                ({isAvail ? "Available" : "Occupied"})
+                              </span>
+                              <button
+                                type="button"
+                                disabled={togglingUnitId === u.id}
+                                onClick={() => void handleToggleUnit(u.id, isAvail)}
+                                className="ml-1 rounded px-1.5 py-0.5 text-[0.65rem] font-medium border border-border hover:bg-muted text-foreground transition"
+                              >
+                                {isAvail ? "Mark occupied" : "Mark available"}
+                              </button>
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
                   )}
                 </div>

@@ -172,6 +172,8 @@ export function ListPropertyForm({ userId, restoreTarget }: { userId: string; re
   const [drafts, setDrafts] = useState<Array<{ id: string; revision: unknown; payload: unknown }> | null>(null);
   const [draftError, setDraftError] = useState("");
   const [priceValue, setPriceValue] = useState("");
+  const [unitCount, setUnitCount] = useState("1");
+  const [unitsList, setUnitsList] = useState<Array<{ unitNumber: string; monthlyRent: string; maxOccupants: string; rentalType: string }>>([]);
 
   async function loadDrafts() {
     if (!userId) return;
@@ -239,6 +241,10 @@ export function ListPropertyForm({ userId, restoreTarget }: { userId: string; re
       }
       preservedDraftValues.current = values.preserved;
       restoredValuesRef.current = values;
+      if (values.units && values.units.length > 0) {
+        setUnitCount(String(values.units.length));
+        setUnitsList(values.units);
+      }
       setSavedSnapshot(null);
       setDirty(true);
       setDraftError("");
@@ -314,6 +320,26 @@ export function ListPropertyForm({ userId, restoreTarget }: { userId: string; re
     const rType = value("rentalType") || rentalType;
     const resolvedBathroomType = rType === "entire_place" ? "private" : value("bathroomType");
 
+    const isMultiUnit = (value("propertyType") || propertyType) === "boarding_house" || Number(unitCount) > 1;
+    let unitsPayload: Array<{ unitNumber: string; monthlyRent: string; maxOccupants: string; rentalType: string }> | undefined;
+    if (isMultiUnit) {
+      const count = Math.min(50, Math.max(1, Number(unitCount) || 1));
+      unitsPayload = Array.from({ length: count }, (_, idx) => {
+        const num = idx + 1;
+        const existing = unitsList[idx];
+        const unitNum = value(`unit_${num}_number`) || existing?.unitNumber || `Room ${num}`;
+        const unitRent = value(`unit_${num}_price`) || existing?.monthlyRent || value("price") || priceValue || "0";
+        const unitMax = value(`unit_${num}_maxOccupants`) || existing?.maxOccupants || value("maxOccupants") || "1";
+        const unitRType = value(`unit_${num}_rentalType`) || existing?.rentalType || rType || "private_room";
+        return {
+          unitNumber: unitNum,
+          monthlyRent: unitRent,
+          maxOccupants: unitMax,
+          rentalType: unitRType,
+        };
+      });
+    }
+
     return {
       title: value("title"), description: value("description"), propertyType: value("propertyType"), rentalType: rType, price: value("price"),
       address, barangay: value("barangay"), city: value("city"), bathroomType: resolvedBathroomType, maxOccupants: value("maxOccupants"),
@@ -326,6 +352,7 @@ export function ListPropertyForm({ userId, restoreTarget }: { userId: string; re
         emptyPermitConfirmation: preservedDraftValues.current?.emptyPermitConfirmation ?? false,
       },
       tenantPolicy: value("tenantPolicy") || "any",
+      ...(unitsPayload ? { units: unitsPayload } : {}),
     };
   }
 
@@ -765,6 +792,60 @@ export function ListPropertyForm({ userId, restoreTarget }: { userId: string; re
           <label className="grid gap-1.5 text-sm font-medium"><span>Property type</span><select className={input} name="propertyType" value={propertyType} required onChange={(event) => { const next = event.target.value; setPropertyType(next); const allowed = unitTypesByPropertyType[next] ?? allUnitTypes; const rental = formRef.current?.elements.namedItem("rentalType") as HTMLSelectElement | null; if (rental && allowed && !allowed.includes(rental.value)) rental.value = allowed[0]; }}><option value="" disabled>Select a property type</option>{propertyTypes.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
         </div>
         <label className="grid gap-1.5 text-sm font-medium"><span>Description</span><span className="text-xs font-normal text-muted-foreground">Minimum 20 characters describing layout, inclusions, and house rules.</span><textarea className="min-h-28 w-full rounded-lg border border-border bg-background p-3 text-sm font-normal text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring" name="description" required minLength={20} maxLength={4000} placeholder="Describe the space, included features, and helpful renter details." /></label>
+        {propertyType === "boarding_house" && (
+          <fieldset className="grid gap-4 rounded-xl border border-border bg-muted/20 p-4">
+            <legend className="px-1 text-sm font-semibold">Boarding house units / rooms</legend>
+            <label className="grid gap-1.5 text-sm font-medium">
+              <span>Number of rooms</span>
+              <input
+                className={input}
+                name="unitCount"
+                type="number"
+                min="1"
+                max="50"
+                value={unitCount}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setUnitCount(val);
+                  setDirty(true);
+                }}
+              />
+            </label>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {Array.from({ length: Math.min(50, Math.max(1, Number(unitCount) || 1)) }, (_, idx) => {
+                const num = idx + 1;
+                const existing = unitsList[idx];
+                return (
+                  <div key={num} className="rounded-lg border border-border bg-card p-3 text-xs">
+                    <p className="font-semibold text-foreground">Room {num}</p>
+                    <div className="mt-2 grid gap-2">
+                      <label className="grid gap-1">
+                        <span>Label / room #</span>
+                        <input className={input} name={`unit_${num}_number`} defaultValue={existing?.unitNumber ?? `Room ${num}`} />
+                      </label>
+                      <label className="grid gap-1">
+                        <span>Monthly rent (₱)</span>
+                        <input className={input} name={`unit_${num}_price`} type="number" defaultValue={existing?.monthlyRent ?? priceValue} placeholder={priceValue || "e.g. 4500"} />
+                      </label>
+                      <label className="grid gap-1">
+                        <span>Max occupants</span>
+                        <input className={input} name={`unit_${num}_maxOccupants`} type="number" defaultValue={existing?.maxOccupants ?? "1"} min="1" max="10" />
+                      </label>
+                      <label className="grid gap-1">
+                        <span>Room type</span>
+                        <select className={input} name={`unit_${num}_rentalType`} defaultValue={existing?.rentalType ?? "private_room"}>
+                          <option value="private_room">Private room</option>
+                          <option value="bedspace">Bedspace</option>
+                          <option value="shared_room">Shared room</option>
+                        </select>
+                      </label>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </fieldset>
+        )}
         <fieldset className="grid gap-4 rounded-xl border border-border bg-muted/20 p-4 sm:grid-cols-2">
           <legend className="px-1 text-sm font-semibold">First rental unit</legend>
           <p className="m-0 text-sm text-muted-foreground sm:col-span-2">Add the type and monthly rent for the first unit at this property.</p>
