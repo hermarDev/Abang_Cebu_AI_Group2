@@ -45,6 +45,9 @@ export async function POST(request: Request) {
   }
   const { data, error } = result;
   if (error?.code === "23505") return reply("This review operation conflicts with an earlier attempt.", 409);
+  if (error?.code === "PT409" && error.message?.includes("field verification required before admin approval")) {
+    return reply("Field verification is required before admin approval can be granted.", 409);
+  }
   if (error?.code === "40001") {
     if (error?.message && error.message.includes("field verification required")) {
       return reply("Field verification is required before admin approval can be granted.", 409);
