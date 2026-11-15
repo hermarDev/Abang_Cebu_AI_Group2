@@ -22,6 +22,7 @@ describe("VerificationWorkspaceLayout", () => {
     for (const [label, href] of [
       ["Overview", "/verification/dashboard"],
       ["Verification queue", "/verification/queue"],
+      ["Verification map", "/verification/map"],
       ["Help Center", "/help"],
       ["Account settings", "/account"],
     ]) {
@@ -56,7 +57,13 @@ describe("VerificationWorkspaceLayout", () => {
     expect(html).toMatch(/theme/i);
   });
 
-  it("renders mobile nav with 4 links and More button opening modal with Notifications, Help, Account, ThemeControls, Logout", () => {
+  it("gives each mobile navigation action a 44px minimum width", () => {
+    const nav = html.match(/<nav aria-label="Verification mobile navigation"[\s\S]*?<\/nav>/)?.[0] ?? "";
+    expect(nav).toMatch(/aria-label="Map"[^>]*min-w-11/);
+    expect(nav).toMatch(/aria-label="More verification options"[^>]*min-w-11/);
+  });
+
+  it("renders mobile nav with links and More button opening modal with Notifications, Help, Account, ThemeControls, Logout", () => {
     expect(html).toContain('aria-label="Overview"');
     expect(html).toContain('aria-label="Queue"');
     expect(html).toContain('aria-label="Help"');

@@ -12,6 +12,7 @@ import {
   ClipboardList,
   Ellipsis,
   LayoutDashboard,
+  Map,
   UserRound,
 } from "lucide-react";
 import { AccountMenu } from "@/components/ui/AccountMenu";
@@ -27,6 +28,7 @@ const linkGroups = [
     links: [
       { href: "/verification/dashboard", label: "Overview", Icon: LayoutDashboard },
       { href: "/verification/queue", label: "Verification queue", Icon: ClipboardList },
+      { href: "/verification/map", label: "Verification map", Icon: Map },
     ],
   },
   { label: "Support", links: [{ href: "/help", label: "Help Center", Icon: CircleHelp }] },
@@ -36,6 +38,7 @@ const linkGroups = [
 const mobileLinks = [
   { href: "/verification/dashboard", label: "Overview", Icon: LayoutDashboard },
   { href: "/verification/queue", label: "Queue", Icon: ClipboardList },
+  { href: "/verification/map", label: "Map", Icon: Map },
   { href: "/help", label: "Help", Icon: CircleHelp },
   { href: "/account", label: "Account", Icon: UserRound },
 ];
@@ -57,7 +60,7 @@ function ThemeControls({ expanded }: { expanded: boolean }) {
 
 function VerificationMobileNav({ pathname }: { pathname: string }) {
   const [open, setOpen] = useState(false);
-  const itemClass = `flex min-h-11 min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-lg px-0.5 text-[.65rem] font-medium ${focusRing}`;
+  const itemClass = `flex min-h-11 min-w-11 flex-1 flex-col items-center justify-center gap-1 rounded-lg px-0.5 text-[.65rem] font-medium ${focusRing}`;
 
   return (
     <>
