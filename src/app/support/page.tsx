@@ -51,14 +51,22 @@ export default async function SupportPage(props: SupportPageProps) {
       ? "/admin/dashboard"
       : !isSuspended && userRole === "landlord"
         ? "/landlord/dashboard"
-        : "/";
+        : !isSuspended && userRole === "verification_officer"
+          ? "/verification/dashboard"
+          : !isSuspended && userRole === "customer_support"
+            ? "/support-desk/dashboard"
+            : "/";
 
   const backLabel =
     !isSuspended && userRole === "admin"
       ? "Back to admin workspace"
       : !isSuspended && userRole === "landlord"
         ? "Back to workspace"
-        : "Back to map";
+        : !isSuspended && userRole === "verification_officer"
+          ? "Back to verification workspace"
+          : !isSuspended && userRole === "customer_support"
+            ? "Back to support workspace"
+            : "Back to map";
 
   const turnstileRequired = Boolean(process.env.TURNSTILE_SECRET_KEY?.trim());
 
