@@ -42,16 +42,20 @@ function setup() {
   mocks.createSignedUrls.mockResolvedValue({ data: [], error: null });
 }
 
-const validProofPath = "11111111-1111-4111-8111-111111111111/22222222-2222-4222-8222-222222222222/33333333-3333-4333-8333-333333333333/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.jpg";
+const validProofPath = `aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/${propId}/${opId}/${"a".repeat(64)}.jpg`;
 
 const validBody = {
+  contractVersion: 2,
   operationId: opId,
   submissionDraftId: draftId,
   submissionExpectedRevision: 1,
   status: "verified",
   method: "site_visit",
+  visitWith: "representative",
+  representativeName: "Caregiver",
+  representativeRelationship: "Property manager",
   notes: "Inspected the apartment in person.",
-  proof: [{ kind: "photo", object_path: validProofPath }],
+  proof: [{ kind: "proof", object_path: validProofPath }],
 };
 
 const post = (body: unknown, id = propId, headers: Record<string, string> = H) =>
@@ -86,9 +90,28 @@ describe("/api/verification/queue/[propertyId]", () => {
       expect(res.status).toBe(404);
     });
 
+    it("loads a property using one property-scoped RPC", async () => {
+      mocks.rpc.mockResolvedValueOnce({ data: { id: propId, title: "Property", fieldVerificationProof: [] }, error: null });
+      const res = await get();
+      expect(res.status).toBe(200);
+      expect((await res.json()).property.id).toBe(propId);
+      expect(mocks.rpc).toHaveBeenCalledTimes(1);
+      expect(mocks.rpc).toHaveBeenCalledWith("verifier_get_queue_property", { p_property_id: propId });
+    });
+
+    it("returns 404 when the property is not in the verification queue", async () => {
+      mocks.rpc.mockResolvedValueOnce({ data: null, error: null });
+      expect((await get()).status).toBe(404);
+    });
+
+    it("returns a service error when the property RPC fails", async () => {
+      mocks.rpc.mockResolvedValueOnce({ data: null, error: { code: "XX000" } });
+      expect((await get()).status).toBe(503);
+    });
+
     it("returns 200 with property details when found", async () => {
       mocks.rpc.mockResolvedValue({
-        data: [{ id: propId, title: "Found Property", fieldVerificationProof: [] }],
+        data: { id: propId, title: "Found Property", fieldVerificationProof: [] },
         error: null,
       });
       const res = await get();
@@ -120,6 +143,57 @@ describe("/api/verification/queue/[propertyId]", () => {
       expect(mocks.rpc).not.toHaveBeenCalled();
     });
 
+    it("rejects legacy clients with an actionable contract conflict", async () => {
+      const legacy = { ...validBody } as Record<string, unknown>;
+      delete legacy.contractVersion;
+      const res = await post(legacy);
+      expect(res.status).toBe(409);
+      expect(await res.json()).toMatchObject({ code: "verification_contract_upgrade", error: expect.stringMatching(/refresh/i) });
+    });
+
+    it("accepts PDF and PNG proof items without a semantic category", async () => {
+      mocks.rpc.mockResolvedValueOnce({ data: { id: propId, fieldVerificationProof: [] }, error: null });
+      const pdfPath = validProofPath.replace(/\.jpg$/, ".pdf");
+      const res = await post({ ...validBody, proof: [{ kind: "proof", object_path: validProofPath }, { kind: "proof", object_path: pdfPath }] });
+      expect(res.status).toBe(200);
+      expect(mocks.rpc).toHaveBeenCalledWith("verifier_submit_verification", expect.objectContaining({ p_proof: [{ kind: "proof", object_path: validProofPath }, { kind: "proof", object_path: pdfPath }] }));
+    });
+
+    it("rejects proof paths not bound to the requested property", async () => {
+      const foreignPath = `22222222-2222-4222-8222-222222222222/${draftId}/${opId}/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.jpg`;
+      const res = await post({ ...validBody, proof: [{ kind: "proof", object_path: foreignPath }] });
+      expect(res.status).toBe(400);
+      expect(mocks.rpc).not.toHaveBeenCalled();
+    });
+
+    it("rejects legacy proof kinds on the new contract", async () => {
+      const res = await post({ ...validBody, proof: [{ kind: "photo", object_path: validProofPath }] });
+      expect(res.status).toBe(400);
+      expect(mocks.rpc).not.toHaveBeenCalled();
+    });
+
+    it("submits versioned representative visits as site_visit with legacy proxy fields", async () => {
+      const res = await post(validBody);
+      expect(res.status).toBe(200);
+      expect(mocks.rpc).toHaveBeenCalledWith("verifier_submit_verification", expect.objectContaining({
+        p_method: "site_visit",
+        p_proof: [{ kind: "proof", object_path: validProofPath }],
+        p_proxy_name: "Caregiver",
+        p_proxy_relationship: "Property manager",
+      }));
+    });
+
+    it("requires representative name and relationship", async () => {
+      for (const body of [
+        { ...validBody, representativeName: " " },
+        { ...validBody, representativeRelationship: "" },
+      ]) {
+        const res = await post(body);
+        expect(res.status).toBe(400);
+      }
+      expect(mocks.rpc).not.toHaveBeenCalled();
+    });
+
     it("submits verification successfully", async () => {
       const res = await post(validBody);
       expect(res.status).toBe(200);
@@ -131,9 +205,9 @@ describe("/api/verification/queue/[propertyId]", () => {
         p_status: "verified",
         p_method: "site_visit",
         p_notes: "Inspected the apartment in person.",
-        p_proof: [{ kind: "photo", object_path: validProofPath }],
-        p_proxy_name: null,
-        p_proxy_relationship: null,
+        p_proof: [{ kind: "proof", object_path: validProofPath }],
+        p_proxy_name: "Caregiver",
+        p_proxy_relationship: "Property manager",
       });
     });
 

@@ -38,23 +38,62 @@ DO $$ BEGIN
  EXCEPTION WHEN insufficient_privilege THEN NULL; END;
 END $$;
 SELECT set_config('request.jwt.claim.sub','af100000-0000-4000-8000-000000000003',true);
--- Seed storage.objects row in bucket field-verification-media with property ID bf100000-0000-4000-8000-000000000001 as segment 2 of object_path
-INSERT INTO storage.objects (bucket_id, name, owner, owner_id)
-VALUES (
-  'field-verification-media',
-  'af100000-0000-4000-8000-000000000003/bf100000-0000-4000-8000-000000000001/33333333-3333-4333-8333-333333333333/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.jpg',
-  'af100000-0000-4000-8000-000000000003',
-  'af100000-0000-4000-8000-000000000003'
-)
-ON CONFLICT DO NOTHING;
+DO $$
+DECLARE v_item jsonb;
+BEGIN
+ v_item := public.verifier_get_queue_property('bf100000-0000-4000-8000-000000000001');
+ IF v_item IS NULL OR v_item->>'id' <> 'bf100000-0000-4000-8000-000000000001' OR v_item->>'title' <> 'Test property' OR v_item->>'propertyType' <> 'house'
+   OR NOT (v_item ?& ARRAY['latitude','longitude','landlordId','landlordName','submissionDraftId','submissionExpectedRevision','submissionOperationId','submissionCreatedAt','fieldVerificationStatus','fieldVerificationProof']) THEN
+   RAISE EXCEPTION 'authorized FVO property lookup returned incomplete or wrong item';
+ END IF;
+ IF public.verifier_get_queue_property('bf100000-0000-4000-8000-000000000099') IS NOT NULL THEN
+   RAISE EXCEPTION 'missing property lookup returned a result';
+ END IF;
+END $$;
+SELECT set_config('request.jwt.claim.sub','af100000-0000-4000-8000-000000000001',true);
+DO $$ BEGIN
+ BEGIN
+  PERFORM public.verifier_get_queue_property('bf100000-0000-4000-8000-000000000001');
+  RAISE EXCEPTION 'landlord used verifier property lookup';
+ EXCEPTION WHEN insufficient_privilege THEN NULL; END;
+END $$;
+SELECT set_config('request.jwt.claim.sub','af100000-0000-4000-8000-000000000003',true);
+DO $$ BEGIN
+ BEGIN
+  PERFORM public.verifier_submit_verification(
+    'bf100000-0000-4000-8000-000000000001','cf100000-0000-4000-8000-000000000011',
+    'df100000-0000-4000-8000-000000000001',1,'verified','site_visit','Valid notes',
+    '[{"object_path":"af100000-0000-4000-8000-000000000003/bf100000-0000-4000-8000-000000000001/33333333-3333-4333-8333-333333333333/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.jpg"}]'::jsonb);
+  RAISE EXCEPTION 'missing proof kind was accepted';
+ EXCEPTION WHEN invalid_parameter_value THEN NULL; END;
+END $$;
 SELECT public.verifier_submit_verification(
   'bf100000-0000-4000-8000-000000000001','cf100000-0000-4000-8000-000000000001','df100000-0000-4000-8000-000000000001',1,'verified','site_visit','Valid notes',
-  '[{"kind":"photo","object_path":"af100000-0000-4000-8000-000000000003/bf100000-0000-4000-8000-000000000001/33333333-3333-4333-8333-333333333333/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.jpg"}]'::jsonb
+  '[{"kind":"proof","object_path":"af100000-0000-4000-8000-000000000003/bf100000-0000-4000-8000-000000000001/33333333-3333-4333-8333-333333333333/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.jpg"}]'::jsonb,
+  'Caregiver','Property manager'
 );
 SELECT public.verifier_submit_verification(
   'bf100000-0000-4000-8000-000000000001','cf100000-0000-4000-8000-000000000001','df100000-0000-4000-8000-000000000001',1,'verified','site_visit','Valid notes',
-  '[{"kind":"photo","object_path":"af100000-0000-4000-8000-000000000003/bf100000-0000-4000-8000-000000000001/33333333-3333-4333-8333-333333333333/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.jpg"}]'::jsonb
+  '[{"kind":"proof","object_path":"af100000-0000-4000-8000-000000000003/bf100000-0000-4000-8000-000000000001/33333333-3333-4333-8333-333333333333/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.jpg"}]'::jsonb,
+  'Caregiver','Property manager'
 );
+DO $$ BEGIN
+ BEGIN
+  PERFORM public.verifier_submit_verification('bf100000-0000-4000-8000-000000000001','cf100000-0000-4000-8000-000000000009','df100000-0000-4000-8000-000000000001',1,'verified','video_call','Valid notes','[]'::jsonb);
+  RAISE EXCEPTION 'legacy method write was allowed on new contract';
+ EXCEPTION WHEN invalid_text_representation OR invalid_parameter_value THEN NULL;
+ WHEN others THEN
+   IF SQLERRM LIKE '%invalid verification%' OR SQLSTATE = '22023' THEN NULL; ELSE RAISE; END IF;
+ END;
+END $$;
+DO $$ BEGIN
+ BEGIN
+  PERFORM public.verifier_submit_verification('bf100000-0000-4000-8000-000000000001','cf100000-0000-4000-8000-000000000010','df100000-0000-4000-8000-000000000001',1,'verified','site_visit','Valid notes',
+    '[{"kind":"photo","object_path":"af100000-0000-4000-8000-000000000003/bf100000-0000-4000-8000-000000000001/33333333-3333-4333-8333-333333333333/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.jpg"}]'::jsonb);
+  RAISE EXCEPTION 'legacy proof kind was allowed on new contract';
+ EXCEPTION WHEN others THEN IF SQLSTATE = '22023' THEN NULL; ELSE RAISE; END IF;
+ END;
+END $$;
 SELECT set_config('request.jwt.claim.sub','af100000-0000-4000-8000-000000000002',true);
 SELECT public.review_property('bf100000-0000-4000-8000-000000000001','cf100000-0000-4000-8000-000000000002','approved',NULL,'df100000-0000-4000-8000-000000000001',1);
 SELECT public.review_property('bf100000-0000-4000-8000-000000000001','cf100000-0000-4000-8000-000000000002','approved',NULL,'df100000-0000-4000-8000-000000000001',1);

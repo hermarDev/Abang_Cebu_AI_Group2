@@ -88,13 +88,15 @@ export function VerificationQueue({
   useEffect(() => {
     activeItemRef.current = activeItem;
   }, [activeItem]);
-  const [method, setMethod] = useState<"site_visit" | "video_call" | "proxy_meeting">("site_visit");
+
+  // Fixed: Site visit is the only method for new submissions
+  const [visitWith, setVisitWith] = useState<"owner" | "representative">("owner");
   const [proxyName, setProxyName] = useState("");
   const [proxyRelationship, setProxyRelationship] = useState("");
   const [notes, setNotes] = useState("");
   const [proofList, setProofList] = useState<Array<{ kind: string; object_path: string; signedUrl?: string | null }>>([]);
   const [uploading, setUploading] = useState(false);
-  const [uploadKind, setUploadKind] = useState<"photo" | "document" | "meeting_minutes">("photo");
+  // Fixed: Neutral proof kind for new uploads
   const [actionSaving, setActionSaving] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
 
@@ -175,7 +177,8 @@ export function VerificationQueue({
     try {
       const formData = new FormData();
       formData.append("operationId", newOperationId());
-      formData.append("kind", uploadKind);
+      // New contract: neutral "proof" kind
+      formData.append("kind", "proof");
       formData.append("file", file);
 
       const res = await fetch(`/api/verification/queue/${targetId}/media`, {
@@ -219,8 +222,8 @@ export function VerificationQueue({
       setActionError("Please provide inspection notes (minimum 5 characters).");
       return;
     }
-    if (method === "proxy_meeting" && (!proxyName.trim() || !proxyRelationship.trim())) {
-      setActionError("Proxy meetings require Proxy Name and Relationship.");
+    if (visitWith === "representative" && (!proxyName.trim() || !proxyRelationship.trim())) {
+      setActionError("Representative name and relationship are required.");
       return;
     }
 
@@ -234,15 +237,17 @@ export function VerificationQueue({
           "x-expected-user-id": userId,
         },
         body: JSON.stringify({
+          contractVersion: 2,
           operationId: newOperationId(),
           submissionDraftId: activeItem.submissionDraftId,
           submissionExpectedRevision: activeItem.submissionExpectedRevision,
           status,
-          method,
+          method: "site_visit",
           notes: notes.trim(),
           proof: proofList,
-          proxyName: method === "proxy_meeting" ? proxyName.trim() : null,
-          proxyRelationship: method === "proxy_meeting" ? proxyRelationship.trim() : null,
+          visitWith,
+          representativeName: visitWith === "representative" ? proxyName.trim() : null,
+          representativeRelationship: visitWith === "representative" ? proxyRelationship.trim() : null,
         }),
       });
 
@@ -271,16 +276,36 @@ export function VerificationQueue({
 
   function openActionModal(item: VerificationQueueItem) {
     setActiveItem(item);
-    setMethod(
-      item.fieldVerificationMethod === "video_call" || item.fieldVerificationMethod === "proxy_meeting"
-        ? item.fieldVerificationMethod
-        : "site_visit"
-    );
-    setProxyName(item.fieldVerificationProxyName || "");
-    setProxyRelationship(item.fieldVerificationProxyRelationship || "");
+    // For historical records, preserve the original method display
+    // For new submissions, always use site_visit
+    const isHistorical = item.fieldVerificationMethod === "video_call" || item.fieldVerificationMethod === "proxy_meeting";
+    if (isHistorical) {
+      // Pre-fill with historical data but new submissions will be site_visit
+      setVisitWith(item.fieldVerificationProxyName ? "representative" : "owner");
+      setProxyName(item.fieldVerificationProxyName || "");
+      setProxyRelationship(item.fieldVerificationProxyRelationship || "");
+    } else {
+      setVisitWith("owner");
+      setProxyName("");
+      setProxyRelationship("");
+    }
     setNotes(item.fieldVerificationNotes || "");
     setProofList(item.fieldVerificationProof || []);
     setActionError(null);
+  }
+
+  // Render method label for historical records
+  function renderMethodLabel(method: string | null | undefined): string {
+    switch (method) {
+      case "site_visit":
+        return "Site visit";
+      case "video_call":
+        return "Video call";
+      case "proxy_meeting":
+        return "Proxy meeting";
+      default:
+        return "—";
+    }
   }
 
   return (
@@ -351,15 +376,15 @@ export function VerificationQueue({
                         item.fieldVerificationStatus === "verified"
                           ? "default"
                           : item.fieldVerificationStatus === "flagged"
-                            ? "destructive"
-                            : "warning"
+                          ? "destructive"
+                          : "warning"
                       }
                     >
                       {item.fieldVerificationStatus === "verified"
                         ? "Verified"
                         : item.fieldVerificationStatus === "flagged"
-                          ? "Flagged"
-                          : "Pending verification"}
+                        ? "Flagged"
+                        : "Pending verification"}
                     </Badge>
                   </div>
 
@@ -381,6 +406,19 @@ export function VerificationQueue({
                     {typeof item.latitude === "number" && typeof item.longitude === "number" && (
                       <span className="font-mono">
                         ({item.latitude.toFixed(4)}, {item.longitude.toFixed(4)})
+                      </span>
+                    )}
+                    {/* Display historical verification method */}
+                    {item.fieldVerificationMethod && (
+                      <span className="flex items-center gap-1">
+                        <FileCheck size={14} aria-hidden="true" />
+                        Method: {renderMethodLabel(item.fieldVerificationMethod)}
+                      </span>
+                    )}
+                    {item.fieldVerificationProxyName && (
+                      <span className="flex items-center gap-1">
+                        <User size={14} aria-hidden="true" />
+                        Representative: {item.fieldVerificationProxyName} ({item.fieldVerificationProxyRelationship})
                       </span>
                     )}
                   </div>
@@ -447,28 +485,39 @@ export function VerificationQueue({
               </p>
             </div>
 
+            {/* Fixed: Site visit label instead of method select */}
             <div className="grid gap-1.5">
               <label htmlFor="verify-method" className="text-xs font-medium text-foreground">
                 Verification method
               </label>
+              <div className="inline-flex items-center gap-2 rounded-md border border-border bg-muted/40 px-3 py-2 text-sm">
+                <FileCheck size={16} aria-hidden="true" className="text-action" />
+                <span className="font-medium">Site visit</span>
+              </div>
+            </div>
+
+            {/* Visit with: Owner or Representative */}
+            <div className="grid gap-1.5">
+              <label htmlFor="visit-with" className="text-xs font-medium text-foreground">
+                Verified with
+              </label>
               <Select
-                id="verify-method"
-                aria-label="Verification method"
+                id="visit-with"
+                aria-label="Verified with"
                 options={[
-                  { value: "site_visit", label: "Site visit" },
-                  { value: "video_call", label: "Video call" },
-                  { value: "proxy_meeting", label: "Proxy meeting" },
+                  { value: "owner", label: "Owner" },
+                  { value: "representative", label: "Representative" },
                 ]}
-                value={method}
-                onValueChange={(val) => setMethod(val as "site_visit" | "video_call" | "proxy_meeting")}
+                value={visitWith}
+                onValueChange={(val) => setVisitWith(val as "owner" | "representative")}
               />
             </div>
 
-            {method === "proxy_meeting" && (
+            {visitWith === "representative" && (
               <div className="grid grid-cols-2 gap-3">
                 <div className="grid gap-1.5">
                   <label htmlFor="proxy-name" className="text-xs font-medium text-foreground">
-                    Proxy name
+                    Representative name
                   </label>
                   <Input
                     id="proxy-name"
@@ -508,23 +557,15 @@ export function VerificationQueue({
               />
             </div>
 
-            {/* Proof Uploads */}
+            {/* Proof Uploads - Neutral kind */}
             <div className="grid gap-2 border-t border-border/60 pt-3">
               <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 Proof documents & photos
               </span>
 
               <div className="flex flex-wrap items-center gap-2">
-                <Select
-                  aria-label="Proof kind"
-                  options={[
-                    { value: "photo", label: "Site Photo" },
-                    { value: "document", label: "Document / ID" },
-                    { value: "meeting_minutes", label: "Meeting Minutes" },
-                  ]}
-                  value={uploadKind}
-                  onValueChange={(val) => setUploadKind(val as "photo" | "document" | "meeting_minutes")}
-                />
+                {/* Removed kind select - now fixed to "proof" */}
+                <span className="text-xs text-muted-foreground">Kind: Proof</span>
                 <label className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-border px-3 text-xs font-medium hover:bg-muted cursor-pointer">
                   <Upload size={14} aria-hidden="true" />
                   {uploading ? "Uploading…" : "Upload proof file"}
