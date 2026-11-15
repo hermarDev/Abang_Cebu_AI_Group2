@@ -12,7 +12,7 @@ import {
   verifierRpc,
 } from "@/server/verification-access";
 
-const PROOF_OBJECT_PATH_RE = /^[^/]+\/[^/]+\/[^/]+\/[0-9a-f]{64}\.(jpg|png|webp|pdf)$/i;
+const PROOF_OBJECT_PATH_RE = /^[0-9a-f-]+(\/[0-9a-f-]+){2}\/[0-9a-f]{64}\.(jpg|png|webp|pdf)$/i;
 
 type RouteContext = { params: Promise<{ propertyId: string }> };
 
@@ -128,7 +128,7 @@ export async function POST(request: Request, { params }: RouteContext) {
       !["proof"].includes(String(item.kind)) ||
       typeof item.object_path !== "string" ||
       !PROOF_OBJECT_PATH_RE.test(item.object_path) ||
-      item.object_path.split("/")[0] !== propertyId
+      item.object_path.split("/")[1] !== propertyId
     ) {
       return jsonError("Invalid proof item format.", 400);
     }

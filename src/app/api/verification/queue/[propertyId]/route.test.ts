@@ -42,7 +42,7 @@ function setup() {
   mocks.createSignedUrls.mockResolvedValue({ data: [], error: null });
 }
 
-const validProofPath = "11111111-1111-4111-8111-111111111111/22222222-2222-4222-8222-222222222222/33333333-3333-4333-8333-333333333333/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.jpg";
+const validProofPath = `aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/${propId}/${opId}/${"a".repeat(64)}.jpg`;
 
 const validBody = {
   contractVersion: 2,
