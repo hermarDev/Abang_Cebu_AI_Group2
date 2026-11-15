@@ -327,6 +327,25 @@ describe("PropertyDetails FVO fields from revision", () => {
 });
 
 describe("ReviewCard FVO status indicator", () => {
+  it("keeps historical video and proxy methods readable and labels site-visit representative", () => {
+    const baseProperty: AdminProperty = {
+      id: "p1", title: "Test Property", status: "approved", monthlyRent: 5000, landlordName: "Lana Lord",
+      barangay: "Lahug", city: "Cebu City", photoUrls: [], permitUrls: [],
+      fieldVerificationStatus: "verified", fieldVerificationMethod: "proxy_meeting", fieldVerificationProxyName: "Old proxy", fieldVerificationProxyRelationship: "relative",
+    };
+    const historical = renderToStaticMarkup(<PropertyDetails property={{ ...baseProperty, fieldVerificationMethod: "video_call" }} />);
+    expect(historical).toContain("Video call");
+    expect(historical).toContain("Representative: Old proxy (relative)");
+
+    const proxyHistorical = renderToStaticMarkup(<PropertyDetails property={baseProperty} />);
+    expect(proxyHistorical).toContain("Proxy meeting");
+    expect(proxyHistorical).toContain("Proxy: Old proxy (relative)");
+
+    const siteVisit = renderToStaticMarkup(<PropertyDetails property={{ ...baseProperty, fieldVerificationMethod: "site_visit" }} />);
+    expect(siteVisit).toContain("Site visit");
+    expect(siteVisit).toContain("Representative: Old proxy (relative)");
+  });
+
   const baseProperty: AdminProperty = {
     id: "p1", title: "Test Property", status: "pending", monthlyRent: 5000, landlordName: "Lana Lord",
     barangay: "Lahug", city: "Cebu City", photoUrls: [], permitUrls: [],

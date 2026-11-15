@@ -87,17 +87,36 @@ describe("POST /api/verification/queue/[propertyId]/media", () => {
     expect(res.status).toBe(400);
   });
 
-  it("uploads valid photo and returns storage object path and signed url", async () => {
+  it("rejects legacy kind labels", async () => {
     const fd = new FormData();
     fd.append("operationId", opId);
     fd.append("kind", "photo");
+    fd.append("file", new File([pngHeader], "proof.png", { type: "image/png" }));
+    expect((await postForm(fd)).status).toBe(400);
+  });
+
+  it("accepts mixed proof files with magic-byte validation", async () => {
+    const pdf = new Uint8Array([0x25, 0x50, 0x44, 0x46, 0x2d, 1, 2, 3]);
+    const fd = new FormData();
+    fd.append("operationId", opId);
+    fd.append("kind", "proof");
+    fd.append("file", new File([pdf], "minutes.pdf", { type: "application/pdf" }));
+    const res = await postForm(fd);
+    expect(res.status).toBe(200);
+    expect((await res.json()).kind).toBe("proof");
+  });
+
+  it("uploads valid photo and returns storage object path and signed url", async () => {
+    const fd = new FormData();
+    fd.append("operationId", opId);
+    fd.append("kind", "proof");
     fd.append("file", new File([pngHeader], "proof.png", { type: "image/png" }));
 
     const res = await postForm(fd);
     expect(res.status).toBe(200);
     const json = await res.json();
     expect(json.objectPath).toMatch(new RegExp(`^officer-1/${propId}/${opId}/[0-9a-f]{64}\\.png$`));
-    expect(json.kind).toBe("photo");
+    expect(json.kind).toBe("proof");
     expect(json.signedUrl).toBe("https://storage.local/signed");
     expect(mocks.upload).toHaveBeenCalled();
   });

@@ -302,14 +302,14 @@ export function PropertyDetails({
         {fieldVerificationStatus === "verified" && (
           <div className="space-y-1 text-xs text-muted-foreground pt-1 border-t border-border/60">
             <p className="m-0 font-medium text-foreground">
-              Method: {fieldVerificationMethod === "site_visit" ? "Site visit" : fieldVerificationMethod === "video_call" ? "Video call" : "Proxy meeting"}
+              Method: {fieldVerificationMethod === "site_visit" ? "Site visit" : fieldVerificationMethod === "video_call" ? "Video call" : fieldVerificationMethod === "proxy_meeting" ? "Proxy meeting" : String(fieldVerificationMethod)}
             </p>
             {fieldVerificationNotes && (
               <p className="m-0 whitespace-pre-wrap break-words">{fieldVerificationNotes}</p>
             )}
-            {fieldVerificationProxyName && (
+            {(fieldVerificationProxyName || fieldVerificationProxyRelationship) && (
               <p className="m-0">
-                Proxy: {fieldVerificationProxyName} ({fieldVerificationProxyRelationship})
+                {fieldVerificationMethod === "proxy_meeting" ? "Proxy" : "Representative"}: {fieldVerificationProxyName}{fieldVerificationProxyRelationship ? ` (${fieldVerificationProxyRelationship})` : ""}
               </p>
             )}
             {Array.isArray(fieldVerificationProof) && fieldVerificationProof.length > 0 && (

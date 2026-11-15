@@ -49,6 +49,11 @@ describe("verification map list", () => {
     const html = renderToStaticMarkup(<VerificationPropertyMap userId="user" />);
     expect(html).toContain("Refresh properties");
   });
+  it("bounds the desktop pending list and gives the map a scroll-friendly touch target", () => {
+    const html = renderToStaticMarkup(<VerificationPropertyMap userId="user" />);
+    expect(html).toContain("lg:max-h-[70dvh] lg:overflow-y-auto");
+    expect(html).toContain("touch-pan-y");
+  });
   it("keeps an unmappable property accessible with its queue link", () => {
     const item: VerificationQueueItem = { id: "abc", title: "Property", latitude: null, longitude: null, submissionDraftId: "draft", submissionExpectedRevision: 1, submissionOperationId: "op", submissionCreatedAt: "date", reviewStatus: "pending", fieldVerificationStatus: "pending_verification" };
     const html = renderToStaticMarkup(<VerificationMapList items={[item]} selectedId={null} onSelect={() => {}} />);

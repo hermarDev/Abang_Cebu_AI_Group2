@@ -10,7 +10,7 @@ import {
 } from "@/server/verification-access";
 
 function inspectVerificationMedia(
-  kind: "photo" | "document" | "meeting_minutes",
+  kind: "proof",
   mime: string,
   bytes: Uint8Array
 ): string | null {
@@ -27,18 +27,13 @@ function inspectVerificationMedia(
     bytes[11] === 0x50;
   const pdf = starts([0x25, 0x50, 0x44, 0x46, 0x2d]);
 
-  if (kind === "photo") {
+  if (kind === "proof") {
+    if (mime === "application/pdf" && pdf) return mime;
     if (mime === "image/png" && png) return mime;
     if (mime === "image/jpeg" && jpeg) return mime;
     if (mime === "image/webp" && webp) return mime;
     return null;
   }
-
-  // document or meeting_minutes can be PDF or image
-  if (mime === "application/pdf" && pdf) return mime;
-  if (mime === "image/png" && png) return mime;
-  if (mime === "image/jpeg" && jpeg) return mime;
-  if (mime === "image/webp" && webp) return mime;
   return null;
 }
 
@@ -68,7 +63,7 @@ export async function POST(request: Request, { params }: RouteContext) {
   if (
     !isUuid(operationId) ||
     typeof kind !== "string" ||
-    !["photo", "document", "meeting_minutes"].includes(kind) ||
+    !["proof"].includes(kind) ||
     !(file instanceof File)
   ) {
     return jsonError("Invalid media upload request.", 400);
@@ -79,7 +74,7 @@ export async function POST(request: Request, { params }: RouteContext) {
   }
 
   const bytes = new Uint8Array(await file.arrayBuffer());
-  const contentType = inspectVerificationMedia(kind as "photo" | "document" | "meeting_minutes", file.type, bytes);
+  const contentType = inspectVerificationMedia("proof", file.type, bytes);
   if (!contentType) {
     return jsonError("Unsupported or invalid file format.", 400);
   }

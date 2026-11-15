@@ -2,7 +2,6 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import {
   isUuid,
   isValidNotes,
-  isValidVerificationMethod,
   isValidVerificationStatus,
   jsonError,
   jsonOk,
@@ -24,21 +23,16 @@ export async function GET(request: Request, { params }: RouteContext) {
   const { propertyId } = await params;
   if (!isUuid(propertyId)) return jsonError("Invalid property ID.", 400);
 
-  const { data, error } = await verifierRpc(session.supabase, "verifier_list_queue", {
-    p_status: null,
-    p_search: null,
-    p_limit: 100,
-    p_offset: 0,
+  const { data: property, error } = await verifierRpc(session.supabase, "verifier_get_queue_property", {
+    p_property_id: propertyId,
   });
-
-  if (error || !Array.isArray(data)) return jsonError("Queue could not be loaded. Please retry.", 503);
-
-  const property = (data as Array<Record<string, unknown>>).find((item) => item.id === propertyId);
-  if (!property) return jsonError("Property not found in verification queue.", 404);
+  if (error) return jsonError("Queue could not be loaded. Please retry.", 503);
+  if (!property || typeof property !== "object" || Array.isArray(property)) return jsonError("Property not found in verification queue.", 404);
+  const item = property as Record<string, unknown>;
 
   const proofPaths: string[] = [];
-  if (Array.isArray(property.fieldVerificationProof)) {
-    for (const proof of property.fieldVerificationProof) {
+  if (Array.isArray(item.fieldVerificationProof)) {
+    for (const proof of item.fieldVerificationProof) {
       if (proof && typeof proof === "object" && typeof (proof as { object_path?: unknown }).object_path === "string") {
         proofPaths.push((proof as { object_path: string }).object_path);
       }
@@ -59,9 +53,9 @@ export async function GET(request: Request, { params }: RouteContext) {
     }
   }
 
-  let proofWithUrls = property.fieldVerificationProof;
-  if (Array.isArray(property.fieldVerificationProof)) {
-    proofWithUrls = property.fieldVerificationProof.map((proof) => {
+  let proofWithUrls: unknown = item.fieldVerificationProof;
+  if (Array.isArray(item.fieldVerificationProof)) {
+    proofWithUrls = item.fieldVerificationProof.map((proof: unknown) => {
       if (proof && typeof proof === "object" && typeof (proof as { object_path?: unknown }).object_path === "string") {
         const path = (proof as { object_path: string }).object_path;
         return { ...proof, signedUrl: signed.get(path) || null };
@@ -70,7 +64,7 @@ export async function GET(request: Request, { params }: RouteContext) {
     });
   }
 
-  return jsonOk({ property: { ...property, fieldVerificationProof: proofWithUrls } });
+  return jsonOk({ property: { ...item, fieldVerificationProof: proofWithUrls } });
 }
 
 export async function POST(request: Request, { params }: RouteContext) {
@@ -85,6 +79,9 @@ export async function POST(request: Request, { params }: RouteContext) {
 
   const body = await readJsonObject(request);
   if (!body) return jsonError("Invalid request payload.", 400);
+  if (body.contractVersion !== 2) {
+    return Response.json({ code: "verification_contract_upgrade", error: "Verification workflow updated. Refresh the page and try again." }, { status: 409, headers: { "Cache-Control": "no-store" } });
+  }
 
   const {
     operationId,
@@ -94,8 +91,9 @@ export async function POST(request: Request, { params }: RouteContext) {
     method,
     notes,
     proof,
-    proxyName,
-    proxyRelationship,
+    visitWith,
+    representativeName,
+    representativeRelationship,
   } = body;
 
   if (
@@ -105,16 +103,17 @@ export async function POST(request: Request, { params }: RouteContext) {
     !Number.isSafeInteger(submissionExpectedRevision) ||
     submissionExpectedRevision < 1 ||
     !isValidVerificationStatus(status) ||
-    !isValidVerificationMethod(method) ||
-    !isValidNotes(notes)
+    method !== "site_visit" ||
+    !isValidNotes(notes) ||
+    !["owner", "representative"].includes(String(visitWith))
   ) {
-    return jsonError("Invalid verification parameters.", 400);
+    return jsonError("Invalid site-visit parameters.", 400);
   }
-
-  if (method === "proxy_meeting") {
-    if (typeof proxyName !== "string" || !proxyName.trim() || typeof proxyRelationship !== "string" || !proxyRelationship.trim()) {
-      return jsonError("Proxy meeting requires proxy name and relationship.", 400);
-    }
+  if (visitWith === "representative" && (
+    typeof representativeName !== "string" || representativeName.trim().length < 1 || representativeName.trim().length > 200 ||
+    typeof representativeRelationship !== "string" || representativeRelationship.trim().length < 1 || representativeRelationship.trim().length > 200
+  )) {
+    return jsonError("Representative name and relationship are required.", 400);
   }
 
   const proofList = Array.isArray(proof) ? proof : [];
@@ -126,7 +125,7 @@ export async function POST(request: Request, { params }: RouteContext) {
     if (
       !item ||
       typeof item !== "object" ||
-      !["photo", "document", "meeting_minutes"].includes(String(item.kind)) ||
+      !["proof"].includes(String(item.kind)) ||
       typeof item.object_path !== "string" ||
       !PROOF_OBJECT_PATH_RE.test(item.object_path)
     ) {
@@ -140,11 +139,11 @@ export async function POST(request: Request, { params }: RouteContext) {
     p_submission_draft_id: submissionDraftId,
     p_submission_expected_revision: submissionExpectedRevision,
     p_status: status,
-    p_method: method,
+    p_method: "site_visit",
     p_notes: (notes as string).trim(),
     p_proof: proofList,
-    p_proxy_name: method === "proxy_meeting" && typeof proxyName === "string" ? proxyName.trim() : null,
-    p_proxy_relationship: method === "proxy_meeting" && typeof proxyRelationship === "string" ? proxyRelationship.trim() : null,
+    p_proxy_name: visitWith === "representative" ? (representativeName as string).trim() : null,
+    p_proxy_relationship: visitWith === "representative" ? (representativeRelationship as string).trim() : null,
   });
 
   if (error?.code === "42501") return jsonError("Active verifier or admin permissions required.", 403);

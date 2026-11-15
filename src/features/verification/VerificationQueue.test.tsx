@@ -32,6 +32,32 @@ const sampleItem: VerificationQueueItem = {
   fieldVerificationProxyRelationship: null,
 };
 
+const historicalVideoCallItem: VerificationQueueItem = {
+  ...sampleItem,
+  id: "prop-2",
+  title: "Historical Video Call Property",
+  fieldVerificationStatus: "verified",
+  fieldVerificationMethod: "video_call",
+  fieldVerificationNotes: "Video call inspection completed.",
+  fieldVerificationProof: [{ kind: "photo", object_path: "old/path/photo.jpg" }],
+  fieldVerifiedBy: "officer-1",
+  fieldVerifiedAt: "2026-10-01T00:00:00Z",
+};
+
+const historicalProxyMeetingItem: VerificationQueueItem = {
+  ...sampleItem,
+  id: "prop-3",
+  title: "Historical Proxy Meeting Property",
+  fieldVerificationStatus: "flagged",
+  fieldVerificationMethod: "proxy_meeting",
+  fieldVerificationNotes: "Proxy meeting with caretaker.",
+  fieldVerificationProof: [{ kind: "document", object_path: "old/path/doc.pdf" }],
+  fieldVerificationProxyName: "Caretaker",
+  fieldVerificationProxyRelationship: "Property manager",
+  fieldVerifiedBy: "officer-1",
+  fieldVerifiedAt: "2026-10-02T00:00:00Z",
+};
+
 describe("VerificationQueue", () => {
   it("renders queue header, search and filter options", () => {
     const html = renderToStaticMarkup(<VerificationQueue userId="officer-1" />);
@@ -89,5 +115,48 @@ describe("VerificationQueue", () => {
     );
     expect(html).toContain("Flagged");
     expect(html).toContain("ring-action/25");
+  });
+
+  // --- NEW TESTS FOR TASK 4 & 5 (SSR-verifiable) ---
+
+  it("displays historical video_call records accurately in queue list", () => {
+    const html = renderToStaticMarkup(
+      <VerificationQueue userId="officer-1" initialQueue={[historicalVideoCallItem]} />
+    );
+    expect(html).toContain("Historical Video Call Property");
+    expect(html).toContain("Verified");
+    // Historical method should display correctly in queue list
+    expect(html).toContain("Video call");
+  });
+
+  it("displays historical proxy_meeting records with representative details in queue list", () => {
+    const html = renderToStaticMarkup(
+      <VerificationQueue userId="officer-1" initialQueue={[historicalProxyMeetingItem]} />
+    );
+    expect(html).toContain("Historical Proxy Meeting Property");
+    expect(html).toContain("Flagged");
+    expect(html).toContain("Caretaker");
+    expect(html).toContain("Property manager");
+  });
+
+  it("does NOT render old method select options in SSR (Site visit is fixed)", () => {
+    const html = renderToStaticMarkup(
+      <VerificationQueue userId="officer-1" initialQueue={[sampleItem]} initialPropertyId="prop-1" />
+    );
+    // Should NOT contain the old method select options in SSR
+    expect(html).not.toContain("Video call");
+    expect(html).not.toContain("Proxy meeting");
+    // Should not contain "Site Photo", "Document / ID", "Meeting Minutes" in SSR modal
+    expect(html).not.toContain("Site Photo");
+    expect(html).not.toContain("Document / ID");
+    expect(html).not.toContain("Meeting Minutes");
+  });
+
+  it("renders queue action buttons", () => {
+    const html = renderToStaticMarkup(
+      <VerificationQueue userId="officer-1" initialQueue={[sampleItem]} initialPropertyId="prop-1" />
+    );
+    expect(html).toContain("Verify submission");
+    // Modal not rendered in SSR, but queue button is present
   });
 });
