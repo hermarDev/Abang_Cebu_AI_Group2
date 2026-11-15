@@ -61,6 +61,18 @@ describe("admin property review", () => {
     mocks.rpc.mockResolvedValueOnce({ data: null, error: { code: "40001" } });
     expect((await POST(request(approve()))).status).toBe(409);
   });
+  it("maps PT409 field verification failures to an actionable conflict", async () => {
+    mocks.rpc.mockResolvedValueOnce({ data: null, error: { code: "PT409", message: "field verification required before admin approval" } });
+    const response = await POST(request(approve()));
+    expect(response.status).toBe(409);
+    expect(await response.json()).toEqual({ error: "Field verification is required before admin approval can be granted." });
+  });
+  it("does not mislabel unrelated PT409 failures as field verification errors", async () => {
+    mocks.rpc.mockResolvedValueOnce({ data: null, error: { code: "PT409", message: "another conflict" } });
+    const response = await POST(request(approve()));
+    expect(response.status).toBe(503);
+    expect(await response.json()).toEqual({ error: "The review could not be saved. Please retry." });
+  });
   it("maps unverified approval trigger error (40001) with helpful message", async () => {
     mocks.rpc.mockResolvedValueOnce({
       data: null,
