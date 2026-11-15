@@ -30,7 +30,10 @@ export async function loadPendingVerificationMap(
     }
 
     const data = await res.json();
-    const queue = Array.isArray(data.queue) ? data.queue : [];
+    if (!data || !Array.isArray(data.queue) || data.queue.some((item: unknown) => !item || typeof item !== "object" || typeof (item as { id?: unknown }).id !== "string")) {
+      throw new Error("Invalid verification queue response.");
+    }
+    const queue = data.queue as VerificationQueueItem[];
 
     if (queue.length === 0) {
       break;

@@ -3,7 +3,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const mockFetch = vi.fn();
 global.fetch = mockFetch;
 
-import { loadPendingVerificationMap, mapCoordinates, type VerificationQueueItem } from "./verification-map-data";
+import { loadPendingVerificationMap, mapCoordinates } from "./verification-map-data";
+import type { VerificationQueueItem } from "./VerificationQueue";
 
 const createQueueItem = (overrides: Partial<VerificationQueueItem> = {}): VerificationQueueItem => ({
   id: "prop-1",
@@ -106,6 +107,11 @@ describe("loadPendingVerificationMap", () => {
 
     expect(result).toHaveLength(201);
     expect(mockFetch).toHaveBeenCalledTimes(3);
+  });
+
+  it("rejects a malformed queue response", async () => {
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({}) });
+    await expect(loadPendingVerificationMap("user-1", new AbortController().signal)).rejects.toThrow();
   });
 
   it("rejects on failed second page", async () => {
