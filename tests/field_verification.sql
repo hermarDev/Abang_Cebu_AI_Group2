@@ -65,6 +65,15 @@ VALUES (
   'af100000-0000-4000-8000-000000000003'
 )
 ON CONFLICT DO NOTHING;
+DO $$ BEGIN
+ BEGIN
+  PERFORM public.verifier_submit_verification(
+    'bf100000-0000-4000-8000-000000000001','cf100000-0000-4000-8000-000000000011',
+    'df100000-0000-4000-8000-000000000001',1,'verified','site_visit','Valid notes',
+    '[{"object_path":"af100000-0000-4000-8000-000000000003/bf100000-0000-4000-8000-000000000001/33333333-3333-4333-8333-333333333333/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.jpg"}]'::jsonb);
+  RAISE EXCEPTION 'missing proof kind was accepted';
+ EXCEPTION WHEN invalid_parameter_value THEN NULL; END;
+END $$;
 SELECT public.verifier_submit_verification(
   'bf100000-0000-4000-8000-000000000001','cf100000-0000-4000-8000-000000000001','df100000-0000-4000-8000-000000000001',1,'verified','site_visit','Valid notes',
   '[{"kind":"proof","object_path":"af100000-0000-4000-8000-000000000003/bf100000-0000-4000-8000-000000000001/33333333-3333-4333-8333-333333333333/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.jpg"}]'::jsonb,

@@ -33,7 +33,7 @@ BEGIN
   IF pg_catalog.jsonb_array_length(v_proof) > 0 THEN
     FOR v_proof_elem IN SELECT * FROM pg_catalog.jsonb_array_elements(v_proof) LOOP
       IF pg_catalog.jsonb_typeof(v_proof_elem) <> 'object'
-         OR v_proof_elem->>'kind' <> 'proof'
+         OR v_proof_elem->>'kind' IS DISTINCT FROM 'proof'
          OR v_proof_elem->>'object_path' IS NULL
          OR v_proof_elem->>'object_path' !~ '^[0-9a-f-]+/[0-9a-f-]+/[0-9a-f-]+/[0-9a-f]{64}\.(jpg|png|webp|pdf)$'
          OR pg_catalog.split_part(v_proof_elem->>'object_path', '/', 2) <> p_property_id::text

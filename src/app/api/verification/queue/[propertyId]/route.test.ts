@@ -159,6 +159,13 @@ describe("/api/verification/queue/[propertyId]", () => {
       expect(mocks.rpc).toHaveBeenCalledWith("verifier_submit_verification", expect.objectContaining({ p_proof: [{ kind: "proof", object_path: validProofPath }, { kind: "proof", object_path: pdfPath }] }));
     });
 
+    it("rejects proof paths not bound to the requested property", async () => {
+      const foreignPath = `22222222-2222-4222-8222-222222222222/${draftId}/${opId}/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.jpg`;
+      const res = await post({ ...validBody, proof: [{ kind: "proof", object_path: foreignPath }] });
+      expect(res.status).toBe(400);
+      expect(mocks.rpc).not.toHaveBeenCalled();
+    });
+
     it("rejects legacy proof kinds on the new contract", async () => {
       const res = await post({ ...validBody, proof: [{ kind: "photo", object_path: validProofPath }] });
       expect(res.status).toBe(400);
