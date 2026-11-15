@@ -72,7 +72,7 @@ DO $$ BEGIN
   BEGIN
     PERFORM public.review_property('ee100000-0000-4000-8000-000000000001', gen_random_uuid(), 'approved', NULL, 'dd100000-0000-4000-8000-000000000001', 1);
     RAISE EXCEPTION 'admin approval allowed without field verification';
-  EXCEPTION WHEN serialization_failure THEN NULL; END;
+  EXCEPTION WHEN SQLSTATE 'PT409' THEN NULL; END;
 END $$;
 
 -- Verifier listing queue
