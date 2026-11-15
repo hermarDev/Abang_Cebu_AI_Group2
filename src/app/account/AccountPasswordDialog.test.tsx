@@ -32,6 +32,7 @@ describe("account security card", () => {
       />,
     );
     expect(html).not.toContain("rounded-xl border border-border bg-muted/50 p-4");
+    expect(html).toMatch(/<span[^>]*role="status"[^>]*>No profile changes to save<\/span>/);
     expect(html).toContain("disabled:bg-muted");
     expect(html).toContain("disabled:text-muted-foreground");
     expect(html).toContain("disabled:opacity-100");
