@@ -20,13 +20,15 @@ VALUES ('bf100000-0000-4000-8000-000000000001','af100000-0000-4000-8000-00000000
 INSERT INTO public.rental_units(property_id,rental_type,monthly_rent) VALUES ('bf100000-0000-4000-8000-000000000001','private_room',5000);
 INSERT INTO public.property_submissions(owner_id,operation_id,draft_id,expected_revision,property_id,snapshot_payload,snapshot_media,review_status)
 VALUES ('af100000-0000-4000-8000-000000000001','ef100000-0000-4000-8000-000000000001','df100000-0000-4000-8000-000000000001',1,'bf100000-0000-4000-8000-000000000001','{"property":{},"unit":{}}','[]','pending');
+INSERT INTO storage.objects(bucket_id, name)
+VALUES ('field-verification-media', 'af100000-0000-4000-8000-000000000003/bf100000-0000-4000-8000-000000000001/33333333-3333-4333-8333-333333333333/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.jpg');
 SET LOCAL ROLE authenticated;
 SELECT set_config('request.jwt.claim.sub','af100000-0000-4000-8000-000000000002',true);
 DO $$ BEGIN
  BEGIN
   PERFORM public.review_property('bf100000-0000-4000-8000-000000000001',gen_random_uuid(),'approved',NULL,'df100000-0000-4000-8000-000000000001',1);
   RAISE EXCEPTION 'unverified approval was allowed';
- EXCEPTION WHEN serialization_failure THEN NULL; END;
+ EXCEPTION WHEN SQLSTATE 'PT409' THEN NULL; END;
 END $$;
 SELECT set_config('request.jwt.claim.sub','af100000-0000-4000-8000-000000000001',true);
 DO $$ BEGIN
@@ -56,15 +58,6 @@ DO $$ BEGIN
  EXCEPTION WHEN insufficient_privilege THEN NULL; END;
 END $$;
 SELECT set_config('request.jwt.claim.sub','af100000-0000-4000-8000-000000000003',true);
--- Seed storage.objects row in bucket field-verification-media with property ID bf100000-0000-4000-8000-000000000001 as segment 2 of object_path
-INSERT INTO storage.objects (bucket_id, name, owner, owner_id)
-VALUES (
-  'field-verification-media',
-  'af100000-0000-4000-8000-000000000003/bf100000-0000-4000-8000-000000000001/33333333-3333-4333-8333-333333333333/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.jpg',
-  'af100000-0000-4000-8000-000000000003',
-  'af100000-0000-4000-8000-000000000003'
-)
-ON CONFLICT DO NOTHING;
 DO $$ BEGIN
  BEGIN
   PERFORM public.verifier_submit_verification(
