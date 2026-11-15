@@ -285,7 +285,7 @@ export function AccountSettingsForm({ profile }: { profile: AccountProfile }) {
           </div>
           <ActionMessage result={profileResult} />
           <div className="flex flex-wrap items-center justify-end gap-2 pt-2">
-            {!hasProfileChanges && !profilePending && <span className="mr-auto text-xs text-muted-foreground">All changes saved</span>}
+            {!hasProfileChanges && !profilePending && <span className="mr-auto text-xs text-muted-foreground">No profile changes to save</span>}
             {hasProfileChanges && !profilePending && (
               <Button
                 type="button"
