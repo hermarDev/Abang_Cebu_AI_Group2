@@ -8,8 +8,9 @@ import type { RentalFilters } from "@/contracts/rental-filters";
 const MapCanvas = dynamic(() => import("./MapCanvas").then((module) => module.MapCanvas), {
   ssr: false,
   loading: () => (
-    <div role="status" aria-live="polite" className="flex h-full min-h-0 items-center justify-center bg-[var(--background)] text-[var(--foreground)]">
-      Loading the interactive map…
+    <div role="status" aria-live="polite" className="flex h-full min-h-0 flex-col items-center justify-center gap-3 bg-[var(--background)] px-6 text-center text-[var(--foreground)]">
+      <span aria-hidden="true" className="size-8 animate-spin rounded-full border-2 border-muted-foreground/30 border-t-foreground" />
+      <span>Loading the interactive map…</span>
     </div>
   ),
 });

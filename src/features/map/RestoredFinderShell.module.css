@@ -195,12 +195,14 @@
 
 .accountDialog { display: flex; width: min(34rem, calc(100vw - 2rem)); max-width: none; height: auto; max-height: min(90dvh, calc(100dvh - max(1.25rem, env(safe-area-inset-top)) - max(1.25rem, env(safe-area-inset-bottom)))); flex-direction: column; overflow: hidden; overscroll-behavior: contain; border-radius: 1rem; padding: 0; box-shadow: 0 20px 45px -10px rgb(0 0 0 / 25%), 0 10px 20px -8px rgb(0 0 0 / 15%); }
 .accountDialog > div { display: flex; flex-direction: column; min-height: 0; height: auto; max-height: inherit; padding: 0; }
-.accountDialog > div > header { position: absolute; inset: 0 0 auto; z-index: 1; margin: 0; padding: 0; }
+.accountDialog > div > header { position: absolute; inset: 0 0 auto; z-index: 1; margin: 0; padding: 0; pointer-events: none; }
 .accountDialog > div > header > p { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
 .accountHeader { display: flex; min-height: 4.25rem; align-items: center; border-bottom: 1px solid var(--border); padding: .75rem 1.75rem; flex-shrink: 0; background: var(--card); }
 .accountHeader img { display: block; width: 8.5rem; height: auto; }
 .accountClose { position: absolute; top: .625rem; right: .625rem; display: grid; width: 2.75rem; height: 2.75rem; place-items: center; border: 0; border-radius: .5rem; background: transparent; color: var(--muted-foreground); cursor: pointer; transition: background .15s ease, color .15s ease; }
 .accountClose:hover { background: var(--muted); color: var(--foreground); }
+.accountClose:focus-visible { outline: 3px solid var(--ring); outline-offset: 2px; }
+.accountDialog > div > header > * { pointer-events: auto; }
 .accountBody { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 1.375rem 1.75rem 1rem; scrollbar-color: var(--input) transparent; scrollbar-width: thin; }
 .accountContent { width: 100%; }
 .accountHeading { margin: 0; color: var(--card-foreground); font-size: 1.375rem; font-weight: 700; letter-spacing: -.02em; line-height: 1.2; }
@@ -269,8 +271,8 @@
   .app { min-height: 0; }
   .drawer { color-scheme: light; }
   .app[data-theme="dark"] .drawer { color-scheme: dark; }
-  .sheetControls { position: relative; display: flex; flex: none; align-items: center; justify-content: space-between; min-height: 64px; }
-  .sheetAction { min-height: 44px; border: 0; padding: .5rem; background: transparent; color: var(--card-foreground); font: inherit; font-size: .875rem; font-weight: 700; cursor: pointer; }
+  .sheetControls { position: relative; display: flex; flex: none; align-items: center; justify-content: center; min-height: 64px; }
+  .sheetAction { min-height: 44px; max-width: 100%; overflow: hidden; border: 0; padding: .5rem; background: transparent; color: var(--card-foreground); font: inherit; font-size: .875rem; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
   .sheetHandle { position: absolute; inset: 0; display: grid; width: 100%; min-height: 2.75rem; place-items: center; touch-action: none; cursor: ns-resize; }
   .sheetAction { position: relative; z-index: 1; }
   .sheetHandle span { width: 2.5rem; height: .3rem; border-radius: 1rem; background: var(--muted-foreground); }

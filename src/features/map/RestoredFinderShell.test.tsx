@@ -466,6 +466,12 @@ describe("RestoredFinderShell", () => {
     expect(html).not.toContain('aria-label="Account access"');
     expect(html).not.toContain("Email Address");
   });
+  it("keeps the account dialog header from intercepting form clicks and gives the close control a focus ring", () => {
+    const css = readFileSync("src/features/map/RestoredFinderShell.module.css", "utf8");
+
+    expect(css).toContain(".accountDialog > div > header { position: absolute; inset: 0 0 auto; z-index: 1; margin: 0; padding: 0; pointer-events: none; }");
+    expect(css).toContain(".accountClose:focus-visible { outline: 3px solid var(--ring); outline-offset: 2px; }");
+  });
 
   const gallery: RentalResult = { ...rental, imageUrls: ["https://example.test/a.jpg", "https://example.test/b.jpg", "https://example.test/c.jpg"], verificationStatus: "property_verified", area: 18, maxOccupants: 2, description: "Full gallery description." };
 

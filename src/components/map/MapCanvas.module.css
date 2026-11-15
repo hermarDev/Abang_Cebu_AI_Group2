@@ -46,7 +46,7 @@
 @media (max-width: 1023px) {
   .mapRoot :global(.maplibregl-ctrl-bottom-left) {
     right: calc(max(0.8rem, env(safe-area-inset-right)) + 0.9375rem);
-    bottom: calc(min(calc(var(--results-sheet-height, 42dvh) + 1rem), calc(100dvh - 10rem)) + 10.375rem);
+    bottom: calc(min(calc(var(--results-sheet-height, 42dvh) + 1rem), calc(100dvh - 10rem)) + 0.625rem);
     left: auto;
     width: auto;
     justify-content: flex-end;
