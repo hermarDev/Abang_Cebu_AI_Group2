@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useTransition, type ChangeEvent, type FormEvent } from "react";
-import { Camera, Eye, EyeOff, KeyRound, LogOut, Mail, ShieldCheck, UserRound, X, ZoomIn } from "lucide-react";
+import { BadgeCheck, Camera, Eye, EyeOff, KeyRound, LogOut, Mail, ShieldCheck, UserRound, X, ZoomIn } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -242,24 +242,23 @@ export function AccountSettingsForm({ profile }: { profile: AccountProfile }) {
     });
   }
 
-  return <div className="mt-7 grid items-start gap-6 lg:grid-cols-[minmax(0,1.35fr)_minmax(17rem,.65fr)]">
-    <div className="grid gap-6">
+  return <>
+    <div className="mt-6 grid items-start gap-6 lg:grid-cols-[minmax(0,1.35fr)_minmax(18rem,.85fr)]">
       <section className="rounded-2xl border border-border bg-card p-5 text-card-foreground shadow-sm sm:p-6" aria-labelledby="profile-details-heading">
         <header className="mb-5 flex items-start gap-3">
           <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-accent text-accent-foreground"><UserRound size={20} aria-hidden="true" /></span>
           <div><h2 id="profile-details-heading" className="text-lg font-semibold">Personal details</h2><p className="mt-1 text-sm text-muted-foreground">Keep the contact information on your profile up to date.</p></div>
         </header>
-        <div className="mb-5 flex flex-wrap items-center gap-4 rounded-xl border border-border bg-muted/50 p-4">
+        <div className="mb-6 flex flex-wrap items-center gap-4 border-b border-border pb-6">
           {avatarPreview
-            ? <button type="button" aria-label="View profile photo" title="View full-size profile photo" onClick={() => setAvatarPreviewOpen(true)} className="group relative grid size-16 shrink-0 cursor-zoom-in place-items-center overflow-visible rounded-full border border-border bg-card text-muted-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
+            ? <button type="button" aria-label="View profile photo" title="View full-size profile photo" onClick={() => setAvatarPreviewOpen(true)} className="group relative grid size-16 shrink-0 cursor-zoom-in place-items-center overflow-visible rounded-full border border-border bg-muted text-muted-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
               <Image src={avatarPreview} alt="" width={64} height={64} unoptimized loading="eager" className="size-full rounded-full object-cover" />
               <span className="absolute bottom-0 right-0 grid size-6 translate-x-1 translate-y-1 place-items-center rounded-full border border-border bg-card text-action shadow-sm"><ZoomIn size={14} aria-hidden="true" /></span>
             </button>
-            : <div className="grid size-16 shrink-0 place-items-center overflow-hidden rounded-full border border-border bg-card text-muted-foreground"><UserRound size={26} aria-hidden="true" /></div>}
+            : <div className="grid size-16 shrink-0 place-items-center overflow-hidden rounded-full border border-border bg-muted text-muted-foreground"><UserRound size={26} aria-hidden="true" /></div>}
           <div className="min-w-0 flex-1">
             <p className="text-sm font-semibold">Profile photo</p>
-
-            <div className="mt-3 flex flex-wrap gap-2">
+            <div className="mt-2.5 flex flex-wrap gap-2">
               <input ref={avatarInput} className="sr-only" type="file" accept="image/jpeg,image/png,image/webp" aria-label="Choose a profile photo" onChange={chooseAvatar} />
               <Button type="button" variant="outline" disabled={avatarPending} onClick={() => avatarInput.current?.click()}><Camera size={16} aria-hidden="true" /> Choose photo</Button>
               {avatarFile && <Button type="button" disabled={avatarPending} onClick={saveAvatar}>{avatarPending ? "Uploading…" : "Upload photo"}</Button>}
@@ -277,59 +276,87 @@ export function AccountSettingsForm({ profile }: { profile: AccountProfile }) {
             <div className="grid content-start gap-1.5 text-sm font-medium sm:col-span-2">
               <label htmlFor="account-phone-number">Phone number <span className="font-normal text-muted-foreground">(optional)</span></label>
               <div className={`flex h-11 min-w-0 items-center rounded-[var(--radius)] border bg-background px-1 transition-colors focus-within:ring-2 ${phoneNumber && !phoneIsValid ? "border-destructive focus-within:border-destructive focus-within:ring-destructive/20" : "border-input focus-within:border-ring focus-within:ring-ring/30"}`}>
-                <span className="flex shrink-0 items-center gap-2 px-3 text-sm text-foreground" aria-label="Philippines"><span aria-hidden="true">🇵🇭</span><span>PH</span></span>
-                <span className="my-2 h-6 w-px shrink-0 bg-border" aria-hidden="true" />
+                <span className="flex shrink-0 items-center gap-1.5 px-3 text-sm font-medium text-foreground" aria-label="Philippines"><span aria-hidden="true">🇵🇭</span><span>PH</span></span>
+                <span className="my-2 h-5 w-px shrink-0 bg-border" aria-hidden="true" />
                 <Input appearance="embedded" id="account-phone-number" name="phoneNumber" className="h-10 min-w-0 flex-1 px-3" type="tel" value={phoneNumber} disabled={profilePending} onChange={(event) => { setPhoneNumber(event.target.value.replace(/\D/g, "").slice(0, 11)); setProfileResult(null); }} placeholder="Enter phone number" autoComplete="tel-national" inputMode="numeric" maxLength={11} aria-invalid={!phoneIsValid} aria-describedby={!phoneIsValid ? "account-phone-error" : undefined} />
               </div>
               {!phoneIsValid && <span id="account-phone-error" role="alert" className="text-xs font-normal text-destructive">Enter a Philippine mobile number, such as 0912 345 6789.</span>}
             </div>
           </div>
           <ActionMessage result={profileResult} />
-          <div className="flex justify-end">
-            <Button type="submit" disabled={profilePending || !hasProfileChanges || !phoneIsValid}>{profilePending ? "Saving…" : "Save changes"}</Button>
+          <div className="flex flex-wrap items-center justify-end gap-2 pt-2">
+            <span role="status" className="mr-auto text-xs text-muted-foreground">{!hasProfileChanges && !profilePending ? "No profile changes to save" : ""}</span>
+            {hasProfileChanges && !profilePending && (
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => {
+                  setFullName(savedProfile.fullName);
+                  setPhoneNumber(savedProfile.phoneNumber);
+                  setProfileResult(null);
+                }}
+              >
+                Discard
+              </Button>
+            )}
+            <Button
+              type="submit"
+              disabled={profilePending || !hasProfileChanges || !phoneIsValid}
+              className="disabled:border disabled:border-border disabled:bg-muted disabled:text-muted-foreground disabled:shadow-none disabled:opacity-100"
+            >
+              {profilePending ? "Saving…" : "Save changes"}
+            </Button>
           </div>
         </form>
       </section>
 
-      <section className="rounded-2xl border border-border bg-card p-5 text-card-foreground shadow-sm sm:p-6" aria-labelledby="password-heading">
-        <header className="mb-5 flex items-start gap-3">
-          <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-accent text-accent-foreground"><KeyRound size={20} aria-hidden="true" /></span>
-          <div><h2 id="password-heading" className="text-lg font-semibold">Password and security</h2><p className="mt-1 text-sm text-muted-foreground">Manage your password and account security.</p></div>
-        </header>
-        <div className="flex flex-col gap-4 border-t border-border pt-4 sm:flex-row sm:items-center sm:justify-between">
-          <div><p className="text-sm font-semibold">Password</p><p className="mt-1 text-sm text-muted-foreground">Update your password to keep your account secure.</p></div>
-          <Button type="button" variant="outline" onClick={() => setPasswordPreviewOpen(true)}>Change password</Button>
-        </div>
-      </section>
+      <aside className="grid gap-4">
+        <section className="rounded-2xl border border-border bg-card p-5 text-card-foreground shadow-sm" aria-labelledby="account-info-heading">
+          <header className="mb-4 flex items-start gap-3">
+            <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-accent text-accent-foreground"><ShieldCheck size={20} aria-hidden="true" /></span>
+            <div><h2 id="account-info-heading" className="text-lg font-semibold">Account information</h2><p className="mt-0.5 text-sm text-muted-foreground">Your sign-in email and account type.</p></div>
+          </header>
+          <div className="grid gap-3">
+            <div className="flex items-start gap-3">
+              <Mail size={18} className="mt-0.5 shrink-0 text-muted-foreground" aria-hidden="true" />
+              <div className="min-w-0"><p className="text-xs font-medium text-muted-foreground">Email address</p><p className="mt-0.5 break-all text-sm font-medium">{profile.email || "Unavailable"}</p></div>
+            </div>
+            <div className="flex items-start gap-3 border-t border-border pt-3">
+              <BadgeCheck size={18} className="mt-0.5 shrink-0 text-muted-foreground" aria-hidden="true" />
+              <div className="min-w-0">
+                <p className="text-xs font-medium text-muted-foreground">Account type</p>
+                <p className="mt-1 inline-flex rounded-full border border-border bg-muted px-2.5 py-0.5 text-sm font-semibold capitalize text-foreground">{profile.role}</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="rounded-2xl border border-border bg-card p-5 text-card-foreground shadow-sm" aria-labelledby="password-heading">
+          <header className="mb-3 flex items-start gap-3">
+            <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-accent text-accent-foreground"><KeyRound size={20} aria-hidden="true" /></span>
+            <div><h2 id="password-heading" className="text-lg font-semibold">Password and security</h2><p className="mt-0.5 text-sm text-muted-foreground">Manage your password and account security.</p></div>
+          </header>
+          <div className="grid gap-3 border-t border-border pt-3">
+            <p className="text-sm text-muted-foreground">Update your password to keep your account secure.</p>
+            <Button type="button" variant="outline" fullWidth onClick={() => setPasswordPreviewOpen(true)}>Change password</Button>
+          </div>
+        </section>
+
+        <section className="rounded-2xl border border-border bg-card p-5 text-card-foreground shadow-sm" aria-labelledby="session-heading">
+          <div className="flex items-start gap-3">
+            <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-accent text-accent-foreground"><LogOut size={20} aria-hidden="true" /></span>
+            <div><h2 id="session-heading" className="text-base font-semibold">Session</h2><p className="mt-0.5 text-sm text-muted-foreground">Log out of your AbangCebu account on this device.</p></div>
+          </div>
+          <div className="my-3 h-px bg-border/80" role="separator" />
+          <LogoutLink className="w-full justify-center border border-destructive/25 bg-destructive/5" />
+        </section>
+      </aside>
     </div>
 
-    <aside className="grid gap-6">
-      <section className="rounded-2xl border border-border bg-card p-5 text-card-foreground shadow-sm sm:p-6" aria-labelledby="account-info-heading">
-        <header className="mb-5 flex items-start gap-3">
-          <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-accent text-accent-foreground"><ShieldCheck size={20} aria-hidden="true" /></span>
-          <div><h2 id="account-info-heading" className="text-lg font-semibold">Account information</h2><p className="mt-1 text-sm text-muted-foreground">Your sign-in email and account type.</p></div>
-        </header>
-        <div className="grid gap-4">
-          <div className="flex items-start gap-3">
-            <Mail size={18} className="mt-0.5 shrink-0 text-muted-foreground" aria-hidden="true" />
-            <div className="min-w-0"><p className="text-xs font-medium text-muted-foreground">Email address</p><p className="mt-1 break-all text-sm font-medium">{profile.email || "Unavailable"}</p></div>
-          </div>
-          <div className="border-t border-border pt-4">
-            <p className="text-xs font-medium text-muted-foreground">Account type</p>
-            <p className="mt-1 inline-flex rounded-full bg-accent px-2.5 py-1 text-sm font-semibold capitalize text-accent-foreground">{profile.role}</p>
-          </div>
-        </div>
-      </section>
-      <section className="rounded-2xl border border-border bg-card p-5 text-card-foreground shadow-sm sm:p-6" aria-labelledby="session-heading">
-        <div className="flex items-start gap-3">
-          <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-accent text-accent-foreground"><LogOut size={20} aria-hidden="true" /></span>
-          <div><h2 id="session-heading" className="text-base font-semibold">Session</h2><p className="mt-1 text-sm text-muted-foreground">Log out of your AbangCebu account on this device.</p></div>
-        </div>
-        <div className="my-4 h-px bg-border/80" role="separator" />
-        <LogoutLink className="w-full" />
-      </section>
-      <p className="px-1 text-sm leading-relaxed text-muted-foreground">Need help with your account? <Link className="font-medium text-action hover:underline" href="/support">Contact support</Link> or browse the <Link className="font-medium text-action hover:underline" href="/help">Help Center</Link>.</p>
-    </aside>
+    <p className="mt-6 border-t border-border/70 pt-5 text-center text-sm leading-relaxed text-muted-foreground sm:text-left">
+      Need help with your account? <Link className="font-medium text-action hover:underline" href="/support">Contact support</Link> or browse the <Link className="font-medium text-action hover:underline" href="/help">Help Center</Link>.
+    </p>
+
     <PasswordDialog open={passwordPreviewOpen} onClose={() => setPasswordPreviewOpen(false)} onSuccess={(result) => notify("success", "account-password-updated", result.message)} />
     <Modal
       open={removePhotoOpen}
@@ -354,5 +381,5 @@ export function AccountSettingsForm({ profile }: { profile: AccountProfile }) {
         <Image src={avatarPreview} alt="Profile photo" fill sizes="(max-width: 768px) 90vw, 48rem" unoptimized className="object-contain" />
       </div>
     </Modal>}
-  </div>;
+  </>;
 }
