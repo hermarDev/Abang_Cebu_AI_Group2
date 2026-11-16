@@ -220,7 +220,7 @@ export function WorkspaceShell({
           expanded ? "lg:grid-cols-[248px_minmax(0,1fr)]" : "lg:grid-cols-[76px_minmax(0,1fr)]"
         }`}
       >
-        <aside className="hidden min-h-[calc(100dvh-5rem)] self-stretch lg:flex lg:flex-col" aria-label={asideAriaLabel}>
+        <aside className="hidden lg:sticky lg:top-20 lg:flex lg:max-h-[calc(100dvh-6rem)] lg:self-start lg:flex-col lg:overflow-y-auto" aria-label={asideAriaLabel}>
           <div className="flex min-h-0 flex-1 flex-col rounded-2xl border border-border bg-card p-2 shadow-sm">
             <div className={`mb-1 flex min-h-10 items-center ${expanded ? "justify-between gap-2 px-2" : "justify-center"}`}>
               {expanded && (

@@ -114,6 +114,25 @@ describe("WorkspaceShell", () => {
     expect(html.match(/pb-\[calc\(5rem\+env\(safe-area-inset-bottom\)\)\]/g)).toHaveLength(1);
   });
 
+  it("keeps the desktop sidebar viewport-bounded and independently reachable", () => {
+    hooks.active = true;
+    const tree = collectElements(WorkspaceShell({
+      pathname: "/admin/dashboard",
+      brand: <span>Brand</span>,
+      asideAriaLabel: "Admin navigation",
+      sidebarTitle: "Admin tools",
+      navAriaLabel: "Admin workspace",
+      navGroups,
+      children: <p>Body</p>,
+    }));
+    const sidebar = tree.find((el) => el.type === "aside");
+    expect(sidebar?.props.className).toContain("lg:sticky");
+    expect(sidebar?.props.className).toContain("lg:self-start");
+    expect(sidebar?.props.className).toContain("lg:max-h-[calc(100dvh-6rem)]");
+    expect(sidebar?.props.className).toContain("lg:overflow-y-auto");
+    expect(sidebar?.props.className).not.toContain("self-stretch");
+  });
+
   it("toggles desktop sidebar expanded/collapsed state", () => {
     hooks.active = true;
     const renderTree = () => {
