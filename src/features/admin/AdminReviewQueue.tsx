@@ -142,7 +142,15 @@ export function reviewChecklist(p: AdminProperty): Array<{ label: string; ok: bo
     { label: "Location pin", ok: typeof p.latitude === "number" && typeof p.longitude === "number", detail: typeof p.latitude === "number" && typeof p.longitude === "number" ? `${p.latitude}, ${p.longitude}` : "No coordinates" },
     { label: "Monthly rent", ok: typeof p.monthlyRent === "number" && p.monthlyRent > 0, detail: typeof p.monthlyRent === "number" && p.monthlyRent > 0 ? peso.format(p.monthlyRent) : "Not set" },
     { label: "Photos", ok: Boolean(p.photoUrls?.length), detail: p.photoUrls?.length ? `${p.photoUrls.length} submitted` : "None submitted" },
-    { label: "Permit documents", ok: Boolean(p.permitUrls?.length), detail: p.permitUrls?.length ? `${p.permitUrls.length} file(s) to inspect` : "None uploaded. This view does not show the landlord's residential exemption declaration." },
+    {
+      label: "Permit documents",
+      ok: Boolean(p.permitUrls?.length),
+      detail: p.permitUrls?.length
+        ? `${p.permitUrls.length} file(s) to inspect`
+        : p.permitNotRequiredConfirmed || p.permitExemptionReason
+          ? "None uploaded. Residential exemption declaration shown below."
+          : "None uploaded. No exemption declaration provided.",
+    },
     { label: "Field verification", ok: isFieldVerified, detail: isFieldVerified ? "Field verified by officer" : p.fieldVerificationStatus === "flagged" ? "Flagged by officer" : "Awaiting field verification" },
   ];
 }
@@ -349,7 +357,7 @@ export function PropertyDetails({
         {rows.map(([label, value]) => <div key={label} className="contents"><dt className="font-medium text-muted-foreground">{label}</dt><dd className="m-0 break-words">{value ?? "—"}</dd></div>)}
       </dl>
 
-      <ChecklistView property={{ ...property, monthlyRent, propertyType, rentalType, floorAreaSqm, maxOccupants, streetAddress, barangay, city, photoUrls, permitUrls, fieldVerificationStatus }} />
+      <ChecklistView property={{ ...property, monthlyRent, propertyType, rentalType, floorAreaSqm, maxOccupants, streetAddress, barangay, city, photoUrls, permitUrls, permitNotRequiredConfirmed, permitExemptionReason, fieldVerificationStatus }} />
 
       {!!photoUrls.length && (
         <div>
@@ -488,9 +496,12 @@ export function AdminReviewQueue({ userId, initialStatus = "pending", initialSea
   useEffect(() => {
     const abort = new AbortController();
     controller.current = abort;
-    const timer = setTimeout(async () => {
+    const resetState = async () => {
       setProperties(null);
       setError(null);
+    };
+    void resetState();
+    const load = async () => {
       const all: AdminProperty[] = [];
       let offset = 0;
       const limit = 100;
@@ -514,7 +525,12 @@ export function AdminReviewQueue({ userId, initialStatus = "pending", initialSea
         offset += limit;
       }
       setProperties(all);
-    }, search ? 300 : 0);
+    };
+    if (!search) {
+      void load();
+      return () => abort.abort();
+    }
+    const timer = setTimeout(() => { void load(); }, 300);
     return () => { clearTimeout(timer); abort.abort(); };
   }, [status, search, userId, reloadKey]);
 
@@ -568,7 +584,13 @@ export function AdminReviewQueue({ userId, initialStatus = "pending", initialSea
       setReloadKey((key) => key + 1);
       return;
     }
-    setProperties((list) => list?.map((p) => (p.id === result.property.id ? (p.hasPendingRevision ? { ...p, hasPendingRevision: false } : result.property) : p)) ?? list);
+    setProperties((list) =>
+      list?.flatMap((p) => {
+        if (p.id !== result.property.id) return [p];
+        if (p.hasPendingRevision) return [{ ...p, hasPendingRevision: false }];
+        return status === "all" ? [result.property] : [];
+      }) ?? list,
+    );
     setReloadKey((key) => key + 1);
     setDialog(null);
     notify("success", "admin-review-action", copy.success);

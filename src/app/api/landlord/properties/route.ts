@@ -1,3 +1,4 @@
+import { revalidatePath } from "next/cache";
 import { isAuthRetryableFetchError } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import { landlordSubmissionsLimiter } from "@/server/api-limiters";
@@ -68,5 +69,10 @@ export async function POST(request: Request) {
     return reply("Submission could not be completed. Please retry.", 503);
   }
 
+  try {
+    for (const path of ["/landlord/dashboard", "/landlord/properties", "/landlord/map"]) {
+      revalidatePath(path);
+    }
+  } catch { /* ignore outside Next request context */ }
   return Response.json({ propertyId: data.property_id, status: "pending" }, { headers });
 }

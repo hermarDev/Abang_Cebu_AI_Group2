@@ -7,7 +7,9 @@ const mocks = vi.hoisted(() => ({
   profile: vi.fn(async (): Promise<{ data: unknown; error: unknown }> => ({ data: { role: "landlord", is_suspended: false }, error: null })),
   rpc: vi.fn(async (): Promise<{ data: unknown; error: unknown }> => ({ data: { property_id: "prop-1" }, error: null })),
   submission: vi.fn(async (): Promise<{ data: unknown; error: unknown }> => ({ data: { property_id: "prop-1", status: "pending", draft_id: "22222222-2222-4222-8222-222222222222", expected_revision: 1 }, error: null })),
+  revalidatePath: vi.fn(),
 }));
+vi.mock("next/cache", () => ({ revalidatePath: mocks.revalidatePath }));
 vi.mock("@/lib/supabase/server", () => ({ createClient: async () => ({ auth: { getUser: mocks.getUser }, from: (table: string) => table === "profiles" ? { select: () => ({ eq: () => ({ maybeSingle: mocks.profile }) }) } : { select: () => ({ eq: () => ({ eq: () => ({ maybeSingle: mocks.submission }) }) }) }, rpc: mocks.rpc }) }));
 
 function request(body: unknown, user = "landlord-1") {
@@ -31,6 +33,9 @@ describe("landlord property submission", () => {
       p_draft_id: "22222222-2222-4222-8222-222222222222",
       p_expected_revision: 1,
     });
+    for (const path of ["/landlord/dashboard", "/landlord/properties", "/landlord/map"]) {
+      expect(mocks.revalidatePath).toHaveBeenCalledWith(path);
+    }
   });
   it("rejects non-landlord or suspended users", async () => {
     mocks.profile.mockResolvedValueOnce({ data: { role: "renter", is_suspended: false }, error: null });

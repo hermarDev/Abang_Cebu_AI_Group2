@@ -52,6 +52,48 @@ export interface SupportCenterClientProps {
   backLabel: string;
   highlightTicketId?: string | null;
   guestToken?: string | null;
+  initialTickets?: SupportTicketRecord[];
+  initialGuestTicket?: SupportTicketRecord | null;
+  initialErrors?: SupportFieldErrors;
+}
+
+function SupportTicketReplies({
+  supportResolutionNote,
+  adminResponse,
+  emptyMessage,
+}: {
+  supportResolutionNote?: string | null;
+  adminResponse?: string | null;
+  emptyMessage?: string;
+}) {
+  if (!supportResolutionNote && !adminResponse) {
+    return emptyMessage ? <p className="m-0 text-muted-foreground">{emptyMessage}</p> : null;
+  }
+
+  return (
+    <>
+      {supportResolutionNote && (
+        <div className="rounded-lg border border-border/80 bg-muted/50 p-2.5">
+          <p className="m-0 text-[11px] font-bold uppercase tracking-wider text-action">
+            Customer Support resolution
+          </p>
+          <p className="m-0 mt-1 whitespace-pre-wrap text-foreground leading-relaxed">
+            {supportResolutionNote}
+          </p>
+        </div>
+      )}
+      {adminResponse && (
+        <div className="rounded-lg border border-border/80 bg-muted/50 p-2.5">
+          <p className="m-0 text-[11px] font-bold uppercase tracking-wider text-action">
+            Admin response
+          </p>
+          <p className="m-0 mt-1 whitespace-pre-wrap text-foreground leading-relaxed">
+            {adminResponse}
+          </p>
+        </div>
+      )}
+    </>
+  );
 }
 
 function generateUuid(): string {
@@ -96,6 +138,9 @@ export function SupportCenterClient({
   backLabel,
   highlightTicketId = null,
   guestToken = null,
+  initialTickets = [],
+  initialGuestTicket = null,
+  initialErrors = {},
 }: SupportCenterClientProps) {
   // Form State
   const [name, setName] = useState(initialName);
@@ -108,7 +153,7 @@ export function SupportCenterClient({
   const [website, setWebsite] = useState(""); // Honeypot
 
   // Status & Validation
-  const [errors, setErrors] = useState<SupportFieldErrors>({});
+  const [errors, setErrors] = useState<SupportFieldErrors>(initialErrors);
   const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [submittedTicket, setSubmittedTicket] = useState<{
@@ -119,21 +164,23 @@ export function SupportCenterClient({
   const [operationId, setOperationId] = useState(() => generateUuid());
 
   // Guest status lookup state (via ?ticket=<id>&token=<token>)
-  const [guestLookupTicket, setGuestLookupTicket] = useState<SupportTicketRecord | null>(null);
+  const [guestLookupTicket, setGuestLookupTicket] = useState<SupportTicketRecord | null>(initialGuestTicket);
   const [guestLookupLoading, setGuestLookupLoading] = useState(
-    Boolean(!authenticated && highlightTicketId && guestToken),
+    Boolean(!authenticated && highlightTicketId && guestToken && !initialGuestTicket),
   );
   const [guestLookupError, setGuestLookupError] = useState<string | null>(null);
 
   // Request History State (Authenticated users)
-  const [tickets, setTickets] = useState<SupportTicketRecord[]>([]);
+  const [tickets, setTickets] = useState<SupportTicketRecord[]>(initialTickets);
   const [awaitingLandlordComplaints, setAwaitingLandlordComplaints] = useState<SupportTicketRecord[]>([]);
   const [landlordResponseText, setLandlordResponseText] = useState<Record<string, string>>({});
   const [landlordSubmittingId, setLandlordSubmittingId] = useState<string | null>(null);
   const [landlordResponseError, setLandlordResponseError] = useState<string | null>(null);
-  const [historyLoading, setHistoryLoading] = useState(authenticated);
+  const [historyLoading, setHistoryLoading] = useState(authenticated && initialTickets.length === 0);
   const [historyError, setHistoryError] = useState<string | null>(null);
-  const [expandedTicketIds, setExpandedTicketIds] = useState<Set<string>>(() => new Set());
+  const [expandedTicketIds, setExpandedTicketIds] = useState<Set<string>>(() =>
+    highlightTicketId ? new Set([highlightTicketId]) : new Set(),
+  );
   const [localHighlightId, setLocalHighlightId] = useState<string | null>(highlightTicketId);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -304,7 +351,6 @@ export function SupportCenterClient({
     if (files.length + selected.length > 3) {
       const overflowMsg = `You can attach up to 3 files total. ${selected[0].name} and any extra selections were not added.`;
       setErrors((prev) => ({ ...prev, attachments: overflowMsg }));
-      notify("warning", "support-attachment-warning", overflowMsg);
       event.currentTarget.value = "";
       return;
     }
@@ -313,7 +359,6 @@ export function SupportCenterClient({
     const attachmentError = validateSupportAttachmentFiles(merged);
     if (attachmentError) {
       setErrors((prev) => ({ ...prev, attachments: attachmentError }));
-      notify("warning", "support-attachment-warning", attachmentError);
       event.currentTarget.value = "";
       return;
     }
@@ -380,8 +425,10 @@ export function SupportCenterClient({
     // Attachment validation
     const attachmentError = validateSupportAttachmentFiles(files);
     if (attachmentError) {
-      setErrors({ attachments: attachmentError });
+      const attachmentErrors = { attachments: attachmentError };
+      setErrors(attachmentErrors);
       setFormError(attachmentError);
+      focusFirstError(attachmentErrors);
       return;
     }
 
@@ -438,8 +485,36 @@ export function SupportCenterClient({
           payload && typeof payload === "object" && "error" in payload && typeof payload.error === "string"
             ? payload.error
             : "Failed to submit your support request. Please try again.";
+        const rawServerErrors =
+          payload && typeof payload === "object" && "errors" in payload && payload.errors && typeof payload.errors === "object"
+            ? (payload.errors as Record<string, unknown>)
+            : null;
+        const serverFieldErrors: SupportFieldErrors = {};
+        if (rawServerErrors) {
+          const fieldKeys: (keyof SupportFieldErrors)[] = [
+            "requesterName",
+            "requesterEmail",
+            "category",
+            "subject",
+            "description",
+            "relatedListingId",
+            "attachments",
+          ];
+          for (const key of fieldKeys) {
+            if (typeof rawServerErrors[key] === "string" && rawServerErrors[key]) {
+              serverFieldErrors[key] = rawServerErrors[key];
+            }
+          }
+        }
+        const hasFieldErrors = Object.keys(serverFieldErrors).length > 0;
+        if (hasFieldErrors) {
+          setErrors(serverFieldErrors);
+          setSubmitting(false);
+          requestAnimationFrame(() => focusFirstError(serverFieldErrors));
+        } else {
+          notify("error", "support-ticket-error", errorMsg);
+        }
         setFormError(errorMsg);
-        notify("error", "support-ticket-error", errorMsg);
         return;
       }
 
@@ -483,6 +558,7 @@ export function SupportCenterClient({
           attachments: returnedAttachments,
           status: "open",
           priority: "normal",
+          supportResolutionNote: null,
           adminResponse: null,
           assignedAdminId: null,
           assignedAdminName: null,
@@ -858,6 +934,8 @@ export function SupportCenterClient({
                       size="sm"
                       onClick={() => fileInputRef.current?.click()}
                       disabled={submitting || files.length >= 3}
+                      aria-invalid={Boolean(errors.attachments)}
+                      aria-describedby={errors.attachments ? "support-attachments-error" : undefined}
                       className="text-xs"
                     >
                       <Paperclip size={14} aria-hidden="true" />
@@ -1094,17 +1172,11 @@ export function SupportCenterClient({
                                   </div>
                                 )}
 
-                                {/* Admin Response Banner */}
-                                {t.adminResponse && (
-                                  <div className="rounded-lg border border-border/80 bg-muted/50 p-2.5">
-                                    <p className="m-0 text-[11px] font-bold uppercase tracking-wider text-action">
-                                      Admin response
-                                    </p>
-                                    <p className="m-0 mt-1 whitespace-pre-wrap text-foreground leading-relaxed">
-                                      {t.adminResponse}
-                                    </p>
-                                  </div>
-                                )}
+                                {/* Support Resolution & Admin Response Banners */}
+                                <SupportTicketReplies
+                                  supportResolutionNote={t.supportResolutionNote}
+                                  adminResponse={t.adminResponse}
+                                />
                               </div>
                             )}
                           </li>
@@ -1157,18 +1229,11 @@ export function SupportCenterClient({
                               ))}
                             </div>
                           )}
-                          {guestLookupTicket.adminResponse ? (
-                            <div className="rounded-lg border border-border/80 bg-muted/50 p-2.5">
-                              <p className="m-0 text-[11px] font-bold uppercase tracking-wider text-action">
-                                Admin response
-                              </p>
-                              <p className="m-0 mt-1 whitespace-pre-wrap text-foreground">
-                                {guestLookupTicket.adminResponse}
-                              </p>
-                            </div>
-                          ) : (
-                            <p className="m-0 text-muted-foreground">No admin reply yet. Check back using this private link.</p>
-                          )}
+                          <SupportTicketReplies
+                            supportResolutionNote={guestLookupTicket.supportResolutionNote}
+                            adminResponse={guestLookupTicket.adminResponse}
+                            emptyMessage="No support or admin reply yet. Check back using this private link."
+                          />
                         </div>
                       ) : null}
                     </section>

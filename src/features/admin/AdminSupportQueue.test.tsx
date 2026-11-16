@@ -38,6 +38,8 @@ describe("AdminSupportQueue", () => {
     expect(html).toContain('aria-label="Support tickets"');
     expect(html).toContain('aria-label="Filter by status"');
     expect(html).toContain('aria-label="Search support tickets"');
+    expect(html).toContain('placeholder="Search ticket, email, subject…"');
+    expect(html).toContain("sm:w-72");
     expect(html).toContain("Open");
     expect(html).toContain("In progress");
     expect(html).toContain("Resolved");

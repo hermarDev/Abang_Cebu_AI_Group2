@@ -1,7 +1,7 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-const hooks = vi.hoisted(() => ({ active: false, slots: [] as unknown[], index: 0 }));
+const hooks = vi.hoisted(() => ({ active: false, slots: [] as unknown[], index: 0, effects: [] as Array<() => unknown> }));
 vi.mock("react", async (original) => {
   const actual = await original<typeof import("react")>();
   return { ...actual,
@@ -17,7 +17,10 @@ vi.mock("react", async (original) => {
       if (!(index in hooks.slots)) hooks.slots[index] = { current: initial };
       return hooks.slots[index];
     },
-    useEffect: (...args: Parameters<typeof actual.useEffect>) => { if (!hooks.active) actual.useEffect(...args); },
+    useEffect: (...args: Parameters<typeof actual.useEffect>) => {
+      if (!hooks.active) actual.useEffect(...args);
+      else hooks.effects.push(args[0]);
+    },
   };
 });
 vi.mock("@/components/ui/AppToaster", () => ({ notify: vi.fn() }));
@@ -27,9 +30,9 @@ const property: AdminProperty = { id: "p1", title: "Lahug room", status: "pendin
 const ctx = (action: "approve" | "reject" | "unpublish" | "restore", p = property) => ({ property: p, action, operationId: "op-1" });
 const respond = (status: number, body: unknown) => vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: status < 400, status, json: async () => body }));
 
-afterEach(() => { vi.unstubAllGlobals(); hooks.active = false; hooks.slots = []; hooks.index = 0; });
+afterEach(() => { vi.unstubAllGlobals(); vi.restoreAllMocks(); hooks.active = false; hooks.slots = []; hooks.index = 0; hooks.effects = []; });
 
-function renderQueue() { hooks.index = 0; return AdminReviewQueue({ userId: "admin-a" }); }
+function renderQueue() { hooks.index = 0; hooks.effects = []; return AdminReviewQueue({ userId: "admin-a" }); }
 function nodes(value: unknown): Array<import("react").ReactElement<Record<string, unknown>>> {
   if (Array.isArray(value)) return value.flatMap(nodes);
   if (!value || typeof value !== "object" || !("props" in value)) return [];
@@ -427,6 +430,80 @@ describe("reviewChecklist", () => {
       fieldVerificationStatus: "verified",
     });
     expect(full.every((c) => c.ok)).toBe(true);
+  });
+
+  it("does not claim the exemption declaration is hidden when one is displayed", () => {
+    const exempt = reviewChecklist({ id: "p-exempt", status: "pending", permitUrls: [], permitNotRequiredConfirmed: true, permitExemptionReason: "Single-family residence" });
+    const detail = exempt.find((c) => c.label === "Permit documents")?.detail ?? "";
+    expect(detail).not.toContain("does not show");
+    expect(detail).toContain("declaration");
+    const html = renderToStaticMarkup(<PropertyDetails property={{ ...property, permitUrls: [], permitNotRequiredConfirmed: true, permitExemptionReason: "Single-family residence" }} />);
+    expect(html).toContain("Residential exemption declaration");
+    expect(html).not.toContain("does not show the landlord");
+    const none = reviewChecklist({ id: "p-none", status: "pending", permitUrls: [] });
+    expect(none.find((c) => c.label === "Permit documents")?.detail).toContain("No exemption declaration");
+
+    const revisionHtml = renderToStaticMarkup(
+      <PropertyDetails
+        property={{ ...property, permitUrls: [], permitNotRequiredConfirmed: false, permitExemptionReason: null }}
+        revision={{
+          id: "op-exempt",
+          draftId: "d1",
+          expectedRevision: 3,
+          reviewStatus: "pending",
+          createdAt: "",
+          snapshotPayload: {
+            property: { permit_not_required_confirmed: true, permit_exemption_reason: "Single-family residence" },
+            unit: {},
+          },
+          snapshotMedia: [],
+        }}
+      />,
+    );
+    expect(revisionHtml).toContain("Residential exemption declaration shown below.");
+    expect(revisionHtml).not.toContain("No exemption declaration provided.");
+  });
+
+  it("clears stale list before fetching without a 0ms timer and removes resolved items from filtered tabs", async () => {
+    hooks.active = true;
+    renderQueue();
+    const first = { ...property, id: "p1", hasPendingRevision: false };
+    const second = { ...property, id: "p2", hasPendingRevision: false };
+    const pendingRev = { ...property, id: "p3", status: "approved", hasPendingRevision: true };
+    hooks.slots[4] = [first, second, pendingRev];
+
+    const timeoutSpy = vi.spyOn(globalThis, "setTimeout");
+    let resolveFetch!: (value: unknown) => void;
+    const fetchMock = vi.fn().mockImplementationOnce(() => new Promise((resolve) => { resolveFetch = resolve; }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    renderQueue();
+    const cleanup = hooks.effects[0]();
+    expect(hooks.slots[4]).toBeNull();
+    expect(timeoutSpy).not.toHaveBeenCalled();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    resolveFetch({ ok: true, json: async () => ({ properties: [first, second, pendingRev] }) });
+    if (typeof cleanup === "function") cleanup();
+
+    hooks.slots[4] = [first, second, pendingRev];
+    let tree = nodes(renderQueue());
+    const card = tree.find((node) => node.type === ReviewCard && (node.props.property as AdminProperty).id === "p1")!;
+    (card.props.onAction as (p: AdminProperty, action: "approve") => void)(first, "approve");
+    tree = nodes(renderQueue());
+    const confirmBtn = tree.find((node) => node.props.children === "Approve" && typeof node.props.onClick === "function" && node.props.variant === "primary" && !("size" in node.props))!;
+    respond(200, { status: "approved" });
+    await (confirmBtn.props.onClick as () => Promise<void>)();
+    expect((hooks.slots[4] as AdminProperty[]).map((p) => p.id)).toEqual(["p2", "p3"]);
+
+    // When hasPendingRevision is true on a filtered tab, keep it in list with hasPendingRevision cleared
+    tree = nodes(renderQueue());
+    const revCard = tree.find((node) => node.type === ReviewCard && (node.props.property as AdminProperty).id === "p3")!;
+    (revCard.props.onAction as (p: AdminProperty, action: "approve") => void)(pendingRev, "approve");
+    tree = nodes(renderQueue());
+    const confirmRevBtn = tree.find((node) => node.props.children === "Approve" && typeof node.props.onClick === "function" && node.props.variant === "primary" && !("size" in node.props))!;
+    respond(200, { status: "approved" });
+    await (confirmRevBtn.props.onClick as () => Promise<void>)();
+    expect(hooks.slots[4]).toEqual([second, { ...pendingRev, hasPendingRevision: false }]);
   });
 
   it("renders Field Verification status pill and details in inspection modal", () => {

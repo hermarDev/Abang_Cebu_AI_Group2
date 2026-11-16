@@ -71,7 +71,9 @@ export async function GET(request: Request) {
       .limit(limit),
     supabase
       .from("support_tickets")
-      .select("*")
+      .select(
+        "id,ticket_number,category,subject,related_listing_id,status,priority,reported_landlord_id,landlord_inquiry_note,landlord_inquiry_sent_at,landlord_response,landlord_responded_at,created_at,updated_at",
+      )
       .eq("reported_landlord_id", user.id)
       .eq("status", "awaiting_landlord")
       .order("created_at", { ascending: false })
@@ -83,7 +85,11 @@ export async function GET(request: Request) {
   }
 
   const tickets = (ticketsData.data ?? []).map(mapSupportTicketRow);
-  const awaitingLandlordComplaints = (landlordComplaintsData.data ?? []).map(mapSupportTicketRow);
+  const awaitingLandlordComplaints = (landlordComplaintsData.data ?? []).map((row) => ({
+    ...mapSupportTicketRow(row),
+    supportResolutionNote: null,
+    adminResponse: null,
+  }));
   return reply({ tickets, awaitingLandlordComplaints }, 200);
 }
 

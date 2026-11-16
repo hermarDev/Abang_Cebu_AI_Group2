@@ -4,7 +4,9 @@ const mocks = vi.hoisted(() => ({
   getUser: vi.fn(),
   rpc: vi.fn(),
   select: vi.fn(),
+  selectCols: vi.fn(),
   adminSelect: vi.fn(),
+  adminSelectCols: vi.fn(),
   upload: vi.fn(),
   remove: vi.fn(),
   createSignedUrl: vi.fn(),
@@ -14,11 +16,14 @@ vi.mock("@/lib/supabase/admin", () => ({
   createAdminClient: () => ({
     rpc: mocks.rpc,
     from: (table: string) => ({
-      select: () => ({
-        eq: () => ({
-          maybeSingle: () => mocks.adminSelect(table),
-        }),
-      }),
+      select: (cols?: string) => {
+        mocks.adminSelectCols(table, cols);
+        return {
+          eq: () => ({
+            maybeSingle: () => mocks.adminSelect(table),
+          }),
+        };
+      },
     }),
     storage: {
       from: () => ({
@@ -35,7 +40,8 @@ vi.mock("@/lib/supabase/server", () => ({
     auth: { getUser: mocks.getUser },
     rpc: mocks.rpc,
     from: (table: string) => ({
-      select: () => {
+      select: (cols?: string) => {
+        mocks.selectCols(table, cols);
         type Builder = {
           eq: () => Builder;
           order: () => Builder;
@@ -375,6 +381,7 @@ describe("GET /api/support/tickets/[ticketId]", () => {
         attachments: [],
         status: "in_progress",
         priority: "normal",
+        support_resolution_note: "CS reset your email preference and confirmed delivery.",
         admin_response: "We are checking your question now.",
         created_at: "2026-11-13T00:00:00Z",
         updated_at: "2026-11-13T00:05:00Z",
@@ -395,7 +402,12 @@ describe("GET /api/support/tickets/[ticketId]", () => {
     );
     expect(okRes.status).toBe(200);
     const json = await okRes.json();
+    expect(json.ticket.supportResolutionNote).toBe("CS reset your email preference and confirmed delivery.");
     expect(json.ticket.adminResponse).toBe("We are checking your question now.");
+    expect(mocks.adminSelectCols).toHaveBeenCalledWith(
+      "support_tickets",
+      expect.stringContaining("support_resolution_note"),
+    );
   });
 });
 
@@ -420,27 +432,49 @@ describe("GET /api/support/tickets", () => {
     expect(res.status).toBe(409);
   });
 
-  it("returns user tickets on authenticated match", async () => {
+  it("returns user tickets with both CS and admin notes while stripping them from landlord complaints", async () => {
     mocks.getUser.mockResolvedValue({ data: { user: { id: userId } }, error: null });
-    mocks.select.mockResolvedValue({
-      data: [
-        {
-          id: "ticket-1",
-          ticket_number: "SUP-01001",
-          user_id: userId,
-          requester_name: "Maria",
-          requester_email: "maria@example.com",
-          category: "account_access",
-          subject: "Sign in problem",
-          description: "Cannot sign in to my account despite correct credentials.",
-          status: "open",
-          priority: "normal",
-          created_at: "2026-11-13T00:00:00Z",
-          updated_at: "2026-11-13T00:00:00Z",
-        },
-      ],
-      error: null,
-    });
+    mocks.select
+      .mockResolvedValueOnce({
+        data: [
+          {
+            id: "ticket-1",
+            ticket_number: "SUP-01001",
+            user_id: userId,
+            requester_name: "Maria",
+            requester_email: "maria@example.com",
+            category: "account_access",
+            subject: "Sign in problem",
+            description: "Cannot sign in to my account despite correct credentials.",
+            status: "resolved",
+            priority: "normal",
+            support_resolution_note: "Customer Support verified account access.",
+            admin_response: "Admin confirmed no further restriction.",
+            created_at: "2026-11-13T00:00:00Z",
+            updated_at: "2026-11-13T00:00:00Z",
+          },
+        ],
+        error: null,
+      })
+      .mockResolvedValueOnce({
+        data: [
+          {
+            id: "complaint-1",
+            ticket_number: "SUP-01002",
+            category: "messaging_safety",
+            subject: "Complaint about listing",
+            status: "awaiting_landlord",
+            priority: "high",
+            reported_landlord_id: userId,
+            landlord_inquiry_note: "Please clarify your deposit policy.",
+            support_resolution_note: "CONFIDENTIAL CS INTERNAL NOTE",
+            admin_response: "CONFIDENTIAL ADMIN NOTE",
+            created_at: "2026-11-13T00:00:00Z",
+            updated_at: "2026-11-13T00:00:00Z",
+          },
+        ],
+        error: null,
+      });
 
     const req = new Request("http://localhost/api/support/tickets", {
       headers: { "x-expected-user-id": userId },
@@ -450,7 +484,19 @@ describe("GET /api/support/tickets", () => {
     const json = await res.json();
     expect(json.tickets).toHaveLength(1);
     expect(json.tickets[0].ticketNumber).toBe("SUP-01001");
-    expect(json.awaitingLandlordComplaints).toBeDefined();
+    expect(json.tickets[0].supportResolutionNote).toBe("Customer Support verified account access.");
+    expect(json.tickets[0].adminResponse).toBe("Admin confirmed no further restriction.");
+
+    expect(json.awaitingLandlordComplaints).toHaveLength(1);
+    expect(json.awaitingLandlordComplaints[0].landlordInquiryNote).toBe("Please clarify your deposit policy.");
+    expect(json.awaitingLandlordComplaints[0].supportResolutionNote ?? null).toBeNull();
+    expect(json.awaitingLandlordComplaints[0].adminResponse ?? null).toBeNull();
+
+    const landlordSelectCall = mocks.selectCols.mock.calls[1]?.[1] as string | undefined;
+    expect(landlordSelectCall).toBeTruthy();
+    expect(landlordSelectCall).not.toBe("*");
+    expect(landlordSelectCall).not.toContain("support_resolution_note");
+    expect(landlordSelectCall).not.toContain("admin_response");
   });
 });
 

@@ -1,7 +1,15 @@
+import { revalidatePath } from "next/cache";
 import { isAuthRetryableFetchError } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import { propertyDraftsLimiter } from "@/server/api-limiters";
 import type { Json } from "@/types/database";
+
+const LANDLORD_REVALIDATE_PATHS = ["/landlord/dashboard", "/landlord/properties", "/landlord/map"] as const;
+function revalidateLandlordPaths() {
+  try {
+    for (const path of LANDLORD_REVALIDATE_PATHS) revalidatePath(path);
+  } catch { /* ignore outside Next request context */ }
+}
 
 const headers = { "Cache-Control": "no-store" };
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -57,6 +65,7 @@ export async function POST(request: Request) {
   if (error?.code === "22023") return reply("The draft contains invalid or unsupported information.", 400);
   if (error) return reply(error.code === "23505" ? "This save operation conflicts with an earlier attempt." : "Draft could not be saved. Please retry.", error.code === "23505" ? 409 : 503);
   if (typeof data !== "string" || !uuid.test(data)) return reply("Draft save could not be confirmed. Please retry.", 503);
+  revalidateLandlordPaths();
   return Response.json({ id: data }, { headers });
 }
 
@@ -77,5 +86,6 @@ export async function PATCH(request: Request) {
   if (error?.code === "22023") return reply("The draft contains invalid or unsupported information.", 400);
   if (error) return reply(error.code === "40001" || error.code === "23505" ? "This draft changed or the operation conflicts. Reload the saved draft before retrying." : "Draft could not be saved. Please retry.", error.code === "40001" || error.code === "23505" ? 409 : 503);
   if (!Number.isSafeInteger(data) || (data as number) < 1) return reply("Draft save could not be confirmed. Please retry.", 503);
+  revalidateLandlordPaths();
   return Response.json({ revision: data }, { headers });
 }

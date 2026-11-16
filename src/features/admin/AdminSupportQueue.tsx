@@ -293,7 +293,7 @@ export function AdminSupportQueue({
         </div>
 
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-          <div className="relative min-w-0 sm:w-64">
+          <div className="relative min-w-0 sm:w-72">
             <Search size={16} aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <Input
               value={searchInput}
@@ -301,7 +301,7 @@ export function AdminSupportQueue({
                 setSearchInput(e.target.value);
                 setPage(1);
               }}
-              placeholder="Search ticket, email, or subject"
+              placeholder="Search ticket, email, subject…"
               aria-label="Search support tickets"
               className="pl-9 pr-9"
             />

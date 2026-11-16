@@ -7,6 +7,7 @@ const hooks = vi.hoisted(() => ({
   refCursor: 0,
   refs: [] as Array<{ current: unknown }>,
   push: vi.fn(),
+  refresh: vi.fn(),
   save: vi.fn(),
 }));
 
@@ -30,7 +31,7 @@ vi.mock("react", async (importOriginal) => {
     },
   };
 });
-vi.mock("next/navigation", () => ({ useRouter: () => ({ push: hooks.push }) }));
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push: hooks.push, refresh: hooks.refresh }) }));
 vi.mock("@/components/ui/AppToaster", () => ({ notify: vi.fn() }));
 vi.mock("@/features/map/useFinderTheme", () => ({ useFinderTheme: () => ({ resolvedTheme: "light" }) }));
 vi.mock("@/components/map/MapSearch", () => ({ default: () => null }));
@@ -101,6 +102,7 @@ beforeEach(() => {
   hooks.values = [];
   hooks.refs = [];
   hooks.push.mockReset();
+  hooks.refresh.mockReset();
   hooks.save.mockReset();
   vi.mocked(notify).mockReset();
   Object.assign(fields, { title: "Lahug studio", description: "A quiet studio near the university campus.", propertyType: "apartment", rentalType: "private_room", price: "12000", barangay: "Lahug", city: "Cebu City" });
@@ -167,6 +169,7 @@ describe("ListPropertyForm", () => {
     expect(hooks.save.mock.calls[1][0]).toMatchObject({ draftId: "draft-1", revision: 2, values: { title: "Newer listing title" } });
     expect(submissions).toEqual([expect.objectContaining({ draftId: "draft-1", expectedRevision: 3 })]);
     expect(notify).toHaveBeenCalledWith("success", "property-submission", "Listing submitted for review. Status: pending.");
+    expect(hooks.refresh).toHaveBeenCalledTimes(1);
     expect(hooks.push).toHaveBeenCalledWith("/landlord/map?selected=prop-1");
   });
 
@@ -198,6 +201,7 @@ describe("ListPropertyForm", () => {
     await settle();
 
     expect(notify).toHaveBeenCalledWith("success", "property-submission", "Submission already received");
+    expect(hooks.refresh).toHaveBeenCalledTimes(1);
     expect(hooks.push).toHaveBeenCalledWith("/landlord/properties");
     expect(button("Saving…")).toBeTruthy();
   });
@@ -261,6 +265,7 @@ describe("ListPropertyForm", () => {
     await settle();
 
     expect(notify).toHaveBeenCalledWith("success", "property-submission", "Listing submitted for review. Status: pending.");
+    expect(hooks.refresh).toHaveBeenCalledTimes(1);
     expect(hooks.push).toHaveBeenCalledWith("/landlord/properties");
     expect(button("Saving…")).toBeTruthy();
   });
