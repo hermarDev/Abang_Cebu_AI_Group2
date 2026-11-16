@@ -114,6 +114,19 @@
   text-align: center;
 }
 
+.notificationBadge {
+  margin-left: auto;
+  min-width: 22px;
+  border-radius: 999px;
+  padding: 1px 7px;
+  background: var(--destructive);
+  color: var(--destructive-foreground);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 20px;
+  text-align: center;
+}
+
 .currentPage {
   background: color-mix(in srgb, var(--action) 12%, transparent);
   color: var(--action);

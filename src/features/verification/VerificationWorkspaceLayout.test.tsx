@@ -2,6 +2,16 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("next/navigation", () => ({ usePathname: () => "/verification/queue" }));
+vi.mock("@/features/notifications/useNotificationCenter", () => ({
+  useNotificationCenter: (userId?: string, enabled = true) => ({
+    unreadCount: userId && enabled ? 120 : 0,
+    loading: false,
+    error: null,
+  }),
+}));
+vi.mock("@/components/ui/Modal", () => ({
+  Modal: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+}));
 import { VerificationWorkspaceLayout } from "./VerificationWorkspaceLayout";
 
 const html = renderToStaticMarkup(
@@ -30,7 +40,7 @@ describe("VerificationWorkspaceLayout", () => {
     }
     expect(html).toMatch(/aria-label="Verification queue" aria-current="page"/);
     // NotificationBell in header with userRole="verification_officer"
-    expect(html).toContain('aria-label="Notifications"');
+    expect(html).toContain('aria-label="Notifications (120 unread)"');
   });
 
   it("renders header with AbangCebu · Field Verification branding and mobile nav", () => {
@@ -70,6 +80,8 @@ describe("VerificationWorkspaceLayout", () => {
     expect(html).toContain('aria-label="Account"');
     expect(html).toContain('aria-label="More');
     expect(html).toContain('aria-label="Notifications');
+    expect(html).toContain('aria-label="120 unread notifications"');
+    expect(html).toContain(">99+</span>");
     expect(html).toContain("Help Center");
     expect(html).toContain("Account settings");
     expect(html).toMatch(/Log out/);

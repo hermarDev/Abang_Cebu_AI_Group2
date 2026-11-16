@@ -53,27 +53,65 @@ function fetchUnreadShared(userId: string): Promise<number> {
   return request;
 }
 
+interface ScopedCountState {
+  scope: string | null;
+  unreadCount: number;
+  generation: number;
+}
+
+const buildBaselineState = (scope: string | null, generation = 0): ScopedCountState => ({
+  scope,
+  unreadCount: 0,
+  generation,
+});
+
 export function useUnreadMessageCount(userId: string | null | undefined, enabled: boolean = true): { unreadCount: number; refresh: () => Promise<void> } {
-  const [unreadCount, setUnreadCount] = useState(0);
-  const latest = useRef(0);
   const active = Boolean(enabled && userId);
+  const scope = active && userId ? userId : null;
+
+  const [state, setState] = useState<ScopedCountState>(() => buildBaselineState(scope));
+  const latest = useRef(0);
+
+  const effective = state.scope === scope
+    ? state
+    : buildBaselineState(scope, state.generation + 1);
+  if (state.scope !== scope) {
+    setState(effective);
+  }
 
   const refresh = useCallback(async () => {
-    if (!active || !userId) return;
+    const targetScope = scope;
+    if (!targetScope) return;
     const request = ++latest.current;
+    const requestGeneration = effective.generation;
     try {
-      const count = await fetchUnreadShared(userId);
-      if (request === latest.current) setUnreadCount(count);
-    } catch { /* keep last known count; the next poll retries */ }
-  }, [active, userId]);
+      const count = await fetchUnreadShared(targetScope);
+      if (request === latest.current) {
+        setState((prev) => (prev.scope === targetScope && prev.generation === requestGeneration ? { scope: targetScope, unreadCount: count, generation: requestGeneration } : prev));
+      }
+    } catch {
+      // Preserve the last known count; failed refresh is not evidence of zero unread messages.
+    }
+  }, [scope, effective.generation]);
 
   useEffect(() => {
-    if (!active) return;
+    if (!scope) return;
+    const requestCounter = latest;
     const stop = startUnreadPolling({ refresh: () => { void refresh(); }, win: window, doc: document });
     const peer = typeof BroadcastChannel !== "undefined" ? new BroadcastChannel("abangcebu:messages") : null;
-    if (peer) peer.onmessage = ({ data }: MessageEvent<{ userId?: string; count?: number }>) => { if (data?.userId === userId && typeof data.count === "number") setUnreadCount(data.count); };
-    return () => { stop(); peer?.close(); };
-  }, [active, refresh, userId]);
+    if (peer) {
+      peer.onmessage = ({ data }: MessageEvent<{ userId?: string; count?: number }>) => {
+        if (data?.userId === scope && typeof data.count === "number") {
+          setState((prev) => (prev.scope === scope ? { scope, unreadCount: data.count!, generation: prev.generation } : prev));
+        }
+      };
+    }
+    return () => {
+      requestCounter.current++;
+      stop();
+      peer?.close();
+    };
+  }, [scope, refresh]);
 
-  return { unreadCount: active ? unreadCount : 0, refresh };
+  return { unreadCount: effective.unreadCount, refresh };
 }

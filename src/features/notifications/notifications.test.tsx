@@ -383,6 +383,66 @@ describe("NotificationBell and useNotificationCenter", () => {
     expect(openButton?.props["aria-expanded"]).toBe(true);
   });
 
+  it("ignores a stale loadPage response after an A→B→A account switch", async () => {
+    const { loadNotifications, useNotificationCenter } = await import("./useNotificationCenter");
+    let resolveStalePage!: (res: Response) => void;
+    let baseRequest = 0;
+    const fetchMock = vi.fn((input: string | URL) => {
+      if (String(input).includes("offset=20")) {
+        return new Promise<Response>((resolve) => {
+          resolveStalePage = resolve;
+        });
+      }
+      const data = baseRequest++ === 0
+        ? {
+            notifications: [{ ...dummyNotifications[0], id: "aba-a-old", title: "Old A data" }],
+            totalCount: 1,
+            unreadCount: 1,
+            hasMore: false,
+          }
+        : {
+            notifications: [{ ...dummyNotifications[0], id: "aba-a-current", title: "Current A data" }],
+            totalCount: 2,
+            unreadCount: 2,
+            hasMore: false,
+          };
+      return Promise.resolve({ ok: true, json: async () => data } as Response);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    await loadNotifications("aba-user-a", { force: true });
+    hooks.active = true;
+    const useTestNotificationCenter = (uid: string | null) => {
+      hooks.index = 0;
+      return useNotificationCenter(uid, true);
+    };
+
+    const userA = useTestNotificationCenter("aba-user-a");
+    expect(userA.notifications[0].title).toBe("Old A data");
+    const staleLoadA = userA.loadPage(2);
+
+    useTestNotificationCenter("aba-user-b");
+    await loadNotifications("aba-user-a", { force: true });
+    const reactivatedA = useTestNotificationCenter("aba-user-a");
+    expect(reactivatedA.notifications[0].title).toBe("Current A data");
+    expect(reactivatedA.unreadCount).toBe(2);
+
+    resolveStalePage({
+      ok: true,
+      json: async () => ({
+        notifications: [{ ...dummyNotifications[0], id: "aba-a-stale", title: "Stale A page" }],
+        totalCount: 99,
+        unreadCount: 99,
+        hasMore: false,
+      }),
+    } as Response);
+    await staleLoadA;
+
+    const finalA = useTestNotificationCenter("aba-user-a");
+    expect(finalA.notifications[0].title).toBe("Current A data");
+    expect(finalA.unreadCount).toBe(2);
+  });
+
   it("scopes and resets hook state immediately when userId changes and ignores stale async writes", async () => {
     const { loadNotifications, useNotificationCenter } = await import("./useNotificationCenter");
     vi.stubGlobal("window", {

@@ -83,6 +83,7 @@ export function AdminWorkspaceLayout({
           pathname={pathname}
           navAriaLabel="Admin mobile navigation"
           moreAriaLabel="More admin options"
+          userId={userId}
           links={mobileLinks}
           extraModalLinks={extraModalLinks}
         />

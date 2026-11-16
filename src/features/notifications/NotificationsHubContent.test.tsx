@@ -78,6 +78,18 @@ describe("NotificationsHubContent", () => {
     expect(html).toContain("Search notifications...");
   });
 
+  it("renders enlarged brand logo alongside back button and refresh action", () => {
+    const html = renderToStaticMarkup(
+      <NotificationsHubContent userId="user-hub" userRole="renter" />
+    );
+
+    expect(html).toContain('aria-label="Back to dashboard"');
+    expect(html).toContain('aria-label="Refresh notifications"');
+    expect(html).toContain("Refresh");
+    expect(html).toContain('aria-label="AbangCebu"');
+    expect(html).toContain('class="h-8 w-auto sm:h-9"');
+  });
+
   it("renders all categorical tabs with their counts", () => {
     const html = renderToStaticMarkup(
       <NotificationsHubContent userId="user-hub" userRole="renter" />

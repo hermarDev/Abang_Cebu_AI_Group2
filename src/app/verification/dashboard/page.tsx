@@ -93,12 +93,16 @@ export default async function VerificationDashboardPage() {
     },
   ];
 
+  const greeting = profile.full_name?.trim()
+    ? `Welcome back, ${profile.full_name.trim()}`
+    : "Welcome back";
+
   return (
     <VerificationWorkspaceLayout
       userId={user.id}
       displayName={profile.full_name}
       avatarUrl={avatarUrl}
-      title="Field Verification Dashboard"
+      title={greeting}
       subtitle="Overview of landlord listing verifications, site visits, and pending inspection queues."
     >
       {rpcError ? (

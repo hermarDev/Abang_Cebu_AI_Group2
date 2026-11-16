@@ -8,6 +8,21 @@ const hooks = vi.hoisted(() => ({
   index: 0,
 }));
 
+const mockNotificationState = vi.hoisted(() => ({
+  unreadCount: 0,
+  loading: false,
+  error: null as string | null,
+}));
+const mockUseNotificationCenter = vi.hoisted(() => vi.fn());
+
+vi.mock("@/features/notifications/useNotificationCenter", () => ({
+  useNotificationCenter: (userId: string | null | undefined, enabled = true) => {
+    mockUseNotificationCenter(userId, enabled);
+    if (!userId || !enabled) return { unreadCount: 0, loading: false, error: null };
+    return mockNotificationState;
+  },
+}));
+
 vi.mock("react", async (original) => {
   const actual = await original<typeof import("react")>();
   return {
@@ -36,6 +51,10 @@ vi.mock("@/features/map/useFinderTheme", () => ({
 }));
 
 import { WorkspaceMobileNav, WorkspaceShell, type WorkspaceNavGroup } from "./WorkspaceShell";
+
+vi.mock("@/components/ui/Modal", () => ({
+  Modal: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+}));
 
 afterEach(() => {
   hooks.active = false;
@@ -128,6 +147,7 @@ describe("WorkspaceShell", () => {
         pathname="/admin/reviews"
         navAriaLabel="Admin mobile navigation"
         moreAriaLabel="More admin options"
+        userId="admin-user"
         links={[
           { href: "/admin/dashboard", label: "Overview", Icon: LayoutDashboard },
           { href: "/admin/reviews", label: "Reviews", Icon: Settings },
@@ -148,6 +168,7 @@ describe("WorkspaceShell", () => {
         pathname: "/admin/reviews",
         navAriaLabel: "Admin mobile navigation",
         moreAriaLabel: "More admin options",
+        userId: "admin-user",
         links: [
           { href: "/admin/dashboard", label: "Overview", Icon: LayoutDashboard },
           { href: "/admin/reviews", label: "Reviews", Icon: Settings },
@@ -170,5 +191,97 @@ describe("WorkspaceShell", () => {
     expect(modalText).toContain("Audit log");
     expect(modalText).toContain("Help Center");
     expect(modalText).toContain("Account settings");
+  });
+
+  it("renders notification badges only when count is known and positive", () => {
+    mockUseNotificationCenter.mockClear();
+    const notificationButton = () => {
+      hooks.active = true;
+      hooks.slots = [];
+      const renderTree = () => {
+        hooks.index = 0;
+        return WorkspaceMobileNav({
+          pathname: "/admin/reviews",
+          navAriaLabel: "Admin mobile navigation",
+          moreAriaLabel: "More admin options",
+          userId: "admin-user",
+          links: [],
+        });
+      };
+      let tree = collectElements(renderTree());
+      const more = tree.find((el) => el.type === "button" && el.props["aria-label"] === "More admin options");
+      (more?.props.onClick as () => void)();
+      tree = collectElements(renderTree());
+      return tree.find((el) => el.type === "button" && JSON.stringify(el.props.children).includes("Notifications"));
+    };
+
+    mockNotificationState.unreadCount = 0;
+    mockNotificationState.loading = false;
+    mockNotificationState.error = null;
+    let button = notificationButton();
+    expect(button).toBeDefined();
+    expect(JSON.stringify(button?.props.children)).not.toContain("unread notifications");
+    expect(JSON.stringify(button?.props.children)).not.toContain(">0</span>");
+    expect(mockUseNotificationCenter).toHaveBeenCalledWith("admin-user", true);
+
+    mockNotificationState.unreadCount = 2;
+    button = notificationButton();
+    const twoBadge = collectElements(button?.props.children).find((el) => el.props["aria-label"] === "2 unread notifications");
+    expect(twoBadge?.props.className).toContain("bg-action");
+    expect(twoBadge?.props.children).toBe(2);
+
+    mockNotificationState.unreadCount = 120;
+    button = notificationButton();
+    const largeBadge = collectElements(button?.props.children).find((el) => el.props["aria-label"] === "120 unread notifications");
+    expect(largeBadge?.props.children).toBe("99+");
+
+    mockNotificationState.unreadCount = 2;
+    mockNotificationState.loading = true;
+    button = notificationButton();
+    expect(JSON.stringify(button?.props.children)).not.toContain("unread notifications");
+
+    mockNotificationState.loading = false;
+    mockNotificationState.error = "Network unavailable";
+    button = notificationButton();
+    expect(JSON.stringify(button?.props.children)).not.toContain("unread notifications");
+
+    mockNotificationState.unreadCount = 0;
+    mockNotificationState.error = null;
+    hooks.active = false;
+    hooks.slots = [];
+    hooks.index = 0;
+  });
+
+  it("preserves the More Notifications action that closes the modal and activates the header bell", () => {
+    const bellClick = vi.fn();
+    vi.stubGlobal("document", {
+      querySelector: vi.fn(() => ({ click: bellClick })),
+    });
+
+    hooks.active = true;
+    hooks.slots = [];
+    const renderTree = () => {
+      hooks.index = 0;
+      return WorkspaceMobileNav({
+        pathname: "/admin/reviews",
+        navAriaLabel: "Admin mobile navigation",
+        moreAriaLabel: "More admin options",
+        userId: "admin-user",
+        links: [],
+      });
+    };
+    let tree = collectElements(renderTree());
+    const more = tree.find((el) => el.type === "button" && el.props["aria-label"] === "More admin options");
+    (more?.props.onClick as () => void)();
+    tree = collectElements(renderTree());
+    const notificationButton = tree.find((el) => el.type === "button" && JSON.stringify(el.props.children).includes("Notifications"));
+
+    (notificationButton?.props.onClick as () => void)();
+    expect(bellClick).toHaveBeenCalledOnce();
+    expect(hooks.slots[0]).toBe(false);
+
+    hooks.active = false;
+    hooks.slots = [];
+    hooks.index = 0;
   });
 });

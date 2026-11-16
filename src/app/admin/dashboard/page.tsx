@@ -67,12 +67,16 @@ export default async function AdminDashboardPage() {
   const liveCount = overview?.approvedLiveCount ?? 0;
   const activeAccountsCount = (overview?.activeRenterCount ?? 0) + (overview?.activeLandlordCount ?? 0);
 
+  const greeting = profile.full_name?.trim()
+    ? `Welcome back, ${profile.full_name.trim()}`
+    : "Welcome back";
+
   return (
     <AdminWorkspaceLayout
       userId={user.id}
       displayName={profile.full_name}
       avatarUrl={avatarUrl}
-      title="Admin dashboard"
+      title={greeting}
       subtitle="Platform management and moderation overview."
     >
       {!overview ? (

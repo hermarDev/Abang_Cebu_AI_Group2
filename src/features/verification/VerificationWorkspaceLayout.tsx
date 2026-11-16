@@ -80,6 +80,7 @@ export function VerificationWorkspaceLayout({
           pathname={pathname}
           navAriaLabel="Verification mobile navigation"
           moreAriaLabel="More verification options"
+          userId={userId}
           links={mobileLinks}
         />
       }

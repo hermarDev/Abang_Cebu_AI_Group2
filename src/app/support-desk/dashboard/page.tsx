@@ -190,12 +190,16 @@ export default async function SupportDeskDashboardPage() {
     };
   });
 
+  const greeting = profile.full_name?.trim()
+    ? `Welcome back, ${profile.full_name.trim()}`
+    : "Welcome back";
+
   return (
     <SupportDeskWorkspaceLayout
       userId={user.id}
       displayName={profile.full_name}
       avatarUrl={avatarUrl}
-      title="Support Workspace Overview"
+      title={greeting}
       subtitle="Monitor tenant complaints, landlord mediation, and escalation queues."
     >
       <div className="space-y-6">
