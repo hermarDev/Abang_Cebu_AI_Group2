@@ -88,6 +88,16 @@ describe("HelpCenterClient", () => {
     expect(html).toContain('href="/list-property"');
   });
 
+  it.each(["admin", "verification_officer", "customer_support", "landlord"])("does not offer %s a renter map link", (role) => {
+    const html = renderToStaticMarkup(<HelpCenterClient backHref="/account" backLabel="Back to workspace" userRole={role} />);
+    expect(html).not.toContain('href="/"');
+  });
+
+  it.each(["admin", "verification_officer", "customer_support"])("does not offer %s landlord listing creation", (role) => {
+    const html = renderToStaticMarkup(<HelpCenterClient backHref="/account" backLabel="Back to workspace" userRole={role} />);
+    expect(html.includes('href="/list-property"')).toBe(false);
+  });
+
   it("applies landlord mobile safe-area bottom clearance when isLandlordMobile is true", () => {
     const landlordHtml = renderToStaticMarkup(
       <HelpCenterClient

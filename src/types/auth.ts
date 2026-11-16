@@ -538,6 +538,28 @@ export function isRegisterableRole(role: unknown): role is RegisterableRole {
   return typeof role === 'string' && (role === 'renter' || role === 'landlord');
 }
 
+export type WorkspaceRole = Extract<
+  UserRole,
+  'landlord' | 'verification_officer' | 'customer_support' | 'admin'
+>;
+
+export function isWorkspaceRole(role: unknown): role is WorkspaceRole {
+  return (
+    role === 'landlord' ||
+    role === 'verification_officer' ||
+    role === 'customer_support' ||
+    role === 'admin'
+  );
+}
+
+export function getRoleHomeRoute(role: unknown): string {
+  if (role === 'admin') return '/admin/dashboard';
+  if (role === 'verification_officer') return '/verification/dashboard';
+  if (role === 'customer_support') return '/support-desk/dashboard';
+  if (role === 'landlord') return '/landlord/dashboard';
+  return '/';
+}
+
 /**
  * Normalizes a Philippine mobile phone number into canonical E.164 format (+639XXXXXXXXX).
  * Returns null if input is empty or invalid.

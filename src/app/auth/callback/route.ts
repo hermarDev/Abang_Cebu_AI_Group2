@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { isSafeRedirectUrl } from "@/types/auth";
+import { getPostLoginRedirect, isAllowedSessionRole } from "@/lib/auth/sign-in";
 import { getSiteOrigin } from "@/server/site-origin";
 import { PASSWORD_RESET_FORM_PATH, PASSWORD_RESET_RECOVERY_COOKIE } from "@/lib/auth/password-reset";
 
@@ -39,7 +40,16 @@ export async function GET(request: Request) {
       const target = type === "recovery" ? "/login?error=expired_recovery_link" : "/login?error=expired_auth_link";
       return redirect(target);
     }
-    const response = redirect(type === "recovery" ? next : isSafeRedirectUrl(next) ? next : "/");
+    let target = isSafeRedirectUrl(next) ? next : "/";
+    if (type !== "recovery") {
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (!authError && user) {
+        const { data: profile, error: profileError } = await supabase.from("profiles").select("role, is_suspended").eq("id", user.id).maybeSingle();
+        const role = !profileError && !profile?.is_suspended && isAllowedSessionRole(profile?.role) ? profile.role : undefined;
+        target = getPostLoginRedirect(next, role);
+      }
+    }
+    const response = redirect(type === "recovery" ? next : target);
     if (type === "recovery") {
       response.cookies.set(PASSWORD_RESET_RECOVERY_COOKIE, "1", {
         httpOnly: true, secure: new URL(origin).protocol === "https:", sameSite: "lax", path: "/", maxAge: 10 * 60,

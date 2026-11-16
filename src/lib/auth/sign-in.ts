@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/client";
-import { isSafeRedirectUrl } from "@/types/auth";
+import { getRoleHomeRoute, isSafeRedirectUrl } from "@/types/auth";
 import type { UserRole } from "@/types/database";
 
 export type SignInResult = { success: true; role: UserRole } | { success: false; message: string };
@@ -68,10 +68,7 @@ export function getPostLoginRedirect(destination: string | null, role?: UserRole
     }
     return destination;
   }
-  if (role === "admin") return "/admin/dashboard";
-  if (role === "verification_officer") return "/verification/dashboard";
-  if (role === "customer_support") return "/support-desk/dashboard";
-  return role === "landlord" ? "/landlord/dashboard" : "/";
+  return getRoleHomeRoute(role);
 }
 
 export async function signInWithEmail(

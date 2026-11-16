@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/Input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
 import { useRouter } from "next/navigation";
 import { getPostLoginRedirect, signInWithEmail } from "@/lib/auth/sign-in";
+import { isWorkspaceRole } from "@/types/auth";
 
 export function LoginForm({
   onRegister,
@@ -61,8 +62,13 @@ export function LoginForm({
       }
       const next = new URLSearchParams(window.location.search).get("next");
       const destination = getPostLoginRedirect(next, result.role);
-      const isLandlordTarget = destination.startsWith("/landlord") || result.role === "landlord";
-      const label = isLandlordTarget ? "Signing in · Preparing your workspace…" : "Signing in · Loading map…";
+      const isWorkspaceTarget =
+        isWorkspaceRole(result.role) ||
+        destination.startsWith("/landlord") ||
+        destination.startsWith("/admin") ||
+        destination.startsWith("/verification") ||
+        destination.startsWith("/support-desk");
+      const label = isWorkspaceTarget ? "Signing in · Preparing your workspace…" : "Signing in · Loading map…";
       setRedirectingLabel(label);
       setStatusIsError(false);
       setStatusMessage(label);

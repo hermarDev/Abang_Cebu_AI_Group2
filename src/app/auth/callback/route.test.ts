@@ -1,8 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { GET } from "./route";
 
-const { exchangeCodeForSession } = vi.hoisted(() => ({ exchangeCodeForSession: vi.fn() }));
-vi.mock("@/lib/supabase/server", () => ({ createClient: async () => ({ auth: { exchangeCodeForSession } }) }));
+const { exchangeCodeForSession, getUser, profile } = vi.hoisted(() => ({ exchangeCodeForSession: vi.fn(), getUser: vi.fn(), profile: vi.fn() }));
+vi.mock("@/lib/supabase/server", () => ({ createClient: async () => ({ auth: { exchangeCodeForSession, getUser }, from: () => ({ select: () => ({ eq: () => ({ maybeSingle: profile }) }) }) }) }));
 
 function request(query: string) {
   return new Request(`http://localhost/auth/callback${query}`);
@@ -12,8 +12,20 @@ describe("auth callback route", () => {
   beforeEach(() => {
     vi.stubEnv("NEXT_PUBLIC_SITE_URL", "http://localhost");
     exchangeCodeForSession.mockReset().mockResolvedValue({ error: null });
+    getUser.mockReset().mockResolvedValue({ data: { user: null }, error: null });
+    profile.mockReset();
   });
   afterEach(() => vi.unstubAllEnvs());
+
+  it.each([
+    ["admin", "/admin/dashboard"], ["landlord", "/landlord/dashboard"],
+    ["customer_support", "/support-desk/dashboard"], ["verification_officer", "/verification/dashboard"],
+  ])("redirects %s after a non-recovery callback", async (role, destination) => {
+    getUser.mockResolvedValue({ data: { user: { id: "user" } }, error: null });
+    profile.mockResolvedValue({ data: { role, is_suspended: false }, error: null });
+    const response = await GET(request("?code=test-code&next=%2F"));
+    expect(response.headers.get("location")).toBe(`http://localhost${destination}`);
+  });
 
   it("uses NEXT_PUBLIC_SITE_URL canonical origin when configured", async () => {
     vi.stubEnv("NEXT_PUBLIC_SITE_URL", "https://abangcebu.tech");

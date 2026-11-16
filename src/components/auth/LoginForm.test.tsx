@@ -110,6 +110,11 @@ describe("LoginForm", () => {
       expect(mocks.replace).toHaveBeenCalledWith("/landlord/dashboard");
       expect(mocks.refresh).toHaveBeenCalled();
 
+      for (const role of ["admin", "verification_officer", "customer_support"]) {
+        const staff = await attempt({ success: true, role });
+        expect(staff.text).toContain("Signing in · Preparing your workspace…");
+      }
+
       const failed = await attempt({ success: false, message: "Sign in failed." });
       expect(failed.text).toContain("Log in failed.");
       expect(failed.text).toContain("Log In");

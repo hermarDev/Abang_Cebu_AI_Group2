@@ -24,6 +24,8 @@ export default async function MessagesPage(props?: { searchParams?: Promise<{ th
   if (!profile || profile.is_suspended) redirect("/login");
   if (profile.role === "landlord") redirect("/landlord/messages");
   if (profile.role === "admin") redirect("/admin/dashboard");
+  if (profile.role === "verification_officer") redirect("/verification/dashboard");
+  if (profile.role === "customer_support") redirect("/support-desk/dashboard");
   const sp = await searchParams;
   const thread = sp?.thread;
   const listing = sp?.listing;
