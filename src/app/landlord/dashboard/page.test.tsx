@@ -197,7 +197,7 @@ describe("landlord dashboard", () => {
     mocks.properties.mockResolvedValueOnce({ data: [{ id: "property-a", title: "Pending room", status: "pending" }, { id: "property-c", title: "Approved flat", status: "approved" }], error: null });
     mocks.units.mockResolvedValueOnce({ data: [{ property_id: "property-c", is_available: true }], error: null });
     const html = renderToStaticMarkup(await LandlordDashboardPage());
-    const stat = (label: string) => html.match(new RegExp(`${label}</p><p[^>]*>(\\d+)<`))?.[1];
+    const stat = (label: string) => html.match(new RegExp(`tabular-nums[^>]*>(\\d+)<\\/p><p[^>]*>${label}<`))?.[1];
     expect([stat("Total properties"), stat("Published"), stat("Under review")]).toEqual(["2", "1", "1"]);
     expect(mocks.units).toHaveBeenCalledWith("property_id", ["property-a", "property-c"]);
     expect(html).toContain("Pending review");
@@ -221,7 +221,7 @@ describe("landlord dashboard", () => {
     mocks.properties.mockResolvedValueOnce({ data: [{ id: "property-c", title: "Approved flat", status: "approved" }], error: null });
     mocks.units.mockResolvedValueOnce(units);
     const html = renderToStaticMarkup(await LandlordDashboardPage());
-    const stat = (label: string) => html.match(new RegExp(`${label}</p><p[^>]*>(\\d+)<`))?.[1];
+    const stat = (label: string) => html.match(new RegExp(`tabular-nums[^>]*>(\\d+)<\\/p><p[^>]*>${label}<`))?.[1];
     expect([stat("Total properties"), stat("Published")]).toEqual(["1", publishedCount]);
     expect(html).toContain(label);
   });

@@ -2,7 +2,6 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import {
   ArrowRight,
-  ArrowUpRight,
   Building2,
   ChevronRight,
   ClipboardCheck,
@@ -11,6 +10,7 @@ import {
   ShieldAlert,
   Users,
 } from "lucide-react";
+import { DashboardStatCard } from "@/components/dashboard/DashboardStatCard";
 import { createClient } from "@/lib/supabase/server";
 import { signProfileAvatar } from "@/lib/profile-avatar";
 import type { AuditEntry } from "@/features/admin/AdminAuditEntries";
@@ -96,81 +96,34 @@ export default async function AdminDashboardPage() {
 
             {/* 2x2 Metric Cards Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-6 pb-6">
-              {/* Top-Left: Pending reviews */}
-              <Link
+              <DashboardStatCard
                 href="/admin/reviews?status=pending"
-                className="group relative flex flex-col justify-between rounded-2xl border border-border bg-card/60 p-4 sm:p-5 transition hover:border-action/50 hover:bg-muted/40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
-              >
-                <div className="flex items-center justify-between">
-                  <span className="grid size-10 place-items-center rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400">
-                    <ClipboardCheck size={20} aria-hidden="true" />
-                  </span>
-                  <ArrowUpRight size={18} className="text-muted-foreground transition group-hover:text-foreground group-hover:translate-x-0.5 group-hover:-translate-y-0.5" aria-hidden="true" />
-                </div>
-                <div className="mt-4">
-                  <p className="m-0 text-3xl font-bold tracking-tight tabular-nums text-foreground sm:text-4xl">
-                    {pendingCount}
-                  </p>
-                  <p className="mt-1 text-xs font-medium text-muted-foreground sm:text-sm">Pending reviews</p>
-                </div>
-              </Link>
-
-              {/* Top-Right: Open reports */}
-              <Link
+                label="Pending reviews"
+                value={pendingCount}
+                iconToneClassName="bg-amber-500/10 text-amber-600 dark:text-amber-400"
+                icon={<ClipboardCheck size={20} aria-hidden="true" />}
+              />
+              <DashboardStatCard
                 href="/admin/reports?status=open"
-                className="group relative flex flex-col justify-between rounded-2xl border border-border bg-card/60 p-4 sm:p-5 transition hover:border-action/50 hover:bg-muted/40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
-              >
-                <div className="flex items-center justify-between">
-                  <span className="grid size-10 place-items-center rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400">
-                    <Flag size={20} aria-hidden="true" />
-                  </span>
-                  <ArrowUpRight size={18} className="text-muted-foreground transition group-hover:text-foreground group-hover:translate-x-0.5 group-hover:-translate-y-0.5" aria-hidden="true" />
-                </div>
-                <div className="mt-4">
-                  <p className="m-0 text-3xl font-bold tracking-tight tabular-nums text-foreground sm:text-4xl">
-                    {openReportsCount}
-                  </p>
-                  <p className="mt-1 text-xs font-medium text-muted-foreground sm:text-sm">Open reports</p>
-                </div>
-              </Link>
-
-              {/* Bottom-Left: Live listings */}
-              <Link
+                label="Open reports"
+                value={openReportsCount}
+                iconToneClassName="bg-rose-500/10 text-rose-600 dark:text-rose-400"
+                icon={<Flag size={20} aria-hidden="true" />}
+              />
+              <DashboardStatCard
                 href="/admin/reviews?status=approved"
-                className="group relative flex flex-col justify-between rounded-2xl border border-border bg-card/60 p-4 sm:p-5 transition hover:border-action/50 hover:bg-muted/40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
-              >
-                <div className="flex items-center justify-between">
-                  <span className="grid size-10 place-items-center rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
-                    <Building2 size={20} aria-hidden="true" />
-                  </span>
-                  <ArrowUpRight size={18} className="text-muted-foreground transition group-hover:text-foreground group-hover:translate-x-0.5 group-hover:-translate-y-0.5" aria-hidden="true" />
-                </div>
-                <div className="mt-4">
-                  <p className="m-0 text-3xl font-bold tracking-tight tabular-nums text-foreground sm:text-4xl">
-                    {liveCount}
-                  </p>
-                  <p className="mt-1 text-xs font-medium text-muted-foreground sm:text-sm">Live listings</p>
-                </div>
-              </Link>
-
-              {/* Bottom-Right: Active accounts */}
-              <Link
+                label="Live listings"
+                value={liveCount}
+                iconToneClassName="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                icon={<Building2 size={20} aria-hidden="true" />}
+              />
+              <DashboardStatCard
                 href="/admin/accounts?role=&status=active"
-                className="group relative flex flex-col justify-between rounded-2xl border border-border bg-card/60 p-4 sm:p-5 transition hover:border-action/50 hover:bg-muted/40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
-              >
-                <div className="flex items-center justify-between">
-                  <span className="grid size-10 place-items-center rounded-xl bg-sky-500/10 text-sky-600 dark:text-sky-400">
-                    <Users size={20} aria-hidden="true" />
-                  </span>
-                  <ArrowUpRight size={18} className="text-muted-foreground transition group-hover:text-foreground group-hover:translate-x-0.5 group-hover:-translate-y-0.5" aria-hidden="true" />
-                </div>
-                <div className="mt-4">
-                  <p className="m-0 text-3xl font-bold tracking-tight tabular-nums text-foreground sm:text-4xl">
-                    {activeAccountsCount}
-                  </p>
-                  <p className="mt-1 text-xs font-medium text-muted-foreground sm:text-sm">Active accounts</p>
-                </div>
-              </Link>
+                label="Active accounts"
+                value={activeAccountsCount}
+                iconToneClassName="bg-sky-500/10 text-sky-600 dark:text-sky-400"
+                icon={<Users size={20} aria-hidden="true" />}
+              />
             </div>
 
             {/* Needs Attention Panel */}

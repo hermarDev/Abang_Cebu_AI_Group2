@@ -3,6 +3,8 @@ import Link from "next/link";
 import { isAuthRetryableFetchError } from "@supabase/supabase-js";
 import { notFound, redirect } from "next/navigation";
 import { ArrowRight, Building2, CircleAlert, Clock3, Compass, MapPinned } from "lucide-react";
+import { DashboardAttentionQueue } from "@/components/dashboard/DashboardAttentionQueue";
+import { DashboardStatCard } from "@/components/dashboard/DashboardStatCard";
 import { AccountMenu } from "@/components/ui/AccountMenu";
 import { createClient } from "@/lib/supabase/server";
 import { signProfileAvatar } from "@/lib/profile-avatar";
@@ -94,6 +96,7 @@ export default async function LandlordDashboardPage() {
       cta: "Review items",
       Icon: CircleAlert,
       tone: "bg-rose-500/10 text-rose-600 dark:bg-rose-500/15 dark:text-rose-400",
+      badgeTone: "bg-rose-500/20 text-rose-600 dark:text-rose-400",
     },
     {
       count: draftCount,
@@ -102,6 +105,7 @@ export default async function LandlordDashboardPage() {
       cta: "View drafts",
       Icon: Building2,
       tone: "bg-action/10 text-action dark:bg-primary/15 dark:text-primary",
+      badgeTone: "bg-action/15 text-action dark:text-primary",
     },
   ].filter((item) => item.count > 0);
 
@@ -126,52 +130,57 @@ export default async function LandlordDashboardPage() {
         </>
       }
     >
-      <section id="overview" className="rounded-2xl border border-border bg-card p-4 shadow-xs sm:p-6">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="m-0 text-2xl font-bold tracking-tight sm:text-3xl">Welcome back, {profile.full_name?.trim() || "landlord"}</h1>
-            <p className="mb-0 mt-1 text-sm text-muted-foreground sm:text-base">Manage your rentals and keep track of your properties.</p>
-          </div>
+      <div id="overview" className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h1 className="m-0 text-3xl font-bold tracking-tight">Welcome back, {profile.full_name?.trim() || "landlord"}</h1>
+          <p className="mt-2 text-muted-foreground">Manage your rentals and keep track of your properties.</p>
+        </div>
+        <div className="flex items-center gap-2">
           <Link href="/list-property" className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-xl bg-action px-4 text-sm font-bold text-action-foreground shadow-xs transition hover:bg-action-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
             Add property <ArrowRight size={17} aria-hidden="true" />
           </Link>
         </div>
-      </section>
+      </div>
 
-      <section className="grid grid-cols-2 gap-3 xl:grid-cols-4" aria-label="Property overview">
-        {stats.map(({ label, href, value, detail, Icon, tone }) => (
-          <Link
-            key={label}
-            href={href}
-            className="group relative block rounded-2xl border border-border bg-card p-4 shadow-xs transition hover:border-action/50 hover:bg-muted/40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring sm:p-5"
-          >
-            <span className={`grid size-10 place-items-center rounded-xl transition group-hover:scale-105 ${tone}`}>
-              <Icon size={19} aria-hidden="true" />
-            </span>
-            <ArrowRight size={15} aria-hidden="true" className="absolute right-4 top-4 text-muted-foreground opacity-60 transition group-hover:translate-x-0.5 group-hover:opacity-100" />
-            <p className="mb-0 mt-3 text-xs font-medium text-muted-foreground group-hover:text-foreground sm:text-sm">{label}</p>
-            <p className="mb-0 mt-0.5 text-2xl font-bold tabular-nums text-foreground sm:text-3xl">{value ?? "—"}</p>
-            <p className="mb-0 mt-1 text-xs text-muted-foreground">{detail}</p>
-          </Link>
-        ))}
-      </section>
+      <section className="rounded-3xl border border-border bg-card p-5 sm:p-7 shadow-sm" aria-label="Property overview">
+        <div className="flex items-start justify-between gap-4 pb-6 border-b border-border/80">
+          <div>
+            <h2 className="m-0 text-xl font-bold tracking-tight text-foreground sm:text-2xl">Portfolio overview</h2>
+            <p className="mt-1 text-sm text-muted-foreground">Listings and review status</p>
+          </div>
+        </div>
 
-      {attention.length > 0 && (
-        <section id="needs-attention" aria-label="Needs attention" className="rounded-2xl border border-border bg-card p-4 shadow-xs sm:p-5">
-          <h2 className="m-0 text-base font-bold sm:text-lg">Needs attention</h2>
-          <ul className="mb-0 mt-3 grid list-none gap-2 p-0">
-            {attention.map(({ href, text, cta, Icon, tone }) => (
-              <li key={href}>
-                <Link href={href} className="group flex min-h-11 items-center gap-3 rounded-xl border border-border/80 p-3 transition hover:bg-muted/40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
-                  <span className={`grid size-9 shrink-0 place-items-center rounded-lg ${tone}`}><Icon size={17} aria-hidden="true" /></span>
-                  <span className="min-w-0 flex-1 text-sm font-medium text-foreground">{text}</span>
-                  <span className="inline-flex shrink-0 items-center gap-1 text-sm font-semibold text-action dark:text-primary">{cta} <ArrowRight size={15} aria-hidden="true" /></span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-6 pb-6">
+          {stats.map(({ label, href, value, detail, Icon, tone }) => (
+            <DashboardStatCard
+              key={label}
+              href={href}
+              label={label}
+              value={value}
+              description={detail}
+              iconToneClassName={tone}
+              icon={<Icon size={20} aria-hidden="true" />}
+            />
+          ))}
+        </div>
+
+        {attention.length > 0 && (
+          <DashboardAttentionQueue
+            id="needs-attention"
+            title="Needs attention"
+            items={attention.map(({ href, text, cta, count, Icon, tone, badgeTone }) => ({
+              key: href,
+              href,
+              title: text,
+              badge: count,
+              badgeToneClassName: badgeTone,
+              trailingLabel: cta,
+              icon: <Icon size={18} aria-hidden="true" />,
+              iconToneClassName: tone,
+            }))}
+          />
+        )}
+      </section>
 
       <section id="properties" aria-labelledby="properties-heading">
         <div className="flex items-end justify-between gap-3">

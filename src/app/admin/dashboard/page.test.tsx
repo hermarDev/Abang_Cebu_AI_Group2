@@ -53,6 +53,16 @@ describe("admin dashboard", () => {
     expect(html).toContain("Ada Admin");
     expect(html).toContain('href="/admin/audit"');
     for (const href of ["/admin/reviews", "/admin/accounts", "/admin/reports"]) expect(html).toContain(`href="${href}`);
+    for (const [label, count, href] of [
+      ["Pending reviews", 7, "/admin/reviews?status=pending"],
+      ["Open reports", 5, "/admin/reports?status=open"],
+      ["Live listings", 12, "/admin/reviews?status=approved"],
+      ["Active accounts", 49, "/admin/accounts?role=&amp;status=active"],
+    ] as const) {
+      expect(html).toMatch(
+        new RegExp(`href="${href.replace("?", "\\?")}"[^>]*>[\\s\\S]*?tabular-nums[^>]*>${count}<[\\s\\S]*?${label}`),
+      );
+    }
   });
   it("keeps recent activity compact and links to the full audit log", async () => {
     const entries = Array.from({ length: 10 }, (_, i) => ({

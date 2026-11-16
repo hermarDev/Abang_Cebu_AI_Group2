@@ -1,5 +1,55 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
+
+const hooks = vi.hoisted(() => ({
+  active: false,
+  slots: [] as unknown[],
+  index: 0,
+  effects: [] as Array<{ fn: () => void | (() => void); deps: unknown[] }>,
+  cleanups: new Map<number, () => void>(),
+  prevDeps: new Map<number, unknown[]>(),
+}));
+
+vi.mock("react", async (original) => {
+  const actual = await original<typeof import("react")>();
+  return {
+    ...actual,
+    useState: (initial: unknown) => {
+      if (!hooks.active) return actual.useState(initial);
+      const index = hooks.index++;
+      if (!(index in hooks.slots)) {
+        hooks.slots[index] = typeof initial === "function" ? (initial as () => unknown)() : initial;
+      }
+      return [
+        hooks.slots[index],
+        (value: unknown) => {
+          hooks.slots[index] =
+            typeof value === "function"
+              ? (value as (prev: unknown) => unknown)(hooks.slots[index])
+              : value;
+        },
+      ];
+    },
+    useRef: (initial: unknown) => {
+      if (!hooks.active) return actual.useRef(initial);
+      const index = hooks.index++;
+      if (!(index in hooks.slots)) hooks.slots[index] = { current: initial };
+      return hooks.slots[index];
+    },
+    useCallback: (fn: unknown) => fn,
+    useEffect: (fn: () => void | (() => void), deps?: unknown[]) => {
+      if (!hooks.active) return actual.useEffect(fn, deps);
+      const index = hooks.index++;
+      const prev = hooks.prevDeps.get(index);
+      const changed = !prev || !deps || deps.length !== prev.length || deps.some((d, i) => !Object.is(d, prev[i]));
+      if (changed) {
+        hooks.prevDeps.set(index, deps ?? []);
+        hooks.effects.push({ fn, deps: deps ?? [] });
+      }
+    },
+  };
+});
+
 import { NotificationCenter } from "./NotificationCenter";
 import type { NotificationItem } from "@/types/database";
 
@@ -258,5 +308,259 @@ describe("NotificationCenter", () => {
 
     expect(html).not.toContain('aria-label="Pagination"');
     expect(html).toContain("View all notifications");
+  });
+});
+
+function collectNodes(node: unknown): Array<import("react").ReactElement<Record<string, unknown>>> {
+  if (Array.isArray(node)) return node.flatMap(collectNodes);
+  if (!node || typeof node !== "object" || !("props" in node)) return [];
+  const el = node as import("react").ReactElement<Record<string, unknown>>;
+  return [el, ...collectNodes(el.props.children)];
+}
+
+function flushEffects() {
+  const pending = hooks.effects.splice(0, hooks.effects.length);
+  for (let i = 0; i < pending.length; i++) {
+    const prevCleanup = hooks.cleanups.get(i);
+    if (prevCleanup) prevCleanup();
+    const cleanup = pending[i].fn();
+    if (typeof cleanup === "function") hooks.cleanups.set(i, cleanup);
+  }
+}
+
+describe("NotificationBell and useNotificationCenter", () => {
+  afterEach(() => {
+    for (const cleanup of hooks.cleanups.values()) cleanup();
+    hooks.cleanups.clear();
+    hooks.prevDeps.clear();
+    hooks.effects = [];
+    hooks.slots = [];
+    hooks.index = 0;
+    hooks.active = false;
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+  });
+
+  it("renders mobile trigger with onClick and aria-expanded directly on the semantic button without a div wrapper", async () => {
+    const { NotificationBell } = await import("./NotificationBell");
+    vi.stubGlobal("window", {
+      innerWidth: 390,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    });
+    vi.stubGlobal("document", {
+      visibilityState: "hidden",
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    });
+
+    hooks.active = true;
+    const renderBell = () => {
+      hooks.index = 0;
+      return NotificationBell({ userId: "bell-mobile-user", userRole: "renter" });
+    };
+
+    renderBell();
+    flushEffects();
+    const mobileTree = collectNodes(renderBell());
+
+    const divWithOnClick = mobileTree.find((el) => el.type === "div" && typeof el.props.onClick === "function");
+    expect(divWithOnClick).toBeUndefined();
+
+    const triggerButton = mobileTree.find(
+      (el) => el.type === "button" && String(el.props["aria-label"] ?? "").startsWith("Notifications")
+    );
+    expect(triggerButton).toBeDefined();
+    expect(typeof triggerButton?.props.onClick).toBe("function");
+    expect(triggerButton?.props["aria-expanded"]).toBe(false);
+
+    (triggerButton?.props.onClick as () => void)();
+    const openTree = collectNodes(renderBell());
+    const openButton = openTree.find(
+      (el) => el.type === "button" && String(el.props["aria-label"] ?? "").startsWith("Notifications")
+    );
+    expect(openButton?.props["aria-expanded"]).toBe(true);
+  });
+
+  it("scopes and resets hook state immediately when userId changes and ignores stale async writes", async () => {
+    const { loadNotifications, useNotificationCenter } = await import("./useNotificationCenter");
+    vi.stubGlobal("window", {
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    });
+    vi.stubGlobal("document", {
+      visibilityState: "visible",
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    });
+
+    let resolveUserAFetch!: (res: Response) => void;
+    let resolveUserBPage!: (res: Response) => void;
+    const fetchMock = vi.fn((input: string | URL) => {
+      const url = String(input);
+      if (url.includes("offset=20")) {
+        return new Promise<Response>((resolve) => {
+          resolveUserBPage = resolve;
+        });
+      }
+      return new Promise<Response>((resolve) => {
+        resolveUserAFetch = resolve;
+      });
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    // Populate user-a cache first
+    const primeA = loadNotifications("switch-user-a", { force: true });
+    resolveUserAFetch({
+      ok: true,
+      json: async () => ({
+        notifications: [dummyNotifications[0]],
+        totalCount: 1,
+        unreadCount: 1,
+        hasMore: false,
+      }),
+    } as Response);
+    await primeA;
+
+    hooks.active = true;
+    const useTestNotificationCenter = (uid: string | null) => {
+      hooks.index = 0;
+      return useNotificationCenter(uid, true);
+    };
+
+    const hookA = useTestNotificationCenter("switch-user-a");
+    expect(hookA.notifications).toHaveLength(1);
+    expect(hookA.unreadCount).toBe(1);
+
+    // Start an async loadPage for user-a (offset=20)
+    const staleLoadA = hookA.loadPage(2);
+
+    // Immediately switch to user-b before user-a's loadPage settles
+    const hookB = useTestNotificationCenter("switch-user-b");
+    expect(hookB.notifications).toEqual([]);
+    expect(hookB.unreadCount).toBe(0);
+    expect(hookB.totalCount).toBe(0);
+    expect(hookB.loading).toBe(true);
+
+    // Settle stale user-a request: must NOT overwrite user-b's state
+    resolveUserBPage({
+      ok: true,
+      json: async () => ({
+        notifications: [dummyNotifications[0], dummyNotifications[1]],
+        totalCount: 2,
+        unreadCount: 1,
+        hasMore: false,
+      }),
+    } as Response);
+    await staleLoadA;
+
+    const hookBAfterStale = useTestNotificationCenter("switch-user-b");
+    expect(hookBAfterStale.notifications).toEqual([]);
+    expect(hookBAfterStale.unreadCount).toBe(0);
+  });
+
+  it("rolls back pre-optimistic cache and sets error when markAsRead or markAllAsRead PATCH returns non-2xx", async () => {
+    const { loadNotifications, useNotificationCenter } = await import("./useNotificationCenter");
+    vi.stubGlobal("window", {
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    });
+    vi.stubGlobal("document", {
+      visibilityState: "hidden",
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    });
+
+    const fetchMock = vi
+      .fn()
+      // Initial prime for patch-user-1
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          notifications: dummyNotifications.map((n) => ({ ...n })),
+          totalCount: 2,
+          unreadCount: 1,
+          hasMore: false,
+        }),
+      } as Response)
+      // markAsRead PATCH -> 500
+      .mockResolvedValueOnce({
+        ok: false,
+        status: 500,
+        json: async () => ({ error: "Database unavailable" }),
+      } as Response)
+      // markAllAsRead PATCH -> 403
+      .mockResolvedValueOnce({
+        ok: false,
+        status: 403,
+        json: async () => ({ error: "Forbidden" }),
+      } as Response);
+    vi.stubGlobal("fetch", fetchMock);
+
+    await loadNotifications("patch-user-1", { force: true });
+
+    hooks.active = true;
+    const useTestNotificationCenter = () => {
+      hooks.index = 0;
+      return useNotificationCenter("patch-user-1", true);
+    };
+
+    let hook = useTestNotificationCenter();
+    flushEffects();
+    expect(hook.unreadCount).toBe(1);
+    expect(hook.notifications[0].is_read).toBe(false);
+
+    // 1. Failing markAsRead
+    await hook.markAsRead("n-1");
+    hook = useTestNotificationCenter();
+    expect(hook.unreadCount).toBe(1);
+    expect(hook.notifications[0].is_read).toBe(false);
+    expect(hook.error).toBeTruthy();
+
+    // Verify shared cache itself rolled back (cooldown reuse returns pre-optimistic unread state)
+    const cachedAfterSingle = await loadNotifications("patch-user-1", { force: false });
+    expect(cachedAfterSingle.unreadCount).toBe(1);
+    expect(cachedAfterSingle.notifications[0].is_read).toBe(false);
+
+    // 2. Failing markAllAsRead
+    await hook.markAllAsRead();
+    hook = useTestNotificationCenter();
+    expect(hook.unreadCount).toBe(1);
+    expect(hook.notifications[0].is_read).toBe(false);
+    expect(hook.error).toBeTruthy();
+
+    const cachedAfterAll = await loadNotifications("patch-user-1", { force: false });
+    expect(cachedAfterAll.unreadCount).toBe(1);
+    expect(cachedAfterAll.notifications[0].is_read).toBe(false);
+
+    // 3. Failing deleteNotification (500) rolls back item + unreadCount
+    fetchMock.mockResolvedValueOnce({
+      ok: false,
+      status: 500,
+      json: async () => ({ error: "Delete failed" }),
+    } as Response);
+    const deleted = await hook.deleteNotification("n-1");
+    expect(deleted).toBe(false);
+    hook = useTestNotificationCenter();
+    expect(hook.notifications).toHaveLength(2);
+    expect(hook.unreadCount).toBe(1);
+
+    // 4.Filtered loadNotifications (page 2 / search) does not overwrite unfiltered page-1 shared cache
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        notifications: [],
+        totalCount: 0,
+        unreadCount: 0,
+        hasMore: false,
+      }),
+    } as Response);
+    await loadNotifications("patch-user-1", { page: 2, search: "filtered-empty" });
+    const cachedAfterFiltered = await loadNotifications("patch-user-1", { force: false });
+    expect(cachedAfterFiltered.notifications).toHaveLength(2);
+    expect(cachedAfterFiltered.unreadCount).toBe(1);
   });
 });
