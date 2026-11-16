@@ -1,7 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { createBoundedFetch } from "./fetch-timeout";
-import { getRoleHomeRoute, isWorkspaceRole } from "@/types/auth";
+import { getPostLoginRedirect, getRoleHomeRoute, isWorkspaceRole } from "@/types/auth";
 
 const PUBLIC_ENTRY_PATHS = new Set(["/", "/map", "/login", "/register"]);
 
@@ -57,7 +57,15 @@ export async function updateSession(request: NextRequest) {
         .eq("id", authData.user.id)
         .maybeSingle();
       if (!profileError && !profile?.is_suspended && isWorkspaceRole(profile?.role)) {
-        const response = NextResponse.redirect(new URL(getRoleHomeRoute(profile.role), request.url));
+        const destination =
+          pathname === "/login"
+            ? getPostLoginRedirect(request.nextUrl.searchParams.get("next"), profile.role)
+            : getRoleHomeRoute(profile.role);
+        const safeTarget =
+          new URL(destination, request.url).pathname === "/login"
+            ? getRoleHomeRoute(profile.role)
+            : destination;
+        const response = NextResponse.redirect(new URL(safeTarget, request.url));
         for (const cookie of supabaseResponse.cookies.getAll()) response.cookies.set(cookie);
         response.headers.set("Cache-Control", "private, no-store");
         return response;

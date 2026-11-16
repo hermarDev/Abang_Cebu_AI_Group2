@@ -1,75 +1,9 @@
 import { createClient } from "@/lib/supabase/client";
-import { getRoleHomeRoute, isSafeRedirectUrl } from "@/types/auth";
+import { getPostLoginRedirect, isAllowedSessionRole } from "@/types/auth";
 import type { UserRole } from "@/types/database";
 
+export { getPostLoginRedirect, isAllowedSessionRole };
 export type SignInResult = { success: true; role: UserRole } | { success: false; message: string };
-
-export function isAllowedSessionRole(role: unknown): role is UserRole {
-  return (
-    role === "renter" ||
-    role === "landlord" ||
-    role === "verification_officer" ||
-    role === "customer_support" ||
-    role === "admin"
-  );
-}
-
-export function getPostLoginRedirect(destination: string | null, role?: UserRole): string {
-  if (destination && isSafeRedirectUrl(destination)) {
-    const pathname = new URL(destination, "http://localhost").pathname;
-    if (
-      role === "admin" &&
-      (pathname === "/" ||
-        pathname === "/map" ||
-        pathname.startsWith("/landlord") ||
-        pathname.startsWith("/verification") ||
-        pathname.startsWith("/support-desk"))
-    ) {
-      return "/admin/dashboard";
-    }
-    if (
-      role === "verification_officer" &&
-      (pathname === "/" ||
-        pathname === "/map" ||
-        pathname.startsWith("/landlord") ||
-        pathname.startsWith("/admin") ||
-        pathname.startsWith("/support-desk"))
-    ) {
-      return "/verification/dashboard";
-    }
-    if (
-      role === "customer_support" &&
-      (pathname === "/" ||
-        pathname === "/map" ||
-        pathname.startsWith("/landlord") ||
-        pathname.startsWith("/admin") ||
-        pathname.startsWith("/verification"))
-    ) {
-      return "/support-desk/dashboard";
-    }
-    if (
-      role === "landlord" &&
-      (pathname === "/" ||
-        pathname === "/map" ||
-        pathname.startsWith("/admin") ||
-        pathname.startsWith("/verification") ||
-        pathname.startsWith("/support-desk"))
-    ) {
-      return "/landlord/dashboard";
-    }
-    if (
-      role === "renter" &&
-      (pathname.startsWith("/landlord") ||
-        pathname.startsWith("/admin") ||
-        pathname.startsWith("/verification") ||
-        pathname.startsWith("/support-desk"))
-    ) {
-      return "/";
-    }
-    return destination;
-  }
-  return getRoleHomeRoute(role);
-}
 
 export async function signInWithEmail(
   email: string,

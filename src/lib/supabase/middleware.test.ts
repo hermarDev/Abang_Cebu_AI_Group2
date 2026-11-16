@@ -57,6 +57,19 @@ describe("workspace routing", () => {
     expect(suspendedResponse.headers.get("cache-control")).toContain("no-store");
   });
 
+  it("preserves permitted /login?next= targets while preventing self-login loops", async () => {
+    mocks.profile.mockResolvedValue({ data: { role: "admin", is_suspended: false }, error: null });
+    const account = await updateSession(new NextRequest("https://example.test/login?next=%2Faccount"));
+    expect(account.headers.get("location")).toBe("https://example.test/account");
+
+    const selfLogin = await updateSession(new NextRequest("https://example.test/login?next=%2Flogin"));
+    expect(selfLogin.headers.get("location")).toBe("https://example.test/admin/dashboard");
+
+    mocks.profile.mockResolvedValue({ data: { role: "customer_support", is_suspended: false }, error: null });
+    const crossRole = await updateSession(new NextRequest("https://example.test/login?next=%2Fadmin%2Freviews"));
+    expect(crossRole.headers.get("location")).toBe("https://example.test/support-desk/dashboard");
+  });
+
   it("does not query profiles for workspace requests", async () => {
     await updateSession(new NextRequest("https://example.test/support-desk/dashboard"));
     expect(mocks.profile).not.toHaveBeenCalled();
