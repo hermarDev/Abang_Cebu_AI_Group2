@@ -15,6 +15,7 @@ import { statusBadgeVariant } from "@/features/admin/status-badge";
 
 export type SupportDeskTicket = {
   id: string;
+  ticketNumber?: string | null;
   userId?: string | null;
   requesterName?: string | null;
   requesterEmail?: string | null;
@@ -102,6 +103,9 @@ export function SupportTicketRow({
   return (
     <li className="grid gap-3 rounded-xl border border-border bg-card p-4 transition hover:border-action/30">
       <div className="flex flex-wrap items-center gap-2">
+        {ticket.ticketNumber && (
+          <span className="font-mono text-xs font-bold text-foreground">{ticket.ticketNumber}</span>
+        )}
         <Badge variant={statusBadgeVariant(ticket.status)}>{label(ticket.status)}</Badge>
         <Badge variant="outline">{label(ticket.category)}</Badge>
         <Badge variant={ticket.priority === "urgent" || ticket.priority === "high" ? "destructive" : "outline"}>
@@ -340,9 +344,10 @@ export function SupportDeskQueue({
             </Button>
           ))}
         </div>
-        <div className="w-full sm:w-64">
+        <div className="w-full sm:w-80">
           <Input
-            placeholder="Search complaints…"
+            aria-label="Search complaints"
+            placeholder="Search subject, requester, or landlord…"
             value={search}
             onChange={(e) => {
               setSearch(e.target.value);

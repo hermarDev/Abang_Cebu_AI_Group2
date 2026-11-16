@@ -55,6 +55,7 @@ export type SupportTicketRecord = {
   landlordInquirySentAt?: string | null;
   landlordResponse?: string | null;
   landlordRespondedAt?: string | null;
+  supportResolutionNote?: string | null;
   adminResponse: string | null;
   assignedAdminId: string | null;
   assignedAdminName?: string | null;

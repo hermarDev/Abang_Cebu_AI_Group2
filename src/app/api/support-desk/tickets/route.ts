@@ -1,3 +1,4 @@
+import { createAdminClient } from "@/lib/supabase/admin";
 import {
   jsonError,
   jsonOk,
@@ -70,6 +71,44 @@ export async function GET(request: Request) {
   }
   if (error) {
     return jsonError("Tickets could not be loaded. Please retry.", 503);
+  }
+
+  if (Array.isArray(data)) {
+    const missingIds = data
+      .filter(
+        (row): row is Record<string, unknown> & { id: string } =>
+          Boolean(row && typeof row === "object" && validUuid((row as { id?: unknown }).id) && !(row as { ticketNumber?: unknown }).ticketNumber),
+      )
+      .map((row) => row.id);
+
+    if (missingIds.length > 0) {
+      try {
+        const admin = createAdminClient();
+        const { data: ticketNums } = await admin
+          .from("support_tickets")
+          .select("id,ticket_number")
+          .in("id", missingIds);
+        if (Array.isArray(ticketNums) && ticketNums.length > 0) {
+          const map = new Map<string, string>();
+          for (const item of ticketNums) {
+            if (typeof item?.id === "string" && typeof item?.ticket_number === "string" && item.ticket_number) {
+              map.set(item.id, item.ticket_number);
+            }
+          }
+          if (map.size > 0) {
+            return jsonOk({
+              tickets: data.map((row) =>
+                row && typeof row === "object" && typeof (row as { id?: unknown }).id === "string" && map.has((row as { id: string }).id)
+                  ? { ...(row as Record<string, unknown>), ticketNumber: map.get((row as { id: string }).id) }
+                  : row,
+              ),
+            });
+          }
+        }
+      } catch {
+        // Fall through with RPC rows if admin client is unavailable or fails
+      }
+    }
   }
 
   return jsonOk({ tickets: data });

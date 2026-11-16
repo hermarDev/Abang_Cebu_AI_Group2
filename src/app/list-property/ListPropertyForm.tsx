@@ -697,6 +697,7 @@ export function ListPropertyForm({ userId, restoreTarget }: { userId: string; re
           setDirty(false);
           notify("success", "property-submission", "Submission already received");
           keepSaving = true;
+          if (typeof router?.refresh === "function") router.refresh();
           if (router && typeof router.push === "function") router.push("/landlord/properties");
           else if (typeof window !== "undefined") window.history.pushState(null, "", "/landlord/properties");
           return;
@@ -721,6 +722,7 @@ export function ListPropertyForm({ userId, restoreTarget }: { userId: string; re
         const targetUrl = restoreTarget ? "/landlord/properties" : `/landlord/map?selected=${encodeURIComponent(data.propertyId)}`;
         // Stay in the saving state until the destination route mounts; the form unmounts on navigation.
         keepSaving = true;
+        if (typeof router?.refresh === "function") router.refresh();
         if (router && typeof router.push === "function") router.push(targetUrl);
         else if (typeof window !== "undefined") window.history.pushState(null, "", targetUrl);
       } catch {

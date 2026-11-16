@@ -3,6 +3,17 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({
   requireActiveSupportOrAdmin: vi.fn(),
   supportDeskRpc: vi.fn(),
+  adminIn: vi.fn(),
+}));
+
+vi.mock("@/lib/supabase/admin", () => ({
+  createAdminClient: () => ({
+    from: () => ({
+      select: () => ({
+        in: mocks.adminIn,
+      }),
+    }),
+  }),
 }));
 
 vi.mock("@/server/support-desk-access", async () => {
@@ -31,6 +42,7 @@ beforeEach(() => {
     data: [{ id: "t1", status: "open", subject: "Help needed" }],
     error: null,
   });
+  mocks.adminIn.mockResolvedValue({ data: [], error: null });
 });
 
 describe("GET /api/support-desk/tickets", () => {
@@ -111,5 +123,23 @@ describe("GET /api/support-desk/tickets", () => {
     });
     const res = await get();
     expect(res.status).toBe(503);
+  });
+
+  it("enriches missing ticketNumber from support_tickets when RPC omits it", async () => {
+    const id1 = "12345678-1234-4234-8234-123456789abc";
+    mocks.supportDeskRpc.mockResolvedValue({
+      data: [{ id: id1, status: "open", subject: "Help needed" }],
+      error: null,
+    });
+    mocks.adminIn.mockResolvedValue({
+      data: [{ id: id1, ticket_number: "SUP-01234" }],
+      error: null,
+    });
+    const res = await get();
+    expect(res.status).toBe(200);
+    expect(mocks.adminIn).toHaveBeenCalledWith("id", [id1]);
+    expect(await res.json()).toEqual({
+      tickets: [{ id: id1, ticketNumber: "SUP-01234", status: "open", subject: "Help needed" }],
+    });
   });
 });

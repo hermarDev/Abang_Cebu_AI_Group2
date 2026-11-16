@@ -44,11 +44,14 @@ describe("SupportDeskQueue", () => {
       expect(html).toContain(tab);
     }
     expect(html).toMatch(/aria-pressed="true"[^>]*>Awaiting Landlord/);
+    expect(html).toContain('aria-label="Search complaints"');
+    expect(html).toContain('placeholder="Search subject, requester, or landlord…"');
     expect(html).toContain("animate-pulse");
   });
 
-  it("renders ticket details and action buttons for open tickets", () => {
-    const openHtml = row(ticket);
+  it("renders ticket details, optional ticketNumber badge, and action buttons for open tickets", () => {
+    const openHtml = row({ ...ticket, ticketNumber: "SUP-01042" });
+    expect(openHtml).toContain("SUP-01042");
     expect(openHtml).toContain("Threatening message from landlord");
     expect(openHtml).toContain("Juan Dela");
     expect(openHtml).toContain("Pedro Landlord");

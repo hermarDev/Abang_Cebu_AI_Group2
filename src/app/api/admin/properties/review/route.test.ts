@@ -5,7 +5,9 @@ const mocks = vi.hoisted(() => ({
   getUser: vi.fn(async (): Promise<{ data: { user: { id: string } | null }; error: unknown }> => ({ data: { user: { id: "admin-1" } }, error: null })),
   profile: vi.fn(async (): Promise<{ data: unknown; error: unknown }> => ({ data: { role: "admin", is_suspended: false }, error: null })),
   rpc: vi.fn(async (): Promise<{ data: unknown; error: unknown }> => ({ data: { status: "approved" }, error: null })),
+  revalidatePath: vi.fn(),
 }));
+vi.mock("next/cache", () => ({ revalidatePath: mocks.revalidatePath }));
 vi.mock("@/lib/supabase/server", () => ({ createClient: async () => ({ auth: { getUser: mocks.getUser }, from: () => ({ select: () => ({ eq: () => ({ maybeSingle: mocks.profile }) }) }), rpc: mocks.rpc }) }));
 
 function request(body: unknown, user = "admin-1") {
@@ -37,6 +39,9 @@ describe("admin property review", () => {
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({ status: "approved" });
     expect(mocks.rpc).toHaveBeenCalledWith("review_property", expect.objectContaining({ p_submission_draft_id: "33333333-3333-4333-8333-333333333333", p_submission_expected_revision: 1 }));
+    for (const path of ["/", "/landlord/dashboard", "/landlord/properties", "/landlord/map", "/admin/dashboard", "/admin/reviews", "/admin/audit"]) {
+      expect(mocks.revalidatePath).toHaveBeenCalledWith(path);
+    }
   });
   it("requires the exact submission revision", async () => {
     const partial = await POST(request({ propertyId: approve().propertyId, operationId: approve().operationId, decision: "approved", submissionDraftId: "33333333-3333-4333-8333-333333333333" }));

@@ -1,4 +1,12 @@
+import { revalidatePath } from "next/cache";
 import { adminLifecycleLimiter, adminRpc, jsonError, jsonOk, rateLimited, readJsonObject, requireActiveAdmin, validReason, validUuid } from "@/server/admin-access";
+
+const ADMIN_REVALIDATE_PATHS = ["/", "/landlord/dashboard", "/landlord/properties", "/landlord/map", "/admin/dashboard", "/admin/reviews", "/admin/audit"] as const;
+function revalidateAdminPaths() {
+  try {
+    for (const path of ADMIN_REVALIDATE_PATHS) revalidatePath(path);
+  } catch { /* ignore outside Next request context */ }
+}
 
 export async function POST(request: Request) {
   const session = await requireActiveAdmin(request);
@@ -32,6 +40,7 @@ export async function POST(request: Request) {
     if (error?.code === "42501") return jsonError("This property cannot be changed.", 403);
     if (error?.code === "22023") return jsonError("Invalid location correction request.", 400);
     if (error) return jsonError("The location correction could not be saved.", 503);
+    revalidateAdminPaths();
     return jsonOk({ propertyId: input.propertyId, status: (data as { status?: string })?.status ?? "approved" });
   }
 
@@ -46,5 +55,6 @@ export async function POST(request: Request) {
   if (error?.code === "22023") return jsonError("Invalid property lifecycle request.", 400);
   const result = data as { propertyId?: unknown; status?: unknown } | null;
   if (error || !result || typeof result !== "object") return jsonError("The change could not be confirmed. Reload before retrying.", 503);
+  revalidateAdminPaths();
   return jsonOk({ propertyId: result.propertyId, status: result.status });
 }

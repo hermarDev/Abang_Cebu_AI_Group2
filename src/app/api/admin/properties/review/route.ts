@@ -1,3 +1,4 @@
+import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 
 const headers = { "Cache-Control": "no-store" };
@@ -57,5 +58,10 @@ export async function POST(request: Request) {
   if (error?.code === "42501" || error?.code === "22023") return reply("This property is not pending review.", 409);
   if (error) return reply("The review could not be saved. Please retry.", 503);
   if (!data || typeof data !== "object" || !("status" in data)) return reply("Review could not be confirmed. Please retry.", 503);
+  try {
+    for (const path of ["/", "/landlord/dashboard", "/landlord/properties", "/landlord/map", "/admin/dashboard", "/admin/reviews", "/admin/audit"]) {
+      revalidatePath(path);
+    }
+  } catch { /* ignore outside Next request context */ }
   return Response.json({ status: data.status }, { headers });
 }

@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const mocks = vi.hoisted(() => ({ getUser: vi.fn(), profile: vi.fn(), list: vi.fn(), ownerFilter: vi.fn(), rpc: vi.fn() }));
+const mocks = vi.hoisted(() => ({ getUser: vi.fn(), profile: vi.fn(), list: vi.fn(), ownerFilter: vi.fn(), rpc: vi.fn(), revalidatePath: vi.fn() }));
+vi.mock("next/cache", () => ({ revalidatePath: mocks.revalidatePath }));
 vi.mock("@/lib/supabase/server", () => ({ createClient: async () => ({
   auth: { getUser: mocks.getUser },
   from: (table: string) => table === "profiles"
@@ -48,6 +49,9 @@ describe("property draft account binding", () => {
     expect(response.status).toBe(200);
     expect(mocks.rpc).toHaveBeenCalledWith("save_property_draft", { p_operation_id: operationId, p_payload: payload });
     expect(await response.json()).toEqual({ id: draftId });
+    for (const path of ["/landlord/dashboard", "/landlord/properties", "/landlord/map"]) {
+      expect(mocks.revalidatePath).toHaveBeenCalledWith(path);
+    }
   });
   it("updates with the exact revision and operation", async () => {
     mocks.rpc.mockResolvedValue({ data: 2, error: null });
@@ -55,6 +59,9 @@ describe("property draft account binding", () => {
     expect(response.status).toBe(200);
     expect(mocks.rpc).toHaveBeenCalledWith("update_property_draft", { p_draft_id: draftId, p_operation_id: operationId, p_expected_revision: 1, p_payload: payload });
     expect(await response.json()).toEqual({ revision: 2 });
+    for (const path of ["/landlord/dashboard", "/landlord/properties", "/landlord/map"]) {
+      expect(mocks.revalidatePath).toHaveBeenCalledWith(path);
+    }
   });
   it("rejects suspended landlords before invoking RPC", async () => {
     mocks.profile.mockResolvedValue({ data: { role: "landlord", is_suspended: true }, error: null });

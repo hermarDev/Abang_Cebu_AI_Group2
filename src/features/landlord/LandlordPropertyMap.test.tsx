@@ -13,6 +13,7 @@ const properties: LandlordPropertyMapItem[] = [
   { ...base, id: "published", title: "Old listing", status: "published", is_available: false },
 ];
 const source = readFileSync("src/features/landlord/LandlordPropertyMap.tsx", "utf8");
+const css = readFileSync("src/features/landlord/LandlordPropertyMap.module.css", "utf8");
 const pressed = (html: string) => [...html.matchAll(/aria-pressed="true"[^>]*>.*?class="[^"]*">([^<]+)</g)].map(match => match[1]);
 
 describe("LandlordPropertyMap", () => {
@@ -83,5 +84,30 @@ describe("LandlordPropertyMap", () => {
     expect(source).toContain('"View property details ↗"');
     expect(source).toContain("setPanelCollapsed");
     expect(source).toContain("fitAllProperties");
+  });
+  it("prevents horizontal overflow and button truncation in the left property panel", () => {
+    expect(css).toMatch(/\.propertyList\s*\{[^}]*overflow-x:\s*hidden;/);
+    expect(css).toMatch(/\.propertyItem\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\);/);
+    expect(css).toMatch(/\.propertyItem\s*\{[^}]*min-width:\s*0;/);
+    expect(css).toMatch(/\.propertyCard\s*\{[^}]*min-width:\s*0;/);
+    expect(css).toMatch(/\.propertyCardContent\s*\{[^}]*min-width:\s*0;/);
+    expect(css).toMatch(/\.propertyActions\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)\s+minmax\(0,\s*1fr\);/);
+    expect(css).toMatch(/\.cardPrimaryAction\s*\{[^}]*min-width:\s*0;/);
+    expect(css).toMatch(/\.cardPrimaryAction\s*\{[^}]*padding:\s*0\s+0\.55rem;/);
+    expect(css).toMatch(/\.propertyItem\s+\.secondaryLink\s*\{[^}]*min-width:\s*0;/);
+    expect(css).toMatch(/\.propertyItem\s+\.secondaryLink\s*\{[^}]*padding:\s*0\s+0\.55rem;/);
+  });
+  it("aligns pending (amber) and rejected (rose) status pills and map markers with landlord dashboard", () => {
+    expect(css).toMatch(/\.underReview\s*\{[^}]*background:\s*#fffbeb;/);
+    expect(css).toMatch(/\.underReview\s*\{[^}]*border-color:\s*#fde68a;/);
+    expect(css).toMatch(/\.underReview\s*\{[^}]*color:\s*#(?:b45309|92400e);/);
+    expect(css).toMatch(/:global\(\.dark\)\s+\.underReview\s*\{[^}]*color:\s*#fbbf24;/);
+    expect(css).toMatch(/\.actionNeeded\s*\{[^}]*background:\s*#fff1f2;/);
+    expect(css).toMatch(/\.actionNeeded\s*\{[^}]*border-color:\s*#fecdd3;/);
+    expect(css).toMatch(/\.actionNeeded\s*\{[^}]*color:\s*#be123c;/);
+    expect(css).toMatch(/:global\(\.dark\)\s+\.actionNeeded\s*\{[^}]*color:\s*#fb7185;/);
+    expect(css).toMatch(/\.marker\[data-status="pending"\]\s*\{\s*background:\s*#(?:d97706|f59e0b);/);
+    expect(css).toMatch(/\.marker\[data-status="rejected"\]\s*\{\s*background:\s*#(?:e11d48|f43f5e);/);
+    expect(css).not.toContain(".pinDot");
   });
 });

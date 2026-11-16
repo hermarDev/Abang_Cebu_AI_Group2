@@ -29,7 +29,7 @@ export async function GET(request: Request, context: Context) {
   const { data: ticket, error } = await adminClient
     .from("support_tickets")
     .select(
-      "id,ticket_number,user_id,requester_name,requester_email,requester_role,category,subject,description,related_listing_id,attachments,status,priority,admin_response,resolved_at,created_at,updated_at,guest_access_token_hash",
+      "id,ticket_number,user_id,requester_name,requester_email,requester_role,category,subject,description,related_listing_id,attachments,status,priority,support_resolution_note,admin_response,resolved_at,created_at,updated_at,guest_access_token_hash",
     )
     .eq("id", ticketId)
     .maybeSingle();

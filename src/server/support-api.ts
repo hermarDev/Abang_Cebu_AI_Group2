@@ -106,6 +106,7 @@ export function mapSupportTicketRow(row: Record<string, unknown>): SupportTicket
     landlordInquirySentAt: (row.landlord_inquiry_sent_at ?? row.landlordInquirySentAt ?? null) as string | null,
     landlordResponse: (row.landlord_response ?? row.landlordResponse ?? null) as string | null,
     landlordRespondedAt: (row.landlord_responded_at ?? row.landlordRespondedAt ?? null) as string | null,
+    supportResolutionNote: (row.support_resolution_note ?? row.supportResolutionNote ?? null) as string | null,
     adminResponse: (row.admin_response ?? row.adminResponse ?? null) as string | null,
     assignedAdminId: (row.assigned_admin_id ?? row.assignedAdminId ?? null) as string | null,
     assignedAdminName: (row.assigned_admin_name ?? row.assignedAdminName ?? null) as string | null,

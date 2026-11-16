@@ -243,6 +243,7 @@ button.secondaryLink {
 
 .propertyList {
   min-height: 0;
+  overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
   padding: 0.75rem;
@@ -258,23 +259,26 @@ button.secondaryLink {
 
 .propertyItem {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
   gap: 0.45rem;
   margin: 0 0 0.75rem;
 }
 
 .propertyActions {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 0.5rem;
   margin-top: 0.15rem;
 }
 
 .propertyActions[data-single-action] {
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .cardPrimaryAction {
   display: inline-flex;
+  min-width: 0;
   min-height: 2.5rem;
   width: 100%;
   align-items: center;
@@ -282,7 +286,7 @@ button.secondaryLink {
   gap: 0.35rem;
   border: 1px solid var(--border);
   border-radius: 0.75rem;
-  padding: 0 0.85rem;
+  padding: 0 0.55rem;
   background: var(--card);
   color: var(--card-foreground);
   font: inherit;
@@ -298,9 +302,11 @@ button.secondaryLink {
 }
 
 .propertyItem .secondaryLink {
+  min-width: 0;
   min-height: 2.5rem;
   width: 100%;
   border-radius: 0.75rem;
+  padding: 0 0.55rem;
   background: var(--card);
   color: var(--card-foreground);
   font-size: 0.8125rem;
@@ -319,6 +325,7 @@ button.secondaryLink {
 
 .propertyCard {
   display: block;
+  min-width: 0;
   width: 100%;
   margin: 0;
   border: 1px solid var(--border);
@@ -333,6 +340,7 @@ button.secondaryLink {
 
 .propertyCardContent {
   display: flex;
+  min-width: 0;
   align-items: flex-start;
   gap: 0.75rem;
   width: 100%;
@@ -422,38 +430,6 @@ button.secondaryLink {
   white-space: nowrap;
 }
 
-.pinDot {
-  width: 0.7rem;
-  height: 0.7rem;
-  flex: 0 0 auto;
-  border: 2px solid var(--card);
-  border-radius: 999px;
-  background: #64748b;
-  box-shadow: 0 0 0 1px var(--border);
-}
-
-.pinDot[data-status="pending"] {
-  background: #2563eb;
-}
-
-.pinDot[data-status="rejected"],
-.pinDot[data-status="approved"][data-available="false"] {
-  background: #d97706;
-}
-
-.pinDot[data-status="published"][data-available="true"],
-.pinDot[data-status="approved"][data-available="true"] {
-  background: #16a34a;
-}
-
-.pinDot[data-status="draft"] {
-  background: #64748b;
-}
-
-.pinDot[data-status="published"][data-available="false"] {
-  background: #f59e0b;
-}
-
 .propertyAddress {
   overflow: hidden;
   color: var(--muted-foreground);
@@ -487,27 +463,27 @@ button.secondaryLink {
 }
 
 .underReview {
-  border-color: #bfdbfe;
-  background: #eff6ff;
-  color: #1e40af;
+  border-color: #fde68a;
+  background: #fffbeb;
+  color: #b45309;
 }
 
 :global(.dark) .underReview {
-  border-color: rgb(59 130 246 / 30%);
-  background: rgb(59 130 246 / 15%);
-  color: #60a5fa;
-}
-
-.actionNeeded {
-  border-color: #fde68a;
-  background: #fffbeb;
-  color: #92400e;
-}
-
-:global(.dark) .actionNeeded {
   border-color: rgb(245 158 11 / 30%);
   background: rgb(245 158 11 / 15%);
   color: #fbbf24;
+}
+
+.actionNeeded {
+  border-color: #fecdd3;
+  background: #fff1f2;
+  color: #be123c;
+}
+
+:global(.dark) .actionNeeded {
+  border-color: rgb(244 63 94 / 30%);
+  background: rgb(244 63 94 / 15%);
+  color: #fb7185;
 }
 
 .draft {
@@ -861,12 +837,12 @@ button.secondaryLink {
 
 .marker[data-status="published"][data-available="false"],
 .marker[data-status="approved"][data-available="false"],
-.marker[data-status="rejected"] {
+.marker[data-status="pending"] {
   background: #d97706;
 }
 
-.marker[data-status="pending"] {
-  background: #2563eb;
+.marker[data-status="rejected"] {
+  background: #e11d48;
 }
 
 .marker[data-status="approved"][data-available="true"] {
