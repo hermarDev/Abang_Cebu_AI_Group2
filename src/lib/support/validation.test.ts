@@ -66,7 +66,6 @@ describe("Support validation helpers", () => {
       subject: "Cannot sign in to my account",
       description: "When I enter my email and password, the login button shows a loading spinner forever.",
       relatedListingId: null,
-      turnstileToken: "dummy-token",
     };
 
     it("succeeds with valid payload", () => {

@@ -8,7 +8,6 @@ import { Input } from "@/components/ui/Input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
 import { CircleAlert, Eye, EyeOff, KeyRound, LockKeyhole, Mail } from "lucide-react";
 import { PasswordRequirements } from "./PasswordRequirements";
-import { TurnstileWidget } from "./TurnstileWidget";
 
 const genericSuccess = "If an account is associated with this email, a password recovery link has been dispatched.";
 
@@ -28,8 +27,6 @@ export function ResetPasswordForm({ isRecovery = false, onBackToLogin, embedded 
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [isError, setIsError] = useState(false);
-  const [turnstileToken, setTurnstileToken] = useState("");
-  const [turnstileResetKey, setTurnstileResetKey] = useState(0);
   const [emailError, setEmailError] = useState<string | null>(null);
   const [emailSubmitted, setEmailSubmitted] = useState(false);
   const validateEmail = (value: string) => !value.trim() ? "Enter your email address." : !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim()) ? "Enter a valid email address." : null;
@@ -65,7 +62,7 @@ export function ResetPasswordForm({ isRecovery = false, onBackToLogin, embedded 
       const res = await fetch(isRecovery ? "/api/auth/reset-password/confirm" : "/api/auth/reset-password/request", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(isRecovery ? { newPassword, confirmPassword } : { email, ...(turnstileToken ? { turnstileToken } : {}) }),
+        body: JSON.stringify(isRecovery ? { newPassword, confirmPassword } : { email }),
       });
       const data = await res.json();
 
@@ -77,10 +74,6 @@ export function ResetPasswordForm({ isRecovery = false, onBackToLogin, embedded 
         }
         setIsError(true);
         setMessage(data?.error?.message || "Password recovery is temporarily unavailable. Try again.");
-        if (!isRecovery) {
-          setTurnstileResetKey((k) => k + 1);
-          setTurnstileToken("");
-        }
         return;
       }
 
@@ -93,10 +86,6 @@ export function ResetPasswordForm({ isRecovery = false, onBackToLogin, embedded 
     } catch {
       setIsError(true);
       setMessage("Password recovery is temporarily unavailable. Try again.");
-      if (!isRecovery) {
-        setTurnstileResetKey((k) => k + 1);
-        setTurnstileToken("");
-      }
     } finally {
       setLoading(false);
     }
@@ -233,14 +222,6 @@ export function ResetPasswordForm({ isRecovery = false, onBackToLogin, embedded 
               </div>
               {emailError && <p id={`${emailId}-error`} role="alert" className="mt-1 text-sm text-destructive">{emailError}</p>}
             </div>
-          )}
-
-          {!isRecovery && (
-            <TurnstileWidget
-              action="recovery"
-              onTokenChange={setTurnstileToken}
-              resetKey={turnstileResetKey}
-            />
           )}
 
           <Button type="submit" variant="primary" fullWidth size="lg" disabled={loading}>

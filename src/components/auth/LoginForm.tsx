@@ -9,7 +9,6 @@ import { Input } from "@/components/ui/Input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
 import { useRouter } from "next/navigation";
 import { getPostLoginRedirect, signInWithEmail } from "@/lib/auth/sign-in";
-import { TurnstileWidget } from "./TurnstileWidget";
 
 export function LoginForm({
   onRegister,
@@ -34,8 +33,6 @@ export function LoginForm({
   const [redirectingLabel, setRedirectingLabel] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string }>({});
   const [submitted, setSubmitted] = useState(false);
-  const [turnstileToken, setTurnstileToken] = useState("");
-  const [turnstileResetKey, setTurnstileResetKey] = useState(0);
   const emailError = (value: string) => !value.trim() ? "Enter your email address." : !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim()) ? "Enter a valid email address." : undefined;
   const Surface = onRegister ? "div" : Card;
 
@@ -55,12 +52,10 @@ export function LoginForm({
     setStatusMessage(null);
     setLoading(true);
     try {
-      const result = await signInWithEmail(email, password, turnstileToken);
+      const result = await signInWithEmail(email, password);
       if (!result.success) {
         setStatusIsError(true);
         setStatusMessage(result.message.replace(/^Sign in\b/i, "Log in"));
-        setTurnstileResetKey((k) => k + 1);
-        setTurnstileToken("");
         setLoading(false);
         return;
       }
@@ -152,12 +147,6 @@ export function LoginForm({
             </div>
             {fieldErrors.password && <FieldError id={`${passwordId}-error`} role="alert" className="mt-1">{fieldErrors.password}</FieldError>}
           </div>
-
-          <TurnstileWidget
-            action="login"
-            onTokenChange={setTurnstileToken}
-            resetKey={turnstileResetKey}
-          />
 
           {statusMessage && (
             <div

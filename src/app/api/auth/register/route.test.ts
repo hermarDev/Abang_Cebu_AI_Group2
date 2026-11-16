@@ -57,18 +57,9 @@ describe("registration route", () => {
     expect(response.status).toBe(429);
     expect(signUp).not.toHaveBeenCalled();
   });
-  it("forwards the Turnstile token unchanged to Supabase Auth", async () => {
-    signUp.mockReset().mockResolvedValue({ data: { user: { id: "u1" } }, error: null });
-    const response = await POST(request({ ...goodPayload, turnstileToken: " provider-owned-token " }));
-    expect(response.status).toBe(201);
-    expect(signUp).toHaveBeenCalledWith(expect.objectContaining({
-      options: expect.objectContaining({ captchaToken: "provider-owned-token" }),
-    }));
-  });
-
   it("maps a hosted Supabase CAPTCHA rejection without exposing provider detail", async () => {
     signUp.mockReset().mockResolvedValue({ data: { user: null }, error: { code: "captcha_failed", message: "private provider detail" } });
-    const response = await POST(request({ ...goodPayload, turnstileToken: "invalid-token" }));
+    const response = await POST(request(goodPayload));
     expect(response.status).toBe(403);
     const body = await response.json();
     expect(body.error.code).toBe("CAPTCHA_VERIFICATION_FAILED");

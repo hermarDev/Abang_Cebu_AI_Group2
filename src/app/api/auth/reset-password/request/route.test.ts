@@ -166,37 +166,4 @@ describe("password reset request route", () => {
     expect(resetPasswordForEmail).toHaveBeenCalledWith("person@example.com", expect.anything());
   });
 
-  it("rejects password reset request without Turnstile token when TURNSTILE_SECRET_KEY is configured", async () => {
-    vi.stubEnv("TURNSTILE_SECRET_KEY", "test-secret-key");
-    vi.stubEnv("NEXT_PUBLIC_SITE_URL", "https://recovery.example");
-    const response = await POST(request({ email: "safe@example.com" }));
-    expect(response.status).toBe(200);
-    expect(await response.json()).toEqual(genericSuccess);
-    expect(resetPasswordForEmail).toHaveBeenCalledOnce();
-    const callArgs = resetPasswordForEmail.mock.calls[0][1];
-    expect(callArgs.redirectTo).toContain("/auth/reset-password/callback");
-    expect(callArgs.captchaToken).toBeUndefined();
-  });
-
-  it("forwards captchaToken to Supabase when turnstileToken is provided", async () => {
-    vi.stubEnv("TURNSTILE_SECRET_KEY", "test-secret-key");
-    vi.stubEnv("NEXT_PUBLIC_SITE_URL", "https://recovery.example");
-    const response = await POST(request({ email: "safe@example.com", turnstileToken: "valid-token" }));
-    expect(response.status).toBe(200);
-    expect(await response.json()).toEqual(genericSuccess);
-    expect(resetPasswordForEmail).toHaveBeenCalledOnce();
-    expect(resetPasswordForEmail).toHaveBeenCalledWith("safe@example.com", expect.objectContaining({
-      redirectTo: expect.stringContaining("/auth/reset-password/callback"),
-      captchaToken: "valid-token",
-    }));
-  });
-
-  it("does not call verifyTurnstileToken locally when TURNSTILE_SECRET_KEY is set", async () => {
-    vi.stubEnv("TURNSTILE_SECRET_KEY", "test-secret-key");
-    vi.stubEnv("NEXT_PUBLIC_SITE_URL", "https://recovery.example");
-    const response = await POST(request({ email: "safe@example.com", turnstileToken: "valid-token" }));
-    expect(response.status).toBe(200);
-    expect(await response.json()).toEqual(genericSuccess);
-    // verifyTurnstileToken is no longer imported or called
-  });
 });

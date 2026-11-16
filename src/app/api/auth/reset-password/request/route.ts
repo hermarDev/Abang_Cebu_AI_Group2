@@ -109,7 +109,6 @@ export async function POST(request: Request) {
     // Suppress provider-specific account existence and failure details.
     await supabase.auth.resetPasswordForEmail(validation.email, {
       redirectTo: recoveryUrl.toString(),
-      ...(validation.turnstileToken ? { captchaToken: validation.turnstileToken } : {}),
     });
   } catch {
     // Keep provider failures indistinguishable from successful dispatch.
