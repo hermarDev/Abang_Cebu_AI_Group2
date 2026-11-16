@@ -68,8 +68,6 @@ export default async function SupportPage(props: SupportPageProps) {
             ? "Back to support workspace"
             : "Back to map";
 
-  const turnstileRequired = Boolean(process.env.TURNSTILE_SECRET_KEY?.trim());
-
   return (
     <SupportCenterClient
       authenticated={Boolean(user)}
@@ -79,7 +77,6 @@ export default async function SupportPage(props: SupportPageProps) {
       userRole={userRole}
       backHref={backHref}
       backLabel={backLabel}
-      turnstileRequired={turnstileRequired}
       highlightTicketId={highlightTicketId}
       guestToken={guestToken}
     />

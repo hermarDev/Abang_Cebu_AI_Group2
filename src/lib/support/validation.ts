@@ -27,7 +27,6 @@ export interface SupportSubmissionInput {
   subject?: unknown;
   description?: unknown;
   relatedListingId?: unknown;
-  turnstileToken?: unknown;
   website?: unknown; // honeypot
 }
 
@@ -39,7 +38,6 @@ export interface ValidSupportSubmission {
   subject: string;
   description: string;
   relatedListingId: string | null;
-  turnstileToken: string;
 }
 
 export type SupportFieldErrors = Partial<
@@ -116,7 +114,6 @@ export function validateSupportSubmission(
   }
 
   const operationId = isValidUuid(input.operationId) ? input.operationId.trim() : "";
-  const turnstileToken = typeof input.turnstileToken === "string" ? input.turnstileToken.trim() : "";
 
   return {
     ok: true,
@@ -128,7 +125,6 @@ export function validateSupportSubmission(
       subject,
       description,
       relatedListingId,
-      turnstileToken,
     },
   };
 }

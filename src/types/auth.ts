@@ -33,8 +33,6 @@ export interface RegisterPayload {
   phoneNumber?: string;
   /** Primary campus, office, or landmark of interest in Metro Cebu */
   preferredLandmark?: string;
-  /** Optional Cloudflare Turnstile CAPTCHA token */
-  turnstileToken?: string;
 }
 
 /**
@@ -280,8 +278,6 @@ export const SESSION_CONSTANTS = {
 export interface PasswordResetRequestPayload {
   /** Target user account email address */
   email: string;
-  /** Optional Cloudflare Turnstile CAPTCHA token for bot deterrence */
-  turnstileToken?: string;
   /** Optional post-verification redirect destination */
   redirectTo?: string;
 }

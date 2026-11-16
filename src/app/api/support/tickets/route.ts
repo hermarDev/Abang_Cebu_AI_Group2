@@ -20,7 +20,6 @@ import {
   reply,
   SUPPORT_ATTACHMENTS_BUCKET,
 } from "@/server/support-api";
-import { verifyTurnstileToken } from "@/server/turnstile";
 import type { SupportAttachmentMeta } from "@/lib/support/constants";
 
 function getFileExtension(mimeType: string, filename: string): string {
@@ -171,14 +170,6 @@ export async function POST(request: Request) {
     );
   }
 
-  // 3. Turnstile verification
-  const turnstileToken =
-    typeof rawFields.turnstileToken === "string" ? rawFields.turnstileToken.trim() : "";
-  const turnstileResult = await verifyTurnstileToken(turnstileToken, request);
-  if (!turnstileResult.valid) {
-    return reply({ error: "Security check failed. Please refresh and try again." }, 403);
-  }
-
   // 4. Session & x-expected-user-id check
   const supabase = await createClient();
   const {
@@ -216,7 +207,6 @@ export async function POST(request: Request) {
     subject: rawFields.subject,
     description: rawFields.description,
     relatedListingId: rawFields.relatedListingId,
-    turnstileToken,
   });
 
   if (!validation.ok) {

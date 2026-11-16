@@ -8,7 +8,6 @@ const mocks = vi.hoisted(() => ({
   upload: vi.fn(),
   remove: vi.fn(),
   createSignedUrl: vi.fn(),
-  verifyTurnstile: vi.fn(),
 }));
 
 vi.mock("@/lib/supabase/admin", () => ({
@@ -55,10 +54,6 @@ vi.mock("@/lib/supabase/server", () => ({
   }),
 }));
 
-vi.mock("@/server/turnstile", () => ({
-  verifyTurnstileToken: (...args: unknown[]) => mocks.verifyTurnstile(...args),
-}));
-
 import { GET, POST } from "./route";
 import { GET as GET_TICKET } from "./[ticketId]/route";
 import { GET as GET_ATTACHMENT } from "./[ticketId]/attachments/route";
@@ -75,7 +70,6 @@ const validPayload = {
   category: "account_access",
   subject: "Cannot access my account",
   description: "I am unable to receive password reset emails on my account.",
-  turnstileToken: "valid-turnstile-token",
 };
 
 const pngBytes = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0x00]);
@@ -87,7 +81,6 @@ beforeEach(() => {
   process.env.NEXT_PUBLIC_SUPABASE_URL = "https://mock.supabase.co";
 
   mocks.getUser.mockResolvedValue({ data: { user: null }, error: null });
-  mocks.verifyTurnstile.mockResolvedValue({ valid: true });
   mocks.upload.mockResolvedValue({ data: { path: "mock-path" }, error: null });
   mocks.remove.mockResolvedValue({ data: [], error: null });
   mocks.createSignedUrl.mockResolvedValue({ data: { signedUrl: "https://mock.storage/file.png" }, error: null });
@@ -227,23 +220,6 @@ describe("POST /api/support/tickets", () => {
     expect(mocks.rpc).not.toHaveBeenCalled();
   });
 
-  it("returns 403 on turnstile verification failure", async () => {
-    mocks.verifyTurnstile.mockResolvedValue({ valid: false, code: "INVALID_TOKEN" });
-
-    const req = new Request("http://localhost/api/support/tickets", {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-        "x-forwarded-for": nextIp(),
-      },
-      body: JSON.stringify(validPayload),
-    });
-
-    const res = await POST(req);
-    expect(res.status).toBe(403);
-    expect(mocks.rpc).not.toHaveBeenCalled();
-  });
-
   it("returns 429 with Retry-After header when rate limit is exceeded", async () => {
     const ip = nextIp();
     const send = () =>
@@ -278,7 +254,6 @@ describe("POST /api/support/tickets", () => {
     formData.set("category", "account_access");
     formData.set("subject", "Cannot access my account");
     formData.set("description", "I am unable to receive password reset emails on my account.");
-    formData.set("turnstileToken", "valid-turnstile-token");
 
     const validFile = new File([pngBytes], "screenshot.png", { type: "image/png" });
     formData.append("attachments", validFile);
@@ -305,7 +280,6 @@ describe("POST /api/support/tickets", () => {
     formData.set("category", "account_access");
     formData.set("subject", "Cannot access my account");
     formData.set("description", "I am unable to receive password reset emails on my account.");
-    formData.set("turnstileToken", "valid-turnstile-token");
 
     const fakeBytes = new Uint8Array([0x00, 0x01, 0x02, 0x03]);
     const corruptFile = new File([fakeBytes], "fake.png", { type: "image/png" });
@@ -343,7 +317,6 @@ describe("POST /api/support/tickets", () => {
     fd1.set("category", "account_access");
     fd1.set("subject", "Cannot access my account");
     fd1.set("description", "I am unable to receive password reset emails on my account.");
-    fd1.set("turnstileToken", "valid-turnstile-token");
     fd1.append("attachments", new File([pngBytes], "s1.png", { type: "image/png" }));
 
     const replayRes = await POST(
@@ -368,7 +341,6 @@ describe("POST /api/support/tickets", () => {
     fd2.set("category", "account_access");
     fd2.set("subject", "Cannot access my account");
     fd2.set("description", "I am unable to receive password reset emails on my account.");
-    fd2.set("turnstileToken", "valid-turnstile-token");
     fd2.append("attachments", new File([pngBytes], "s2.png", { type: "image/png" }));
 
     const ambigRes = await POST(

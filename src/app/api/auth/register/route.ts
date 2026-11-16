@@ -53,7 +53,7 @@ export async function POST(request: Request) {
   const validation = validateRegistration(payload);
   if (!validation.ok) return NextResponse.json({ success: false, error: { code: "VALIDATION_ERROR", message: "The submitted registration data is invalid.", details: validation.errors } }, { status: 422 });
 
-  const { email, password, role, fullName, phoneNumber, preferredLandmark, turnstileToken } = validation.value;
+  const { email, password, role, fullName, phoneNumber, preferredLandmark } = validation.value;
   let rateLimited = true;
   try {
     rateLimited = hasExceededRateLimit(request, email);
@@ -80,7 +80,6 @@ export async function POST(request: Request) {
       options: {
         emailRedirectTo: `${origin}/auth/callback?next=/`,
         data: { role, full_name: fullName, ...(phoneNumber ? { phone_number: phoneNumber } : {}), ...(preferredLandmark ? { preferred_landmark: preferredLandmark } : {}) },
-        ...(turnstileToken ? { captchaToken: turnstileToken } : {}),
       },
     });
     if (error || !data.user) {

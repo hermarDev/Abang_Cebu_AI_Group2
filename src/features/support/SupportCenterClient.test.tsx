@@ -1,16 +1,7 @@
 import { renderToStaticMarkup } from "react-dom/server";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { SupportCenterClient } from "./SupportCenterClient";
 import { SUPPORT_CATEGORIES } from "@/lib/support/constants";
-
-// Mock TurnstileWidget so it renders predictably in server markup
-vi.mock("@/components/auth/TurnstileWidget", () => ({
-  TurnstileWidget: ({ action }: { action: string }) => (
-    <div data-testid="turnstile-widget" data-action={action}>
-      Turnstile Security Verification
-    </div>
-  ),
-}));
 
 describe("SupportCenterClient", () => {
   it("renders guest guidance card with sign-in link when unauthenticated", () => {
@@ -115,20 +106,6 @@ describe("SupportCenterClient", () => {
     expect(html).toContain('accept="image/jpeg,image/png,image/webp,application/pdf"');
     expect(html).toContain("JPG, PNG, WebP, PDF");
     expect(html).toContain("Add attachment");
-  });
-
-  it("renders TurnstileWidget with support action", () => {
-    const html = renderToStaticMarkup(
-      <SupportCenterClient
-        authenticated={false}
-        backHref="/"
-        backLabel="Back to map"
-        turnstileRequired={true}
-      />
-    );
-
-    expect(html).toContain('data-testid="turnstile-widget"');
-    expect(html).toContain('data-action="support"');
   });
 
   it("renders description character counter with minimum 20 requirement", () => {

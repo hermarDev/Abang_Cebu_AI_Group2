@@ -17,7 +17,6 @@ import {
   X,
 } from "lucide-react";
 import { BrandLogo } from "@/components/brand";
-import { TurnstileWidget } from "@/components/auth/TurnstileWidget";
 import { Alert } from "@/components/ui/Alert";
 import { notify } from "@/components/ui/AppToaster";
 import { Badge } from "@/components/ui/Badge";
@@ -51,7 +50,6 @@ export interface SupportCenterClientProps {
   userRole?: string | null;
   backHref: string;
   backLabel: string;
-  turnstileRequired?: boolean;
   highlightTicketId?: string | null;
   guestToken?: string | null;
 }
@@ -96,7 +94,6 @@ export function SupportCenterClient({
   userRole = null,
   backHref,
   backLabel,
-  turnstileRequired = false,
   highlightTicketId = null,
   guestToken = null,
 }: SupportCenterClientProps) {
@@ -109,8 +106,6 @@ export function SupportCenterClient({
   const [listingId, setListingId] = useState("");
   const [files, setFiles] = useState<File[]>([]);
   const [website, setWebsite] = useState(""); // Honeypot
-  const [turnstileToken, setTurnstileToken] = useState("");
-  const [turnstileResetKey, setTurnstileResetKey] = useState(0);
 
   // Status & Validation
   const [errors, setErrors] = useState<SupportFieldErrors>({});
@@ -399,7 +394,6 @@ export function SupportCenterClient({
       subject,
       description,
       relatedListingId: listingId.trim() || undefined,
-      turnstileToken: turnstileToken || "dev-bypass",
       website,
     });
 
@@ -407,14 +401,6 @@ export function SupportCenterClient({
       setErrors(validation.errors);
       setFormError(validation.message);
       focusFirstError(validation.errors);
-      return;
-    }
-
-    // Turnstile check after field validation so users see all field errors first
-    if (turnstileRequired && !turnstileToken) {
-      const message = "Complete the security verification before submitting.";
-      setFormError(message);
-      notify("warning", "turnstile-required", message);
       return;
     }
 
@@ -433,7 +419,6 @@ export function SupportCenterClient({
       if (validation.value.relatedListingId) {
         formData.set("relatedListingId", validation.value.relatedListingId);
       }
-      formData.set("turnstileToken", validation.value.turnstileToken);
       formData.set("website", website);
 
       for (const file of files) {
@@ -455,7 +440,6 @@ export function SupportCenterClient({
             : "Failed to submit your support request. Please try again.";
         setFormError(errorMsg);
         notify("error", "support-ticket-error", errorMsg);
-        setTurnstileResetKey((k) => k + 1);
         return;
       }
 
@@ -518,12 +502,10 @@ export function SupportCenterClient({
       setListingId("");
       setFiles([]);
       setOperationId(generateUuid());
-      setTurnstileResetKey((k) => k + 1);
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Network error. Please try again.";
       setFormError(msg);
       notify("error", "support-ticket-error", msg);
-      setTurnstileResetKey((k) => k + 1);
     } finally {
       setSubmitting(false);
     }
@@ -912,15 +894,6 @@ export function SupportCenterClient({
                     <FieldError id="support-attachments-error">{errors.attachments}</FieldError>
                   )}
                 </Field>
-
-                {/* Cloudflare Turnstile */}
-                <div className="pt-2">
-                  <TurnstileWidget
-                    action="support"
-                    onTokenChange={setTurnstileToken}
-                    resetKey={turnstileResetKey}
-                  />
-                </div>
 
                 {/* Submit Action */}
                 <div className="flex items-center justify-end pt-3">
