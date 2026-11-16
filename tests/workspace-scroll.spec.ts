@@ -15,8 +15,9 @@ import React from "react";
 import { createRoot } from "react-dom/client";
 import { LayoutDashboard } from "lucide-react";
 import { WorkspaceShell, WorkspaceMobileNav } from "@/components/dashboard/WorkspaceShell";
+import { AccountMenu } from "@/components/ui/AccountMenu";
 const links = Array.from({length: 18}, (_, i) => ({href: '/item'+i, label: 'Item '+i, Icon: LayoutDashboard}));
-createRoot(document.getElementById('root')).render(<WorkspaceShell pathname="/item0" brand={<span>Brand</span>} asideAriaLabel="Test navigation" sidebarTitle="Tools" navAriaLabel="Test workspace" navGroups={[{label:'Items', links}]} title="Dashboard" mobileNav={<WorkspaceMobileNav pathname="/item0" navAriaLabel="Mobile navigation" moreAriaLabel="More options" links={links.slice(0,2)} />}><div style={{height: 2400}}><p>Content start</p><p style={{marginTop:2200}}>Content end</p></div></WorkspaceShell>);
+createRoot(document.getElementById('root')).render(<WorkspaceShell pathname="/item0" brand={<span>Brand</span>} headerActions={<AccountMenu displayName="Test Admin" role="admin" />} asideAriaLabel="Test navigation" sidebarTitle="Tools" navAriaLabel="Test workspace" navGroups={[{label:'Items', links}]} title="Dashboard" mobileNav={<WorkspaceMobileNav pathname="/item0" navAriaLabel="Mobile navigation" moreAriaLabel="More options" links={links.slice(0,2)} />}><div style={{height: 2400}}><p>Content start</p><p style={{marginTop:2200}}>Content end</p></div></WorkspaceShell>);
 `;
 
 test("workspace scrolls content independently with reachable sidebar and mobile navigation", async ({ page }) => {
@@ -42,8 +43,20 @@ test("workspace scrolls content independently with reachable sidebar and mobile 
   await expect(aside.getByRole("link", { name: "Item 17" })).toBeInViewport();
   await page.getByRole("button", { name: "Collapse sidebar" }).click();
   await expect(page.getByRole("button", { name: "Expand sidebar" })).toBeVisible();
+  await page.getByLabel("Account options for Test Admin").click();
+  const accountLink = page.getByRole("link", { name: "Account settings" });
+  await expect(accountLink).toBeInViewport();
+  const receivesPointer = await accountLink.evaluate(el => { const r = el.getBoundingClientRect(); const hit = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2); return !!hit && el.contains(hit); });
+  expect(receivesPointer).toBe(true);
+  await page.keyboard.press("Escape");
   await page.setViewportSize({ width: 390, height: 700 });
   await expect(aside).toBeHidden();
   await expect(page.getByRole("navigation", { name: "Mobile navigation" })).toBeVisible();
   await expect(page.getByText("Content start")).toBeVisible();
+  const mobileContent = page.getByRole("region", { name: "Workspace content" });
+  await mobileContent.evaluate(el => { el.scrollTop = el.scrollHeight; });
+  await expect(page.getByText("Content end")).toBeInViewport();
+  expect(await mobileContent.evaluate(el => el.scrollTop)).toBeGreaterThan(0);
+  expect(await page.evaluate(() => window.scrollY)).toBe(0);
+  await expect(page.getByRole("navigation", { name: "Mobile navigation" })).toBeInViewport();
 });
