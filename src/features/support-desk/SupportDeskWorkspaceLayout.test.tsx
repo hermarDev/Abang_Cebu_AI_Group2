@@ -37,6 +37,7 @@ describe("SupportDeskWorkspaceLayout", () => {
     ]) {
       expect(html).toMatch(new RegExp(`aria-label="${label}"[^>]*href="${href}"`));
     }
+    expect(html).toMatch(/aria-label="Notifications, 2 unread"[^>]*href="\/notifications"/);
     expect(html).toMatch(/aria-label="Complaints queue" aria-current="page"/);
   });
 

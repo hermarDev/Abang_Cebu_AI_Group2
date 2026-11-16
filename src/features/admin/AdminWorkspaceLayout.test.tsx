@@ -22,6 +22,7 @@ describe("AdminWorkspaceLayout", () => {
     for (const [label, href] of [["Overview", "/admin/dashboard"], ["Listing reviews", "/admin/reviews"], ["Accounts", "/admin/accounts"], ["Reports", "/admin/reports"], ["Audit log", "/admin/audit"], ["Help Center", "/help"], ["Account settings", "/account"]]) {
       expect(html).toMatch(new RegExp(`aria-label="${label}"[^>]*href="${href}"`));
     }
+    expect(html).toMatch(/aria-label="Notifications, 4 unread"[^>]*href="\/notifications"/);
     expect(html).not.toMatch(/aria-label="Support tickets"/);
     expect(html).toMatch(/aria-label="Listing reviews" aria-current="page"/);
     expect(html).toContain("Moderation");

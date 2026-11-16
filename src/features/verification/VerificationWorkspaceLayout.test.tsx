@@ -38,6 +38,7 @@ describe("VerificationWorkspaceLayout", () => {
     ]) {
       expect(html).toMatch(new RegExp(`aria-label="${label}"[^>]*href="${href}"`));
     }
+    expect(html).toMatch(/aria-label="Notifications, 120 unread"[^>]*href="\/notifications"/);
     expect(html).toMatch(/aria-label="Verification queue" aria-current="page"/);
     // NotificationBell in header with userRole="verification_officer"
     expect(html).toContain('aria-label="Notifications (120 unread)"');
