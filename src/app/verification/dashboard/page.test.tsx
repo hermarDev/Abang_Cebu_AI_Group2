@@ -26,7 +26,7 @@ describe("verification dashboard", () => {
     mocks.redirect.mockImplementation(() => { throw new Error("redirect"); });
     mocks.notFound.mockImplementation(() => { throw new Error("not found"); });
     mocks.getUser.mockResolvedValue({ data: { user: { id: "verif-1" } }, error: null });
-    mocks.profile.mockResolvedValue({ data: { role: "verification_officer", is_suspended: false, full_name: "Vera Verifier" }, error: null });
+    mocks.profile.mockResolvedValue({ data: { role: "verification_officer", is_suspended: false, full_name: "Alex" }, error: null });
     mocks.rpc.mockResolvedValue({ data: queueItems, error: null });
     mocks.sign.mockResolvedValue("https://example.test/verif.png");
   });
@@ -51,7 +51,9 @@ describe("verification dashboard", () => {
   it("renders 3 clickable KPI cards in Admin-style 2-column overview without a fake 4th card", async () => {
     const html = renderToStaticMarkup(await VerificationDashboardPage());
     expect(mocks.rpc).toHaveBeenCalledWith("verifier_list_queue", { p_status: null, p_search: null, p_limit: 100, p_offset: 0 });
-    expect(html).toContain("Field Verification Dashboard");
+    expect(html).toContain("Welcome back, Alex");
+    expect(html).toContain("<h1 class=\"m-0 text-3xl font-bold tracking-tight\">Welcome back, Alex</h1>");
+    expect(html).toContain("Overview of landlord listing verifications, site visits, and pending inspection queues.");
     expect(html).toContain("Verification overview");
     expect(html).toContain("rounded-3xl border border-border bg-card");
     expect(html).toContain("sm:grid-cols-2");
@@ -120,5 +122,17 @@ describe("verification dashboard", () => {
     expect(html).toMatch(/tabular-nums[^>]*>0<[\s\S]*?Pending verification/);
     expect(html).toMatch(/tabular-nums[^>]*>0<[\s\S]*?Verified/);
     expect(html).toMatch(/tabular-nums[^>]*>0<[\s\S]*?Flagged/);
+  });
+
+  it("renders neutral 'Welcome back' fallback when verifier name is empty or whitespace", async () => {
+    for (const emptyName of ["", "   ", null]) {
+      mocks.profile.mockResolvedValueOnce({
+        data: { role: "verification_officer", is_suspended: false, full_name: emptyName },
+        error: null,
+      });
+      const html = renderToStaticMarkup(await VerificationDashboardPage());
+      expect(html).toContain("<h1 class=\"m-0 text-3xl font-bold tracking-tight\">Welcome back</h1>");
+      expect(html).not.toContain("Welcome back,");
+    }
   });
 });

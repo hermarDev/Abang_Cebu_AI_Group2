@@ -20,7 +20,7 @@ describe("admin dashboard", () => {
     mocks.redirect.mockImplementation(() => { throw new Error("redirect"); });
     mocks.notFound.mockImplementation(() => { throw new Error("not found"); });
     mocks.getUser.mockResolvedValue({ data: { user: { id: "admin-a" } }, error: null });
-    mocks.profile.mockResolvedValue({ data: { role: "admin", is_suspended: false, full_name: "Ada Admin" }, error: null });
+    mocks.profile.mockResolvedValue({ data: { role: "admin", is_suspended: false, full_name: "Alex" }, error: null });
     mocks.rpc.mockResolvedValue({ data: overview, error: null });
     mocks.sign.mockResolvedValue("https://example.test/admin.png");
   });
@@ -42,7 +42,10 @@ describe("admin dashboard", () => {
   it("renders real overview counts as filter links, plus recent audit activity", async () => {
     const html = renderToStaticMarkup(await AdminDashboardPage());
     expect(mocks.rpc).toHaveBeenCalledWith("admin_dashboard_overview");
-    expect(html).toContain("Admin dashboard");
+    expect(html).toContain("Welcome back, Alex");
+    expect(html).toContain("<h1 class=\"m-0 text-3xl font-bold tracking-tight\">Welcome back, Alex</h1>");
+    expect(html).toContain("Platform management and moderation overview.");
+    expect(html).toContain("Admin overview");
     for (const [label, count, href] of [
       ["Pending review", 7, "/admin/reviews?status=pending"], ["Approved / Live", 12, "/admin/reviews?status=approved"],
       ["Changes requested", 3, "/admin/reviews?status=rejected"], ["Archived listings", 2, "/admin/reviews?status=archived"],
@@ -94,6 +97,17 @@ describe("admin dashboard", () => {
     expect(html).toMatch(/Pending review<\/span><span[^>]*>0</);
     expect(html).toContain("No moderation activity yet.");
     expect(html).not.toContain("Could not load the admin overview");
+  });
+  it("renders neutral 'Welcome back' fallback when admin name is empty or whitespace", async () => {
+    for (const emptyName of ["", "   ", null]) {
+      mocks.profile.mockResolvedValueOnce({
+        data: { role: "admin", is_suspended: false, full_name: emptyName },
+        error: null,
+      });
+      const html = renderToStaticMarkup(await AdminDashboardPage());
+      expect(html).toContain("<h1 class=\"m-0 text-3xl font-bold tracking-tight\">Welcome back</h1>");
+      expect(html).not.toContain("Welcome back,");
+    }
   });
   it("shows a retryable error instead of false counts when the overview RPC fails", async () => {
     mocks.rpc.mockRejectedValueOnce(new Error("boom"));

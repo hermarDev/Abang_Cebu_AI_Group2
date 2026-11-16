@@ -17,7 +17,6 @@ vi.mock("@/features/map/useFinderTheme", () => ({
   useFinderTheme: () => ({ preference: "system", resolvedTheme: "light", setPreference: vi.fn() }),
 }));
 
-import { AccountMenu } from "@/components/ui/AccountMenu";
 import { LandlordWorkspaceLayout } from "./LandlordWorkspaceLayout";
 
 describe("LandlordWorkspaceLayout", () => {
@@ -44,27 +43,60 @@ describe("LandlordWorkspaceLayout", () => {
     expect(html.match(/pb-\[calc\(5rem\+env\(safe-area-inset-bottom\)\)\]/g)).toHaveLength(1);
   });
 
-  it("aligns landlord header actions before NotificationBell and places AccountMenu last", () => {
+  it("aligns landlord header actions before NotificationBell and places AccountMenu last using explicit props", () => {
     const html = renderToStaticMarkup(
       <LandlordWorkspaceLayout
         userId="u-1"
+        displayName="Lana Landlord"
         brand={<span>Brand</span>}
-        actions={
-          <>
-            <a href="/landlord/map">Property map</a>
-            <AccountMenu displayName="Lana Landlord" role="Landlord" variant="header" />
-          </>
-        }
+        actions={<a href="/landlord/map">Property map</a>}
       >
         <p>Body</p>
       </LandlordWorkspaceLayout>
     );
 
-    const mapIndex = html.indexOf("Property map");
-    const bellIndex = html.indexOf('aria-label="Notifications');
-    const accountIndex = html.indexOf('aria-label="Account options for Lana Landlord"');
+    const headerMatch = html.match(/<header[^>]*>([\s\S]*?)<\/header>/);
+    const headerHtml = headerMatch?.[1] ?? html;
+
+    const mapIndex = headerHtml.indexOf("Property map");
+    const bellIndex = headerHtml.indexOf('aria-label="Notifications');
+    const accountIndex = headerHtml.indexOf('aria-label="Account options for Lana Landlord"');
     expect(mapIndex).toBeGreaterThan(-1);
     expect(bellIndex).toBeGreaterThan(mapIndex);
     expect(accountIndex).toBeGreaterThan(bellIndex);
+
+    expect(headerHtml.match(/aria-label="Notifications/g)).toHaveLength(1);
+    expect(headerHtml.match(/aria-label="Account options for Lana Landlord"/g)).toHaveLength(1);
+  });
+
+  it("renders landlord sidebar Notifications badge from useNotificationCenter while messages badge remains and properties count stays muted", () => {
+    const html = renderToStaticMarkup(
+      <LandlordWorkspaceLayout
+        userId="u-1"
+        propertiesCount={6}
+        brand={<span>Brand</span>}
+        actions={<span>Actions</span>}
+      >
+        <p>Body</p>
+      </LandlordWorkspaceLayout>
+    );
+
+    const asideMatch = html.match(/<aside[^>]*>([\s\S]*?)<\/aside>/);
+    const asideHtml = asideMatch?.[1] ?? html;
+
+    // Notifications link in sidebar has badge 4 from useNotificationCenter
+    expect(asideHtml).toContain('href="/notifications"');
+    expect(asideHtml).toContain('aria-label="Notifications, 4 unread"');
+    expect(asideHtml).toContain(">4</span>");
+
+    // Messages link in sidebar has badge 1 from useUnreadMessageCount
+    expect(asideHtml).toContain('href="/landlord/messages"');
+    expect(asideHtml).toContain('aria-label="Messages, 1 unread"');
+    expect(asideHtml).toContain(">1</span>");
+
+    // Properties count in sidebar is muted
+    expect(asideHtml).toContain('href="/landlord/properties"');
+    expect(asideHtml).toContain(">6</span>");
+    expect(asideHtml).toContain("bg-muted px-2 py-0.5 text-foreground");
   });
 });

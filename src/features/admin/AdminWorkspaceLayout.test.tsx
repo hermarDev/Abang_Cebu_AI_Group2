@@ -2,9 +2,19 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("next/navigation", () => ({ usePathname: () => "/admin/reviews" }));
+vi.mock("@/features/notifications/useNotificationCenter", () => ({
+  useNotificationCenter: (userId?: string, enabled = true) => ({
+    unreadCount: userId && enabled ? 4 : 0,
+    loading: false,
+    error: null,
+  }),
+}));
+vi.mock("@/components/ui/Modal", () => ({
+  Modal: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+}));
 import { AdminWorkspaceLayout } from "./AdminWorkspaceLayout";
 
-const html = renderToStaticMarkup(<AdminWorkspaceLayout title="Listing reviews" subtitle="Sub" displayName="Ada Admin" avatarUrl="https://example.com/admin.jpg"><p>Body</p></AdminWorkspaceLayout>);
+const html = renderToStaticMarkup(<AdminWorkspaceLayout userId="admin-1" title="Listing reviews" subtitle="Sub" displayName="Ada Admin" avatarUrl="https://example.com/admin.jpg"><p>Body</p></AdminWorkspaceLayout>);
 
 describe("AdminWorkspaceLayout", () => {
   it("renders the grouped desktop sidebar with the active page marked", () => {
@@ -27,6 +37,8 @@ describe("AdminWorkspaceLayout", () => {
     expect(html).toContain("min-h-11");
     for (const label of ["Overview", "Reviews", "Accounts", "Reports"]) expect(html).toContain(`aria-label="${label}"`);
     expect(html).toContain('aria-label="More admin options"');
+    expect(html).toContain('aria-label="4 unread notifications"');
+    expect(html).toContain(">4</span>");
     expect(html).toMatch(/aria-label="[^"]*(light|dark|system|theme)/i);
   });
   it("renders the account dropdown menu with Account settings and Log out links", () => {

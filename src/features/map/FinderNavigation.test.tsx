@@ -1,8 +1,18 @@
 import { renderToStaticMarkup } from "react-dom/server";
-import { expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { FinderNavigation } from "./FinderNavigation";
 
 vi.mock("@/components/ui/Modal", () => ({ Modal: ({ children }: { children: React.ReactNode }) => <div>{children}</div> }));
+
+const mockNotificationState = vi.hoisted(() => ({
+  unreadCount: 0,
+  loading: false,
+  error: null as string | null,
+}));
+
+vi.mock("@/features/notifications/useNotificationCenter", () => ({
+  useNotificationCenter: () => mockNotificationState,
+}));
 
 it("opens account settings instead of login when authenticated", () => {
   const html = renderToStaticMarkup(<FinderNavigation open authenticated userRole="renter" onClose={() => {}} preference="system" resolvedTheme="light" onPreferenceChange={() => {}} onAccount={() => {}} onHelp={() => {}} />);
@@ -130,4 +140,132 @@ it("links Help Center and Contact support without inline FAQ or mailto", () => {
   expect(html).not.toContain("Help &amp; FAQ");
   expect(html).not.toContain("finder-faq");
   expect(html).not.toContain("mailto:support@abangcebu.ai");
+});
+
+describe("renter drawer notifications link and badge", () => {
+  it("renders exactly one /notifications link labeled Notifications with Bell icon and separate badge", () => {
+    const html = renderToStaticMarkup(
+      <FinderNavigation
+        open
+        authenticated
+        userRole="renter"
+        userId="renter-1"
+        unreadNotificationCount={120}
+        unreadMessageCount={3}
+        onClose={() => {}}
+        preference="system"
+        resolvedTheme="light"
+        onPreferenceChange={() => {}}
+        onAccount={() => {}}
+        onHelp={() => {}}
+      />
+    );
+
+    expect(html.match(/href="\/notifications"/g)).toHaveLength(1);
+    expect(html).toContain("Notifications");
+    expect(html).not.toContain("View all notifications");
+    expect(html).toContain("lucide-bell");
+    expect(html).toContain('aria-label="120 unread notifications"');
+    expect(html).toContain("99+");
+    // Verify messages badge remains separate
+    expect(html).toContain('aria-label="3 unread messages"');
+  });
+
+  it("hides the notification badge when unread count is zero", () => {
+    const html = renderToStaticMarkup(
+      <FinderNavigation
+        open
+        authenticated
+        userRole="renter"
+        userId="renter-1"
+        unreadNotificationCount={0}
+        onClose={() => {}}
+        preference="system"
+        resolvedTheme="light"
+        onPreferenceChange={() => {}}
+        onAccount={() => {}}
+        onHelp={() => {}}
+      />
+    );
+
+    expect(html).toContain('href="/notifications"');
+    expect(html).not.toContain("unread notifications");
+    expect(html).not.toContain(">0<");
+  });
+
+  it("does not render false zero on loading or error state", () => {
+    mockNotificationState.unreadCount = 0;
+    mockNotificationState.loading = true;
+    mockNotificationState.error = null;
+
+    const loadingHtml = renderToStaticMarkup(
+      <FinderNavigation
+        open
+        authenticated
+        userRole="renter"
+        userId="renter-1"
+        onClose={() => {}}
+        preference="system"
+        resolvedTheme="light"
+        onPreferenceChange={() => {}}
+        onAccount={() => {}}
+        onHelp={() => {}}
+      />
+    );
+
+    expect(loadingHtml).toContain('href="/notifications"');
+    expect(loadingHtml).not.toContain("unread notifications");
+    expect(loadingHtml).not.toContain(">0<");
+
+    mockNotificationState.loading = false;
+    mockNotificationState.error = "Network unavailable";
+
+    const errorHtml = renderToStaticMarkup(
+      <FinderNavigation
+        open
+        authenticated
+        userRole="renter"
+        userId="renter-1"
+        onClose={() => {}}
+        preference="system"
+        resolvedTheme="light"
+        onPreferenceChange={() => {}}
+        onAccount={() => {}}
+        onHelp={() => {}}
+      />
+    );
+
+    expect(errorHtml).toContain('href="/notifications"');
+    expect(errorHtml).not.toContain("unread notifications");
+    expect(errorHtml).not.toContain(">0<");
+
+    mockNotificationState.error = null;
+  });
+
+  it("uses useNotificationCenter polled count when not provided as prop", () => {
+    mockNotificationState.unreadCount = 5;
+    mockNotificationState.loading = false;
+    mockNotificationState.error = null;
+
+    const html = renderToStaticMarkup(
+      <FinderNavigation
+        open
+        authenticated
+        userRole="renter"
+        userId="renter-1"
+        onClose={() => {}}
+        preference="system"
+        resolvedTheme="light"
+        onPreferenceChange={() => {}}
+        onAccount={() => {}}
+        onHelp={() => {}}
+      />
+    );
+
+    expect(html).toContain('href="/notifications"');
+    expect(html).toContain('aria-label="5 unread notifications"');
+    expect(html).toContain(">5<");
+
+    mockNotificationState.unreadCount = 0;
+  });
 });

@@ -41,7 +41,7 @@ export function LandlordMobileNav({ userId = null, unreadCount: providedUnread, 
         <Bell size={19} aria-hidden="true" />
         Notifications
         {unreadNotifications > 0 && (
-          <span aria-label={`${unreadNotifications} unread notifications`} className="ml-auto rounded-full bg-destructive px-1.5 text-xs font-bold leading-5 text-destructive-foreground">
+          <span aria-label={`${unreadNotifications} unread notifications`} className="ml-auto rounded-full bg-action px-1.5 text-xs font-bold leading-5 text-action-foreground">
             {unreadNotifications > 99 ? "99+" : unreadNotifications}
           </span>
         )}

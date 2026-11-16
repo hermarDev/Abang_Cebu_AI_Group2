@@ -78,6 +78,7 @@ export function SupportDeskWorkspaceLayout({
           pathname={pathname}
           navAriaLabel="Support mobile navigation"
           moreAriaLabel="More support options"
+          userId={userId}
           links={mobileLinks}
         />
       }

@@ -511,7 +511,13 @@ describe("RestoredFinderShell", () => {
     (card!.props.onExpand as (id: string) => void)("live-1");
     const sheet = findElementsByType(captureShell(), PropertyDetailsSheet).find((element) => (element.props as unknown as PropertyDetailsSheetProps).rental?.title === "Endpoint rental");
     expect(sheet).toBeDefined();
+    const savedSlots = hooks.slots;
+    const savedIndex = hooks.index;
+    hooks.slots = [];
+    hooks.index = 0;
     const html = renderToStaticMarkup(<PropertyDetailsSheetBody rental={sheet!.props.rental as RentalResult} />);
+    hooks.slots = savedSlots;
+    hooks.index = savedIndex;
     for (const text of ['aria-label="Previous photo"', 'aria-label="Next photo"', 'aria-label="Show photo 3"', "1 / 3", "Verified property", "18 sqm", "Up to 2 occupants", "Full gallery description.", "Wi-Fi"]) expect(html).toContain(text);
   });
 

@@ -4,7 +4,6 @@ import { isAuthRetryableFetchError } from "@supabase/supabase-js";
 import { ArrowLeft, MapPinned } from "lucide-react";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { AccountMenu } from "@/components/ui/AccountMenu";
 import { createClient } from "@/lib/supabase/server";
 import { signProfileAvatar } from "@/lib/profile-avatar";
 import { LandlordWorkspaceLayout } from "@/app/landlord/dashboard/LandlordWorkspaceLayout";
@@ -31,6 +30,8 @@ export default async function ListPropertyPage({ searchParams }: { searchParams:
   return (
     <LandlordWorkspaceLayout
       userId={user.id}
+      displayName={displayName}
+      avatarUrl={avatarUrl}
       brand={
         <Link href="/landlord/dashboard" aria-label="AbangCebu landlord workspace" className="flex min-w-0 items-center gap-3">
           <BrandLogo className="h-auto w-24 sm:w-32" />
@@ -38,17 +39,14 @@ export default async function ListPropertyPage({ searchParams }: { searchParams:
         </Link>
       }
       actions={
-        <>
-          <Link
-            href="/landlord/map"
-            aria-label="Open property map"
-            className="hidden lg:inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-border bg-card px-3 text-sm font-semibold hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
-          >
-            <MapPinned size={17} aria-hidden="true" />
-            <span>Property map</span>
-          </Link>
-          <AccountMenu displayName={displayName} avatarUrl={avatarUrl} role="Landlord" variant="header" />
-        </>
+        <Link
+          href="/landlord/map"
+          aria-label="Open property map"
+          className="hidden lg:inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-border bg-card px-3 text-sm font-semibold hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+        >
+          <MapPinned size={17} aria-hidden="true" />
+          <span>Property map</span>
+        </Link>
       }
     >
       <div className="mx-auto grid w-full max-w-4xl gap-3">

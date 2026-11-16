@@ -1,12 +1,13 @@
 "use client";
 
-import { Children, Fragment, isValidElement, useEffect, useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import { Bell, Building2, CircleHelp, Headset, HousePlus, LayoutDashboard, MapPinned, MessageSquare, UserRound } from "lucide-react";
 import { isActiveWorkspacePath, WorkspaceShell, type WorkspaceNavGroup } from "@/components/dashboard/WorkspaceShell";
 import { AccountMenu } from "@/components/ui/AccountMenu";
 import { LandlordMobileNav } from "@/features/landlord/LandlordMobileNav";
 import { useUnreadMessageCount } from "@/features/messages/useUnreadMessageCount";
+import { useNotificationCenter } from "@/features/notifications/useNotificationCenter";
 import { NotificationBell } from "@/features/notifications/NotificationBell";
 
 const baseLinkGroups = [
@@ -42,34 +43,15 @@ const baseLinkGroups = [
   },
 ];
 
-type LandlordWorkspaceLayoutProps = {
+export interface LandlordWorkspaceLayoutProps {
   brand: ReactNode;
-  actions: ReactNode;
+  actions?: ReactNode;
   children: ReactNode;
   userId?: string | null;
+  displayName?: string | null;
+  avatarUrl?: string | null;
+  role?: string | null;
   propertiesCount?: number | null;
-};
-
-function flattenNodes(node: ReactNode): ReactNode[] {
-  return Children.toArray(node).flatMap((child) => {
-    if (isValidElement<{ children?: ReactNode }>(child) && child.type === Fragment) {
-      return flattenNodes(child.props.children);
-    }
-    return [child];
-  });
-}
-
-function splitHeaderActions(actions: ReactNode): { leadingActions: ReactNode[]; accountMenus: ReactNode[] } {
-  const leadingActions: ReactNode[] = [];
-  const accountMenus: ReactNode[] = [];
-  for (const node of flattenNodes(actions)) {
-    if (isValidElement(node) && node.type === AccountMenu) {
-      accountMenus.push(node);
-    } else {
-      leadingActions.push(node);
-    }
-  }
-  return { leadingActions, accountMenus };
 }
 
 export function LandlordWorkspaceLayout({
@@ -77,10 +59,14 @@ export function LandlordWorkspaceLayout({
   actions,
   children,
   userId = null,
+  displayName = null,
+  avatarUrl = null,
+  role = "Landlord",
   propertiesCount = null,
 }: LandlordWorkspaceLayoutProps) {
   const pathname = usePathname() ?? "";
   const { unreadCount } = useUnreadMessageCount(userId, Boolean(userId));
+  const { unreadCount: notificationCount } = useNotificationCenter(userId, Boolean(userId));
   const [activeHash, setActiveHash] = useState("#overview");
 
   useEffect(() => {
@@ -98,20 +84,29 @@ export function LandlordWorkspaceLayout({
       const isActive = hash ? pathname === path && activeHash === hash : isActiveWorkspacePath(pathname, path);
       const isProperties = item.href === "/landlord/properties" && typeof propertiesCount === "number" && propertiesCount > 0;
       const isMessages = item.href === "/landlord/messages" && unreadCount > 0;
+      const isNotifications = item.href === "/notifications" && notificationCount > 0;
 
       return {
         ...item,
         prefetch: true,
         active: isActive,
         ariaCurrent: hash ? "location" : "page",
-        ariaLabel: isMessages ? `${item.label}, ${unreadCount} unread` : item.label,
-        badge: isProperties ? propertiesCount : isMessages ? (unreadCount > 99 ? "99+" : unreadCount) : null,
-        badgeVariant: isMessages ? "action" : "muted",
+        ariaLabel: isMessages
+          ? `${item.label}, ${unreadCount} unread`
+          : isNotifications
+          ? `${item.label}, ${notificationCount} unread`
+          : item.label,
+        badge: isProperties
+          ? propertiesCount
+          : isMessages
+          ? (unreadCount > 99 ? "99+" : unreadCount)
+          : isNotifications
+          ? (notificationCount > 99 ? "99+" : notificationCount)
+          : null,
+        badgeVariant: isMessages || isNotifications ? "action" : "muted",
       };
     }),
   }));
-
-  const { leadingActions, accountMenus } = splitHeaderActions(actions);
 
   return (
     <WorkspaceShell
@@ -119,16 +114,16 @@ export function LandlordWorkspaceLayout({
       brand={brand}
       headerActions={
         <>
-          {leadingActions}
+          {actions}
           <NotificationBell userId={userId} userRole="landlord" />
-          {accountMenus}
+          <AccountMenu displayName={displayName} avatarUrl={avatarUrl} role={role ?? "Landlord"} variant="header" />
         </>
       }
       asideAriaLabel="Landlord navigation"
       sidebarTitle="Landlord tools"
       navAriaLabel="Landlord workspace"
       navGroups={navGroups}
-      mobileNav={<LandlordMobileNav userId={userId} unreadCount={unreadCount} />}
+      mobileNav={<LandlordMobileNav userId={userId} unreadCount={unreadCount} unreadNotifications={notificationCount} />}
     >
       {children}
     </WorkspaceShell>

@@ -7,6 +7,7 @@ import { LogoutLink } from "@/components/ui/LogoutLink";
 import { Modal } from "@/components/ui/Modal";
 import { AppearanceControls } from "@/features/map/AppearanceControls";
 import { useFinderTheme } from "@/features/map/useFinderTheme";
+import { useNotificationCenter } from "@/features/notifications/useNotificationCenter";
 
 export interface WorkspaceIconProps {
   size?: number;
@@ -41,6 +42,7 @@ export interface WorkspaceMobileNavProps {
   pathname: string;
   navAriaLabel: string;
   moreAriaLabel: string;
+  userId?: string | null;
   links: WorkspaceMobileNavLink[];
   extraModalLinks?: WorkspaceMobileNavLink[];
 }
@@ -82,10 +84,13 @@ export function WorkspaceMobileNav({
   pathname,
   navAriaLabel,
   moreAriaLabel,
+  userId,
   links,
   extraModalLinks = [],
 }: WorkspaceMobileNavProps) {
   const [open, setOpen] = useState(false);
+  const { unreadCount, loading, error } = useNotificationCenter(userId, Boolean(userId));
+  const notificationsKnown = !loading && !error;
   const itemClass = `flex min-h-11 min-w-11 flex-1 flex-col items-center justify-center gap-1 rounded-lg px-0.5 text-[.65rem] font-medium ${focusRing}`;
 
   return (
@@ -136,7 +141,15 @@ export function WorkspaceMobileNav({
           className={`flex min-h-11 w-full items-center gap-3 rounded-lg px-3 text-sm font-medium hover:bg-muted ${focusRing}`}
         >
           <Bell size={19} aria-hidden="true" />
-          Notifications
+          <span>Notifications</span>
+          {notificationsKnown && unreadCount > 0 && (
+            <span
+              aria-label={`${unreadCount} unread notifications`}
+              className="ml-auto rounded-full bg-action px-1.5 text-xs font-bold leading-5 text-action-foreground"
+            >
+              {unreadCount > 99 ? "99+" : unreadCount}
+            </span>
+          )}
         </button>
         {extraModalLinks.map(({ href, label, Icon }) => (
           <Link

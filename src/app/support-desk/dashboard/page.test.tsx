@@ -62,7 +62,7 @@ describe("support desk dashboard", () => {
     });
     mocks.getUser.mockResolvedValue({ data: { user: { id: "supp-1" } }, error: null });
     mocks.profile.mockResolvedValue({
-      data: { role: "customer_support", is_suspended: false, full_name: "Sam Support", avatar_url: null },
+      data: { role: "customer_support", is_suspended: false, full_name: "Alex", avatar_url: null },
       error: null,
     });
     mocks.sign.mockResolvedValue("https://example.test/support.png");
@@ -138,13 +138,15 @@ describe("support desk dashboard", () => {
       error: null,
     });
     const adminHtml = renderToStaticMarkup(await SupportDeskDashboardPage());
-    expect(adminHtml).toContain("Support Workspace Overview");
+    expect(adminHtml).toContain("Welcome back, Ada Admin");
   });
 
   it("renders support metrics in the 2-column Admin-style overview panel with existing queue action preserved", async () => {
     const html = renderToStaticMarkup(await SupportDeskDashboardPage());
 
-    expect(html).toContain("Support Workspace Overview");
+    expect(html).toContain("Welcome back, Alex");
+    expect(html).toContain("<h1 class=\"m-0 text-3xl font-bold tracking-tight\">Welcome back, Alex</h1>");
+    expect(html).toContain("Monitor tenant complaints, landlord mediation, and escalation queues.");
     expect(html).toContain("Support overview");
     expect(html).toContain("sm:grid-cols-2");
     expect(html).not.toContain("lg:grid-cols-4");
@@ -239,5 +241,17 @@ describe("support desk dashboard", () => {
     expect(html).toContain("No open or escalated complaints need attention right now.");
     void origCreateClient;
     if (prevImpl) mocks.attentionTickets.mockImplementation(prevImpl);
+  });
+
+  it("renders neutral 'Welcome back' fallback when support agent name is empty or whitespace", async () => {
+    for (const emptyName of ["", "   ", null]) {
+      mocks.profile.mockResolvedValueOnce({
+        data: { role: "customer_support", is_suspended: false, full_name: emptyName },
+        error: null,
+      });
+      const html = renderToStaticMarkup(await SupportDeskDashboardPage());
+      expect(html).toContain("<h1 class=\"m-0 text-3xl font-bold tracking-tight\">Welcome back</h1>");
+      expect(html).not.toContain("Welcome back,");
+    }
   });
 });

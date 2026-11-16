@@ -12,12 +12,13 @@ import {
   Map,
   LogIn,
   LayoutDashboard,
-  ExternalLink,
+  Bell,
 } from "lucide-react";
 import { AppearanceControls } from "./AppearanceControls";
 import { AccountMenu } from "@/components/ui/AccountMenu";
 import { Modal } from "@/components/ui/Modal";
 import { useUnreadMessageCount } from "@/features/messages/useUnreadMessageCount";
+import { useNotificationCenter } from "@/features/notifications/useNotificationCenter";
 import type { UserRole } from "@/types/database";
 import styles from "./FinderNavigation.module.css";
 
@@ -33,6 +34,7 @@ export interface FinderNavigationProps {
   userRole?: UserRole | null;
   userId?: string | null;
   unreadMessageCount?: number;
+  unreadNotificationCount?: number | null;
   displayName?: string | null;
   avatarUrl?: string | null;
 }
@@ -51,6 +53,7 @@ export function FinderNavigation({
   userRole = null,
   userId = null,
   unreadMessageCount,
+  unreadNotificationCount,
   displayName = null,
   avatarUrl = null,
 }: FinderNavigationProps) {
@@ -58,7 +61,24 @@ export function FinderNavigation({
     userId,
     Boolean(authenticated && userId && userRole === "renter" && unreadMessageCount === undefined)
   );
+  const {
+    unreadCount: polledNotifications,
+    loading: notificationsLoading,
+    error: notificationsError,
+  } = useNotificationCenter(
+    userId,
+    Boolean(authenticated && userId && unreadNotificationCount === undefined)
+  );
+
   const badgeCount = unreadMessageCount ?? polledUnread;
+  const rawNotificationCount = unreadNotificationCount !== undefined
+    ? unreadNotificationCount
+    : notificationsLoading || notificationsError
+    ? null
+    : polledNotifications;
+  const notificationCount = typeof rawNotificationCount === "number" && rawNotificationCount > 0
+    ? Math.floor(rawNotificationCount)
+    : null;
 
   return (
     <Modal
@@ -161,8 +181,16 @@ export function FinderNavigation({
                 </Link>
               )}
               <Link href="/notifications" className={styles.navItem} onClick={onClose}>
-                <ExternalLink aria-hidden="true" />
-                <span>View all notifications</span>
+                <Bell aria-hidden="true" />
+                <span>Notifications</span>
+                {notificationCount !== null && (
+                  <span
+                    aria-label={`${notificationCount} unread notifications`}
+                    className={styles.notificationBadge}
+                  >
+                    {notificationCount > 99 ? "99+" : notificationCount}
+                  </span>
+                )}
               </Link>
             </section>
           )}

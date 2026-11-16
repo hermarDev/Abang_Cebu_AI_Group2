@@ -4,7 +4,6 @@ import { BrandLogo } from "@/components/brand";
 import { isAuthRetryableFetchError } from "@supabase/supabase-js";
 import { MapPinned } from "lucide-react";
 import { notFound, redirect } from "next/navigation";
-import { AccountMenu } from "@/components/ui/AccountMenu";
 import { createClient } from "@/lib/supabase/server";
 import { signProfileAvatar } from "@/lib/profile-avatar";
 import { MessagingInbox } from "@/features/messages/MessagingInbox";
@@ -30,13 +29,14 @@ export default async function LandlordMessagesPage(props?: { searchParams?: Prom
 
   return <LandlordWorkspaceLayout
     userId={user.id}
+    displayName={displayName}
+    avatarUrl={avatarUrl}
     brand={<Link href="/landlord/dashboard" aria-label="AbangCebu landlord workspace" className="flex min-w-0 items-center gap-3"><BrandLogo className="h-auto w-24 sm:w-32" /><span className="hidden border-l border-border pl-3 text-sm font-semibold text-muted-foreground md:block">Messages</span></Link>}
-    actions={<>
+    actions={
       <Link href="/landlord/map" aria-label="Open property map" className="hidden min-h-11 items-center justify-center gap-2 rounded-xl border border-border bg-card px-3 text-sm font-semibold hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring lg:inline-flex">
         <MapPinned size={17} aria-hidden="true" /><span>Property map</span>
       </Link>
-      <AccountMenu displayName={displayName} avatarUrl={avatarUrl} role="Landlord" variant="header" />
-    </>}
+    }
   >
     <h1 className="sr-only">Messages</h1>
     <div className="h-[calc(100dvh-8rem)] min-h-[28rem] lg:h-[calc(100dvh-8rem)]"><MessagingInbox userId={user.id} userRole="landlord" initialThreadId={initialThreadId} /></div>

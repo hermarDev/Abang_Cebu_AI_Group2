@@ -240,6 +240,7 @@ async function readApiErrorMessage(res: Response, fallback: string): Promise<str
 
 interface ScopedState {
   scope: string | null;
+  epoch: number;
   notifications: NotificationItem[];
   unreadCount: number;
   totalCount: number;
@@ -248,10 +249,11 @@ interface ScopedState {
   currentPage: number;
 }
 
-function buildBaselineState(scope: string | null, initialPage: number): ScopedState {
+function buildBaselineState(scope: string | null, initialPage: number, epoch = 0): ScopedState {
   const cached = scope ? shared.get(scope)?.data ?? null : null;
   return {
     scope,
+    epoch,
     notifications: cached?.notifications ?? [],
     unreadCount: cached?.unreadCount ?? 0,
     totalCount: cached?.totalCount ?? 0,
@@ -279,7 +281,8 @@ export function useNotificationCenter(
   const activeScopeRef = useRef<string | null>(scope);
 
   // Scope/reset state immediately on userId or enabled transitions so stale cross-user data is never rendered.
-  const effective = state.scope === scope ? state : buildBaselineState(scope, initialPage);
+  const effective = state.scope === scope ? state : buildBaselineState(scope, initialPage, state.epoch + 1);
+  const scopeEpoch = effective.epoch;
 
   if (state.scope !== scope) {
     setState(effective);
@@ -291,7 +294,7 @@ export function useNotificationCenter(
   const setCurrentPage = useCallback(
     (pageOrUpdater: number | ((prev: number) => number)) => {
       setState((prev) => {
-        const base = prev.scope === scope ? prev : buildBaselineState(scope, initialPage);
+        const base = prev.scope === scope ? prev : buildBaselineState(scope, initialPage, prev.epoch + 1);
         const nextPage = typeof pageOrUpdater === "function" ? pageOrUpdater(base.currentPage) : pageOrUpdater;
         return { ...base, currentPage: nextPage };
       });
@@ -302,6 +305,7 @@ export function useNotificationCenter(
   const refresh = useCallback(
     async (showLoading = false) => {
       const targetScope = scope;
+      const targetEpoch = scopeEpoch;
       if (!targetScope) {
         setState(buildBaselineState(null, 1));
         return;
@@ -314,18 +318,27 @@ export function useNotificationCenter(
       } catch (err) {
         if (!isAbort(err)) {
           const message = err instanceof Error ? err.message : "Failed to load";
-          setState((prev) => (prev.scope === targetScope ? { ...prev, error: message } : prev));
+          setState((prev) =>
+            prev.scope === targetScope && prev.epoch === targetEpoch
+              ? { ...prev, error: message }
+              : prev
+          );
         }
       } finally {
-        setState((prev) => (prev.scope === targetScope ? { ...prev, loading: false } : prev));
+        setState((prev) =>
+          prev.scope === targetScope && prev.epoch === targetEpoch
+            ? { ...prev, loading: false }
+            : prev
+        );
       }
     },
-    [scope, pageSize]
+    [scope, scopeEpoch, pageSize]
   );
 
   const loadPage = useCallback(
     async (page: number, opts: { unreadOnly?: boolean; types?: string[]; search?: string } = {}) => {
       const targetScope = scope;
+      const targetEpoch = scopeEpoch;
       if (!targetScope) return;
       setState((prev) => (prev.scope === targetScope ? { ...prev, loading: true, currentPage: page } : prev));
       try {
@@ -338,7 +351,7 @@ export function useNotificationCenter(
           search: opts.search,
         });
         setState((prev) =>
-          prev.scope === targetScope
+          prev.scope === targetScope && prev.epoch === targetEpoch
             ? {
                 ...prev,
                 notifications: data.notifications,
@@ -351,13 +364,21 @@ export function useNotificationCenter(
       } catch (err) {
         if (!isAbort(err)) {
           const message = err instanceof Error ? err.message : "Failed to load";
-          setState((prev) => (prev.scope === targetScope ? { ...prev, error: message } : prev));
+          setState((prev) =>
+            prev.scope === targetScope && prev.epoch === targetEpoch
+              ? { ...prev, error: message }
+              : prev
+          );
         }
       } finally {
-        setState((prev) => (prev.scope === targetScope ? { ...prev, loading: false } : prev));
+        setState((prev) =>
+          prev.scope === targetScope && prev.epoch === targetEpoch
+            ? { ...prev, loading: false }
+            : prev
+        );
       }
     },
-    [scope, pageSize]
+    [scope, scopeEpoch, pageSize]
   );
 
   useEffect(() => {

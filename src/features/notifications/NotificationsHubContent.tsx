@@ -263,7 +263,7 @@ export function NotificationsHubContent({ userId, userRole }: NotificationsHubCo
               >
                 <ArrowLeft size={18} />
               </Link>
-              <BrandLogo className="h-7 w-auto" />
+              <BrandLogo className="h-8 w-auto sm:h-9" />
             </div>
             <button
               type="button"
