@@ -335,6 +335,23 @@ export function SupportCenterClient({
     };
     for (const key of order) {
       if (fieldErrors[key]) {
+        if (key === "attachments") {
+          const addBtn = document.getElementById("support-add-attachment-btn");
+          if (addBtn instanceof HTMLButtonElement && !addBtn.disabled) {
+            addBtn.focus();
+            return;
+          }
+          const removeBtn = document.querySelector<HTMLButtonElement>('#support-attachments-list button[aria-label^="Remove "]:not(:disabled)');
+          if (removeBtn) {
+            removeBtn.focus();
+            return;
+          }
+          const errorEl = document.getElementById("support-attachments-error");
+          if (errorEl) {
+            errorEl.focus();
+            return;
+          }
+        }
         const el = document.getElementById(fieldIdMap[key]);
         if (el) {
           el.focus();
@@ -428,7 +445,7 @@ export function SupportCenterClient({
       const attachmentErrors = { attachments: attachmentError };
       setErrors(attachmentErrors);
       setFormError(attachmentError);
-      focusFirstError(attachmentErrors);
+      requestAnimationFrame(() => focusFirstError(attachmentErrors));
       return;
     }
 
@@ -945,7 +962,7 @@ export function SupportCenterClient({
 
                   {/* Removable file chips */}
                   {files.length > 0 && (
-                    <div className="mt-2 flex flex-wrap gap-2" aria-label="Attached files">
+                    <div id="support-attachments-list" className="mt-2 flex flex-wrap gap-2" aria-label="Attached files">
                       {files.map((file, idx) => (
                         <div
                           key={`${file.name}-${idx}`}
@@ -969,7 +986,7 @@ export function SupportCenterClient({
                   )}
 
                   {errors.attachments && (
-                    <FieldError id="support-attachments-error">{errors.attachments}</FieldError>
+                    <FieldError id="support-attachments-error" tabIndex={-1}>{errors.attachments}</FieldError>
                   )}
                 </Field>
 

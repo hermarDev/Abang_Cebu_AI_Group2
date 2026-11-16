@@ -97,7 +97,7 @@ describe("LandlordPropertyMap", () => {
     expect(css).toMatch(/\.propertyItem\s+\.secondaryLink\s*\{[^}]*min-width:\s*0;/);
     expect(css).toMatch(/\.propertyItem\s+\.secondaryLink\s*\{[^}]*padding:\s*0\s+0\.55rem;/);
   });
-  it("aligns pending (amber) and rejected (rose) status pills and pin dots with landlord dashboard", () => {
+  it("aligns pending (amber) and rejected (rose) status pills and map markers with landlord dashboard", () => {
     expect(css).toMatch(/\.underReview\s*\{[^}]*background:\s*#fffbeb;/);
     expect(css).toMatch(/\.underReview\s*\{[^}]*border-color:\s*#fde68a;/);
     expect(css).toMatch(/\.underReview\s*\{[^}]*color:\s*#(?:b45309|92400e);/);
@@ -106,7 +106,8 @@ describe("LandlordPropertyMap", () => {
     expect(css).toMatch(/\.actionNeeded\s*\{[^}]*border-color:\s*#fecdd3;/);
     expect(css).toMatch(/\.actionNeeded\s*\{[^}]*color:\s*#be123c;/);
     expect(css).toMatch(/:global\(\.dark\)\s+\.actionNeeded\s*\{[^}]*color:\s*#fb7185;/);
-    expect(css).toMatch(/\.pinDot\[data-status="pending"\]\s*\{\s*background:\s*#(?:d97706|f59e0b);/);
-    expect(css).toMatch(/\.pinDot\[data-status="rejected"\]\s*\{\s*background:\s*#(?:e11d48|f43f5e);/);
+    expect(css).toMatch(/\.marker\[data-status="pending"\]\s*\{\s*background:\s*#(?:d97706|f59e0b);/);
+    expect(css).toMatch(/\.marker\[data-status="rejected"\]\s*\{\s*background:\s*#(?:e11d48|f43f5e);/);
+    expect(css).not.toContain(".pinDot");
   });
 });

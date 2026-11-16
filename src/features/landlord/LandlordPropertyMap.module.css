@@ -430,41 +430,6 @@ button.secondaryLink {
   white-space: nowrap;
 }
 
-.pinDot {
-  width: 0.7rem;
-  height: 0.7rem;
-  flex: 0 0 auto;
-  border: 2px solid var(--card);
-  border-radius: 999px;
-  background: #64748b;
-  box-shadow: 0 0 0 1px var(--border);
-}
-
-.pinDot[data-status="pending"] {
-  background: #d97706;
-}
-
-.pinDot[data-status="rejected"] {
-  background: #e11d48;
-}
-
-.pinDot[data-status="approved"][data-available="false"] {
-  background: #d97706;
-}
-
-.pinDot[data-status="published"][data-available="true"],
-.pinDot[data-status="approved"][data-available="true"] {
-  background: #16a34a;
-}
-
-.pinDot[data-status="draft"] {
-  background: #64748b;
-}
-
-.pinDot[data-status="published"][data-available="false"] {
-  background: #f59e0b;
-}
-
 .propertyAddress {
   overflow: hidden;
   color: var(--muted-foreground);
@@ -872,12 +837,12 @@ button.secondaryLink {
 
 .marker[data-status="published"][data-available="false"],
 .marker[data-status="approved"][data-available="false"],
-.marker[data-status="rejected"] {
+.marker[data-status="pending"] {
   background: #d97706;
 }
 
-.marker[data-status="pending"] {
-  background: #2563eb;
+.marker[data-status="rejected"] {
+  background: #e11d48;
 }
 
 .marker[data-status="approved"][data-available="true"] {

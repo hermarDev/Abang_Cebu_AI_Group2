@@ -151,6 +151,38 @@ test("support form retains values on mocked 500 error and maps server 422 field 
   await expect(page.getByLabel(/subject/i)).toBeFocused();
 });
 
+test("support form focuses remove button when 3 files are attached and server returns 422 attachments error", async ({ page }) => {
+  await page.route("**/api/support/tickets", async (route) => {
+    if (route.request().method() !== "POST") return route.continue();
+    return route.fulfill({
+      status: 422,
+      json: {
+        error: "Attachment rejected by server byte check.",
+        errors: { attachments: "First attachment failed server file inspection." },
+      },
+    });
+  });
+
+  await page.goto("/support");
+  await page.getByLabel(/full name/i).fill("Alex Rivera");
+  await page.getByLabel(/email address/i).fill("alex@example.com");
+  await page.locator("#support-category").click();
+  await page.getByRole("option", { name: "Account & sign-in" }).click();
+  await page.getByLabel(/subject/i).fill("Attachment verification");
+  await page.getByLabel(/description/i).fill("Three screenshots attached for verification test.");
+
+  await page.locator("#support-file-input").setInputFiles([
+    { name: "one.png", mimeType: "image/png", buffer: Buffer.from([137, 80, 78, 71]) },
+    { name: "two.png", mimeType: "image/png", buffer: Buffer.from([137, 80, 78, 71]) },
+    { name: "three.png", mimeType: "image/png", buffer: Buffer.from([137, 80, 78, 71]) },
+  ]);
+
+  await expect(page.locator("#support-add-attachment-btn")).toBeDisabled();
+  await page.getByRole("button", { name: /submit request/i }).click();
+  await expect(page.getByText("First attachment failed server file inspection.")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Remove one.png" })).toBeFocused();
+});
+
 test("support form handles mocked 201 success and mocked ticket lookup displays supportResolutionNote", async ({ page }) => {
   const ticketId = "11111111-1111-4111-8111-111111111111";
   const guestToken = "mock-guest-token-123";
