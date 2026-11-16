@@ -20,6 +20,17 @@ describe("LoginPage", () => {
   beforeEach(() => {
     session.redirect.mockReset().mockImplementation((destination: string) => { throw new Error(`redirect:${destination}`); });
     session.getUser.mockReset().mockResolvedValue({ data: { user: null }, error: null });
+    session.profile.mockReset().mockResolvedValue({ data: { role: "renter", is_suspended: false }, error: null });
+  });
+  it.each([
+    ["admin", "/admin/dashboard"],
+    ["verification_officer", "/verification/dashboard"],
+    ["customer_support", "/support-desk/dashboard"],
+    ["landlord", "/landlord/dashboard"],
+  ])("redirects signed-in %s to its workspace", async (role, destination) => {
+    session.getUser.mockResolvedValue({ data: { user: { id: "user" } }, error: null });
+    session.profile.mockResolvedValue({ data: { role, is_suspended: false }, error: null });
+    await expect(LoginPage({ searchParams: Promise.resolve({}) })).rejects.toThrow(`redirect:${destination}`);
   });
   it.each([
     ["/favorites", "/favorites"],
@@ -40,6 +51,15 @@ describe("LoginPage", () => {
     expect(html).toContain("Account options for Test Renter");
     expect(session.getUser).toHaveBeenCalledTimes(1);
     expect(session.redirect).not.toHaveBeenCalled();
+  });
+  it.each(["expired_recovery_link", "invalid_recovery_link"])("preserves %s feedback for a signed-in support officer without showing the map", async (error) => {
+    session.getUser.mockResolvedValue({ data: { user: { id: "staff", user_metadata: {} } }, error: null });
+    session.profile.mockResolvedValue({ data: { full_name: "Staff", role: "customer_support", is_suspended: false } });
+    const page = await LoginPage({ searchParams: Promise.resolve({ error }) });
+    const html = renderToStaticMarkup(page);
+    expect(html).toContain("This password reset link is invalid or expired");
+    expect(html).toContain('href="/account"');
+    expect(html).not.toContain('aria-label="Rental listings"');
   });
   it.each(["expired_recovery_link", "invalid_recovery_link"])("explains %s", async (error) => {
     const page = await LoginPage({ searchParams: Promise.resolve({ error }) });

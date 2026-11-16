@@ -7,6 +7,7 @@ import { BrandLogo } from "@/components/brand";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { cn } from "@/components/ui/cn";
+import { isWorkspaceRole } from "@/types/auth";
 import {
   HELP_FAQ_CATEGORIES,
   HELP_FAQ_ITEMS,
@@ -24,6 +25,7 @@ export interface HelpCenterClientProps {
 export function HelpCenterClient({
   backHref,
   backLabel,
+  userRole,
   isLandlordMobile = false,
 }: HelpCenterClientProps) {
   const [searchQuery, setSearchQuery] = useState("");
@@ -145,8 +147,8 @@ export function HelpCenterClient({
                 Explore rentals across Metro Cebu on the interactive map. Filter by monthly budget, barangay, and property type. Always inspect units in person and verify landlord ownership before paying reservation deposits.
               </p>
               <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-border/60 pt-3 text-xs font-medium">
-                <Link href="/" className="text-action hover:underline">
-                  Browse rentals →
+                <Link href={isWorkspaceRole(userRole) ? backHref : "/"} className="text-action hover:underline">
+                  {isWorkspaceRole(userRole) ? backLabel : "Browse rentals"} →
                 </Link>
                 <span className="text-muted-foreground/40" aria-hidden="true">·</span>
                 <Link href="/support" className="text-muted-foreground hover:text-foreground">
@@ -164,8 +166,8 @@ export function HelpCenterClient({
                 Publish properties with pin-accurate Cebu coordinates. Upload Barangay or Mayor&apos;s permit documents for trusted moderation badges. Edit approved listings anytime without taking live properties offline.
               </p>
               <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-border/60 pt-3 text-xs font-medium">
-                <Link href="/list-property" className="text-action hover:underline">
-                  List a property →
+                <Link href={isWorkspaceRole(userRole) && userRole !== "landlord" ? backHref : "/list-property"} className="text-action hover:underline">
+                  {isWorkspaceRole(userRole) && userRole !== "landlord" ? backLabel : "List a property"} →
                 </Link>
                 <span className="text-muted-foreground/40" aria-hidden="true">·</span>
                 <Link href="/support" className="text-muted-foreground hover:text-foreground">

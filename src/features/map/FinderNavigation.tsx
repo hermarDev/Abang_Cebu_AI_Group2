@@ -121,7 +121,7 @@ export function FinderNavigation({
           </section>
 
           {/* WORKSPACE (for landlord/admin) */}
-          {authenticated && (userRole === "landlord" || userRole === "admin") && (
+          {authenticated && (userRole === "landlord" || userRole === "admin" || userRole === "verification_officer" || userRole === "customer_support") && (
             <section className={styles.section} aria-label="Workspace">
               <p className={sectionHeaderClass}>Workspace</p>
               {userRole === "landlord" && (
@@ -129,6 +129,12 @@ export function FinderNavigation({
                   <LayoutDashboard aria-hidden="true" />
                   <span>Landlord workspace</span>
                 </Link>
+              )}
+              {userRole === "verification_officer" && (
+                <Link href="/verification/dashboard" className={styles.navItem} onClick={onClose}><LayoutDashboard aria-hidden="true" /><span>Verification workspace</span></Link>
+              )}
+              {userRole === "customer_support" && (
+                <Link href="/support-desk/dashboard" className={styles.navItem} onClick={onClose}><LayoutDashboard aria-hidden="true" /><span>Support workspace</span></Link>
               )}
               {userRole === "admin" && (
                 <Link href="/admin/dashboard" className={styles.navItem} onClick={onClose}>

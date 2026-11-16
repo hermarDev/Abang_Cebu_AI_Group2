@@ -3,10 +3,16 @@ import { updateSession } from "@/lib/supabase/middleware";
 
 export async function middleware(request: NextRequest) {
   // Route handlers verify their own session; cookie-less visitors have nothing to refresh.
+  let response: NextResponse;
   if (request.nextUrl.pathname.startsWith("/api/") || !request.cookies.getAll().some(({ name }) => name.startsWith("sb-"))) {
-    return NextResponse.next({ request });
+    response = NextResponse.next({ request });
+  } else {
+    response = await updateSession(request);
   }
-  return await updateSession(request);
+  if (["/", "/map", "/login", "/register"].includes(request.nextUrl.pathname)) {
+    response.headers.set("Cache-Control", "private, no-store");
+  }
+  return response;
 }
 
 export const config = {

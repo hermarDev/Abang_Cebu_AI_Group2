@@ -113,6 +113,14 @@ it("shows workspace section header for landlord and admin", () => {
   expect(adminHtml).toContain("Admin workspace");
 });
 
+it.each([
+  ["verification_officer", "/verification/dashboard"],
+  ["customer_support", "/support-desk/dashboard"],
+] as const)("offers %s a workspace link", (role, href) => {
+  const html = renderToStaticMarkup(<FinderNavigation open authenticated userRole={role} onClose={() => {}} preference="system" resolvedTheme="light" onPreferenceChange={() => {}} onAccount={() => {}} onHelp={() => {}} />);
+  expect(html.includes(`href="${href}"`)).toBe(true);
+});
+
 it("links Help Center and Contact support without inline FAQ or mailto", () => {
   const html = renderToStaticMarkup(<FinderNavigation open onClose={() => {}} preference="system" resolvedTheme="light" onPreferenceChange={() => {}} onAccount={() => {}} onHelp={() => {}} />);
   expect(html).toContain('href="/help"');

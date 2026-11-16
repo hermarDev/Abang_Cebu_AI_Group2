@@ -538,6 +538,28 @@ export function isRegisterableRole(role: unknown): role is RegisterableRole {
   return typeof role === 'string' && (role === 'renter' || role === 'landlord');
 }
 
+export type WorkspaceRole = Extract<
+  UserRole,
+  'landlord' | 'verification_officer' | 'customer_support' | 'admin'
+>;
+
+export function isWorkspaceRole(role: unknown): role is WorkspaceRole {
+  return (
+    role === 'landlord' ||
+    role === 'verification_officer' ||
+    role === 'customer_support' ||
+    role === 'admin'
+  );
+}
+
+export function getRoleHomeRoute(role: unknown): string {
+  if (role === 'admin') return '/admin/dashboard';
+  if (role === 'verification_officer') return '/verification/dashboard';
+  if (role === 'customer_support') return '/support-desk/dashboard';
+  if (role === 'landlord') return '/landlord/dashboard';
+  return '/';
+}
+
 /**
  * Normalizes a Philippine mobile phone number into canonical E.164 format (+639XXXXXXXXX).
  * Returns null if input is empty or invalid.
@@ -636,5 +658,72 @@ export function isSafeRedirectUrl(url: string | null | undefined): boolean {
   }
 
   return true;
+}
+
+export function isAllowedSessionRole(role: unknown): role is UserRole {
+  return (
+    role === 'renter' ||
+    role === 'landlord' ||
+    role === 'verification_officer' ||
+    role === 'customer_support' ||
+    role === 'admin'
+  );
+}
+
+export function getPostLoginRedirect(destination: string | null, role?: UserRole): string {
+  if (destination && isSafeRedirectUrl(destination)) {
+    const pathname = new URL(destination, 'http://localhost').pathname;
+    if (
+      role === 'admin' &&
+      (pathname === '/' ||
+        pathname === '/map' ||
+        pathname.startsWith('/landlord') ||
+        pathname.startsWith('/verification') ||
+        pathname.startsWith('/support-desk'))
+    ) {
+      return '/admin/dashboard';
+    }
+    if (
+      role === 'verification_officer' &&
+      (pathname === '/' ||
+        pathname === '/map' ||
+        pathname.startsWith('/landlord') ||
+        pathname.startsWith('/admin') ||
+        pathname.startsWith('/support-desk'))
+    ) {
+      return '/verification/dashboard';
+    }
+    if (
+      role === 'customer_support' &&
+      (pathname === '/' ||
+        pathname === '/map' ||
+        pathname.startsWith('/landlord') ||
+        pathname.startsWith('/admin') ||
+        pathname.startsWith('/verification'))
+    ) {
+      return '/support-desk/dashboard';
+    }
+    if (
+      role === 'landlord' &&
+      (pathname === '/' ||
+        pathname === '/map' ||
+        pathname.startsWith('/admin') ||
+        pathname.startsWith('/verification') ||
+        pathname.startsWith('/support-desk'))
+    ) {
+      return '/landlord/dashboard';
+    }
+    if (
+      role === 'renter' &&
+      (pathname.startsWith('/landlord') ||
+        pathname.startsWith('/admin') ||
+        pathname.startsWith('/verification') ||
+        pathname.startsWith('/support-desk'))
+    ) {
+      return '/';
+    }
+    return destination;
+  }
+  return getRoleHomeRoute(role);
 }
 
