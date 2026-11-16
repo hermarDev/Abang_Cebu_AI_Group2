@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { NotificationItem } from "@/types/database";
 
@@ -90,6 +90,20 @@ function publish(userId: string, data: FetchNotificationsResponse) {
   item.listeners.forEach((listener) => listener(data));
 }
 
+function rollbackCache(
+  userId: string,
+  prevCached: FetchNotificationsResponse | null,
+  prevAt: number,
+  fallback: FetchNotificationsResponse
+) {
+  const item = entry(userId);
+  item.data = prevCached;
+  item.at = prevAt;
+  const restored = prevCached ?? fallback;
+  item.listeners.forEach((listener) => listener(restored));
+  channel?.postMessage({ userId, data: restored });
+}
+
 /** Shared fetch: joins an in-flight request, and reuses fresh data unless `force`. */
 export function loadNotifications(
   userId: string,
@@ -111,9 +125,26 @@ export function loadNotifications(
     includeCounts?: boolean;
   } = {}
 ) {
-  const item = entry(userId);
   const offset = (page - 1) * pageSize;
+  const isDefaultQuery =
+    page === 1 &&
+    pageSize === DEFAULT_PAGE_SIZE &&
+    !unreadOnly &&
+    (!types || types.length === 0) &&
+    !search?.trim();
 
+  if (!isDefaultQuery) {
+    return fetchNotificationsClient(userId, false, fetch, undefined, {
+      unreadOnly,
+      limit: pageSize,
+      offset,
+      types,
+      search,
+      includeCounts,
+    });
+  }
+
+  const item = entry(userId);
   if (item.inFlight) return item.inFlight;
   if (!force && item.data && Date.now() - item.at < NOTIFICATION_FOCUS_COOLDOWN_MS) return Promise.resolve(item.data);
 
@@ -146,7 +177,9 @@ function subscribe(userId: string, listener: (data: FetchNotificationsResponse) 
   if (!channel && typeof BroadcastChannel !== "undefined") {
     channel = new BroadcastChannel("abangcebu:notifications");
     channel.onmessage = ({ data }: MessageEvent<{ userId?: string; data?: FetchNotificationsResponse }>) => {
-      if (data?.userId && data.data) publish(data.userId, data.data);
+      if (data?.userId && data.data && (shared.get(data.userId)?.listeners.size ?? 0) > 0) {
+        publish(data.userId, data.data);
+      }
     };
   }
 
@@ -195,6 +228,39 @@ function subscribe(userId: string, listener: (data: FetchNotificationsResponse) 
 
 const isAbort = (err: unknown) => err instanceof DOMException && err.name === "AbortError";
 
+async function readApiErrorMessage(res: Response, fallback: string): Promise<string> {
+  try {
+    const body = (await res.json()) as { error?: unknown } | null;
+    if (body && typeof body.error === "string" && body.error.trim()) return body.error;
+  } catch {
+    // Ignore non-JSON error responses
+  }
+  return fallback;
+}
+
+interface ScopedState {
+  scope: string | null;
+  notifications: NotificationItem[];
+  unreadCount: number;
+  totalCount: number;
+  loading: boolean;
+  error: string | null;
+  currentPage: number;
+}
+
+function buildBaselineState(scope: string | null, initialPage: number): ScopedState {
+  const cached = scope ? shared.get(scope)?.data ?? null : null;
+  return {
+    scope,
+    notifications: cached?.notifications ?? [],
+    unreadCount: cached?.unreadCount ?? 0,
+    totalCount: cached?.totalCount ?? 0,
+    loading: Boolean(scope && !cached),
+    error: null,
+    currentPage: initialPage,
+  };
+}
+
 export interface UseNotificationCenterOptions {
   pageSize?: number;
   initialPage?: number;
@@ -207,45 +273,63 @@ export function useNotificationCenter(
 ) {
   const { pageSize = DEFAULT_PAGE_SIZE, initialPage = 1 } = options;
   const active = Boolean(enabled && userId);
-  const cached = active && userId ? shared.get(userId)?.data ?? null : null;
-  const [notifications, setNotifications] = useState<NotificationItem[]>(cached?.notifications ?? []);
-  const [unreadCount, setUnreadCount] = useState<number>(cached?.unreadCount ?? 0);
-  const [totalCount, setTotalCount] = useState<number>(cached?.totalCount ?? 0);
-  const [loading, setLoading] = useState<boolean>(active && !cached);
-  const [error, setError] = useState<string | null>(null);
-  const [currentPage, setCurrentPage] = useState<number>(initialPage);
+  const scope = active && userId ? userId : null;
 
+  const [state, setState] = useState<ScopedState>(() => buildBaselineState(scope, initialPage));
+  const activeScopeRef = useRef<string | null>(scope);
+
+  // Scope/reset state immediately on userId or enabled transitions so stale cross-user data is never rendered.
+  const effective = state.scope === scope ? state : buildBaselineState(scope, initialPage);
+
+  if (state.scope !== scope) {
+    setState(effective);
+  }
+
+  const { notifications, unreadCount, totalCount, loading, error, currentPage } = effective;
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
+
+  const setCurrentPage = useCallback(
+    (pageOrUpdater: number | ((prev: number) => number)) => {
+      setState((prev) => {
+        const base = prev.scope === scope ? prev : buildBaselineState(scope, initialPage);
+        const nextPage = typeof pageOrUpdater === "function" ? pageOrUpdater(base.currentPage) : pageOrUpdater;
+        return { ...base, currentPage: nextPage };
+      });
+    },
+    [scope, initialPage]
+  );
 
   const refresh = useCallback(
     async (showLoading = false) => {
-      if (!active || !userId) {
-        setNotifications([]);
-        setUnreadCount(0);
-        setTotalCount(0);
-        setCurrentPage(1);
-        setLoading(false);
+      const targetScope = scope;
+      if (!targetScope) {
+        setState(buildBaselineState(null, 1));
         return;
       }
-      if (showLoading) setLoading(true);
+      if (showLoading) {
+        setState((prev) => (prev.scope === targetScope ? { ...prev, loading: true } : prev));
+      }
       try {
-        await loadNotifications(userId, { force: true, page: 1, pageSize });
+        await loadNotifications(targetScope, { force: true, page: 1, pageSize });
       } catch (err) {
-        if (!isAbort(err)) setError(err instanceof Error ? err.message : "Failed to load");
+        if (!isAbort(err)) {
+          const message = err instanceof Error ? err.message : "Failed to load";
+          setState((prev) => (prev.scope === targetScope ? { ...prev, error: message } : prev));
+        }
       } finally {
-        setLoading(false);
+        setState((prev) => (prev.scope === targetScope ? { ...prev, loading: false } : prev));
       }
     },
-    [active, userId, pageSize]
+    [scope, pageSize]
   );
 
   const loadPage = useCallback(
     async (page: number, opts: { unreadOnly?: boolean; types?: string[]; search?: string } = {}) => {
-      if (!active || !userId) return;
-      setLoading(true);
-      setCurrentPage(page);
+      const targetScope = scope;
+      if (!targetScope) return;
+      setState((prev) => (prev.scope === targetScope ? { ...prev, loading: true, currentPage: page } : prev));
       try {
-        const data = await loadNotifications(userId, {
+        const data = await loadNotifications(targetScope, {
           force: true,
           page,
           pageSize,
@@ -253,38 +337,65 @@ export function useNotificationCenter(
           types: opts.types,
           search: opts.search,
         });
-        setNotifications(data.notifications);
-        setUnreadCount(data.unreadCount);
-        setTotalCount(data.totalCount);
-        setError(null);
+        setState((prev) =>
+          prev.scope === targetScope
+            ? {
+                ...prev,
+                notifications: data.notifications,
+                unreadCount: data.unreadCount,
+                totalCount: data.totalCount,
+                error: null,
+              }
+            : prev
+        );
       } catch (err) {
-        if (!isAbort(err)) setError(err instanceof Error ? err.message : "Failed to load");
+        if (!isAbort(err)) {
+          const message = err instanceof Error ? err.message : "Failed to load";
+          setState((prev) => (prev.scope === targetScope ? { ...prev, error: message } : prev));
+        }
       } finally {
-        setLoading(false);
+        setState((prev) => (prev.scope === targetScope ? { ...prev, loading: false } : prev));
       }
     },
-    [active, userId, pageSize]
+    [scope, pageSize]
   );
 
   useEffect(() => {
-    if (!active || !userId) return;
+    activeScopeRef.current = scope;
+    if (!scope) return;
 
-    const unsubscribe = subscribe(userId, (data) => {
-      setNotifications(data.notifications);
-      setUnreadCount(data.unreadCount);
-      setTotalCount(data.totalCount);
-      setError(null);
-      setLoading(false);
+    const targetScope = scope;
+    let cancelled = false;
+
+    const unsubscribe = subscribe(targetScope, (data) => {
+      if (cancelled || activeScopeRef.current !== targetScope) return;
+      setState((prev) =>
+        prev.scope === targetScope
+          ? {
+              ...prev,
+              notifications: data.notifications,
+              unreadCount: data.unreadCount,
+              totalCount: data.totalCount,
+              error: null,
+              loading: false,
+            }
+          : prev
+      );
     });
 
     const poll = async (force: boolean) => {
       if (document.visibilityState === "hidden") return;
       try {
-        await loadNotifications(userId, { force, page: currentPage, pageSize });
+        await loadNotifications(targetScope, { force, page: currentPage, pageSize });
       } catch (err) {
-        if (!isAbort(err)) setError(err instanceof Error ? err.message : "Failed to load");
+        if (!cancelled && !isAbort(err)) {
+          const message = err instanceof Error ? err.message : "Failed to load";
+          setState((prev) => (prev.scope === targetScope ? { ...prev, error: message } : prev));
+        }
       } finally {
-        setLoading(false);
+        if (!cancelled) {
+          setState((prev) => (prev.scope === targetScope ? { ...prev, loading: false } : prev));
+        }
       }
     };
 
@@ -300,63 +411,88 @@ export function useNotificationCenter(
     document.addEventListener("visibilitychange", onFocusOrVisible);
 
     return () => {
+      cancelled = true;
       unsubscribe();
       clearInterval(timer);
       window.removeEventListener("focus", onFocusOrVisible);
       window.removeEventListener(NOTIFICATIONS_UPDATED_EVENT, onTimerOrUpdate);
       document.removeEventListener("visibilitychange", onFocusOrVisible);
     };
-  }, [active, userId, currentPage, pageSize]);
+  }, [scope, currentPage, pageSize]);
 
   const markAsRead = useCallback(
     async (id: string) => {
-      if (!userId) return;
-      const current = entry(userId).data ?? {
+      const targetUserId = scope;
+      if (!targetUserId) return;
+      const item = entry(targetUserId);
+      const prevCached = item.data;
+      const prevAt = item.at;
+      const current = prevCached ?? {
         notifications,
         totalCount,
         unreadCount,
         hasMore: false,
       };
-      const nextNotifications = current.notifications.map((item) =>
-        item.id === id ? { ...item, is_read: true, read_at: new Date().toISOString() } : item
+      const nextNotifications = current.notifications.map((n) =>
+        n.id === id ? { ...n, is_read: true, read_at: new Date().toISOString() } : n
       );
-      const target = current.notifications.find((item) => item.id === id);
+      const target = current.notifications.find((n) => n.id === id);
       const nextUnreadCount = target && !target.is_read ? Math.max(0, current.unreadCount - 1) : current.unreadCount;
       const nextData: FetchNotificationsResponse = {
         ...current,
         notifications: nextNotifications,
         unreadCount: nextUnreadCount,
       };
-      publish(userId, nextData);
-      channel?.postMessage({ userId, data: nextData });
+      publish(targetUserId, nextData);
+      channel?.postMessage({ userId: targetUserId, data: nextData });
 
       try {
-        await fetch("/api/notifications", {
+        const res = await fetch("/api/notifications", {
           method: "PATCH",
           headers: {
             "content-type": "application/json",
-            "x-expected-user-id": userId,
+            "x-expected-user-id": targetUserId,
           },
           body: JSON.stringify({ action: "mark_read", id }),
         });
-        dispatchNotificationsUpdated();
-      } catch {
-        void refresh(false);
+        if (!res.ok) {
+          throw new Error(await readApiErrorMessage(res, "Failed to mark notification as read"));
+        }
+        setState((prev) => (prev.scope === targetUserId && prev.error ? { ...prev, error: null } : prev));
+        if (activeScopeRef.current === targetUserId) dispatchNotificationsUpdated();
+      } catch (err) {
+        const message = err instanceof Error ? err.message : "Failed to mark notification as read";
+        rollbackCache(targetUserId, prevCached, prevAt, current);
+        setState((prev) =>
+          prev.scope === targetUserId
+            ? {
+                ...prev,
+                notifications: (prevCached ?? current).notifications,
+                unreadCount: (prevCached ?? current).unreadCount,
+                totalCount: (prevCached ?? current).totalCount,
+                error: message,
+              }
+            : prev
+        );
       }
     },
-    [userId, notifications, unreadCount, totalCount, refresh]
+    [scope, notifications, unreadCount, totalCount]
   );
 
   const markAllAsRead = useCallback(async () => {
-    if (!userId) return;
-    const current = entry(userId).data ?? {
+    const targetUserId = scope;
+    if (!targetUserId) return;
+    const item = entry(targetUserId);
+    const prevCached = item.data;
+    const prevAt = item.at;
+    const current = prevCached ?? {
       notifications,
       totalCount,
       unreadCount,
       hasMore: false,
     };
-    const nextNotifications = current.notifications.map((item) => ({
-      ...item,
+    const nextNotifications = current.notifications.map((n) => ({
+      ...n,
       is_read: true,
       read_at: new Date().toISOString(),
     }));
@@ -365,28 +501,48 @@ export function useNotificationCenter(
       notifications: nextNotifications,
       unreadCount: 0,
     };
-    publish(userId, nextData);
-    channel?.postMessage({ userId, data: nextData });
+    publish(targetUserId, nextData);
+    channel?.postMessage({ userId: targetUserId, data: nextData });
 
     try {
-      await fetch("/api/notifications", {
+      const res = await fetch("/api/notifications", {
         method: "PATCH",
         headers: {
           "content-type": "application/json",
-          "x-expected-user-id": userId,
+          "x-expected-user-id": targetUserId,
         },
         body: JSON.stringify({ action: "mark_all_read" }),
       });
-      dispatchNotificationsUpdated();
-    } catch {
-      void refresh(false);
+      if (!res.ok) {
+        throw new Error(await readApiErrorMessage(res, "Failed to mark notifications as read"));
+      }
+      setState((prev) => (prev.scope === targetUserId && prev.error ? { ...prev, error: null } : prev));
+      if (activeScopeRef.current === targetUserId) dispatchNotificationsUpdated();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to mark notifications as read";
+      rollbackCache(targetUserId, prevCached, prevAt, current);
+      setState((prev) =>
+        prev.scope === targetUserId
+          ? {
+              ...prev,
+              notifications: (prevCached ?? current).notifications,
+              unreadCount: (prevCached ?? current).unreadCount,
+              totalCount: (prevCached ?? current).totalCount,
+              error: message,
+            }
+          : prev
+      );
     }
-  }, [userId, notifications, unreadCount, totalCount, refresh]);
+  }, [scope, notifications, unreadCount, totalCount]);
 
   const deleteNotification = useCallback(
     async (id: string): Promise<boolean> => {
-      if (!userId) return false;
-      const current = entry(userId).data ?? {
+      const targetUserId = scope;
+      if (!targetUserId) return false;
+      const item = entry(targetUserId);
+      const prevCached = item.data;
+      const prevAt = item.at;
+      const current = prevCached ?? {
         notifications,
         totalCount,
         unreadCount,
@@ -406,29 +562,45 @@ export function useNotificationCenter(
         hasMore: current.hasMore,
       };
 
-      publish(userId, nextData);
-      channel?.postMessage({ userId, data: nextData });
+      publish(targetUserId, nextData);
+      channel?.postMessage({ userId: targetUserId, data: nextData });
 
       try {
         const res = await fetch(`/api/notifications?id=${encodeURIComponent(id)}`, {
           method: "DELETE",
-          headers: { "x-expected-user-id": userId },
+          headers: { "x-expected-user-id": targetUserId },
         });
-        if (!res.ok) throw new Error("Failed to delete notification");
-        dispatchNotificationsUpdated();
+        if (!res.ok) throw new Error(await readApiErrorMessage(res, "Failed to delete notification"));
+        if (activeScopeRef.current === targetUserId) dispatchNotificationsUpdated();
         return true;
-      } catch {
-        void refresh(false);
+      } catch (err) {
+        const message = err instanceof Error ? err.message : "Failed to delete notification";
+        rollbackCache(targetUserId, prevCached, prevAt, current);
+        setState((prev) =>
+          prev.scope === targetUserId
+            ? {
+                ...prev,
+                notifications: (prevCached ?? current).notifications,
+                unreadCount: (prevCached ?? current).unreadCount,
+                totalCount: (prevCached ?? current).totalCount,
+                error: message,
+              }
+            : prev
+        );
         return false;
       }
     },
-    [userId, notifications, unreadCount, totalCount, refresh]
+    [scope, notifications, unreadCount, totalCount]
   );
 
   const clearNotifications = useCallback(
-    async (scope: "read" | "all"): Promise<boolean> => {
-      if (!userId) return false;
-      const current = entry(userId).data ?? {
+    async (clearScope: "read" | "all"): Promise<boolean> => {
+      const targetUserId = scope;
+      if (!targetUserId) return false;
+      const item = entry(targetUserId);
+      const prevCached = item.data;
+      const prevAt = item.at;
+      const current = prevCached ?? {
         notifications,
         totalCount,
         unreadCount,
@@ -439,7 +611,7 @@ export function useNotificationCenter(
       let nextUnreadCount: number;
       let nextTotalCount: number;
 
-      if (scope === "read") {
+      if (clearScope === "read") {
         const readCount = current.notifications.filter((n) => n.is_read).length;
         nextNotifications = current.notifications.filter((n) => !n.is_read);
         nextUnreadCount = current.unreadCount;
@@ -457,23 +629,35 @@ export function useNotificationCenter(
         hasMore: false,
       };
 
-      publish(userId, nextData);
-      channel?.postMessage({ userId, data: nextData });
+      publish(targetUserId, nextData);
+      channel?.postMessage({ userId: targetUserId, data: nextData });
 
       try {
-        const res = await fetch(`/api/notifications?scope=${encodeURIComponent(scope)}`, {
+        const res = await fetch(`/api/notifications?scope=${encodeURIComponent(clearScope)}`, {
           method: "DELETE",
-          headers: { "x-expected-user-id": userId },
+          headers: { "x-expected-user-id": targetUserId },
         });
-        if (!res.ok) throw new Error("Failed to clear notifications");
-        dispatchNotificationsUpdated();
+        if (!res.ok) throw new Error(await readApiErrorMessage(res, "Failed to clear notifications"));
+        if (activeScopeRef.current === targetUserId) dispatchNotificationsUpdated();
         return true;
-      } catch {
-        void refresh(false);
+      } catch (err) {
+        const message = err instanceof Error ? err.message : "Failed to clear notifications";
+        rollbackCache(targetUserId, prevCached, prevAt, current);
+        setState((prev) =>
+          prev.scope === targetUserId
+            ? {
+                ...prev,
+                notifications: (prevCached ?? current).notifications,
+                unreadCount: (prevCached ?? current).unreadCount,
+                totalCount: (prevCached ?? current).totalCount,
+                error: message,
+              }
+            : prev
+        );
         return false;
       }
     },
-    [userId, notifications, unreadCount, totalCount, refresh]
+    [scope, notifications, unreadCount, totalCount]
   );
 
   return {

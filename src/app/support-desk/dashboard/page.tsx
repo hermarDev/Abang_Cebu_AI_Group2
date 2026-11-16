@@ -8,11 +8,56 @@ import {
   Headset,
   ShieldAlert,
 } from "lucide-react";
+import { DashboardAttentionQueue } from "@/components/dashboard/DashboardAttentionQueue";
+import { DashboardStatCard } from "@/components/dashboard/DashboardStatCard";
 import { createClient } from "@/lib/supabase/server";
 import { signProfileAvatar } from "@/lib/profile-avatar";
 import { SupportDeskWorkspaceLayout } from "@/features/support-desk/SupportDeskWorkspaceLayout";
 
 export const dynamic = "force-dynamic";
+
+type SupportAttentionRow = {
+  id: string;
+  ticket_number?: string | null;
+  subject: string;
+  status: string;
+  priority?: string | null;
+  requester_name?: string | null;
+  created_at?: string | null;
+};
+
+type CountResult = { count?: number | null; error?: unknown };
+
+async function runAttentionQuery(supabase: Awaited<ReturnType<typeof createClient>>): Promise<{
+  data: SupportAttentionRow[];
+  error: unknown;
+}> {
+  try {
+    const baseQuery = supabase
+      .from("support_tickets")
+      .select("id,ticket_number,subject,status,priority,requester_name,created_at")
+      .in("status", ["open", "in_progress", "escalated"]);
+
+    const orderedQuery =
+      baseQuery && typeof (baseQuery as { order?: unknown }).order === "function"
+        ? (baseQuery as { order: (col: string, opts: { ascending: boolean }) => unknown }).order("created_at", {
+            ascending: false,
+          })
+        : baseQuery;
+
+    const limitedQuery =
+      orderedQuery && typeof (orderedQuery as { limit?: unknown }).limit === "function"
+        ? (orderedQuery as { limit: (n: number) => unknown }).limit(5)
+        : orderedQuery;
+
+    const res = (await limitedQuery) as { data?: unknown; error?: unknown } | null;
+    if (res?.error) return { data: [], error: res.error };
+    const rows = Array.isArray(res?.data) ? (res.data as SupportAttentionRow[]) : [];
+    return { data: rows.slice(0, 5), error: null };
+  } catch (err) {
+    return { data: [], error: err };
+  }
+}
 
 export default async function SupportDeskDashboardPage() {
   const supabase = await createClient();
@@ -39,29 +84,50 @@ export default async function SupportDeskDashboardPage() {
 
   const avatarUrl = await signProfileAvatar(user.id, profile.avatar_url);
 
-  const [openRes, awaitingRes, escalatedRes, resolvedRes] = await Promise.all([
-    supabase
-      .from("support_tickets")
-      .select("id", { count: "exact", head: true })
-      .in("status", ["open", "in_progress"]),
-    supabase
-      .from("support_tickets")
-      .select("id", { count: "exact", head: true })
-      .eq("status", "awaiting_landlord"),
-    supabase
-      .from("support_tickets")
-      .select("id", { count: "exact", head: true })
-      .eq("status", "escalated"),
-    supabase
-      .from("support_tickets")
-      .select("id", { count: "exact", head: true })
-      .eq("status", "resolved"),
+  const safeCount = async (promise: PromiseLike<CountResult>): Promise<CountResult> => {
+    try {
+      return await promise;
+    } catch (err) {
+      return { count: null, error: err };
+    }
+  };
+
+  const [openRes, awaitingRes, escalatedRes, resolvedRes, attentionRes] = await Promise.all([
+    safeCount(
+      supabase
+        .from("support_tickets")
+        .select("id", { count: "exact", head: true })
+        .in("status", ["open", "in_progress"]),
+    ),
+    safeCount(
+      supabase
+        .from("support_tickets")
+        .select("id", { count: "exact", head: true })
+        .eq("status", "awaiting_landlord"),
+    ),
+    safeCount(
+      supabase
+        .from("support_tickets")
+        .select("id", { count: "exact", head: true })
+        .eq("status", "escalated"),
+    ),
+    safeCount(
+      supabase
+        .from("support_tickets")
+        .select("id", { count: "exact", head: true })
+        .eq("status", "resolved"),
+    ),
+    runAttentionQuery(supabase),
   ]);
 
-  const openCount = openRes.count ?? 0;
-  const awaitingCount = awaitingRes.count ?? 0;
-  const escalatedCount = escalatedRes.count ?? 0;
-  const resolvedCount = resolvedRes.count ?? 0;
+  const hasCountError = Boolean(
+    openRes.error || awaitingRes.error || escalatedRes.error || resolvedRes.error,
+  );
+
+  const openCount = openRes.error ? null : (openRes.count ?? 0);
+  const awaitingCount = awaitingRes.error ? null : (awaitingRes.count ?? 0);
+  const escalatedCount = escalatedRes.error ? null : (escalatedRes.count ?? 0);
+  const resolvedCount = resolvedRes.error ? null : (resolvedRes.count ?? 0);
 
   const kpis = [
     {
@@ -69,8 +135,7 @@ export default async function SupportDeskDashboardPage() {
       count: openCount,
       href: "/support-desk/tickets?status=open",
       Icon: Clock,
-      variant: "text-amber-500",
-      bg: "bg-amber-500/10",
+      iconToneClassName: "bg-amber-500/10 text-amber-600 dark:text-amber-400",
       description: "Complaints needing initial triage or ongoing review",
     },
     {
@@ -78,8 +143,7 @@ export default async function SupportDeskDashboardPage() {
       count: awaitingCount,
       href: "/support-desk/tickets?status=awaiting_landlord",
       Icon: AlertCircle,
-      variant: "text-blue-500",
-      bg: "bg-blue-500/10",
+      iconToneClassName: "bg-sky-500/10 text-sky-600 dark:text-sky-400",
       description: "Inquiries forwarded to reported landlords for response",
     },
     {
@@ -87,8 +151,7 @@ export default async function SupportDeskDashboardPage() {
       count: escalatedCount,
       href: "/support-desk/tickets?status=escalated",
       Icon: ShieldAlert,
-      variant: "text-destructive",
-      bg: "bg-destructive/10",
+      iconToneClassName: "bg-rose-500/10 text-rose-600 dark:text-rose-400",
       description: "Complex disputes requiring suspension or listing unpublish",
     },
     {
@@ -96,11 +159,36 @@ export default async function SupportDeskDashboardPage() {
       count: resolvedCount,
       href: "/support-desk/tickets?status=resolved",
       Icon: CheckCircle2,
-      variant: "text-emerald-500",
-      bg: "bg-emerald-500/10",
+      iconToneClassName: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
       description: "Successfully settled complaints and confirmed solutions",
     },
   ];
+
+  const attentionItems = attentionRes.data.map((ticket) => {
+    const isEscalated = ticket.status === "escalated";
+    const statusLabel =
+      ticket.status === "escalated"
+        ? "Escalated"
+        : ticket.status === "in_progress"
+          ? "In progress"
+          : "Open";
+    const subtitle = [ticket.ticket_number, ticket.requester_name].filter(Boolean).join(" · ") || undefined;
+
+    return {
+      key: ticket.id,
+      href: `/support-desk/tickets?status=${encodeURIComponent(ticket.status)}`,
+      title: ticket.subject,
+      subtitle,
+      badge: statusLabel,
+      badgeToneClassName: isEscalated
+        ? "bg-rose-500/20 text-rose-600 dark:text-rose-400"
+        : "bg-amber-500/20 text-amber-600 dark:text-amber-400",
+      icon: isEscalated ? <ShieldAlert size={18} aria-hidden="true" /> : <Clock size={18} aria-hidden="true" />,
+      iconToneClassName: isEscalated
+        ? "bg-rose-500/10 text-rose-600 dark:text-rose-400"
+        : "bg-amber-500/10 text-amber-600 dark:text-amber-400",
+    };
+  });
 
   return (
     <SupportDeskWorkspaceLayout
@@ -110,45 +198,78 @@ export default async function SupportDeskDashboardPage() {
       title="Support Workspace Overview"
       subtitle="Monitor tenant complaints, landlord mediation, and escalation queues."
     >
-      <div className="grid gap-6">
-        <section aria-label="Complaint Statistics" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {kpis.map((kpi) => {
-            const Icon = kpi.Icon;
-            return (
+      <div className="space-y-6">
+        {hasCountError ? (
+          <section role="alert" className="rounded-xl border border-destructive/40 bg-destructive/10 p-4 text-foreground">
+            <p className="m-0">Could not load support ticket counts. Please try again.</p>
+            <Link
+              href="/support-desk/dashboard"
+              className="inline-flex min-h-11 items-center font-semibold text-action underline"
+            >
+              Try again
+            </Link>
+          </section>
+        ) : null}
+
+        <section
+          className="rounded-3xl border border-border bg-card p-5 sm:p-7 shadow-sm"
+          aria-label="Complaint Statistics"
+        >
+          <div className="flex items-start justify-between gap-4 pb-6 border-b border-border/80">
+            <div>
+              <h2 className="m-0 text-xl font-bold tracking-tight text-foreground sm:text-2xl">
+                Support overview
+              </h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Complaint queues and escalations
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-6 pb-6">
+            {kpis.map(({ title, count, href, Icon, iconToneClassName, description }) => (
+              <DashboardStatCard
+                key={title}
+                href={href}
+                label={title}
+                value={count}
+                description={description}
+                iconToneClassName={iconToneClassName}
+                icon={<Icon size={20} aria-hidden="true" />}
+              />
+            ))}
+          </div>
+
+          {attentionRes.error ? (
+            <section role="alert" className="rounded-xl border border-destructive/40 bg-destructive/10 p-4 text-foreground">
+              <p className="m-0">Could not load recent complaints requiring attention. Please try again.</p>
               <Link
-                key={kpi.title}
-                href={kpi.href}
-                className="group relative flex flex-col justify-between rounded-2xl border border-border bg-card p-5 shadow-sm transition hover:border-action/40 hover:shadow-md"
+                href="/support-desk/dashboard"
+                className="inline-flex min-h-11 items-center font-semibold text-action underline"
               >
-                <div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-muted-foreground">{kpi.title}</span>
-                    <span className={`inline-flex rounded-xl p-2.5 ${kpi.bg} ${kpi.variant}`}>
-                      <Icon size={20} aria-hidden="true" />
-                    </span>
-                  </div>
-                  <p className="mt-3 text-3xl font-bold tracking-tight text-foreground">{kpi.count}</p>
-                  <p className="mt-1 text-xs text-muted-foreground">{kpi.description}</p>
-                </div>
-                <div className="mt-4 flex items-center gap-1 text-xs font-semibold text-action group-hover:underline">
-                  <span>View tickets</span>
-                  <ArrowRight size={14} aria-hidden="true" />
-                </div>
+                Try again
               </Link>
-            );
-          })}
+            </section>
+          ) : (
+            <DashboardAttentionQueue
+              title="Needs attention"
+              action={{ href: "/support-desk/tickets", label: "View all" }}
+              items={attentionItems}
+              emptyMessage="No open or escalated complaints need attention right now."
+            />
+          )}
         </section>
 
         <section
           aria-label="Quick Actions"
-          className="flex flex-col items-start justify-between gap-4 rounded-2xl border border-border bg-card p-6 shadow-sm sm:flex-row sm:items-center"
+          className="flex flex-col items-start justify-between gap-4 rounded-2xl border border-border bg-card p-5 sm:flex-row sm:items-center sm:p-6 shadow-sm"
         >
           <div className="flex items-center gap-4">
-            <span className="inline-flex rounded-xl bg-action/10 p-3 text-action">
-              <Headset size={28} aria-hidden="true" />
+            <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-action/10 text-action">
+              <Headset size={24} aria-hidden="true" />
             </span>
             <div>
-              <h2 className="m-0 text-lg font-semibold">Support Desk Queue</h2>
+              <h2 className="m-0 text-base font-bold text-foreground sm:text-lg">Support Desk Queue</h2>
               <p className="mt-0.5 text-sm text-muted-foreground">
                 Triage, communicate with landlords, resolve complaints, and escalate to administration.
               </p>
@@ -156,7 +277,7 @@ export default async function SupportDeskDashboardPage() {
           </div>
           <Link
             href="/support-desk/tickets"
-            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-action px-5 text-sm font-medium text-action-foreground transition hover:bg-action-hover"
+            className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-xl bg-action px-5 text-sm font-medium text-action-foreground transition hover:bg-action-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
           >
             <span>Open Queue</span>
             <ArrowRight size={16} aria-hidden="true" />

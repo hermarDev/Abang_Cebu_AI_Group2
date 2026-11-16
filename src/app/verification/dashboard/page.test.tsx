@@ -48,23 +48,24 @@ describe("verification dashboard", () => {
     }
   });
 
-  it("renders 3 clickable KPI cards with correct status filters and icons", async () => {
+  it("renders 3 clickable KPI cards in Admin-style 2-column overview without a fake 4th card", async () => {
     const html = renderToStaticMarkup(await VerificationDashboardPage());
     expect(mocks.rpc).toHaveBeenCalledWith("verifier_list_queue", { p_status: null, p_search: null, p_limit: 100, p_offset: 0 });
     expect(html).toContain("Field Verification Dashboard");
-    // KPI cards with links to queue filtered by status
-    expect(html).toMatch(/href="\/verification\/queue\?status=pending_verification"[^>]*>.*Pending.*verification/);
-    expect(html).toMatch(/href="\/verification\/queue\?status=verified"[^>]*>.*Verified/);
-    expect(html).toMatch(/href="\/verification\/queue\?status=flagged"[^>]*>.*Flagged/);
+    expect(html).toContain("Verification overview");
+    expect(html).toContain("rounded-3xl border border-border bg-card");
+    expect(html).toContain("sm:grid-cols-2");
+    expect(html).not.toContain("sm:grid-cols-3");
+    // KPI cards with links to queue filtered by status and Admin-style tabular-nums before label
+    expect(html).toMatch(/href="\/verification\/queue\?status=pending_verification"[^>]*>[\s\S]*?tabular-nums[^>]*>4<[\s\S]*?Pending verification/);
+    expect(html).toMatch(/href="\/verification\/queue\?status=verified"[^>]*>[\s\S]*?tabular-nums[^>]*>1<[\s\S]*?Verified/);
+    expect(html).toMatch(/href="\/verification\/queue\?status=flagged"[^>]*>[\s\S]*?tabular-nums[^>]*>1<[\s\S]*?Flagged/);
     // Semantic icon badges (amber/emerald/rose)
-    expect(html).toMatch(/bg-amber-500\/10/);
-    expect(html).toMatch(/bg-emerald-500\/10/);
-    expect(html).toMatch(/bg-rose-500\/10/);
-    // "View queue" + ArrowRight link text
-    expect(html).toMatch(/View queue/);
-    expect(html).toMatch(/lucide-arrow-right/);
-    // tabular-nums on counts
-    expect(html).toMatch(/tabular-nums/);
+    expect(html).toMatch(/bg-amber-500\/10 text-amber-600 dark:text-amber-400/);
+    expect(html).toMatch(/bg-emerald-500\/10 text-emerald-600 dark:text-emerald-400/);
+    expect(html).toMatch(/bg-rose-500\/10 text-rose-600 dark:text-rose-400/);
+    // ArrowUpRight on DashboardStatCard
+    expect(html).toMatch(/lucide-arrow-up-right/);
   });
 
   it("shows RPC error cleanly with role=alert retry box", async () => {
@@ -76,16 +77,16 @@ describe("verification dashboard", () => {
     expect(html).toMatch(/href="\/verification\/dashboard"/);
   });
 
-  it("shows 'Needs inspection' panel with up to 5 latest pending items linking to queue with propertyId", async () => {
+  it("integrates 'Needs inspection' panel with up to 5 latest pending items linking to queue with propertyId", async () => {
     const html = renderToStaticMarkup(await VerificationDashboardPage());
-    // Should show up to 5 pending items
+    // Integrated Admin-style Needs inspection inside overview
     expect(html).toMatch(/Needs inspection/);
-    // Links to /verification/queue?status=pending_verification&propertyId=<id> (HTML encodes & as &)
+    expect(html).toContain("rounded-2xl border border-border/90 bg-muted/20");
+    // Links to /verification/queue?status=pending_verification&propertyId=<id> (HTML encodes & as &amp;)
     expect(html).toMatch(/href="\/verification\/queue\?status=pending_verification&amp;propertyId=p1"/);
     expect(html).toMatch(/href="\/verification\/queue\?status=pending_verification&amp;propertyId=p4"/);
     expect(html).toMatch(/href="\/verification\/queue\?status=pending_verification&amp;propertyId=p5"/);
     expect(html).toMatch(/href="\/verification\/queue\?status=pending_verification&amp;propertyId=p6"/);
-    // Only 5 items shown (p1, p4, p5, p6)
   });
 
   it("shows empty state when no pending items", async () => {
@@ -94,17 +95,18 @@ describe("verification dashboard", () => {
     expect(html).toMatch(/All submitted listings have been inspected/);
   });
 
-  it("renders Quick Actions banner 'Field Verification Queue' with Open Queue primary link", async () => {
+  it("renders Quick Actions banner with Verification map and Open Queue links", async () => {
     const html = renderToStaticMarkup(await VerificationDashboardPage());
     expect(html).toMatch(/Field Verification Queue/);
+    expect(html).toMatch(/Verification map/);
+    expect(html).toMatch(/href="\/verification\/map"/);
     expect(html).toMatch(/Open Queue/);
     expect(html).toMatch(/href="\/verification\/queue"/);
-    // No duplicate Open Queue header action (actions prop removed from layout)
   });
 
-  it("renders Standard Field Verification Workflow card cleanly", async () => {
+  it("renders collapsible details Standard Field Verification Workflow keeping all 5 steps", async () => {
     const html = renderToStaticMarkup(await VerificationDashboardPage());
-    expect(html).toMatch(/Standard Field Verification Workflow/);
+    expect(html).toMatch(/<details[^>]*>[\s\S]*?<summary[^>]*>[\s\S]*?Standard Field Verification Workflow[\s\S]*?<\/summary>/);
     expect(html).toMatch(/Review property submission/);
     expect(html).toMatch(/Coordinate site visit/);
     expect(html).toMatch(/Record detailed notes/);
@@ -115,10 +117,8 @@ describe("verification dashboard", () => {
   it("renders genuine zero counts when queue is empty", async () => {
     mocks.rpc.mockResolvedValueOnce({ data: [], error: null });
     const html = renderToStaticMarkup(await VerificationDashboardPage());
-    // Title and count are in separate elements - title in span, count in p with tabular-nums
-    expect(html).toMatch(/Pending verification/);
-    expect(html).toMatch(/text-3xl font-bold tracking-tight tabular-nums text-foreground\">0/);
-    expect(html).toMatch(/Verified/);
-    expect(html).toMatch(/Flagged/);
+    expect(html).toMatch(/tabular-nums[^>]*>0<[\s\S]*?Pending verification/);
+    expect(html).toMatch(/tabular-nums[^>]*>0<[\s\S]*?Verified/);
+    expect(html).toMatch(/tabular-nums[^>]*>0<[\s\S]*?Flagged/);
   });
 });

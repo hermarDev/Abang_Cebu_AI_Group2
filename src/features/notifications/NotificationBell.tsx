@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ButtonHTMLAttributes } from "react";
 import { Bell } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/Popover";
 import { Sheet } from "@/components/ui/Sheet";
@@ -40,13 +40,15 @@ export function NotificationBell({ userId, userRole, className }: NotificationBe
 
   if (!userId) return null;
 
-  const bellButton = (
+  const renderBellButton = (triggerProps?: ButtonHTMLAttributes<HTMLButtonElement>) => (
     <button
       type="button"
       aria-label={unreadCount > 0 ? `Notifications (${unreadCount} unread)` : "Notifications"}
+      {...triggerProps}
       className={cn(
-        "relative flex h-10 w-10 items-center justify-center rounded-full bg-muted/80 text-foreground border border-border/80 transition-all hover:bg-muted hover:border-border focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
-        className
+        "relative flex h-11 w-11 items-center justify-center rounded-full bg-muted/80 text-foreground border border-border/80 transition-all hover:bg-muted hover:border-border focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
+        className,
+        triggerProps?.className
       )}
     >
       <Bell size={18} aria-hidden="true" />
@@ -64,9 +66,10 @@ export function NotificationBell({ userId, userRole, className }: NotificationBe
   if (isMobile) {
     return (
       <>
-        <div onClick={() => setOpen(true)} className="inline-block">
-          {bellButton}
-        </div>
+        {renderBellButton({
+          onClick: () => setOpen(true),
+          "aria-expanded": open,
+        })}
         <Sheet
           open={open}
           onClose={() => setOpen(false)}
@@ -95,7 +98,7 @@ export function NotificationBell({ userId, userRole, className }: NotificationBe
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>{bellButton}</PopoverTrigger>
+      <PopoverTrigger asChild>{renderBellButton()}</PopoverTrigger>
       <PopoverContent align="end" sideOffset={8} className="p-0 w-80 sm:w-96 shadow-2xl">
         <NotificationCenter
           notifications={notifications}

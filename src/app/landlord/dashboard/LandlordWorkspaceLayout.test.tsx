@@ -17,6 +17,7 @@ vi.mock("@/features/map/useFinderTheme", () => ({
   useFinderTheme: () => ({ preference: "system", resolvedTheme: "light", setPreference: vi.fn() }),
 }));
 
+import { AccountMenu } from "@/components/ui/AccountMenu";
 import { LandlordWorkspaceLayout } from "./LandlordWorkspaceLayout";
 
 describe("LandlordWorkspaceLayout", () => {
@@ -41,5 +42,29 @@ describe("LandlordWorkspaceLayout", () => {
     expect(html).toContain('href="/account"');
     expect(html).toContain("Workspace Body");
     expect(html.match(/pb-\[calc\(5rem\+env\(safe-area-inset-bottom\)\)\]/g)).toHaveLength(1);
+  });
+
+  it("aligns landlord header actions before NotificationBell and places AccountMenu last", () => {
+    const html = renderToStaticMarkup(
+      <LandlordWorkspaceLayout
+        userId="u-1"
+        brand={<span>Brand</span>}
+        actions={
+          <>
+            <a href="/landlord/map">Property map</a>
+            <AccountMenu displayName="Lana Landlord" role="Landlord" variant="header" />
+          </>
+        }
+      >
+        <p>Body</p>
+      </LandlordWorkspaceLayout>
+    );
+
+    const mapIndex = html.indexOf("Property map");
+    const bellIndex = html.indexOf('aria-label="Notifications');
+    const accountIndex = html.indexOf('aria-label="Account options for Lana Landlord"');
+    expect(mapIndex).toBeGreaterThan(-1);
+    expect(bellIndex).toBeGreaterThan(mapIndex);
+    expect(accountIndex).toBeGreaterThan(bellIndex);
   });
 });
