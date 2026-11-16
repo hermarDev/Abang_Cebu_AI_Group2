@@ -205,7 +205,7 @@ export function WorkspaceShell({
   const [expanded, setExpanded] = useState(true);
 
   return (
-    <main className="min-h-[100dvh] bg-gradient-to-br from-action/5 via-background to-muted/70 pt-16 pb-[calc(5rem+env(safe-area-inset-bottom))] text-foreground lg:pb-0">
+    <main className="flex h-dvh min-h-0 flex-col overflow-hidden bg-gradient-to-br from-action/5 via-background to-muted/70 pt-16 text-foreground">
       <header className="fixed inset-x-0 top-0 z-40 border-b border-border/80 bg-background/90 shadow-sm backdrop-blur-lg">
         <div className="mx-auto flex min-h-16 max-w-[1920px] items-center justify-between gap-2 px-3 sm:gap-3 sm:px-6 lg:px-8">
           <div className="flex min-w-0 items-center gap-2 sm:gap-3">{brand}</div>
@@ -216,12 +216,12 @@ export function WorkspaceShell({
       </header>
 
       <div
-        className={`mx-auto grid max-w-[1920px] gap-4 px-3 py-4 sm:gap-5 sm:px-6 sm:py-6 lg:gap-6 lg:px-8 ${
+        className={`mx-auto grid min-h-0 w-full max-w-[1920px] flex-1 gap-4 overflow-hidden px-3 pt-4 pb-[calc(5rem+env(safe-area-inset-bottom))] sm:gap-5 sm:px-6 sm:pt-6 lg:gap-6 lg:px-8 lg:py-6 ${
           expanded ? "lg:grid-cols-[248px_minmax(0,1fr)]" : "lg:grid-cols-[76px_minmax(0,1fr)]"
         }`}
       >
-        <aside className="hidden lg:sticky lg:top-20 lg:flex lg:max-h-[calc(100dvh-6rem)] lg:self-start lg:flex-col lg:overflow-y-auto" aria-label={asideAriaLabel}>
-          <div className="flex min-h-0 flex-1 flex-col rounded-2xl border border-border bg-card p-2 shadow-sm">
+        <aside className="hidden min-h-0 lg:flex lg:flex-col" aria-label={asideAriaLabel}>
+          <div className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain rounded-2xl border border-border bg-card p-2 shadow-sm">
             <div className={`mb-1 flex min-h-10 items-center ${expanded ? "justify-between gap-2 px-2" : "justify-center"}`}>
               {expanded && (
                 <p className="m-0 min-w-0 truncate text-xs font-bold uppercase tracking-[.12em] text-muted-foreground">
@@ -287,7 +287,7 @@ export function WorkspaceShell({
           </div>
         </aside>
 
-        <div className="min-w-0 space-y-5 sm:space-y-6">
+        <div className="min-h-0 min-w-0 space-y-5 overflow-y-auto overscroll-contain sm:space-y-6" tabIndex={0} role="region" aria-label="Workspace content">
           {(title || pageActions) && (
             <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
               <div>

@@ -126,11 +126,11 @@ describe("WorkspaceShell", () => {
       children: <p>Body</p>,
     }));
     const sidebar = tree.find((el) => el.type === "aside");
-    expect(sidebar?.props.className).toContain("lg:sticky");
-    expect(sidebar?.props.className).toContain("lg:self-start");
-    expect(sidebar?.props.className).toContain("lg:max-h-[calc(100dvh-6rem)]");
-    expect(sidebar?.props.className).toContain("lg:overflow-y-auto");
-    expect(sidebar?.props.className).not.toContain("self-stretch");
+    expect(sidebar?.props.className).toContain("min-h-0");
+    const scrollbox = collectElements(sidebar?.props.children).find((el) => typeof el.props.className === "string" && el.props.className.includes("overflow-y-auto"));
+    expect(scrollbox).toBeDefined();
+    const content = tree.find((el) => el.props["aria-label"] === "Workspace content");
+    expect(content?.props.className).toContain("overflow-y-auto");
   });
 
   it("toggles desktop sidebar expanded/collapsed state", () => {
