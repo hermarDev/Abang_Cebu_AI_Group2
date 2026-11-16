@@ -3,11 +3,12 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { CircleHelp, Headset, LayoutDashboard, UserRound } from "lucide-react";
+import { Bell, CircleHelp, Headset, LayoutDashboard, UserRound } from "lucide-react";
 import { BrandLogo } from "@/components/brand";
 import { WorkspaceMobileNav, WorkspaceShell, type WorkspaceNavGroup } from "@/components/dashboard/WorkspaceShell";
 import { AccountMenu } from "@/components/ui/AccountMenu";
 import { NotificationBell } from "@/features/notifications/NotificationBell";
+import { useNotificationCenter } from "@/features/notifications/useNotificationCenter";
 
 const linkGroups: WorkspaceNavGroup[] = [
   {
@@ -17,6 +18,7 @@ const linkGroups: WorkspaceNavGroup[] = [
       { href: "/support-desk/tickets", label: "Complaints queue", Icon: Headset },
     ],
   },
+  { label: "Communication", links: [{ href: "/notifications", label: "Notifications", Icon: Bell }] },
   { label: "Support", links: [{ href: "/help", label: "Help Center", Icon: CircleHelp }] },
   { label: "Account", links: [{ href: "/account", label: "Account settings", Icon: UserRound }] },
 ];
@@ -48,6 +50,14 @@ export function SupportDeskWorkspaceLayout({
   children,
 }: SupportDeskWorkspaceLayoutProps) {
   const pathname = usePathname() ?? "";
+  const { unreadCount, loading, error } = useNotificationCenter(userId, Boolean(userId));
+  const count = !loading && !error ? unreadCount : 0;
+  const navGroups: WorkspaceNavGroup[] = linkGroups.map((group) => ({
+    ...group,
+    links: group.links.map((item) => item.href === "/notifications" && count > 0
+      ? { ...item, ariaLabel: `Notifications, ${count} unread`, badge: count > 99 ? "99+" : count, badgeVariant: "action" }
+      : item),
+  }));
 
   return (
     <WorkspaceShell
@@ -69,7 +79,7 @@ export function SupportDeskWorkspaceLayout({
       asideAriaLabel="Support navigation"
       sidebarTitle="Support tools"
       navAriaLabel="Support workspace"
-      navGroups={linkGroups}
+      navGroups={navGroups}
       title={title}
       subtitle={subtitle}
       pageActions={actions}
