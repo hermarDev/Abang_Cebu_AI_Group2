@@ -56,6 +56,24 @@ describe("validateRegistration", () => {
     if (!result.ok) expect(result.errors).toHaveProperty("password");
   });
 
+  it.each([
+    ["minimum valid name", "Al", true],
+    ["maximum valid name", "A".repeat(100), true],
+    ["Unicode and punctuation name", "Ma. Ñora Dela-Cruz", true],
+    ["too-short name", "A", false],
+    ["too-long name", "A".repeat(101), false],
+  ])("%s is %s", (_label, fullName, expected) => {
+    expect(validateRegistration({ ...validPayload, fullName }).ok).toBe(expected);
+  });
+
+  it.each([
+    ["maximum valid email", `${"a".repeat(242)}@example.com`, true],
+    ["too-long email", `${"a".repeat(243)}@example.com`, false],
+  ])("%s is %s", (_label, email, expected) => {
+    expect(email).toHaveLength(expected ? 254 : 255);
+    expect(validateRegistration({ ...validPayload, email }).ok).toBe(expected);
+  });
+
   it("returns actionable required-field errors for malformed payloads", () => {
     for (const payload of [null, "payload", []]) {
       const result = validateRegistration(payload);

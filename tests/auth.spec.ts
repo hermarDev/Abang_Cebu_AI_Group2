@@ -52,6 +52,13 @@ test("login validation links inline errors and focuses the first invalid field",
   const errorId = await email.getAttribute("aria-describedby");
   expect(errorId).toBeTruthy();
   await expect(page.locator(`[id="${errorId}"]`)).toHaveText("Enter your email address.");
+  const password = dialog.getByLabel("Password", { exact: true });
+  await expect(password).toHaveAttribute("aria-invalid", "true");
+  const passwordErrorId = await password.getAttribute("aria-describedby");
+  expect(passwordErrorId).toBeTruthy();
+  await expect(page.locator(`[id="${passwordErrorId}"]`)).toHaveText("Enter your password.");
+  await email.fill("invalid");
+  await expect(page.locator(`[id="${errorId}"]`)).toHaveText("Enter a valid email address.");
 });
 
 test("login route opens without a renter or landlord role selector", async ({ page }) => {

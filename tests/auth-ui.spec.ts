@@ -19,8 +19,10 @@ for (const width of [320, 430, 1280]) {
       await dialog.getByLabel("Password", { exact: true }).fill("Example-password1");
       await dialog.getByRole("button", { name: "Show password", exact: true }).click();
       await expect(dialog.getByLabel("Password", { exact: true })).toHaveAttribute("type", "text");
+      await expect(dialog.getByLabel("Password", { exact: true })).toHaveValue("Example-password1");
       await dialog.getByRole("button", { name: "Hide password", exact: true }).click();
       await expect(dialog.getByLabel("Password", { exact: true })).toHaveAttribute("type", "password");
+      await expect(dialog.getByLabel("Password", { exact: true })).toHaveValue("Example-password1");
       await dialog.getByRole("button", { name: "Register", exact: true }).click();
       await expect(dialog.getByRole("radio", { name: /Renter/ })).toBeVisible();
       await expect(dialog.getByRole("radio", { name: /Landlord/ })).toBeVisible();
@@ -74,6 +76,7 @@ test("login fields remain unchanged while authentication is pending", async ({ p
     await password.fill("Test-password1!");
     await dialog.getByRole("button", { name: "Log In", exact: true }).click();
     await expect(dialog.getByRole("button", { name: "Logging in…" })).toBeDisabled();
+    await expect(dialog.getByRole("button", { name: "Logging in…" })).toHaveAttribute("aria-busy", "true");
     await expect(email).toHaveAttribute("readonly", "");
     await expect(password).toHaveAttribute("readonly", "");
     expect(requests).toBe(1);

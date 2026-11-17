@@ -85,7 +85,11 @@ describe("password reset PKCE callback", () => {
     expect(response.headers.get("referrer-policy")).toBe("no-referrer");
     const cookies = response.headers.getSetCookie();
     expect(cookies.some((cookie) => cookie.includes("sb-access-token=session"))).toBe(true);
-    expect(cookies.some((cookie) => cookie.includes("abangcebu-password-reset=1") && cookie.includes("HttpOnly"))).toBe(true);
+    const marker = cookies.find((cookie) => cookie.startsWith("abangcebu-password-reset=1"));
+    expect(marker).toContain("HttpOnly");
+    expect(marker).toContain("SameSite=lax");
+    expect(marker).toContain("Path=/");
+    expect(marker).toContain("Max-Age=600");
   });
 
   it("sets a secure recovery cookie when canonical HTTPS terminates at a proxy", async () => {

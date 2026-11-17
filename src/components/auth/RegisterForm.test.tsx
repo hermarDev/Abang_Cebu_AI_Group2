@@ -158,6 +158,37 @@ describe("RegisterForm", () => {
     expect(JSON.parse(request.mock.calls[0][1].body)).not.toHaveProperty("phoneNumber");
   });
 
+  it("submits the chosen landlord role and shows neutral confirmation without echoing the email", async () => {
+    state.active = true;
+    fillValidForm();
+    const roleGroup = findElement(renderForm(), (element) => element.props["aria-label"] === "Account type")!;
+    (roleGroup.props.onValueChange as (value: string) => void)("landlord");
+    const request = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ success: true }) });
+    vi.stubGlobal("fetch", request);
+    await submit();
+
+    expect(JSON.parse(request.mock.calls[0][1].body)).toMatchObject({ role: "landlord" });
+    const html = renderToStaticMarkup(renderForm());
+    expect(html).toContain("Check Your Email");
+    expect(html).toContain("If registration can proceed, check your email for the next steps.");
+    expect(html).not.toContain("juan@example.com");
+  });
+
+  it("toggles password visibility without clearing the registration password", () => {
+    state.active = true;
+    changeInput("password", "Strongpass1!");
+    const show = findElement(renderForm(), (element) => element.props["aria-label"] === "Show password")!;
+    (show.props.onClick as () => void)();
+    const revealed = findInput("password");
+    expect(revealed.props.type).toBe("text");
+    expect(revealed.props.value).toBe("Strongpass1!");
+    const hide = findElement(renderForm(), (element) => element.props["aria-label"] === "Hide password")!;
+    (hide.props.onClick as () => void)();
+    const hidden = findInput("password");
+    expect(hidden.props.type).toBe("password");
+    expect(hidden.props.value).toBe("Strongpass1!");
+  });
+
   it("keeps signup to name, email, account type and password", () => {
     const html = renderToStaticMarkup(<RegisterForm />);
     expect(html).toContain('autoComplete="name"');

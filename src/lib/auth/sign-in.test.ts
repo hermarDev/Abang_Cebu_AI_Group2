@@ -50,6 +50,14 @@ describe("signInWithEmail", () => {
     expect(signOut).not.toHaveBeenCalled();
   });
 
+  it("normalizes uppercase email while preserving the password exactly", async () => {
+    await signInWithEmail("  Renter+Test@EXAMPLE.COM  ", "  PassWord1!  ");
+    expect(signInWithPassword).toHaveBeenCalledWith({
+      email: "renter+test@example.com",
+      password: "  PassWord1!  ",
+    });
+  });
+
   it("uses the canonical profile role without a client-selected role", async () => {
     maybeSingle.mockResolvedValue({ data: { role: "landlord", is_suspended: false }, error: null });
     await expect(
@@ -123,6 +131,7 @@ describe("signInWithEmail", () => {
     ["invalid credentials (HTTP 400)", { code: "invalid_credentials", status: 400 }, "Invalid email or password."],
     ["rate limit exceeded (HTTP 429 / over_request_rate_limit)", { code: "over_request_rate_limit", status: 429 }, "Too many login attempts. Please try again later."],
     ["rate limit exceeded (HTTP 429 status code)", { status: 429 }, "Too many login attempts. Please try again later."],
+    ["rate limit exceeded (code only)", { code: "over_request_rate_limit" }, "Too many login attempts. Please try again later."],
     ["email not confirmed (HTTP 400)", { code: "email_not_confirmed", status: 400 }, "Your email address is not yet verified."],
     ["email not confirmed (HTTP 403)", { code: "email_not_confirmed", status: 403 }, "Your email address is not yet verified."],
     ["server failure (HTTP 503)", { code: "unexpected_failure", status: 503 }, "Sign in is temporarily unavailable. Please try again."],

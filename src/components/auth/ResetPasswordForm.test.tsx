@@ -98,6 +98,53 @@ describe("ResetPasswordForm", () => {
     (button.props.onClick as () => void)();
     expect(refresh).toHaveBeenCalled();
   });
+  it("toggles each recovery password field independently without clearing either value", () => {
+    state.active = true;
+    for (const [name, value] of [["newPassword", "NewStrong1!"], ["confirmPassword", "ConfirmStrong1!"]]) {
+      const input = findElement(renderForm(true), (element) => element.props.name === name)!;
+      (input.props.onChange as (event: { target: { value: string } }) => void)({ target: { value } });
+    }
+
+    const showNew = findElement(renderForm(true), (element) => element.props["aria-label"] === "Show new password")!;
+    (showNew.props.onClick as () => void)();
+    const revealedNew = findElement(renderForm(true), (element) => element.props.name === "newPassword")!;
+    const hiddenConfirm = findElement(renderForm(true), (element) => element.props.name === "confirmPassword")!;
+    expect(revealedNew.props.type).toBe("text");
+    expect(revealedNew.props.value).toBe("NewStrong1!");
+    expect(hiddenConfirm.props.type).toBe("password");
+    expect(hiddenConfirm.props.value).toBe("ConfirmStrong1!");
+
+    const showConfirm = findElement(renderForm(true), (element) => element.props["aria-label"] === "Show confirmed password")!;
+    (showConfirm.props.onClick as () => void)();
+    const revealedConfirm = findElement(renderForm(true), (element) => element.props.name === "confirmPassword")!;
+    expect(revealedConfirm.props.type).toBe("text");
+    expect(revealedConfirm.props.value).toBe("ConfirmStrong1!");
+    expect(findElement(renderForm(true), (element) => element.props["aria-label"] === "Hide new password")!.props["aria-pressed"]).toBe(true);
+    expect(findElement(renderForm(true), (element) => element.props["aria-label"] === "Hide confirmed password")!.props["aria-pressed"]).toBe(true);
+  });
+
+  it.each([
+    ["reset-link request", false, "Sending link..."],
+    ["password update", true, "Updating password..."],
+  ])("marks the %s submit action busy while pending", async (_label, isRecovery, pendingLabel) => {
+    state.active = true;
+    if (!isRecovery) {
+      const email = findElement(renderForm(), (element) => element.props.type === "email")!;
+      (email.props.onChange as (event: { target: { value: string } }) => void)({ target: { value: "renter@example.com" } });
+    }
+    let release!: () => void;
+    const pending = new Promise<{ ok: true; json: () => Promise<{ success: true }> }>((resolve) => {
+      release = () => resolve({ ok: true, json: async () => ({ success: true }) });
+    });
+    vi.stubGlobal("fetch", vi.fn().mockReturnValue(pending));
+    const submission = (findElement(renderForm(isRecovery), (element) => element.type === "form")!.props.onSubmit as (event: { preventDefault: () => void }) => Promise<void>)({ preventDefault: vi.fn() });
+    const pendingSubmit = findElement(renderForm(isRecovery), (element) => element.props.type === "submit")!;
+    expect(pendingSubmit.props.disabled).toBe(true);
+    expect(pendingSubmit.props["aria-busy"]).toBe(true);
+    expect(pendingSubmit.props.children).toBe(pendingLabel);
+    release();
+    await submission;
+  });
   it("renders a persistent live region for password match feedback", () => {
     state.active = true;
     const tree = renderForm(true);

@@ -34,6 +34,18 @@ describe("password reset confirmation route", () => {
     signOut.mockReset().mockResolvedValue({ error: null });
   });
 
+  it("rejects malformed JSON before checking the recovery session", async () => {
+    const response = await POST(new Request("http://localhost/api/auth/reset-password/confirm", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: "{",
+    }));
+    expect(response.status).toBe(400);
+    expect(cookieGet).not.toHaveBeenCalled();
+    expect(getUser).not.toHaveBeenCalled();
+    expect(updateUser).not.toHaveBeenCalled();
+  });
+
   it("requires valid matching password input", async () => {
     const weak = await POST(request({ newPassword: "weak", confirmPassword: "weak" }));
     const mismatch = await POST(request({ newPassword: valid.newPassword, confirmPassword: "OtherStrong1!" }));

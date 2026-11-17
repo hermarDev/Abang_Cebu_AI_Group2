@@ -224,7 +224,7 @@ export function ResetPasswordForm({ isRecovery = false, onBackToLogin, embedded 
             </div>
           )}
 
-          <Button type="submit" variant="primary" fullWidth size="lg" disabled={loading}>
+          <Button type="submit" variant="primary" fullWidth size="lg" disabled={loading} aria-busy={loading}>
             {loading ? (isRecovery ? "Updating password..." : "Sending link...") : (isRecovery ? "Update Password" : "Send reset link")}
           </Button>
         </form>}
