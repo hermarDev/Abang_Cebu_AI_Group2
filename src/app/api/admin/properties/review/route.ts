@@ -30,6 +30,24 @@ export async function POST(request: Request) {
   const expectedRevision = Number.isSafeInteger(input.submissionExpectedRevision) && (input.submissionExpectedRevision as number) >= 1 ? input.submissionExpectedRevision as number : null;
   if (draftId === null || expectedRevision === null) return reply("Provide the exact submission revision.", 400);
   const docDecision = typeof input.documentApplicabilityDecision === "string" && ["documents_verified", "exemption_accepted", "documents_required"].includes(input.documentApplicabilityDecision) ? input.documentApplicabilityDecision : null;
+  // Business rule must not depend on a custom SQLSTATE surviving PostgREST; the trigger stays as the race backstop.
+  if (input.decision === "approved") {
+    const { data: gate, error: gateError } = await session.supabase
+      .from("property_submissions")
+      .select("field_verification_status")
+      .eq("property_id", input.propertyId)
+      .eq("draft_id", draftId)
+      .eq("expected_revision", expectedRevision)
+      .is("superseded_by", null)
+      .maybeSingle();
+    if (gateError) return reply("The review outcome could not be confirmed. Reload its status before retrying.", 503);
+    if (gate?.field_verification_status !== "verified") {
+      return Response.json(
+        { error: "Field verification is required before admin approval can be granted.", code: "FIELD_VERIFICATION_REQUIRED" },
+        { status: 409, headers },
+      );
+    }
+  }
   let result;
   try {
     result = await session.supabase.rpc("review_property", {
@@ -46,13 +64,13 @@ export async function POST(request: Request) {
   }
   const { data, error } = result;
   if (error?.code === "23505") return reply("This review operation conflicts with an earlier attempt.", 409);
-  if (error?.code === "PT409" && error.message?.includes("field verification required before admin approval")) {
-    return reply("Field verification is required before admin approval can be granted.", 409);
+  if (error?.message?.includes("field verification required")) {
+    return Response.json(
+      { error: "Field verification is required before admin approval can be granted.", code: "FIELD_VERIFICATION_REQUIRED" },
+      { status: 409, headers },
+    );
   }
   if (error?.code === "40001") {
-    if (error?.message && error.message.includes("field verification required")) {
-      return reply("Field verification is required before admin approval can be granted.", 409);
-    }
     return reply("This property changed after it was submitted. Reload and review the current submission.", 409);
   }
   if (error?.code === "42501" || error?.code === "22023") return reply("This property is not pending review.", 409);
