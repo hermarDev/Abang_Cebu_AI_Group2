@@ -71,9 +71,6 @@ export async function POST(request: Request) {
     );
   }
   if (error?.code === "40001") {
-    if (error?.message && error.message.includes("field verification required")) {
-      return reply("Field verification is required before admin approval can be granted.", 409);
-    }
     return reply("This property changed after it was submitted. Reload and review the current submission.", 409);
   }
   if (error?.code === "42501" || error?.code === "22023") return reply("This property is not pending review.", 409);
