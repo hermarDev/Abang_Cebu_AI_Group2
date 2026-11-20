@@ -4,16 +4,28 @@ import { POST } from "./route";
 const mocks = vi.hoisted(() => ({
   getUser: vi.fn(async (): Promise<{ data: { user: { id: string } | null }; error: unknown }> => ({ data: { user: { id: "admin-1" } }, error: null })),
   profile: vi.fn(async (): Promise<{ data: unknown; error: unknown }> => ({ data: { role: "admin", is_suspended: false }, error: null })),
+  submissionFind: vi.fn(async (): Promise<{ data: unknown; error: unknown }> => ({ data: { field_verification_status: "verified" }, error: null })),
   rpc: vi.fn(async (): Promise<{ data: unknown; error: unknown }> => ({ data: { status: "approved" }, error: null })),
   revalidatePath: vi.fn(),
 }));
 vi.mock("next/cache", () => ({ revalidatePath: mocks.revalidatePath }));
-vi.mock("@/lib/supabase/server", () => ({ createClient: async () => ({ auth: { getUser: mocks.getUser }, from: () => ({ select: () => ({ eq: () => ({ maybeSingle: mocks.profile }) }) }), rpc: mocks.rpc }) }));
+vi.mock("@/lib/supabase/server", () => ({
+  createClient: async () => ({
+    auth: { getUser: mocks.getUser },
+    from: (table: string) => {
+      if (table !== "property_submissions") return { select: () => ({ eq: () => ({ maybeSingle: mocks.profile }) }) };
+      const step = { eq: () => step, is: () => step, maybeSingle: mocks.submissionFind };
+      return { select: () => step };
+    },
+    rpc: mocks.rpc,
+  }),
+}));
 
 function request(body: unknown, user = "admin-1") {
   return new Request("http://localhost/api/admin/properties/review", { method: "POST", headers: { "content-type": "application/json", "x-expected-user-id": user }, body: JSON.stringify(body) });
 }
 const approve = () => ({ propertyId: "11111111-1111-4111-8111-111111111111", operationId: "22222222-2222-4222-8222-222222222222", decision: "approved", submissionDraftId: "33333333-3333-4333-8333-333333333333", submissionExpectedRevision: 1 });
+const chain = (data: unknown) => ({ data, error: null });
 
 beforeEach(() => vi.clearAllMocks());
 
@@ -70,7 +82,26 @@ describe("admin property review", () => {
     mocks.rpc.mockResolvedValueOnce({ data: null, error: { code: "PT409", message: "field verification required before admin approval" } });
     const response = await POST(request(approve()));
     expect(response.status).toBe(409);
-    expect(await response.json()).toEqual({ error: "Field verification is required before admin approval can be granted." });
+    expect(await response.json()).toEqual({ error: "Field verification is required before admin approval can be granted.", code: "FIELD_VERIFICATION_REQUIRED" });
+  });
+  it("maps the gate message to 409 even when the provider drops the PT409 code", async () => {
+    mocks.rpc.mockResolvedValueOnce({
+      data: null,
+      error: { code: "P0001", message: "field verification required before admin approval" },
+    });
+    const response = await POST(request(approve()));
+    expect(response.status).toBe(409);
+    expect(await response.json()).toEqual({
+      error: "Field verification is required before admin approval can be granted.",
+      code: "FIELD_VERIFICATION_REQUIRED",
+    });
+  });
+  it("returns 409 from the pre-check without invoking review_property when the submission is unverified", async () => {
+    mocks.submissionFind.mockResolvedValueOnce(chain({ field_verification_status: "pending" }));
+    const response = await POST(request(approve()));
+    expect(response.status).toBe(409);
+    expect((await response.json()).code).toBe("FIELD_VERIFICATION_REQUIRED");
+    expect(mocks.rpc).not.toHaveBeenCalled();
   });
   it("does not mislabel unrelated PT409 failures as field verification errors", async () => {
     mocks.rpc.mockResolvedValueOnce({ data: null, error: { code: "PT409", message: "another conflict" } });
