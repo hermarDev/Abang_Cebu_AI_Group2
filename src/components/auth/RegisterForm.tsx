@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { CircleAlert, Eye, EyeOff, HousePlus, LockKeyhole, Mail, Search, UserRound } from "lucide-react";
 import { useRouter } from "next/navigation";
 import * as RadioGroup from "@radix-ui/react-radio-group";
@@ -34,21 +34,39 @@ export function RegisterForm({ onLogin }: { onLogin?: () => void } = {}) {
     setFieldErrors(errors => ({ ...errors, [field]: validation.ok ? undefined : validation.errors[field] }));
   };
   const [registered, setRegistered] = useState(false);
+  const [validationAttempt, setValidationAttempt] = useState(0);
+  const [validationAnnouncement, setValidationAnnouncement] = useState("");
+  const pendingFocusIdRef = useRef<string | null>(null);
+  const fieldInputIds = { fullName: nameId, email: emailId, password: passwordId } as const;
+
+  useEffect(() => {
+    const targetId = pendingFocusIdRef.current;
+    if (!targetId) return;
+    pendingFocusIdRef.current = null;
+    document.getElementById(targetId)?.focus();
+  }, [validationAttempt]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const form = e.currentTarget as HTMLFormElement;
     setErrorMessage(null);
     setFieldErrors({});
     setSuccessMessage(null);
     setRegistered(false);
+    setValidationAnnouncement("");
     if (loading) return;
     setSubmitted(true);
     const validation = validateRegistration({ fullName, email, password, role });
     if (!validation.ok) {
       setFieldErrors(validation.errors);
       const firstInvalid = (["fullName", "email", "password"] as const).find((field) => validation.errors[field]);
-      if (firstInvalid) (e.currentTarget as HTMLFormElement).querySelector<HTMLInputElement>(`[name="${firstInvalid}"]`)?.focus();
+      if (firstInvalid) pendingFocusIdRef.current = fieldInputIds[firstInvalid];
+      const nextAttempt = validationAttempt + 1;
+      setValidationAttempt(nextAttempt);
+      const summary = (["fullName", "email", "password"] as const)
+        .map((field) => validation.errors[field])
+        .filter(Boolean)
+        .join(" ");
+      setValidationAnnouncement(nextAttempt % 2 === 1 ? `${summary}\u00A0` : summary);
       return;
     }
     setLoading(true);
@@ -72,7 +90,10 @@ export function RegisterForm({ onLogin }: { onLogin?: () => void } = {}) {
           const errors = details as Partial<Record<keyof RegisterPayload, unknown>>;
           setFieldErrors(Object.fromEntries(Object.entries(errors).filter((entry): entry is [string, string] => typeof entry[1] === "string")) as Partial<Record<keyof RegisterPayload, string>>);
           const firstInvalid = (["fullName", "email", "password"] as const).find(field => typeof errors[field] === "string" && errors[field]);
-          if (firstInvalid) form.querySelector<HTMLInputElement>(`[name="${firstInvalid}"]`)?.focus();
+          if (firstInvalid) {
+            pendingFocusIdRef.current = fieldInputIds[firstInvalid];
+            setValidationAttempt((attempt) => attempt + 1);
+          }
         }
         setErrorMessage(data?.error?.message || "Registration failed. Please check your inputs.");
       } else {
@@ -129,6 +150,7 @@ export function RegisterForm({ onLogin }: { onLogin?: () => void } = {}) {
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+            <p className="sr-only" aria-live="polite" aria-atomic="true">{validationAnnouncement}</p>
             <div>
               <label htmlFor={nameId} className="block text-sm font-medium mb-1">
                 Full Name
@@ -149,7 +171,7 @@ export function RegisterForm({ onLogin }: { onLogin?: () => void } = {}) {
                 required
               />
               </div>
-              {fieldErrors.fullName && <p id={`${nameId}-error`} className="mt-1 text-sm text-destructive" role="alert">{fieldErrors.fullName}</p>}
+              {fieldErrors.fullName && <p id={`${nameId}-error`} className="mt-1 text-sm text-destructive">{fieldErrors.fullName}</p>}
             </div>
 
             <div>
@@ -167,12 +189,13 @@ export function RegisterForm({ onLogin }: { onLogin?: () => void } = {}) {
                 value={email}
                 onChange={(e) => { setEmail(e.target.value); updateFieldError("email", e.target.value); }}
                 autoComplete="email"
+                spellCheck={false}
                 aria-invalid={Boolean(fieldErrors.email)}
                 aria-describedby={fieldErrors.email ? `${emailId}-error` : undefined}
                 required
               />
               </div>
-              {fieldErrors.email && <p id={`${emailId}-error`} className="mt-1 text-sm text-destructive" role="alert">{fieldErrors.email}</p>}
+              {fieldErrors.email && <p id={`${emailId}-error`} className="mt-1 text-sm text-destructive">{fieldErrors.email}</p>}
             </div>
 
             <div>
@@ -196,7 +219,6 @@ export function RegisterForm({ onLogin }: { onLogin?: () => void } = {}) {
                   aria-describedby={`${passwordId}-policy${fieldErrors.password ? ` ${passwordId}-error` : ""}`}
                   required
                 />
-                {fieldErrors.password && <p id={`${passwordId}-error`} className="mt-1 text-sm text-destructive" role="alert">{fieldErrors.password}</p>}
                 <button
                   type="button"
                   className="absolute right-0 top-0 grid min-h-11 min-w-11 place-items-center rounded-md text-muted-foreground hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring"
@@ -206,6 +228,7 @@ export function RegisterForm({ onLogin }: { onLogin?: () => void } = {}) {
                   {showPassword ? <EyeOff size={19} aria-hidden="true" /> : <Eye size={19} aria-hidden="true" />}
                 </button>
               </div>
+              {fieldErrors.password && <p id={`${passwordId}-error`} className="mt-1 text-sm text-destructive">{fieldErrors.password}</p>}
 
               <PasswordRequirements id={`${passwordId}-policy`} password={password} />
             </div>

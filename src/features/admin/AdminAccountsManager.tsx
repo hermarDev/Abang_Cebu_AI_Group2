@@ -340,7 +340,7 @@ export function AdminAccountsManager({ userId, initialRole, initialStatus }: { u
 
   const name = dialog?.account.fullName?.trim() || "this account";
   const sortedAccounts = accounts
-    ? [...accounts].sort((a, b) => {
+    ? accounts.toSorted((a, b) => {
         if (sortBy === "properties_desc") return (b.propertyCount ?? 0) - (a.propertyCount ?? 0);
         if (sortBy === "reports_desc") return (b.openReportCount ?? 0) - (a.openReportCount ?? 0);
         return (a.fullName || "").localeCompare(b.fullName || "");
