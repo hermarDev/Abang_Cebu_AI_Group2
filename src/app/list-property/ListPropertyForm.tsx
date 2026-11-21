@@ -91,6 +91,13 @@ const amenities = [
 ] as const;
 
 const steps = ["Property details", "Location", "Amenities & photos", "Business permit", "Review"];
+const STEP_HEADING_IDS = [
+  "property-details-heading",
+  "property-location-heading",
+  "property-amenities-heading",
+  "business-permit-heading",
+  "listing-review-heading",
+] as const;
 type ListingReview = {
   title: string;
   description: string;
@@ -489,13 +496,27 @@ export function ListPropertyForm({ userId, restoreTarget }: { userId: string; re
     });
   }
 
+  function focusStepHeading(targetStep: number) {
+    const applyFocus = () => {
+      if (typeof document !== "undefined") {
+        document.getElementById(STEP_HEADING_IDS[targetStep])?.focus({ preventScroll: true });
+      }
+      formRef.current?.scrollIntoView({ block: "start" });
+    };
+    if (typeof requestAnimationFrame === "function") {
+      requestAnimationFrame(applyFocus);
+    } else {
+      applyFocus();
+    }
+  }
+
   function continueToNextStep() {
     if (!validateStep(step)) return;
     const nextStep = Math.min(step + 1, steps.length - 1);
     if (nextStep === steps.length - 1) populateReview();
     setMaxVisitedStep((curr) => Math.max(curr, nextStep));
     setStep(nextStep);
-    formRef.current?.scrollIntoView({ block: "start" });
+    focusStepHeading(nextStep);
   }
 
   function jumpToStep(targetIndex: number) {
@@ -503,14 +524,14 @@ export function ListPropertyForm({ userId, restoreTarget }: { userId: string; re
     if (targetIndex < step) {
       setNotice(null);
       setStep(targetIndex);
-      formRef.current?.scrollIntoView({ block: "start" });
+      focusStepHeading(targetIndex);
       return;
     }
     if (targetIndex <= maxVisitedStep + 1 && validateStep(step)) {
       if (targetIndex === steps.length - 1) populateReview();
       setMaxVisitedStep((curr) => Math.max(curr, targetIndex));
       setStep(targetIndex);
-      formRef.current?.scrollIntoView({ block: "start" });
+      focusStepHeading(targetIndex);
     }
   }
 
@@ -788,7 +809,7 @@ export function ListPropertyForm({ userId, restoreTarget }: { userId: string; re
 
     <div className="grid gap-4" data-step-panel="0" hidden={step !== 0} style={step === 0 ? undefined : { display: "none" }}>
       <section className={section} aria-labelledby="property-details-heading">
-        <div className="flex items-start gap-3"><span className="grid size-11 shrink-0 place-items-center rounded-xl bg-accent text-action"><MapPin size={19} aria-hidden="true" /></span><div><h2 id="property-details-heading" className="m-0 text-lg font-semibold">Property details</h2><p className="mb-0 mt-1 text-sm text-muted-foreground">Tell renters what makes your place a good fit.</p></div></div>
+        <div className="flex items-start gap-3"><span className="grid size-11 shrink-0 place-items-center rounded-xl bg-accent text-action"><MapPin size={19} aria-hidden="true" /></span><div><h2 id="property-details-heading" tabIndex={-1} className="m-0 rounded-sm text-lg font-semibold focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">Property details</h2><p className="mb-0 mt-1 text-sm text-muted-foreground">Tell renters what makes your place a good fit.</p></div></div>
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="grid gap-1.5 text-sm font-medium"><span>Property name</span><input className={input} name="title" required maxLength={200} placeholder="e.g. Mabolo Studio near IT Park" /></label>
           <label className="grid gap-1.5 text-sm font-medium"><span>Property type</span><select className={input} name="propertyType" value={propertyType} required onChange={(event) => { const next = event.target.value; setPropertyType(next); const allowed = unitTypesByPropertyType[next] ?? allUnitTypes; const rental = formRef.current?.elements.namedItem("rentalType") as HTMLSelectElement | null; if (rental && allowed && !allowed.includes(rental.value)) rental.value = allowed[0]; }}><option value="" disabled>Select a property type</option>{propertyTypes.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
@@ -898,7 +919,7 @@ export function ListPropertyForm({ userId, restoreTarget }: { userId: string; re
 
     <div className="grid gap-4" data-step-panel="1" hidden={step !== 1} style={step === 1 ? undefined : { display: "none" }}>
       <section className={section} aria-labelledby="property-location-heading">
-        <div className="flex items-start gap-3"><span className="grid size-11 shrink-0 place-items-center rounded-xl bg-accent text-action"><MapPin size={19} aria-hidden="true" /></span><div><h2 id="property-location-heading" className="m-0 text-lg font-semibold">Address and map location</h2><p className="mb-0 mt-1 text-sm text-muted-foreground">Select the property location, then confirm its full address.</p></div></div>
+        <div className="flex items-start gap-3"><span className="grid size-11 shrink-0 place-items-center rounded-xl bg-accent text-action"><MapPin size={19} aria-hidden="true" /></span><div><h2 id="property-location-heading" tabIndex={-1} className="m-0 rounded-sm text-lg font-semibold focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">Address and map location</h2><p className="mb-0 mt-1 text-sm text-muted-foreground">Select the property location, then confirm its full address.</p></div></div>
         {isLocationLocked && (
           <div role="note" className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3.5 text-xs leading-relaxed text-amber-900 dark:text-amber-200">
             <strong className="font-semibold">Approved location locked:</strong> This listing is already published. Street address, barangay, city, and map pin are locked and can only be corrected by an Administrator.
@@ -908,16 +929,16 @@ export function ListPropertyForm({ userId, restoreTarget }: { userId: string; re
         {step === 1 && <div className="relative h-80 overflow-hidden rounded-xl"><MapCanvasLoader locationPicker selectedPlace={location} resolvedTheme={resolvedTheme} enablePinDrop={!isLocationLocked} pinCoordinates={location?.coordinates} onPinChange={(coordinates) => { if (!isLocationLocked) void choosePin(coordinates); }} /></div>}
         {location && <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3.5 py-2.5"><p className="m-0 flex items-center gap-1.5 text-sm font-medium text-emerald-800 dark:text-emerald-300"><Check size={16} aria-hidden="true" /> Selected: {[location.name, location.detail].filter(Boolean).join(", ")}</p>{!isLocationLocked && <button type="button" className="min-h-9 rounded-lg px-2.5 text-xs font-semibold text-emerald-800 underline hover:bg-emerald-500/20 dark:text-emerald-300" onClick={() => { locationRequest.current++; clearAutomaticLocation(); setLocation(null); setDirty(true); }}>Clear pin</button>}</div>}
         <div className="grid gap-4 sm:grid-cols-2">
-        <label className="grid gap-1.5 text-sm font-medium sm:col-span-2"><span>Complete property address</span><input className={clsx(input, isLocationLocked && "cursor-not-allowed bg-muted/50 text-muted-foreground")} name="address" value={address} readOnly={isLocationLocked} onChange={(event) => { if (!isLocationLocked) { manuallyEdited.current.address = true; setAddress(event.target.value); } }} required maxLength={1000} placeholder="House/building, street, barangay" /></label>
-        <label className="grid gap-1.5 text-sm font-medium"><span>Barangay</span><input className={clsx(input, isLocationLocked && "cursor-not-allowed bg-muted/50 text-muted-foreground")} name="barangay" readOnly={isLocationLocked} onChange={() => { if (!isLocationLocked) manuallyEdited.current.barangay = true; }} required maxLength={200} placeholder="Enter barangay" /></label>
-        <label className="grid gap-1.5 text-sm font-medium"><span>City or municipality</span><input className={clsx(input, isLocationLocked && "cursor-not-allowed bg-muted/50 text-muted-foreground")} name="city" readOnly={isLocationLocked} onChange={() => { if (!isLocationLocked) manuallyEdited.current.city = true; }} required maxLength={200} defaultValue="Cebu City" /></label>
+        <label className="grid gap-1.5 text-sm font-medium sm:col-span-2"><span>Complete property address</span><input className={clsx(input, isLocationLocked && "cursor-not-allowed bg-muted/50 text-muted-foreground")} name="address" autoComplete="street-address" value={address} readOnly={isLocationLocked} onChange={(event) => { if (!isLocationLocked) { manuallyEdited.current.address = true; setAddress(event.target.value); } }} required maxLength={1000} placeholder="House/building, street, barangay" /></label>
+        <label className="grid gap-1.5 text-sm font-medium"><span>Barangay</span><input className={clsx(input, isLocationLocked && "cursor-not-allowed bg-muted/50 text-muted-foreground")} name="barangay" autoComplete="address-level3" readOnly={isLocationLocked} onChange={() => { if (!isLocationLocked) manuallyEdited.current.barangay = true; }} required maxLength={200} placeholder="Enter barangay" /></label>
+        <label className="grid gap-1.5 text-sm font-medium"><span>City or municipality</span><input className={clsx(input, isLocationLocked && "cursor-not-allowed bg-muted/50 text-muted-foreground")} name="city" autoComplete="address-level2" readOnly={isLocationLocked} onChange={() => { if (!isLocationLocked) manuallyEdited.current.city = true; }} required maxLength={200} defaultValue="Cebu City" /></label>
         </div>
       </section>
     </div>
 
     <div className="grid gap-4" data-step-panel="2" hidden={step !== 2} style={step === 2 ? undefined : { display: "none" }}>
       <section className={section} aria-labelledby="property-amenities-heading">
-        <div className="flex items-start gap-3"><span className="grid size-11 shrink-0 place-items-center rounded-xl bg-accent text-action"><Check size={19} aria-hidden="true" /></span><div><h2 id="property-amenities-heading" className="m-0 text-lg font-semibold">Amenities and details</h2><p className="mb-0 mt-1 text-sm text-muted-foreground">Select the amenities available to renters.</p></div></div>
+        <div className="flex items-start gap-3"><span className="grid size-11 shrink-0 place-items-center rounded-xl bg-accent text-action"><Check size={19} aria-hidden="true" /></span><div><h2 id="property-amenities-heading" tabIndex={-1} className="m-0 rounded-sm text-lg font-semibold focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">Amenities and details</h2><p className="mb-0 mt-1 text-sm text-muted-foreground">Select the amenities available to renters.</p></div></div>
         <fieldset className="grid gap-2 border-0 p-0 sm:grid-cols-2"><legend className="mb-2 text-sm font-medium">Amenities</legend>{amenities.map(([value, label]) => <label className="flex min-h-11 cursor-pointer items-center gap-2.5 rounded-xl border border-border bg-background px-3 text-sm transition-colors hover:bg-muted/40 has-[:checked]:border-action has-[:checked]:bg-action/5 has-[:checked]:font-medium" key={value}><input className="size-4 accent-action" type="checkbox" name="amenities" value={value} /><span>{label}</span></label>)}</fieldset>
         <div className="grid gap-4 sm:grid-cols-2">
           {rentalType !== "entire_place" && (
@@ -1050,7 +1071,7 @@ export function ListPropertyForm({ userId, restoreTarget }: { userId: string; re
         <div className="flex items-start gap-3">
           <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-accent text-action"><FileText size={19} aria-hidden="true" /></span>
           <div>
-            <h2 id="business-permit-heading" className="m-0 text-lg font-semibold">Business permit & certification</h2>
+            <h2 id="business-permit-heading" tabIndex={-1} className="m-0 rounded-sm text-lg font-semibold focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">Business permit & certification</h2>
             <p className="mb-0 mt-1 text-sm text-muted-foreground">Upload documents that verify your rental operation. Permit files stay private.</p>
           </div>
         </div>
@@ -1175,7 +1196,7 @@ export function ListPropertyForm({ userId, restoreTarget }: { userId: string; re
 
     <div className="grid gap-4" data-step-panel="4" hidden={step !== 4} style={step === 4 ? undefined : { display: "none" }}>
       <section className={section} aria-labelledby="listing-review-heading">
-        <div className="flex items-start gap-3"><span className="grid size-11 shrink-0 place-items-center rounded-xl bg-accent text-action"><Check size={19} aria-hidden="true" /></span><div><h2 id="listing-review-heading" className="m-0 text-lg font-semibold">Review your listing</h2><p className="mb-0 mt-1 text-sm text-muted-foreground">Check the details before sending your property for review.</p></div></div>
+        <div className="flex items-start gap-3"><span className="grid size-11 shrink-0 place-items-center rounded-xl bg-accent text-action"><Check size={19} aria-hidden="true" /></span><div><h2 id="listing-review-heading" tabIndex={-1} className="m-0 rounded-sm text-lg font-semibold focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">Review your listing</h2><p className="mb-0 mt-1 text-sm text-muted-foreground">Check the details before sending your property for review.</p></div></div>
         <dl className="grid gap-3 sm:grid-cols-2">
           <div className="rounded-xl border border-border p-3"><div className="flex items-center justify-between gap-2"><dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Property</dt><button type="button" className="text-xs font-semibold text-action hover:underline" aria-label="Edit property details" onClick={() => jumpToStep(0)}>Edit</button></div><dd className="mb-0 mt-1 font-semibold">{review?.title || "Not provided"}</dd><dd className="mb-0 mt-1 text-sm text-muted-foreground">{propertyTypes.find(([value]) => value === review?.propertyType)?.[1] ?? "Type not selected"} · {({ entire_place: "Entire place", private_room: "Private room", shared_room: "Shared room", bedspace: "Bedspace" } as Record<string, string>)[review?.rentalType ?? ""] ?? "Unit type not selected"}</dd></div>
           <div className="rounded-xl border border-border p-3"><dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Monthly rent</dt><dd className="mb-0 mt-1 font-semibold">{price > 0 ? `₱${price.toLocaleString("en-PH")}` : "Not provided"}</dd>{reviewOutlierWarning && <dd className="mb-0 mt-1 text-xs text-amber-800 dark:text-amber-300">{reviewOutlierWarning}</dd>}</div>
@@ -1212,7 +1233,7 @@ export function ListPropertyForm({ userId, restoreTarget }: { userId: string; re
     <div className="sticky bottom-[calc(4.25rem+env(safe-area-inset-bottom))] lg:bottom-0 z-20 -mx-1 flex flex-col gap-3 rounded-2xl border border-border bg-card p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] shadow-lg sm:flex-row sm:items-center sm:justify-between sm:p-4 sm:pb-4">
       <p className="m-0 hidden text-sm text-muted-foreground sm:block sm:text-left">{step === steps.length - 1 ? "Review & submit" : `${steps.length - step - 1} step${steps.length - step - 1 === 1 ? "" : "s"} remaining`}{saving ? " · Saving…" : dirty ? " · Unsaved changes" : ""}</p>
       <div className="grid grid-cols-2 gap-2 sm:flex sm:justify-end">
-        {step > 0 && <button className="inline-flex min-h-11 items-center justify-center gap-1 rounded-lg border border-border bg-card px-4 text-sm font-semibold hover:bg-muted disabled:opacity-50" type="button" onClick={() => { setNotice(null); setStep((current) => Math.max(0, current - 1)); formRef.current?.scrollIntoView({ block: "start" }); }} disabled={step === 0 || pending}><ChevronLeft size={17} aria-hidden="true" /> Back</button>}
+        {step > 0 && <button className="inline-flex min-h-11 items-center justify-center gap-1 rounded-lg border border-border bg-card px-4 text-sm font-semibold hover:bg-muted disabled:opacity-50" type="button" onClick={() => { const prevStep = Math.max(0, step - 1); setNotice(null); setStep(prevStep); focusStepHeading(prevStep); }} disabled={step === 0 || pending}><ChevronLeft size={17} aria-hidden="true" /> Back</button>}
         <button className={clsx("inline-flex min-h-11 items-center justify-center gap-1 rounded-lg border border-border bg-card px-4 text-sm font-semibold hover:bg-muted disabled:opacity-50", step === 0 && "col-span-2 sm:col-span-1")} type="button" onClick={() => { void saveDraft(); }} disabled={saving}>{saving ? "Saving…" : "Save draft"}</button>
         {step < steps.length - 1
           ? <button className="col-span-2 inline-flex min-h-11 w-full items-center justify-center gap-1 rounded-lg bg-action px-4 text-sm font-semibold text-action-foreground hover:bg-action-hover disabled:opacity-60 sm:col-span-1 sm:w-auto" type="button" onClick={continueToNextStep} disabled={pending}>Continue <ChevronRight size={17} aria-hidden="true" /></button>
