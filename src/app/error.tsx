@@ -28,7 +28,7 @@ export default function ErrorBoundary({
               height={100}
               unoptimized
               className="h-10 w-auto dark:hidden"
-              priority
+              loading="eager"
             />
             <Image
               src="/icons/main_Logo_Light.png"
@@ -37,7 +37,7 @@ export default function ErrorBoundary({
               height={100}
               unoptimized
               className="hidden h-10 w-auto dark:block"
-              priority
+              loading="eager"
             />
           </Link>
         </div>

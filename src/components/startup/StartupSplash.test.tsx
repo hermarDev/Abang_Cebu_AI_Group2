@@ -5,6 +5,7 @@ import StartupSplash from "./StartupSplash";
 it("renders one accessible startup status and both theme-safe decorative logos", () => {
   const html = renderToStaticMarkup(<StartupSplash />);
   expect(html).toContain('data-startup-splash="true"');
+  expect(html).not.toContain('aria-hidden="false"');
   expect(html).toContain('role="status"');
   expect(html).toContain("Loading AbangCebu…");
   expect(html.match(/Loading AbangCebu…/g)).toHaveLength(1);
