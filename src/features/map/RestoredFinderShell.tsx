@@ -224,9 +224,10 @@ export function RestoredFinderShell({ rentalStatus: statusOverride, initialAccou
     if (!wasHelpOpenRef.current) return;
     wasHelpOpenRef.current = false;
     const active = document.activeElement;
-    const assistant = document.querySelector('[aria-label="AbangCebu assistant"]');
-    if (active && active !== document.body && !(assistant && assistant.contains(active))) return;
+    if (active && active !== document.body && active.isConnected) return;
     const frame = requestAnimationFrame(() => {
+      const currentActive = document.activeElement;
+      if (currentActive && currentActive !== document.body && currentActive.isConnected) return;
       const launcher = document.querySelector<HTMLButtonElement>('button[aria-label="Open rental assistant"]');
       if (launcher && launcher.offsetParent !== null) {
         launcher.focus();

@@ -15,13 +15,18 @@ import { FinderAssistant } from "./FinderAssistant";
 import { ExpandedRentalModalContent } from "./RestoredFinderShell";
 import { PropertyDetailsSheet, PropertyDetailsSheetBody, type PropertyDetailsSheetProps } from "../rentals/PropertyDetailsSheet";
 
-const hooks = vi.hoisted(() => ({ changeFilters: undefined as ((filters: RentalFilters) => void) | undefined, changeCenter: undefined as ((center: [number, number]) => void) | undefined, mapRentals: [] as RentalResult[], slots: [] as unknown[], index: 0, effects: [] as (() => void | (() => void))[], effect: undefined as (() => void | (() => void)) | undefined }));
+const hooks = vi.hoisted(() => ({ changeFilters: undefined as ((filters: RentalFilters) => void) | undefined, changeCenter: undefined as ((center: [number, number]) => void) | undefined, mapRentals: [] as RentalResult[], slots: [] as unknown[], index: 0, refs: [] as { current: unknown }[], refIndex: 0, effects: [] as (() => void | (() => void))[], effect: undefined as (() => void | (() => void)) | undefined }));
 vi.mock("react", async (importOriginal) => ({
   ...await importOriginal<typeof import("react")>(),
   useState: (initial: unknown) => {
     const index = hooks.index++;
     if (!(index in hooks.slots)) hooks.slots[index] = initial;
     return [hooks.slots[index], (value: unknown) => { hooks.slots[index] = typeof value === "function" ? value(hooks.slots[index]) : value; }];
+  },
+  useRef: (initial: unknown) => {
+    const index = hooks.refIndex++;
+    if (!(index in hooks.refs)) hooks.refs[index] = { current: initial };
+    return hooks.refs[index];
   },
   useSyncExternalStore: (_subscribe: (listener: () => void) => () => void, getSnapshot: () => unknown) => getSnapshot(),
   useEffect: (effect: () => void | (() => void)) => { hooks.effect ??= effect; hooks.effects.push(effect); },
@@ -36,6 +41,7 @@ vi.mock("@/components/map/MapCanvasLoader", () => ({ default: ({ rentals = [], o
 
 function render(rentalStatus?: "loading" | "error" | "ready") {
   hooks.index = 0;
+  hooks.refIndex = 0;
   hooks.mapRentals = [];
   return renderToStaticMarkup(<RestoredFinderShell rentalStatus={rentalStatus} />);
 }
@@ -62,10 +68,11 @@ async function load(response: { ok: boolean; json: () => Promise<unknown> }) {
   return { html, fetchMock, cleanup };
 }
 
-afterEach(() => { clearRentalsMemoryCache(); hooks.slots = []; hooks.index = 0; hooks.effect = undefined; hooks.effects = []; vi.unstubAllGlobals(); vi.unstubAllEnvs(); });
+afterEach(() => { clearRentalsMemoryCache(); hooks.slots = []; hooks.index = 0; hooks.refs = []; hooks.refIndex = 0; hooks.effect = undefined; hooks.effects = []; vi.unstubAllGlobals(); vi.unstubAllEnvs(); });
 
 function captureShell() {
   hooks.index = 0;
+  hooks.refIndex = 0;
   let tree: ReactNode;
   function Capture() { tree = RestoredFinderShell({}); return null; }
   renderToStaticMarkup(<Capture />);
@@ -127,6 +134,8 @@ function quickFiltersTree(onChange = vi.fn()) {
   expect(component).toBeDefined();
   hooks.slots = [];
   hooks.index = 0;
+  hooks.refs = [];
+  hooks.refIndex = 0;
   return (component!.type as (props: Record<string, unknown>) => ReactNode)({ ...component!.props, onChange });
 }
 
@@ -221,6 +230,7 @@ describe("RestoredFinderShell", () => {
     expect(typeOptions).toHaveLength(8);
     const rerenderQuickFilters = () => {
       hooks.index = 0;
+      hooks.refIndex = 0;
       return (quickFilterComponent!.type as (props: Record<string, unknown>) => ReactNode)({ ...quickFilterComponent!.props, onChange });
     };
     (budgetOptions[1].props.onChange as () => void)();
@@ -519,17 +529,23 @@ describe("RestoredFinderShell", () => {
     expect(sheet).toBeDefined();
     const savedSlots = hooks.slots;
     const savedIndex = hooks.index;
+    const savedRefs = hooks.refs;
+    const savedRefIndex = hooks.refIndex;
     hooks.slots = [];
     hooks.index = 0;
+    hooks.refs = [];
+    hooks.refIndex = 0;
     const html = renderToStaticMarkup(<PropertyDetailsSheetBody rental={sheet!.props.rental as RentalResult} />);
     hooks.slots = savedSlots;
     hooks.index = savedIndex;
+    hooks.refs = savedRefs;
+    hooks.refIndex = savedRefIndex;
     for (const text of ['aria-label="Previous photo"', 'aria-label="Next photo"', 'aria-label="Show photo 3"', "1 / 3", "Verified property", "18 sqm", "Up to 2 occupants", "Full gallery description.", "Wi-Fi"]) expect(html).toContain(text);
   });
 
   it("reuses the 60s rentals memory cache on remount until it is cleared", async () => {
     const { fetchMock } = await load({ ok: true, json: async () => ({ rentals: [rental] }) });
-    const remount = () => { hooks.slots = []; hooks.index = 0; hooks.effect = undefined; hooks.effects = []; const html = render(); (hooks.effect as (() => void) | undefined)?.(); return html; };
+    const remount = () => { hooks.slots = []; hooks.index = 0; hooks.refs = []; hooks.refIndex = 0; hooks.effect = undefined; hooks.effects = []; const html = render(); (hooks.effect as (() => void) | undefined)?.(); return html; };
     expect(remount()).toContain(rental.title);
     expect(fetchMock).toHaveBeenCalledTimes(1);
     clearRentalsMemoryCache();
@@ -541,6 +557,7 @@ describe("RestoredFinderShell", () => {
     type ShellProps = Parameters<typeof RestoredFinderShell>[0];
     const capture = (props: ShellProps = {}) => {
       hooks.index = 0;
+      hooks.refIndex = 0;
       let tree: ReactNode;
       function Capture() { tree = RestoredFinderShell(props); return null; }
       renderToStaticMarkup(<Capture />);
@@ -595,6 +612,7 @@ describe("RestoredFinderShell", () => {
       expect(renderToStaticMarkup(<ExpandedRentalModalContent rental={gallery} photoIndex={0} onPhotoIndexChange={vi.fn()} canSave={false} saved={false} onToggleSaved={vi.fn()} />)).not.toContain("Message landlord");
       // Choosing the action from the expanded modal/sheet closes it before navigating
       hooks.slots = [];
+      hooks.refs = [];
       await load({ ok: true, json: async () => ({ rentals: [gallery] }) });
       cardProps(capture(renter)).onExpand!("live-1");
       const expanded = findElementsByType(capture(renter), PropertyDetailsSheet)[0]
@@ -609,5 +627,67 @@ describe("RestoredFinderShell", () => {
       expect(renderToStaticMarkup(<RentalCard rental={rental} selected={false} onSelect={vi.fn()} canMessage />)).toContain('aria-label="Message landlord about Endpoint rental"');
       expect(renderToStaticMarkup(<RentalCard rental={rental} selected={false} onSelect={vi.fn()} />)).not.toContain("Message landlord");
     });
+  });
+
+  it("returns focus to Open rental assistant when closing with a detached activeElement and does not steal focus from connected page elements", () => {
+    const body = {};
+    const launcher = { offsetParent: {}, focus: vi.fn() };
+    const queuedFrames: FrameRequestCallback[] = [];
+    const doc = {
+      body,
+      activeElement: body as unknown,
+      querySelector: vi.fn((selector: string) =>
+        selector === 'button[aria-label="Open rental assistant"]' ? launcher : null,
+      ),
+    };
+    vi.stubGlobal("document", doc);
+    vi.stubGlobal("requestAnimationFrame", (cb: FrameRequestCallback) => {
+      queuedFrames.push(cb);
+      return queuedFrames.length;
+    });
+    vi.stubGlobal("cancelAnimationFrame", vi.fn());
+
+    const runHelpEffect = () => {
+      hooks.effects = [];
+      captureShell();
+      // Index 6 in RestoredFinderShell is the helpOpen focus-management effect
+      hooks.effects[6]?.();
+    };
+
+    // Case 1: Close while document.activeElement is detached (isConnected: false) -> restores focus to launcher
+    clickButton("Open rental assistant");
+    runHelpEffect();
+    queuedFrames.length = 0;
+
+    clickButton("Close AbangCebu assistant");
+    doc.activeElement = { isConnected: false };
+    runHelpEffect();
+    for (const frame of queuedFrames.splice(0)) frame(0);
+    expect(launcher.focus).toHaveBeenCalledOnce();
+
+    // Case 2: Close while document.activeElement is a connected page element -> does NOT steal focus
+    launcher.focus.mockClear();
+    clickButton("Open rental assistant");
+    runHelpEffect();
+    queuedFrames.length = 0;
+
+    clickButton("Close AbangCebu assistant");
+    doc.activeElement = { isConnected: true };
+    runHelpEffect();
+    for (const frame of queuedFrames.splice(0)) frame(0);
+    expect(launcher.focus).not.toHaveBeenCalled();
+
+    // Case 3: Focus moves to a connected element before requestAnimationFrame fires -> does NOT steal focus
+    launcher.focus.mockClear();
+    clickButton("Open rental assistant");
+    runHelpEffect();
+    queuedFrames.length = 0;
+
+    clickButton("Close AbangCebu assistant");
+    doc.activeElement = body;
+    runHelpEffect();
+    doc.activeElement = { isConnected: true };
+    for (const frame of queuedFrames.splice(0)) frame(0);
+    expect(launcher.focus).not.toHaveBeenCalled();
   });
 });

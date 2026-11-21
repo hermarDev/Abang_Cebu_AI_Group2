@@ -369,7 +369,7 @@ export function FinderAssistant({ open, onOpenChange: setOpen, onSearch, onFilte
   useEffect(() => {
     if (!open) return;
     const handleWindowKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
+      if (event.key === "Escape" && !event.isComposing && !composingRef.current && event.keyCode !== 229 && !event.defaultPrevented) {
         event.preventDefault();
         setOpen(false);
       }
@@ -402,6 +402,11 @@ export function FinderAssistant({ open, onOpenChange: setOpen, onSearch, onFilte
     if (focusables.length === 0) return;
     const first = focusables[0];
     const last = focusables[focusables.length - 1];
+    if (!focusables.includes(document.activeElement as HTMLElement)) {
+      event.preventDefault();
+      (event.shiftKey ? last : first).focus();
+      return;
+    }
     if (event.shiftKey && document.activeElement === first) {
       event.preventDefault();
       last.focus();
@@ -500,6 +505,8 @@ export function FinderAssistant({ open, onOpenChange: setOpen, onSearch, onFilte
       setMessages(conversation.messages);
       updateActiveConversationId(conversation.id);
       updateActiveConversationLocal(authenticated && !!conversation.localOnly);
+      stickToBottomRef.current = true;
+      setIsAtBottom(true);
       setHistoryOpen(false);
       setHistoryLoading(false);
       return;
@@ -517,6 +524,8 @@ export function FinderAssistant({ open, onOpenChange: setOpen, onSearch, onFilte
       updateActiveConversationId(saved.id);
       updateActiveConversationLocal(false);
       updateConversations((current) => current.map((item) => item.id === saved.id ? { ...item, messages: savedMessages } : item));
+      stickToBottomRef.current = true;
+      setIsAtBottom(true);
       setHistoryOpen(false);
     } catch {
       if (ownerGenerationRef.current !== generation) return;
@@ -527,6 +536,8 @@ export function FinderAssistant({ open, onOpenChange: setOpen, onSearch, onFilte
   }
 
   function startNewChat() {
+    stickToBottomRef.current = true;
+    setIsAtBottom(true);
     setMessages([welcomeMessage]);
     updateActiveConversationId(null);
     updateActiveConversationLocal(false);
