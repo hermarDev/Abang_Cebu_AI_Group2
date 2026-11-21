@@ -191,6 +191,7 @@ export function RestoredFinderShell({ rentalStatus: statusOverride, initialAccou
   const resultsToggle = useRef<HTMLButtonElement>(null);
   const collapseTrigger = useRef<HTMLButtonElement>(null);
   const mapViewport = useRef<HTMLDivElement>(null);
+  const wasHelpOpenRef = useRef(false);
   useEffect(() => {
     if (typeof document === "undefined") return;
     // Hydration's server snapshot is light; resolve the client preference before touching the root.
@@ -215,8 +216,24 @@ export function RestoredFinderShell({ rentalStatus: statusOverride, initialAccou
     return () => observer.disconnect();
   }, []);
   useEffect(() => {
-    if (!helpOpen) return;
-    const frame = requestAnimationFrame(() => document.querySelector<HTMLButtonElement>('[aria-label="AbangCebu assistant"] button[aria-label="Close chat"]')?.focus());
+    if (helpOpen) {
+      wasHelpOpenRef.current = true;
+      const frame = requestAnimationFrame(() => document.querySelector<HTMLButtonElement>('[aria-label="AbangCebu assistant"] button[aria-label="Close chat"]')?.focus());
+      return () => cancelAnimationFrame(frame);
+    }
+    if (!wasHelpOpenRef.current) return;
+    wasHelpOpenRef.current = false;
+    const active = document.activeElement;
+    const assistant = document.querySelector('[aria-label="AbangCebu assistant"]');
+    if (active && active !== document.body && !(assistant && assistant.contains(active))) return;
+    const frame = requestAnimationFrame(() => {
+      const launcher = document.querySelector<HTMLButtonElement>('button[aria-label="Open rental assistant"]');
+      if (launcher && launcher.offsetParent !== null) {
+        launcher.focus();
+      } else {
+        menuTrigger.current?.focus();
+      }
+    });
     return () => cancelAnimationFrame(frame);
   }, [helpOpen]);
   // Declared last so the test's slot-indexed useState/useEffect mocks keep their positions.
