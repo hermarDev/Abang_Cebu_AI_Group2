@@ -110,7 +110,10 @@ describe("RegisterForm", () => {
       expect(input.props["aria-invalid"]).toBe(true);
       expect(input.props["aria-describedby"]).toContain(`${input.props.id}-error`);
       expect(html).toContain(`id="${input.props.id}-error"`);
+      const errorEl = findElement(renderForm(), (el) => el.props.id === `${input.props.id}-error`);
+      expect(errorEl?.props.role).toBeUndefined();
     }
+    expect(html).not.toContain('role="alert"');
     expect(findInput("fullName").props.value).toBe("J");
     expect(findInput("email").props.value).toBe("bad-email");
     expect(findInput("password").props.value).toBe("short");
@@ -162,6 +165,7 @@ describe("RegisterForm", () => {
     const html = renderToStaticMarkup(<RegisterForm />);
     expect(html).toContain('autoComplete="name"');
     expect(html).toContain('autoComplete="email"');
+    expect(html).toContain('spellCheck="false"');
     expect(html).toContain('autoComplete="new-password"');
     expect(html).not.toContain('type="tel"');
     expect(html).not.toContain("Philippine Mobile Number");

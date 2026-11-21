@@ -80,6 +80,27 @@ describe("LoginForm", () => {
     expect(html).not.toContain(">Hide</button>");
   });
 
+  it("uses username autocomplete and disables spellcheck without per-field role=alert", async () => {
+    const html = renderToStaticMarkup(<LoginForm />);
+    expect(html).toContain('autoComplete="username"');
+    expect(html).toContain('spellCheck="false"');
+
+    vi.stubGlobal("document", { getElementById: () => null });
+    mocks.state.length = 0;
+    mocks.cursor.simulate = true;
+    try {
+      await (render().form.props.onSubmit as (e: unknown) => Promise<void>)({ preventDefault: () => undefined });
+      mocks.cursor.i = 0;
+      const errorHtml = renderToStaticMarkup(LoginForm());
+      expect(errorHtml).toContain("Enter your email address.");
+      expect(errorHtml).toContain("Enter your password.");
+      expect(errorHtml).not.toContain('role="alert"');
+    } finally {
+      mocks.cursor.simulate = false;
+      vi.unstubAllGlobals();
+    }
+  });
+
   it("shows password-reset success feedback when provided", () => {
     const html = renderToStaticMarkup(
       <LoginForm statusMessage="Your password has been reset. Sign in with your new password." />,

@@ -149,7 +149,7 @@ export function RegisterForm({ onLogin }: { onLogin?: () => void } = {}) {
                 required
               />
               </div>
-              {fieldErrors.fullName && <p id={`${nameId}-error`} className="mt-1 text-sm text-destructive" role="alert">{fieldErrors.fullName}</p>}
+              {fieldErrors.fullName && <p id={`${nameId}-error`} className="mt-1 text-sm text-destructive">{fieldErrors.fullName}</p>}
             </div>
 
             <div>
@@ -167,12 +167,13 @@ export function RegisterForm({ onLogin }: { onLogin?: () => void } = {}) {
                 value={email}
                 onChange={(e) => { setEmail(e.target.value); updateFieldError("email", e.target.value); }}
                 autoComplete="email"
+                spellCheck={false}
                 aria-invalid={Boolean(fieldErrors.email)}
                 aria-describedby={fieldErrors.email ? `${emailId}-error` : undefined}
                 required
               />
               </div>
-              {fieldErrors.email && <p id={`${emailId}-error`} className="mt-1 text-sm text-destructive" role="alert">{fieldErrors.email}</p>}
+              {fieldErrors.email && <p id={`${emailId}-error`} className="mt-1 text-sm text-destructive">{fieldErrors.email}</p>}
             </div>
 
             <div>
@@ -196,7 +197,7 @@ export function RegisterForm({ onLogin }: { onLogin?: () => void } = {}) {
                   aria-describedby={`${passwordId}-policy${fieldErrors.password ? ` ${passwordId}-error` : ""}`}
                   required
                 />
-                {fieldErrors.password && <p id={`${passwordId}-error`} className="mt-1 text-sm text-destructive" role="alert">{fieldErrors.password}</p>}
+                {fieldErrors.password && <p id={`${passwordId}-error`} className="mt-1 text-sm text-destructive">{fieldErrors.password}</p>}
                 <button
                   type="button"
                   className="absolute right-0 top-0 grid min-h-11 min-w-11 place-items-center rounded-md text-muted-foreground hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring"

@@ -109,11 +109,12 @@ export function LoginForm({
               value={email}
               readOnly={loading}
               onChange={(e) => { const value = e.target.value; setEmail(value); if (submitted) setFieldErrors(errors => ({ ...errors, email: emailError(value) })); }}
-              autoComplete="email"
+              autoComplete="username"
+              spellCheck={false}
               required
             />
             </div>
-            {fieldErrors.email && <FieldError id={`${emailId}-error`} role="alert" className="mt-1">{fieldErrors.email}</FieldError>}
+            {fieldErrors.email && <FieldError id={`${emailId}-error`} className="mt-1">{fieldErrors.email}</FieldError>}
           </div>
 
           <div>
@@ -151,7 +152,7 @@ export function LoginForm({
                 {showPassword ? <EyeOff size={19} aria-hidden="true" /> : <Eye size={19} aria-hidden="true" />}
               </button>
             </div>
-            {fieldErrors.password && <FieldError id={`${passwordId}-error`} role="alert" className="mt-1">{fieldErrors.password}</FieldError>}
+            {fieldErrors.password && <FieldError id={`${passwordId}-error`} className="mt-1">{fieldErrors.password}</FieldError>}
           </div>
 
           {statusMessage && (
