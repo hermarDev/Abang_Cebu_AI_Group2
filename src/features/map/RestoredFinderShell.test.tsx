@@ -137,6 +137,12 @@ function findPopoverRoots(tree: ReactNode): ReactElement<{ children?: ReactNode;
 }
 
 describe("RestoredFinderShell", () => {
+  it("renders a skip link targeting the main map stage", () => {
+    const html = render("ready");
+    expect(html).toContain('href="#main-content"');
+    expect(html).toContain('id="main-content"');
+    expect(html).toMatch(/id="main-content"[^>]*tabindex="-1"|tabindex="-1"[^>]*id="main-content"/);
+  });
   it("presents one branded account surface with a Back to map action and no repeated guest/landlord banners", () => {
     moveSheet("ArrowUp");
     clickButton("Open account dialog");

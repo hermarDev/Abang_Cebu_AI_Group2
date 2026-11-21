@@ -112,6 +112,8 @@ describe("WorkspaceShell", () => {
     expect(html).toContain("<p>Main Body</p>");
     expect(html).toContain('aria-label="Mobile slot"');
     expect(html.match(/pb-\[calc\(5rem\+env\(safe-area-inset-bottom\)\)\]/g)).toHaveLength(1);
+    expect(html).toContain('href="#main-content"');
+    expect(html).toContain('id="main-content"');
   });
 
   it("keeps the desktop sidebar viewport-bounded and independently reachable", () => {
