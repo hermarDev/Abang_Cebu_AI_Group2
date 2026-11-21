@@ -386,6 +386,146 @@ describe("FinderAssistant", () => {
     expect(last.focus).toHaveBeenCalledOnce();
   });
 
+  it("resets scroll stickiness when historyOwner changes after scrolling up", async () => {
+    const scrollIntoView = vi.fn();
+    vi.stubGlobal("window", {
+      matchMedia: () => ({ matches: true }),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      localStorage: {
+        getItem: () =>
+          JSON.stringify([
+            {
+              id: "local-1",
+              title: "Guest chat",
+              preview: "You: Hello",
+              createdAt: "2026-01-01T00:00:00.000Z",
+              updatedAt: "2026-01-02T00:00:00.000Z",
+              messages: [{ role: "user", content: "Hello" }],
+            },
+          ]),
+        setItem: vi.fn(),
+      },
+    });
+    vi.stubGlobal("fetch", vi.fn(async (url: string) => {
+      if (url.includes("id=acct-1")) {
+        return {
+          ok: true,
+          json: async () => ({
+            conversation: {
+              id: "acct-1",
+              title: "Account chat",
+              preview: "Hi",
+              createdAt: "2026-01-01T00:00:00.000Z",
+              updatedAt: "2026-01-03T00:00:00.000Z",
+              messages: [{ role: "user", content: "Account msg" }],
+            },
+          }),
+        };
+      }
+      return {
+        ok: true,
+        json: async () => ({
+          conversations: [{ id: "acct-1", title: "Account chat", preview: "Hi", createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-03T00:00:00.000Z" }],
+        }),
+      };
+    }));
+
+    captureAssistant({ open: true, authenticated: false });
+    hooks.effects[0]();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    let tree = captureAssistant({ open: true, authenticated: false });
+    const log = findElement<{ ref?: { current: unknown }; onScroll?: () => void; children?: ReactNode }>(tree, (el) => el.props.role === "log")!;
+    log.props.ref!.current = { scrollHeight: 1000, scrollTop: 0, clientHeight: 400 };
+    log.props.onScroll?.();
+    tree = captureAssistant({ open: true, authenticated: false });
+    expect(findElement(tree, (el) => el.type === "button" && el.props.children === "Jump to latest")).toBeDefined();
+
+    // Sign in and load account history
+    captureAssistant({ open: true, authenticated: true, userId: "user-1" });
+    hooks.effects[0]();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    tree = captureAssistant({ open: true, authenticated: true, userId: "user-1" });
+    expect(findElement(tree, (el) => el.type === "button" && el.props.children === "Jump to latest")).toBeUndefined();
+    const acctLog = findElement<{ children?: ReactNode }>(tree, (el) => el.props.role === "log")!;
+    const endSentinel = [acctLog.props.children].flat(Infinity).filter(isValidElement).at(-1) as ReactElement<{ ref?: { current: unknown } }>;
+    endSentinel.props.ref!.current = { scrollIntoView };
+    hooks.effects[1]();
+    expect(scrollIntoView).toHaveBeenCalledOnce();
+  });
+
+  it("preserves follow intent during intermediate smooth scroll events without ignoring user scroll away", () => {
+    const scrollIntoView = vi.fn();
+    vi.stubGlobal("window", {
+      matchMedia: () => ({ matches: false }),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    });
+
+    let tree = captureAssistant({ open: true, authenticated: false });
+    const log = findElement<{ ref?: { current: unknown }; onScroll?: () => void; onWheel?: () => void; children?: ReactNode }>(tree, (el) => el.props.role === "log")!;
+    const container = { scrollHeight: 1000, scrollTop: 100, clientHeight: 400 };
+    log.props.ref!.current = container;
+    const endSentinel = [log.props.children].flat(Infinity).filter(isValidElement).at(-1) as ReactElement<{ ref?: { current: unknown } }>;
+    endSentinel.props.ref!.current = { scrollIntoView };
+
+    // Auto-scroll effect starts smooth scroll from scrollTop=100
+    hooks.effects[1]();
+    expect(scrollIntoView).toHaveBeenCalledWith({ behavior: "smooth", block: "end" });
+
+    // Intermediate downward smooth-scroll event (still >48px from bottom) should NOT clear stickToBottomRef
+    container.scrollTop = 300;
+    log.props.onScroll?.();
+    tree = captureAssistant({ open: true, authenticated: false });
+    expect(findElement(tree, (el) => el.type === "button" && el.props.children === "Jump to latest")).toBeUndefined();
+
+    // User scrolls back up (or triggers wheel) -> clears stickToBottomRef and shows Jump to latest
+    container.scrollTop = 150;
+    log.props.onWheel?.();
+    log.props.onScroll?.();
+    tree = captureAssistant({ open: true, authenticated: false });
+    expect(findElement(tree, (el) => el.type === "button" && el.props.children === "Jump to latest")).toBeDefined();
+  });
+
+  it("contains mobile Tab focus at the document level when activeElement falls back to document.body", () => {
+    const docListeners = new Map<string, (event: unknown) => void>();
+    const first = { offsetParent: {}, focus: vi.fn() };
+    const last = { offsetParent: {}, focus: vi.fn() };
+    const body = { nodeName: "BODY" };
+    vi.stubGlobal("window", {
+      matchMedia: (query: string) => ({ matches: query === "(max-width: 1023px)" }),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    });
+    vi.stubGlobal("document", {
+      activeElement: body,
+      addEventListener: (type: string, fn: (event: unknown) => void) => docListeners.set(type, fn),
+      removeEventListener: vi.fn(),
+    });
+
+    const tree = captureAssistant({ open: true });
+    const panel = findElement<{ ref?: { current: unknown } }>(
+      tree,
+      (el) => el.type === "section" && el.props["aria-label"] === "AbangCebu assistant",
+    )!;
+    panel.props.ref!.current = {
+      contains: () => false,
+      querySelectorAll: () => [first, last],
+    };
+
+    expect(hooks.effects.length).toBeGreaterThanOrEqual(4);
+    hooks.effects[3]();
+    const onDocKeyDown = docListeners.get("keydown");
+    expect(onDocKeyDown).toBeTypeOf("function");
+
+    const tabEvent = { key: "Tab", shiftKey: false, preventDefault: vi.fn() };
+    onDocKeyDown!(tabEvent);
+    expect(tabEvent.preventDefault).toHaveBeenCalledOnce();
+    expect(first.focus).toHaveBeenCalledOnce();
+  });
+
   it("restores focus when closing the assistant from RestoredFinderShell", () => {
     expect(shellSource).toContain("wasHelpOpenRef");
     expect(shellSource).toContain('button[aria-label="Open rental assistant"]');

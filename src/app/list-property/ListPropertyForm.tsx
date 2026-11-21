@@ -498,10 +498,13 @@ export function ListPropertyForm({ userId, restoreTarget }: { userId: string; re
 
   function focusStepHeading(targetStep: number) {
     const applyFocus = () => {
-      if (typeof document !== "undefined") {
-        document.getElementById(STEP_HEADING_IDS[targetStep])?.focus({ preventScroll: true });
+      const heading = typeof document !== "undefined" ? document.getElementById(STEP_HEADING_IDS[targetStep]) : null;
+      heading?.focus({ preventScroll: true });
+      if (typeof heading?.scrollIntoView === "function") {
+        heading.scrollIntoView({ block: "start" });
+      } else {
+        formRef.current?.scrollIntoView({ block: "start" });
       }
-      formRef.current?.scrollIntoView({ block: "start" });
     };
     if (typeof requestAnimationFrame === "function") {
       requestAnimationFrame(applyFocus);

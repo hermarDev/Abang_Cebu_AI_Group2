@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { CheckCircle2, CircleAlert, Eye, EyeOff, LockKeyhole, Mail } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
@@ -34,23 +34,38 @@ export function LoginForm({
   const [redirectingLabel, setRedirectingLabel] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string }>({});
   const [submitted, setSubmitted] = useState(false);
+  const [validationAttempt, setValidationAttempt] = useState(0);
+  const [validationAnnouncement, setValidationAnnouncement] = useState("");
+  const pendingFocusIdRef = useRef<string | null>(null);
   const emailError = (value: string) => !value.trim() ? "Enter your email address." : !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim()) ? "Enter a valid email address." : undefined;
   const Surface = onRegister ? "div" : Card;
+
+  useEffect(() => {
+    const targetId = pendingFocusIdRef.current;
+    if (!targetId) return;
+    pendingFocusIdRef.current = null;
+    document.getElementById(targetId)?.focus();
+  }, [validationAttempt]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (loading) return;
     setSubmitted(true);
+    setStatusMessage(null);
     const errors = {
       email: emailError(email),
       password: !password ? "Enter your password." : undefined,
     };
     setFieldErrors(errors);
     if (errors.email || errors.password) {
-      document.getElementById(errors.email ? emailId : passwordId)?.focus();
+      pendingFocusIdRef.current = errors.email ? emailId : passwordId;
+      const nextAttempt = validationAttempt + 1;
+      setValidationAttempt(nextAttempt);
+      const summary = [errors.email, errors.password].filter(Boolean).join(" ");
+      setValidationAnnouncement(nextAttempt % 2 === 1 ? `${summary}\u00A0` : summary);
       return;
     }
-    setStatusMessage(null);
+    setValidationAnnouncement("");
     setLoading(true);
     try {
       const result = await signInWithEmail(email, password);
@@ -93,6 +108,7 @@ export function LoginForm({
       )}
       <CardContent className={onRegister ? "p-0" : undefined}>
         <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+          <p className="sr-only" aria-live="polite" aria-atomic="true">{validationAnnouncement}</p>
           <div>
             <label htmlFor={emailId} className="block text-sm font-medium mb-1">
               Email Address

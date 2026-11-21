@@ -3,7 +3,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 import { LoginForm } from "./LoginForm";
 
-const mocks = vi.hoisted(() => ({ replace: vi.fn(), refresh: vi.fn(), signIn: vi.fn(), state: [] as unknown[], cursor: { i: 0, simulate: false } }));
+const mocks = vi.hoisted(() => ({ replace: vi.fn(), refresh: vi.fn(), signIn: vi.fn(), state: [] as unknown[], refs: [] as { current: unknown }[], effects: [] as (() => void)[], cursor: { i: 0, refI: 0, simulate: false } }));
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ replace: mocks.replace, refresh: mocks.refresh, push: vi.fn() }),
 }));
@@ -17,6 +17,16 @@ vi.mock("react", async (importOriginal) => {
   return {
     ...actual,
     useId: () => (mocks.cursor.simulate ? "id" : actual.useId()),
+    useRef: (init: unknown) => {
+      if (!mocks.cursor.simulate) return actual.useRef(init);
+      const i = mocks.cursor.refI++;
+      if (!(i in mocks.refs)) mocks.refs[i] = { current: init };
+      return mocks.refs[i];
+    },
+    useEffect: (effect: () => void) => {
+      if (!mocks.cursor.simulate) return actual.useEffect(effect);
+      mocks.effects.push(effect);
+    },
     useState: (init: unknown) => {
       if (!mocks.cursor.simulate) return actual.useState(init);
       const i = mocks.cursor.i++;
@@ -33,6 +43,8 @@ const walk = (node: ReactNode, visit: (element: Node) => void) => {
 };
 const render = () => {
   mocks.cursor.i = 0;
+  mocks.cursor.refI = 0;
+  mocks.effects.length = 0;
   const tree = LoginForm() as Node;
   let form: Node | undefined; let submit: Node | undefined; const texts: string[] = [];
   const collect = (node: ReactNode) => { if (typeof node === "string") texts.push(node); else if (Array.isArray(node)) node.forEach(collect); else if (node && typeof node === "object" && "props" in node) collect((node as Node).props.children); };
@@ -87,14 +99,58 @@ describe("LoginForm", () => {
 
     vi.stubGlobal("document", { getElementById: () => null });
     mocks.state.length = 0;
+    mocks.refs.length = 0;
     mocks.cursor.simulate = true;
     try {
       await (render().form.props.onSubmit as (e: unknown) => Promise<void>)({ preventDefault: () => undefined });
       mocks.cursor.i = 0;
+      mocks.cursor.refI = 0;
       const errorHtml = renderToStaticMarkup(LoginForm());
       expect(errorHtml).toContain("Enter your email address.");
       expect(errorHtml).toContain("Enter your password.");
       expect(errorHtml).not.toContain('role="alert"');
+    } finally {
+      mocks.cursor.simulate = false;
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it("clears stale server banner, focuses first invalid input after render, and updates polite error announcement", async () => {
+    const emailFocus = vi.fn();
+    let renderedErrorHtml = "";
+    const getElementById = vi.fn((id: string) => (id === "id" ? { focus: emailFocus } : null));
+    vi.stubGlobal("document", { getElementById });
+    vi.stubGlobal("window", { location: { search: "" } });
+    mocks.state.length = 0;
+    mocks.refs.length = 0;
+    mocks.signIn.mockResolvedValueOnce({ success: false, message: "Invalid login credentials." });
+    mocks.cursor.simulate = true;
+    try {
+      render();
+      mocks.state[1] = "a@b.co";
+      mocks.state[2] = "secret";
+      await (render().form.props.onSubmit as (e: unknown) => Promise<void>)({ preventDefault: () => undefined });
+      expect(render().text).toContain("Invalid login credentials.");
+
+      // Clear email and re-submit invalidly: stale server banner should clear, focus waits for commit effect, and aria-live polite announces
+      mocks.state[1] = "";
+      await (render().form.props.onSubmit as (e: unknown) => Promise<void>)({ preventDefault: () => undefined });
+      expect(emailFocus).not.toHaveBeenCalled();
+
+      mocks.cursor.i = 0;
+      mocks.cursor.refI = 0;
+      mocks.effects.length = 0;
+      renderedErrorHtml = renderToStaticMarkup(LoginForm());
+      expect(renderedErrorHtml).not.toContain("Invalid login credentials.");
+      expect(renderedErrorHtml).toContain('aria-describedby="id-error"');
+      expect(renderedErrorHtml).toContain('aria-live="polite"');
+      expect(renderedErrorHtml).toContain("Enter your email address.");
+      expect(renderedErrorHtml).not.toContain('role="alert"');
+
+      render();
+      expect(mocks.effects.length).toBeGreaterThan(0);
+      mocks.effects.forEach((effect) => effect());
+      expect(emailFocus).toHaveBeenCalledOnce();
     } finally {
       mocks.cursor.simulate = false;
       vi.unstubAllGlobals();

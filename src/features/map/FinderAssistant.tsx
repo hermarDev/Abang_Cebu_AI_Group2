@@ -229,7 +229,11 @@ export function FinderAssistant({ open, onOpenChange: setOpen, onSearch, onFilte
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
   const messageEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLElement>(null);
   const stickToBottomRef = useRef(true);
+  const programmaticScrollRef = useRef(false);
+  const lastScrollTopRef = useRef(0);
+  const programmaticScrollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [isAtBottom, setIsAtBottom] = useState(true);
   const composingRef = useRef(false);
   const localHistoryKey = userId ? `${LOCAL_HISTORY_KEY}:account:${userId}` : `${LOCAL_HISTORY_KEY}:guest`;
@@ -276,6 +280,8 @@ export function FinderAssistant({ open, onOpenChange: setOpen, onSearch, onFilte
       updateActiveConversationLocal(false);
       updateConversations([]);
       setMessages([welcomeMessage]);
+      stickToBottomRef.current = true;
+      setIsAtBottom(true);
       accountSyncUnavailable.current = false;
 
       if (!authenticated) {
@@ -360,11 +366,32 @@ export function FinderAssistant({ open, onOpenChange: setOpen, onSearch, onFilte
     return () => { cancelled = true; };
   }, [authenticated, historyOwner, localHistoryKey, open, updateActiveConversationId, updateActiveConversationLocal, updateConversations, userId]);
 
+  const clearProgrammaticScroll = useCallback(() => {
+    programmaticScrollRef.current = false;
+    if (programmaticScrollTimerRef.current) {
+      clearTimeout(programmaticScrollTimerRef.current);
+      programmaticScrollTimerRef.current = null;
+    }
+  }, []);
+
+  const scrollToBottom = useCallback((reducedMotion: boolean) => {
+    clearProgrammaticScroll();
+    lastScrollTopRef.current = messagesContainerRef.current?.scrollTop ?? 0;
+    if (!reducedMotion) {
+      programmaticScrollRef.current = true;
+      programmaticScrollTimerRef.current = setTimeout(() => {
+        programmaticScrollRef.current = false;
+        programmaticScrollTimerRef.current = null;
+      }, 700);
+    }
+    messageEndRef.current?.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "end" });
+  }, [clearProgrammaticScroll]);
+
   useEffect(() => {
     if (!open || historyOpen || !stickToBottomRef.current) return;
     const reducedMotion = typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-    messageEndRef.current?.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "end" });
-  }, [messages, isSending, open, historyOpen]);
+    scrollToBottom(Boolean(reducedMotion));
+  }, [messages, isSending, open, historyOpen, scrollToBottom]);
 
   useEffect(() => {
     if (!open) return;
@@ -378,26 +405,11 @@ export function FinderAssistant({ open, onOpenChange: setOpen, onSearch, onFilte
     return () => window.removeEventListener("keydown", handleWindowKeyDown);
   }, [open, setOpen]);
 
-  function handleMessagesScroll() {
-    const container = messagesContainerRef.current;
-    if (!container) return;
-    const nearBottom = container.scrollHeight - container.scrollTop - container.clientHeight <= 48;
-    stickToBottomRef.current = nearBottom;
-    setIsAtBottom(nearBottom);
-  }
-
-  function jumpToLatest() {
-    stickToBottomRef.current = true;
-    setIsAtBottom(true);
-    const reducedMotion = typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-    messageEndRef.current?.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "end" });
-  }
-
-  function handlePanelKeyDown(event: ReactKeyboardEvent<HTMLElement>) {
+  const trapMobileTab = useCallback((panel: HTMLElement, event: { key: string; shiftKey: boolean; preventDefault: () => void }) => {
     if (event.key !== "Tab") return;
     if (typeof window === "undefined" || !window.matchMedia?.("(max-width: 1023px)").matches) return;
     const focusables = Array.from(
-      event.currentTarget.querySelectorAll<HTMLElement>('button:not([disabled]), a[href], input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'),
+      panel.querySelectorAll<HTMLElement>('button:not([disabled]), a[href], input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'),
     ).filter((element) => element.offsetParent !== null);
     if (focusables.length === 0) return;
     const first = focusables[0];
@@ -414,6 +426,51 @@ export function FinderAssistant({ open, onOpenChange: setOpen, onSearch, onFilte
       event.preventDefault();
       first.focus();
     }
+  }, []);
+
+  useEffect(() => {
+    if (!open || typeof document === "undefined" || typeof document.addEventListener !== "function") return;
+    const handleDocumentKeyDown = (event: KeyboardEvent) => {
+      const panel = panelRef.current;
+      if (!panel || panel.contains(document.activeElement)) return;
+      trapMobileTab(panel, event);
+    };
+    document.addEventListener("keydown", handleDocumentKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleDocumentKeyDown);
+      clearProgrammaticScroll();
+    };
+  }, [open, trapMobileTab, clearProgrammaticScroll]);
+
+  function handleMessagesScroll() {
+    const container = messagesContainerRef.current;
+    if (!container) return;
+    const nearBottom = container.scrollHeight - container.scrollTop - container.clientHeight <= 48;
+    const prevScrollTop = lastScrollTopRef.current;
+    lastScrollTopRef.current = container.scrollTop;
+    if (programmaticScrollRef.current) {
+      if (nearBottom) {
+        clearProgrammaticScroll();
+        stickToBottomRef.current = true;
+        setIsAtBottom(true);
+        return;
+      }
+      if (container.scrollTop > prevScrollTop) return;
+      clearProgrammaticScroll();
+    }
+    stickToBottomRef.current = nearBottom;
+    setIsAtBottom(nearBottom);
+  }
+
+  function jumpToLatest() {
+    stickToBottomRef.current = true;
+    setIsAtBottom(true);
+    const reducedMotion = typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    scrollToBottom(Boolean(reducedMotion));
+  }
+
+  function handlePanelKeyDown(event: ReactKeyboardEvent<HTMLElement>) {
+    trapMobileTab(event.currentTarget, event);
   }
 
   function saveLocally(nextMessages: ChatMessage[]) {
@@ -623,7 +680,7 @@ export function FinderAssistant({ open, onOpenChange: setOpen, onSearch, onFilte
 
   return <div className={styles.assistant}>
     {open && <div ref={onControlsTargetChange} className={styles.assistantControlsSlot} />}
-    {open && <section className={styles.chatPanel} aria-label="AbangCebu assistant" onKeyDown={handlePanelKeyDown}>
+    {open && <section ref={panelRef} className={styles.chatPanel} aria-label="AbangCebu assistant" onKeyDown={handlePanelKeyDown}>
       <header className={styles.chatHeader}>
         <ChatbotAvatar size={36} className="h-9 w-9" aria-hidden="true" />
         <div className={styles.chatIdentity}><b>AbangCebu assistant</b><span>{authenticated ? "Your Cebu rental chats" : "Cebu rental help"}</span></div>
@@ -649,7 +706,7 @@ export function FinderAssistant({ open, onOpenChange: setOpen, onSearch, onFilte
           </div>)}
         </div>
       </div> : <>
-        <div ref={messagesContainerRef} onScroll={handleMessagesScroll} className={styles.chatMessages} role="log" aria-live="polite" aria-label="Conversation with AbangCebu assistant">
+        <div ref={messagesContainerRef} onScroll={handleMessagesScroll} onWheel={clearProgrammaticScroll} onTouchMove={clearProgrammaticScroll} onPointerDown={clearProgrammaticScroll} className={styles.chatMessages} role="log" aria-live="polite" aria-label="Conversation with AbangCebu assistant">
           {messages.map((message, index) => {
             return message.role === "user"
               ? <div key={`${message.role}-${index}`} className={styles.chatUserMessage}>
