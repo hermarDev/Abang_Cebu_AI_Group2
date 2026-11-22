@@ -105,6 +105,25 @@ describe("ResetPasswordForm", () => {
     expect(region?.props.role).toBe("status");
     expect(region?.props.children).toBeFalsy();
   });
+
+  it("links confirmPassword to a status id when passwords match and disables email spellcheck", () => {
+    const requestHtml = renderToStaticMarkup(<ResetPasswordForm isRecovery={false} />);
+    expect(requestHtml).toContain('spellCheck="false"');
+
+    state.active = true;
+    for (const name of ["newPassword", "confirmPassword"]) {
+      const input = findElement(renderForm(true), (element) => element.props.name === name)!;
+      (input.props.onChange as (event: { target: { value: string } }) => void)({ target: { value: "StrongPass1!" } });
+    }
+    const confirmation = findElement(renderForm(true), (element) => element.props.name === "confirmPassword")!;
+    expect(confirmation.props["aria-invalid"]).toBe(false);
+    expect(confirmation.props["aria-describedby"]).toBe(`${confirmation.props.id}-status`);
+    expect(confirmation.props["aria-describedby"]).not.toContain("-error");
+    const html = renderToStaticMarkup(renderForm(true));
+    expect(html).toContain(`id="${confirmation.props.id}-status"`);
+    expect(html).toContain("Passwords match.");
+    expect(html).not.toContain(`id="${confirmation.props.id}-error"`);
+  });
   it("shows a recovery icon above the recovery form", () => {
     const html = renderToStaticMarkup(<ResetPasswordForm />);
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useCallback, useEffect, useLayoutEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
+import { Fragment, useCallback, useEffect, useLayoutEffect, useRef, useState, type FormEvent, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from "react";
 import Image from "next/image";
 import { ChatbotAvatar } from "@/components/brand";
 import { History, LoaderCircle, Plus, Send, Trash2, X } from "lucide-react";
@@ -305,6 +305,14 @@ export function FinderAssistant({ open, onOpenChange: setOpen, onSearch, onFilte
   const loadedHistoryFor = useRef<string | null>(null);
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
   const messageEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLElement>(null);
+  const stickToBottomRef = useRef(true);
+  const programmaticScrollRef = useRef(false);
+  const lastScrollTopRef = useRef(0);
+  const programmaticScrollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [isAtBottom, setIsAtBottom] = useState(true);
+  const composingRef = useRef(false);
   const localHistoryKey = userId ? `${LOCAL_HISTORY_KEY}:account:${userId}` : `${LOCAL_HISTORY_KEY}:guest`;
   const historyOwner = authenticated ? userId ? `account:${userId}` : "unknown" : "guest";
   const draft = drafts[historyOwner] ?? "";
@@ -349,6 +357,8 @@ export function FinderAssistant({ open, onOpenChange: setOpen, onSearch, onFilte
       updateActiveConversationLocal(false);
       updateConversations([]);
       setMessages([welcomeMessage]);
+      stickToBottomRef.current = true;
+      setIsAtBottom(true);
       accountSyncUnavailable.current = false;
 
       if (!authenticated) {
@@ -433,9 +443,112 @@ export function FinderAssistant({ open, onOpenChange: setOpen, onSearch, onFilte
     return () => { cancelled = true; };
   }, [authenticated, historyOwner, localHistoryKey, open, updateActiveConversationId, updateActiveConversationLocal, updateConversations, userId]);
 
+  const clearProgrammaticScroll = useCallback(() => {
+    programmaticScrollRef.current = false;
+    if (programmaticScrollTimerRef.current) {
+      clearTimeout(programmaticScrollTimerRef.current);
+      programmaticScrollTimerRef.current = null;
+    }
+  }, []);
+
+  const scrollToBottom = useCallback((reducedMotion: boolean) => {
+    clearProgrammaticScroll();
+    lastScrollTopRef.current = messagesContainerRef.current?.scrollTop ?? 0;
+    if (!reducedMotion) {
+      programmaticScrollRef.current = true;
+      programmaticScrollTimerRef.current = setTimeout(() => {
+        programmaticScrollRef.current = false;
+        programmaticScrollTimerRef.current = null;
+      }, 700);
+    }
+    messageEndRef.current?.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "end" });
+  }, [clearProgrammaticScroll]);
+
   useEffect(() => {
-    messageEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
-  }, [messages, isSending, open, historyOpen]);
+    if (!open || historyOpen || !stickToBottomRef.current) return;
+    const reducedMotion = typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    scrollToBottom(Boolean(reducedMotion));
+  }, [messages, isSending, open, historyOpen, scrollToBottom]);
+
+  useEffect(() => {
+    if (!open) return;
+    const handleWindowKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && !event.isComposing && !composingRef.current && event.keyCode !== 229 && !event.defaultPrevented) {
+        event.preventDefault();
+        setOpen(false);
+      }
+    };
+    window.addEventListener("keydown", handleWindowKeyDown);
+    return () => window.removeEventListener("keydown", handleWindowKeyDown);
+  }, [open, setOpen]);
+
+  const trapMobileTab = useCallback((panel: HTMLElement, event: { key: string; shiftKey: boolean; preventDefault: () => void }) => {
+    if (event.key !== "Tab") return;
+    if (typeof window === "undefined" || !window.matchMedia?.("(max-width: 1023px)").matches) return;
+    const focusables = Array.from(
+      panel.querySelectorAll<HTMLElement>('button:not([disabled]), a[href], input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'),
+    ).filter((element) => element.offsetParent !== null);
+    if (focusables.length === 0) return;
+    const first = focusables[0];
+    const last = focusables[focusables.length - 1];
+    if (!focusables.includes(document.activeElement as HTMLElement)) {
+      event.preventDefault();
+      (event.shiftKey ? last : first).focus();
+      return;
+    }
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!open || typeof document === "undefined" || typeof document.addEventListener !== "function") return;
+    const handleDocumentKeyDown = (event: KeyboardEvent) => {
+      const panel = panelRef.current;
+      if (!panel || panel.contains(document.activeElement)) return;
+      trapMobileTab(panel, event);
+    };
+    document.addEventListener("keydown", handleDocumentKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleDocumentKeyDown);
+      clearProgrammaticScroll();
+    };
+  }, [open, trapMobileTab, clearProgrammaticScroll]);
+
+  function handleMessagesScroll() {
+    const container = messagesContainerRef.current;
+    if (!container) return;
+    const nearBottom = container.scrollHeight - container.scrollTop - container.clientHeight <= 48;
+    const prevScrollTop = lastScrollTopRef.current;
+    lastScrollTopRef.current = container.scrollTop;
+    if (programmaticScrollRef.current) {
+      if (nearBottom) {
+        clearProgrammaticScroll();
+        stickToBottomRef.current = true;
+        setIsAtBottom(true);
+        return;
+      }
+      if (container.scrollTop > prevScrollTop) return;
+      clearProgrammaticScroll();
+    }
+    stickToBottomRef.current = nearBottom;
+    setIsAtBottom(nearBottom);
+  }
+
+  function jumpToLatest() {
+    stickToBottomRef.current = true;
+    setIsAtBottom(true);
+    const reducedMotion = typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    scrollToBottom(Boolean(reducedMotion));
+  }
+
+  function handlePanelKeyDown(event: ReactKeyboardEvent<HTMLElement>) {
+    trapMobileTab(event.currentTarget, event);
+  }
 
   function saveLocally(nextMessages: ChatMessage[]) {
     const validatedMessages = validateMessages(nextMessages);
@@ -526,6 +639,8 @@ export function FinderAssistant({ open, onOpenChange: setOpen, onSearch, onFilte
       setMessages(conversation.messages);
       updateActiveConversationId(conversation.id);
       updateActiveConversationLocal(authenticated && !!conversation.localOnly);
+      stickToBottomRef.current = true;
+      setIsAtBottom(true);
       setHistoryOpen(false);
       setHistoryLoading(false);
       return;
@@ -543,6 +658,8 @@ export function FinderAssistant({ open, onOpenChange: setOpen, onSearch, onFilte
       updateActiveConversationId(saved.id);
       updateActiveConversationLocal(false);
       updateConversations((current) => current.map((item) => item.id === saved.id ? { ...item, messages: savedMessages } : item));
+      stickToBottomRef.current = true;
+      setIsAtBottom(true);
       setHistoryOpen(false);
     } catch {
       if (ownerGenerationRef.current !== generation) return;
@@ -553,6 +670,8 @@ export function FinderAssistant({ open, onOpenChange: setOpen, onSearch, onFilte
   }
 
   function startNewChat() {
+    stickToBottomRef.current = true;
+    setIsAtBottom(true);
     setMessages([welcomeMessage]);
     updateActiveConversationId(null);
     updateActiveConversationLocal(false);
@@ -600,6 +719,8 @@ export function FinderAssistant({ open, onOpenChange: setOpen, onSearch, onFilte
     const content = draft.trim();
     if (!content || isSending || isLoadingHistory) return;
 
+    stickToBottomRef.current = true;
+    setIsAtBottom(true);
     const nextMessages = fitStoredMessages([...messages, { role: "user" as const, content }]);
     setMessages(nextMessages);
     setDraft("");
@@ -637,7 +758,7 @@ export function FinderAssistant({ open, onOpenChange: setOpen, onSearch, onFilte
 
   return <div className={styles.assistant}>
     {open && <div ref={onControlsTargetChange} className={styles.assistantControlsSlot} />}
-    {open && <section className={styles.chatPanel} aria-label="AbangCebu assistant">
+    {open && <section ref={panelRef} className={styles.chatPanel} aria-label="AbangCebu assistant" onKeyDown={handlePanelKeyDown}>
       <header className={styles.chatHeader}>
         <ChatbotAvatar size={36} className="h-9 w-9" aria-hidden="true" />
         <div className={styles.chatIdentity}><b>AbangCebu assistant</b><span>{authenticated ? "Your Cebu rental chats" : "Cebu rental help"}</span></div>
@@ -663,7 +784,7 @@ export function FinderAssistant({ open, onOpenChange: setOpen, onSearch, onFilte
           </div>)}
         </div>
       </div> : <>
-        <div className={styles.chatMessages} role="log" aria-live="polite" aria-label="Conversation with AbangCebu assistant">
+        <div ref={messagesContainerRef} onScroll={handleMessagesScroll} onWheel={clearProgrammaticScroll} onTouchMove={clearProgrammaticScroll} onPointerDown={clearProgrammaticScroll} className={styles.chatMessages} role="log" aria-live="polite" aria-label="Conversation with AbangCebu assistant">
           {messages.map((message, index) => {
             return message.role === "user"
               ? <div key={`${message.role}-${index}`} className={styles.chatUserMessage}>
@@ -684,6 +805,7 @@ export function FinderAssistant({ open, onOpenChange: setOpen, onSearch, onFilte
           </p>}
           {error && <div className={styles.chatError} role="alert">{error}</div>}
           {historyError && <div className={styles.chatHistoryNotice} role="status">{historyError}</div>}
+          {!isAtBottom && <button type="button" className={styles.chatJumpLatest} onClick={jumpToLatest}>Jump to latest</button>}
           <div ref={messageEndRef} />
         </div>
         <form className={styles.chatComposer} onSubmit={sendMessage}>
@@ -691,6 +813,13 @@ export function FinderAssistant({ open, onOpenChange: setOpen, onSearch, onFilte
             type="text"
             value={draft}
             onChange={(event) => setDraft(event.target.value)}
+            onCompositionStart={() => { composingRef.current = true; }}
+            onCompositionEnd={() => { composingRef.current = false; }}
+            onKeyDown={(event) => {
+              if (event.key === "Enter" && (composingRef.current || event.nativeEvent.isComposing || event.nativeEvent.keyCode === 229)) {
+                event.preventDefault();
+              }
+            }}
             placeholder="Ask about renting in Cebu…"
             aria-label="Message the AbangCebu assistant"
             maxLength={MAX_USER_MESSAGE_LENGTH}

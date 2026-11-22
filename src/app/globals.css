@@ -343,8 +343,12 @@ body {
 }
 
 /* Portalled finder surfaces inherit the root semantic theme. */
-:root { color-scheme: light; }
+:root,
+.light { color-scheme: light; }
 .dark { color-scheme: dark; }
+@media (prefers-color-scheme: dark) {
+  :root:not(.light) { color-scheme: dark; }
+}
 
 [data-slot="dialog-content"][data-surface="finder"] {
   color-scheme: inherit;

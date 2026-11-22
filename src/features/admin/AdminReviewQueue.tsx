@@ -597,7 +597,7 @@ export function AdminReviewQueue({ userId, initialStatus = "pending", initialSea
   }
 
   const sortedProperties = properties
-    ? [...properties].sort((a, b) => {
+    ? properties.toSorted((a, b) => {
         if (sortBy === "oldest") return (a.createdAt || "").localeCompare(b.createdAt || "");
         if (sortBy === "price_desc") return (b.monthlyRent ?? 0) - (a.monthlyRent ?? 0);
         if (sortBy === "price_asc") return (a.monthlyRent ?? 0) - (b.monthlyRent ?? 0);

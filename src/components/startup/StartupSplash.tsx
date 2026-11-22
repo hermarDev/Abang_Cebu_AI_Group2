@@ -2,7 +2,7 @@ import Image from "next/image";
 
 export default function StartupSplash() {
   return (
-    <div data-startup-splash="true" aria-hidden="false">
+    <div data-startup-splash="true">
       <span role="status">Loading AbangCebu…</span>
       <Image src="/icons/main_Logo.png" alt="" width={299} height={100} unoptimized loading="eager" />
       <Image src="/icons/main_Logo_Light.png" alt="" width={299} height={100} unoptimized loading="eager" />

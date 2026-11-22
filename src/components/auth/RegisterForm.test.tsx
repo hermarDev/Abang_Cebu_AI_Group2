@@ -7,12 +7,22 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn() }),
 }));
 
-const state = vi.hoisted(() => ({ active: false, values: [] as unknown[], cursor: 0, idCursor: 0 }));
+const state = vi.hoisted(() => ({ active: false, values: [] as unknown[], refs: [] as { current: unknown }[], effects: [] as (() => void)[], cursor: 0, refCursor: 0, idCursor: 0 }));
 vi.mock("react", async (importOriginal) => {
   const react = await importOriginal<typeof import("react")>();
   return {
     ...react,
     useId: () => state.active ? `field-${state.idCursor++}` : react.useId(),
+    useRef: (initial: unknown) => {
+      if (!state.active) return react.useRef(initial);
+      const index = state.refCursor++;
+      if (!(index in state.refs)) state.refs[index] = { current: initial };
+      return state.refs[index];
+    },
+    useEffect: (effect: () => void) => {
+      if (!state.active) return react.useEffect(effect);
+      state.effects.push(effect);
+    },
     useMemo: (calculate: () => unknown, deps: unknown[]) => state.active ? calculate() : react.useMemo(calculate, deps),
     useState: (initial: unknown) => {
       if (!state.active) return react.useState(initial);
@@ -25,7 +35,9 @@ vi.mock("react", async (importOriginal) => {
 
 function renderForm() {
   state.cursor = 0;
+  state.refCursor = 0;
   state.idCursor = 0;
+  state.effects = [];
   return RegisterForm();
 }
 
@@ -55,6 +67,8 @@ function fillValidForm() {
 afterEach(() => {
   state.active = false;
   state.values = [];
+  state.refs = [];
+  state.effects = [];
   vi.unstubAllGlobals();
   vi.unstubAllEnvs();
   vi.clearAllMocks();
@@ -110,11 +124,22 @@ describe("RegisterForm", () => {
       expect(input.props["aria-invalid"]).toBe(true);
       expect(input.props["aria-describedby"]).toContain(`${input.props.id}-error`);
       expect(html).toContain(`id="${input.props.id}-error"`);
+      const errorEl = findElement(renderForm(), (el) => el.props.id === `${input.props.id}-error`);
+      expect(errorEl?.props.role).toBeUndefined();
     }
+    expect(html).not.toContain('role="alert"');
+    expect(html).toContain('aria-live="polite"');
+    expect(html.indexOf('aria-label="Show password"')).toBeLessThan(html.indexOf('id="field-2-error"'));
     expect(findInput("fullName").props.value).toBe("J");
     expect(findInput("email").props.value).toBe("bad-email");
     expect(findInput("password").props.value).toBe("short");
     expect(request).not.toHaveBeenCalled();
+
+    const focusFirst = vi.fn();
+    vi.stubGlobal("document", { getElementById: vi.fn((id: string) => (id === "field-0" ? { focus: focusFirst } : null)) });
+    renderForm();
+    state.effects.forEach((effect) => effect());
+    expect(focusFirst).toHaveBeenCalledOnce();
   });
 
   it("maps keyed server validation details to inline field errors and keeps a form error", async () => {
@@ -162,6 +187,7 @@ describe("RegisterForm", () => {
     const html = renderToStaticMarkup(<RegisterForm />);
     expect(html).toContain('autoComplete="name"');
     expect(html).toContain('autoComplete="email"');
+    expect(html).toContain('spellCheck="false"');
     expect(html).toContain('autoComplete="new-password"');
     expect(html).not.toContain('type="tel"');
     expect(html).not.toContain("Philippine Mobile Number");

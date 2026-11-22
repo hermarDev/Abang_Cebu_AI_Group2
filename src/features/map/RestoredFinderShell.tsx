@@ -191,6 +191,7 @@ export function RestoredFinderShell({ rentalStatus: statusOverride, initialAccou
   const resultsToggle = useRef<HTMLButtonElement>(null);
   const collapseTrigger = useRef<HTMLButtonElement>(null);
   const mapViewport = useRef<HTMLDivElement>(null);
+  const wasHelpOpenRef = useRef(false);
   useEffect(() => {
     if (typeof document === "undefined") return;
     // Hydration's server snapshot is light; resolve the client preference before touching the root.
@@ -215,8 +216,25 @@ export function RestoredFinderShell({ rentalStatus: statusOverride, initialAccou
     return () => observer.disconnect();
   }, []);
   useEffect(() => {
-    if (!helpOpen) return;
-    const frame = requestAnimationFrame(() => document.querySelector<HTMLButtonElement>('[aria-label="AbangCebu assistant"] button[aria-label="Close chat"]')?.focus());
+    if (helpOpen) {
+      wasHelpOpenRef.current = true;
+      const frame = requestAnimationFrame(() => document.querySelector<HTMLButtonElement>('[aria-label="AbangCebu assistant"] button[aria-label="Close chat"]')?.focus());
+      return () => cancelAnimationFrame(frame);
+    }
+    if (!wasHelpOpenRef.current) return;
+    wasHelpOpenRef.current = false;
+    const active = document.activeElement;
+    if (active && active !== document.body && active.isConnected) return;
+    const frame = requestAnimationFrame(() => {
+      const currentActive = document.activeElement;
+      if (currentActive && currentActive !== document.body && currentActive.isConnected) return;
+      const launcher = document.querySelector<HTMLButtonElement>('button[aria-label="Open rental assistant"]');
+      if (launcher && launcher.offsetParent !== null) {
+        launcher.focus();
+      } else {
+        menuTrigger.current?.focus();
+      }
+    });
     return () => cancelAnimationFrame(frame);
   }, [helpOpen]);
   // Declared last so the test's slot-indexed useState/useEffect mocks keep their positions.
@@ -361,7 +379,7 @@ export function RestoredFinderShell({ rentalStatus: statusOverride, initialAccou
     if (typeof requestAnimationFrame === "function") requestAnimationFrame(() => collapseTrigger.current?.focus());
   };
 
-  return <main className={styles.app} data-nav-open={false} data-theme={activeTheme} data-results-hidden={resultsHidden} data-results-collapsed={resultsHidden} data-sheet-position={sheetPositions[sheetIndex]} style={{ "--results-sheet-height": sheetHeights[sheetIndex], "--mobile-sheet-peek-height": sheetHeights[sheetIndex] } as React.CSSProperties}><FinderNavigation authenticated={authenticated} userRole={userRole} userId={userId} displayName={displayName} avatarUrl={avatarUrl} open={drawerOpen} preference={preference} resolvedTheme={activeTheme} onPreferenceChange={setPreference} onClose={closeNavigation} onAccount={() => { setDrawerOpen(false); setAccountOpen(true); }} onHelp={() => { setDrawerOpen(false); setHelpOpen(true); }} /><div className={styles.workspace}><header className={styles.header}>
+  return <main className={styles.app} data-nav-open={false} data-theme={activeTheme} data-results-hidden={resultsHidden} data-results-collapsed={resultsHidden} data-sheet-position={sheetPositions[sheetIndex]} style={{ "--results-sheet-height": sheetHeights[sheetIndex], "--mobile-sheet-peek-height": sheetHeights[sheetIndex] } as React.CSSProperties}><a href="#main-content" className="skip-link">Skip to main content</a><FinderNavigation authenticated={authenticated} userRole={userRole} userId={userId} displayName={displayName} avatarUrl={avatarUrl} open={drawerOpen} preference={preference} resolvedTheme={activeTheme} onPreferenceChange={setPreference} onClose={closeNavigation} onAccount={() => { setDrawerOpen(false); setAccountOpen(true); }} onHelp={() => { setDrawerOpen(false); setHelpOpen(true); }} /><div className={styles.workspace}><header className={styles.header}>
     <button ref={menuTrigger} className={styles.iconButton} aria-label="Open menu" aria-expanded={drawerOpen} aria-controls="finder-navigation" onClick={() => setDrawerOpen((value) => !value)}><Menu size={21} /></button>
     <Link href="/" aria-label="AbangCebu home"><BrandLogo theme={activeTheme} className="h-7 w-auto sm:h-8" /></Link>
     <MapSearch className={styles.headerSearch} disabled={false} onSelect={setSelectedPlace} />
@@ -371,7 +389,7 @@ export function RestoredFinderShell({ rentalStatus: statusOverride, initialAccou
     <AccountMenu displayName={displayName} avatarUrl={avatarUrl} role={userRole ?? "Renter"} variant="header" />
   </div> : <button className={styles.signIn} aria-label="Open account dialog" onClick={() => setAccountOpen(true)}><LogIn size={19} aria-hidden="true" /><span>Log in</span></button>}
   <QuickFilters filters={filters} onChange={setFilters} onOpenFilters={() => setAdvancedOpen(true)} mapRadius={effectiveRadius} onRadiusChange={updateMapRadius} />
-  <div className={styles.mapStage}><div ref={mapViewport} className={styles.mapViewport}><MapCanvasLoader selectedRentalId={selectedRentalId} onSelectRental={revealRental} rentals={rentals} selectedPlace={selectedPlace} dataStatus={rentalStatus} filters={filters} onFiltersChange={setFilters} locationQuery={locationQuery} onLocationQueryChange={setLocationQuery} searchRadiusKm={effectiveRadius} onSearchRadiusKmChange={updateMapRadius} onSearchCenterChange={updateSearchCenter} resolvedTheme={activeTheme} assistantControlsTarget={assistantControlsTarget} savedRentalIds={favoriteIds} canSaveRentals={canSaveRentals} onToggleFavorite={toggleFavorite} onExpandRental={openExpandedRental} canMessageLandlord={canMessageLandlord} onMessageLandlord={messageLandlord} /></div>
+  <div id="main-content" tabIndex={-1} className={styles.mapStage}><div ref={mapViewport} className={styles.mapViewport}><MapCanvasLoader selectedRentalId={selectedRentalId} onSelectRental={revealRental} rentals={rentals} selectedPlace={selectedPlace} dataStatus={rentalStatus} filters={filters} onFiltersChange={setFilters} locationQuery={locationQuery} onLocationQueryChange={setLocationQuery} searchRadiusKm={effectiveRadius} onSearchRadiusKmChange={updateMapRadius} onSearchCenterChange={updateSearchCenter} resolvedTheme={activeTheme} assistantControlsTarget={assistantControlsTarget} savedRentalIds={favoriteIds} canSaveRentals={canSaveRentals} onToggleFavorite={toggleFavorite} onExpandRental={openExpandedRental} canMessageLandlord={canMessageLandlord} onMessageLandlord={messageLandlord} /></div>
     <div className={listingStyles.sampleMapNotice} role="status" hidden={!usingSamples}><b>SAMPLE RENTALS · NOT REAL OFFERS</b><button type="button" onClick={() => { setSampleMode(false); setSelectedRentalId(null); }}>Return to live data</button></div>
     <button ref={resultsToggle} className={`${styles.resultsToggle} ${listingStyles.reopenButton}`} aria-label="Show listings" aria-expanded={!resultsHidden} aria-controls="rental-results" onClick={expandListings}><ChevronsRight size={17} aria-hidden="true" />Listings{rentalStatus === "ready" && <span>{visibleRentals.length}</span>}</button>
     <div id="rental-results" className={`${styles.resultsRail} ${listingStyles.panel}`} role="complementary" aria-label="Rental listings" aria-busy={rentalStatus === "loading"} hidden={resultsHidden} inert={!desktop && (drawerOpen || accountOpen || advancedOpen || resultsHidden) ? true : undefined}>

@@ -188,7 +188,7 @@ export function ResetPasswordForm({ isRecovery = false, onBackToLogin, embedded 
                   value={confirmPassword}
                   readOnly={loading}
                   aria-invalid={passwordMismatch}
-                  aria-describedby={passwordMismatch || passwordsMatch ? `${confirmPasswordId}-error` : undefined}
+                  aria-describedby={passwordMismatch ? `${confirmPasswordId}-error` : passwordsMatch ? `${confirmPasswordId}-status` : undefined}
                   onChange={(e) => { const value = e.target.value; setConfirmPassword(value); if (mismatchChecked) setPasswordMismatch(value !== newPassword); }}
                   required
                 />
@@ -198,7 +198,7 @@ export function ResetPasswordForm({ isRecovery = false, onBackToLogin, embedded 
                 </div>
                 {passwordMismatch && <p id={`${confirmPasswordId}-error`} role="alert" className="text-sm text-destructive">Passwords do not match.</p>}
                 <div role="status" data-password-match-status={true}>
-                  {!passwordMismatch && passwordsMatch && <p id={`${confirmPasswordId}-error`} className="text-sm text-emerald-700 dark:text-emerald-400"><span aria-hidden="true">✓ </span>Passwords match.</p>}
+                  {!passwordMismatch && passwordsMatch && <p id={`${confirmPasswordId}-status`} className="text-sm text-emerald-700 dark:text-emerald-400"><span aria-hidden="true">✓ </span>Passwords match.</p>}
                 </div>
               </div>
             </>
@@ -213,6 +213,7 @@ export function ResetPasswordForm({ isRecovery = false, onBackToLogin, embedded 
                 name="email"
                 type="email"
                 autoComplete="email"
+                spellCheck={false}
                 value={email}
                 aria-invalid={Boolean(emailError)}
                 aria-describedby={emailError ? `${emailId}-error` : undefined}

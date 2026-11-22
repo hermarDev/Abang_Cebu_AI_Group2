@@ -335,4 +335,74 @@ describe("ListPropertyForm", () => {
     await settle();
     expect(submissions).toHaveLength(1);
   });
+
+  it("sets standard address autocomplete tokens on location address inputs", () => {
+    expect(find((el) => el.props.name === "address").props.autoComplete).toBe("street-address");
+    expect(find((el) => el.props.name === "barangay").props.autoComplete).toBe("address-level3");
+    expect(find((el) => el.props.name === "city").props.autoComplete).toBe("address-level2");
+  });
+
+  it("makes all five step headings programmatically focusable with tabIndex=-1", () => {
+    for (const id of [
+      "property-details-heading",
+      "property-location-heading",
+      "property-amenities-heading",
+      "business-permit-heading",
+      "listing-review-heading",
+    ]) {
+      const heading = find((el) => el.type === "h2" && el.props.id === id);
+      expect(heading.props.tabIndex).toBe(-1);
+    }
+  });
+
+  it("focuses and scrolls the target step heading into view via requestAnimationFrame on Continue, Back, and jumpToStep", async () => {
+    const focused: Array<{ id: string; options: unknown }> = [];
+    const headingScrolled: Array<{ id: string; options: unknown }> = [];
+    const raf = vi.fn((cb: FrameRequestCallback) => {
+      cb(0);
+      return 1;
+    });
+    const formScrollIntoView = vi.spyOn(fakeForm, "scrollIntoView");
+    vi.stubGlobal("requestAnimationFrame", raf);
+    vi.stubGlobal("document", {
+      getElementById: (id: string) => ({
+        focus: (options?: unknown) => {
+          focused.push({ id, options });
+        },
+        scrollIntoView: (options?: unknown) => {
+          headingScrolled.push({ id, options });
+        },
+      }),
+    });
+
+    try {
+      // Continue: Step 0 -> Step 1
+      (find((el) => el.type === "button" && text(el.props.children as ReactNode).startsWith("Continue")).props.onClick as () => void)();
+      expect(raf).toHaveBeenCalledTimes(1);
+      expect(focused.at(-1)).toEqual({ id: "property-location-heading", options: { preventScroll: true } });
+      expect(headingScrolled.at(-1)).toEqual({ id: "property-location-heading", options: { block: "start" } });
+      expect(formScrollIntoView).not.toHaveBeenCalled();
+
+      // Back: Step 1 -> Step 0
+      (find((el) => el.type === "button" && text(el.props.children as ReactNode).trim() === "Back").props.onClick as () => void)();
+      expect(raf).toHaveBeenCalledTimes(2);
+      expect(focused.at(-1)).toEqual({ id: "property-details-heading", options: { preventScroll: true } });
+      expect(headingScrolled.at(-1)).toEqual({ id: "property-details-heading", options: { block: "start" } });
+
+      // jumpToStep forward: Step 0 -> Step 1 via step progress button
+      (find((el) => el.props["aria-label"] === "Step 2: Location").props.onClick as () => void)();
+      expect(raf).toHaveBeenCalledTimes(3);
+      expect(focused.at(-1)).toEqual({ id: "property-location-heading", options: { preventScroll: true } });
+      expect(headingScrolled.at(-1)).toEqual({ id: "property-location-heading", options: { block: "start" } });
+
+      // jumpToStep backward: Step 1 -> Step 0 via step progress button
+      (find((el) => el.props["aria-label"] === "Step 1: Property details").props.onClick as () => void)();
+      expect(raf).toHaveBeenCalledTimes(4);
+      expect(focused.at(-1)).toEqual({ id: "property-details-heading", options: { preventScroll: true } });
+      expect(headingScrolled.at(-1)).toEqual({ id: "property-details-heading", options: { block: "start" } });
+    } finally {
+      formScrollIntoView.mockRestore();
+      vi.unstubAllGlobals();
+    }
+  });
 });

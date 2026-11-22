@@ -1804,10 +1804,10 @@ function MessagingInboxInner({
             {/* Lightbox: only photo, dark backdrop, Radix Dialog focus trapping & restoration */}
             <Dialog.Root open={Boolean(lightboxUrl)} onOpenChange={(open) => !open && setLightboxUrl(null)}>
               <Dialog.Portal>
-                <Dialog.Overlay className="fixed inset-0 z-50 bg-black/90 backdrop-blur-xs transition-opacity data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
+                <Dialog.Overlay className="fixed inset-0 z-50 bg-black/90 backdrop-blur-xs transition-opacity" />
                 <Dialog.Content
                   aria-describedby={undefined}
-                  className="fixed inset-0 z-50 flex items-center justify-center p-4 outline-none select-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95"
+                  className="fixed inset-0 z-50 flex items-center justify-center p-4 outline-none select-none"
                   onClick={() => setLightboxUrl(null)}
                 >
                   <Dialog.Title className="sr-only">Photo preview</Dialog.Title>

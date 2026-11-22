@@ -206,6 +206,7 @@ export function WorkspaceShell({
 
   return (
     <main className="flex h-dvh min-h-0 flex-col overflow-hidden bg-gradient-to-br from-action/5 via-background to-muted/70 pt-16 text-foreground">
+      <a href="#main-content" className="skip-link">Skip to main content</a>
       <header className="fixed inset-x-0 top-0 z-40 border-b border-border/80 bg-background/90 shadow-sm backdrop-blur-lg">
         <div className="mx-auto flex min-h-16 max-w-[1920px] items-center justify-between gap-2 px-3 sm:gap-3 sm:px-6 lg:px-8">
           <div className="flex min-w-0 items-center gap-2 sm:gap-3">{brand}</div>
@@ -287,7 +288,7 @@ export function WorkspaceShell({
           </div>
         </aside>
 
-        <div className="min-h-0 min-w-0 space-y-5 overflow-y-auto overscroll-contain sm:space-y-6" tabIndex={0} role="region" aria-label="Workspace content">
+        <div id="main-content" className="min-h-0 min-w-0 space-y-5 overflow-y-auto overscroll-contain sm:space-y-6" tabIndex={0} role="region" aria-label="Workspace content">
           {(title || pageActions) && (
             <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
               <div>
