@@ -67,10 +67,17 @@ export function parseAssistantSearch(userMessages: string[]): AssistantSearch {
   const criteria: Extract<AssistantSearch, { kind: "search" }> = { kind: "search", minPrice: null, maxPrice: null, area: null, propertyType: null, verifiedOnly: false };
   let searching = false;
   let lastTurnIsSearch = false;
+  let pendingUnsupported: string | null = null;
   for (let index = 0; index < userMessages.length; index++) {
     const isLastTurn = index === userMessages.length - 1;
     const text = userMessages[index].toLowerCase();
-    const explicitSearch = /\b(?:list|find|search|show|looking for|available|rentals?|rooms?|kwarto|apartment|bedspace|studio|house|condo|property|properties|listing|place)\b/.test(text);
+    const appHelp = /\bhow\s+(?:do|can|should)\s+i\s+(?:list|search|find|post)\b/.test(text);
+    if (appHelp) {
+      if (isLastTurn) return { kind: "not-needed" };
+      continue;
+    }
+    const initialCriteria = new RegExp(`\\b(?:under|below|less than|up to|ubos|budget)\\s*${amount}.*\\b(?:in|near|around|sa)\\s+`, "i").test(text);
+    const explicitSearch = /\b(?:list|find|search|show|looking for|available|rentals?|rooms?|kwarto|apartments?|bedspaces?|studios?|houses?|condos?|property|properties|listings?|places?)\b/.test(text) || initialCriteria;
     if (explicitSearch) searching = true;
     if (!searching) {
       lastTurnIsSearch = false;
@@ -78,6 +85,12 @@ export function parseAssistantSearch(userMessages: string[]): AssistantSearch {
     }
     let turnIsSearch = explicitSearch;
     let turnClarify: string | null = null;
+    if (pendingUnsupported && /^\s*(?:yes|yeah|yep|sure|okay|ok)\s*[.!]?\s*$/.test(text)) {
+      pendingUnsupported = null;
+      turnIsSearch = true;
+    } else if (pendingUnsupported && /^\s*(?:no|nope)\s*[.!]?\s*$/.test(text)) {
+      turnIsSearch = true;
+    }
     if (/\b(?:villas?|townhouses?|dormitories|dorms?)\b/.test(text)) {
       turnIsSearch = true;
       turnClarify ??= "Which supported rental type should I search?";
@@ -85,6 +98,7 @@ export function parseAssistantSearch(userMessages: string[]): AssistantSearch {
     if (/\b(?:pet[- ]?friendly|pets?|pool|gym|balcony|furnished|unfurnished|female[- ]?only|male[- ]?only|curfew|parking|aircon|wifi|wi-fi|cooking|laundry)\b/.test(text)) {
       turnIsSearch = true;
       turnClarify ??= "I can filter chat searches by budget, Cebu area, rental type, and verified status. Should I search with those criteria only?";
+      pendingUnsupported = turnClarify;
     }
     const range = text.match(new RegExp(`${amount}\\s*(?:to|[-–])\\s*${amount}`, "i"));
     const maximum = text.match(new RegExp(`(?:under|below|less than|up to|ubos(?:\\s+(?:sa|ug))?|budget(?:\\s+(?:of|to|is))?|(?:increase|raise|change|make)(?:\\s+(?:my|the))?(?:\\s+budget)?(?:\\s+it)?(?:\\s+to)?)\\s*${amount}`, "i"));
@@ -137,18 +151,20 @@ export function parseAssistantSearch(userMessages: string[]): AssistantSearch {
       turnIsSearch = true;
     }
     if (/\bverified\b/.test(remaining)) {
-      criteria.verifiedOnly = true;
+      criteria.verifiedOnly = !/\b(?:no need to be|not necessarily|not required to be|need not be|not|un)\s+verified\b/.test(remaining);
       turnIsSearch = true;
     }
     const unsupportedConstraint = /\b(?:\d+\s*(?:persons?|people|pax|occupants?|bedrooms?|br)|solo|couple|family|student|students|workers?|short[- ]?term|daily|weekly|monthly\s+only|near\s+school|near\s+mall)\b/.test(remaining);
     if (unsupportedConstraint) {
       turnIsSearch = true;
       turnClarify ??= "I can filter chat searches by budget, Cebu area, rental type, and verified status. Should I search with those criteria only?";
+      pendingUnsupported = turnClarify;
     }
     lastTurnIsSearch = turnIsSearch;
     if (isLastTurn) {
       if (!turnIsSearch) return { kind: "not-needed" };
       if (turnClarify) return { kind: "clarify", question: turnClarify };
+      if (pendingUnsupported) return { kind: "clarify", question: pendingUnsupported };
     }
   }
   return searching && lastTurnIsSearch ? criteria : { kind: "not-needed" };

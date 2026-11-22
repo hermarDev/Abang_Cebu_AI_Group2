@@ -119,6 +119,27 @@ describe("parseAssistantSearch", () => {
   it.each(["show a room ₱10,000 to ₱5,000", "find a room in Atlantis", "find a room under banana", "find a villa under 10k"])("clarifies unsupported or invalid criteria: %s", (message) => {
     expect(parseAssistantSearch([message]).kind).toBe("clarify");
   });
+  it("routes app-help questions to general chat", () => {
+    for (const text of ["How do I list my property?", "How do I search for rooms?"]) {
+      expect(parseAssistantSearch([text])).toEqual({ kind: "not-needed" });
+    }
+    expect(parseAssistantSearch(["List available rooms"])).toMatchObject({ kind: "search", propertyType: "room" });
+  });
+  it("recognizes initial plural types and standalone budget plus location", () => {
+    expect(parseAssistantSearch(["Studios in Mandaue under 8k"])).toMatchObject({ kind: "search", propertyType: "studio", area: "mandaue", maxPrice: 8000 });
+    expect(parseAssistantSearch(["Under 5000 in Mandaue"])).toMatchObject({ kind: "search", area: "mandaue", maxPrice: 5000 });
+  });
+  it("respects negated verification and positive verification", () => {
+    expect(parseAssistantSearch(["Show rooms, no need to be verified"])).toMatchObject({ kind: "search", verifiedOnly: false });
+    expect(parseAssistantSearch(["show verified rooms", "no need to be verified"])).toMatchObject({ kind: "search", verifiedOnly: false });
+    expect(parseAssistantSearch(["Show verified rooms"])).toMatchObject({ kind: "search", verifiedOnly: true });
+  });
+  it("requires explicit consent to drop unsupported filters", () => {
+    expect(parseAssistantSearch(["Find pet-friendly rooms under 10k", "Yes"])).toMatchObject({ kind: "search", propertyType: "room", maxPrice: 10000 });
+    expect(parseAssistantSearch(["Find pet-friendly rooms under 10k", "No"]).kind).toBe("clarify");
+    expect(parseAssistantSearch(["Find pet-friendly rooms under 10k", "in Mandaue"]).kind).toBe("clarify");
+    expect(parseAssistantSearch(["Find pet-friendly rooms under 10k", "in Mandaue", "Yes"])).toMatchObject({ kind: "search", area: "mandaue", maxPrice: 10000 });
+  });
   it("does not trigger inventory lookup for unrelated conversation", () => {
     expect(parseAssistantSearch(["hello"])).toEqual({ kind: "not-needed" });
   });
