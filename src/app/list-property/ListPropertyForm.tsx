@@ -1233,7 +1233,7 @@ export function ListPropertyForm({ userId, restoreTarget }: { userId: string; re
       </section>
     </div>
 
-    <div className="sticky bottom-[calc(4.25rem+env(safe-area-inset-bottom))] lg:bottom-0 z-20 -mx-1 flex flex-col gap-3 rounded-2xl border border-border bg-card p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] shadow-lg sm:flex-row sm:items-center sm:justify-between sm:p-4 sm:pb-4">
+    <div className="lg:sticky lg:bottom-0 z-20 -mx-1 flex flex-col gap-3 rounded-2xl border border-border bg-card p-3 shadow-lg sm:flex-row sm:items-center sm:justify-between sm:p-4">
       <p className="m-0 hidden text-sm text-muted-foreground sm:block sm:text-left">{step === steps.length - 1 ? "Review & submit" : `${steps.length - step - 1} step${steps.length - step - 1 === 1 ? "" : "s"} remaining`}{saving ? " · Saving…" : dirty ? " · Unsaved changes" : ""}</p>
       <div className="grid grid-cols-2 gap-2 sm:flex sm:justify-end">
         {step > 0 && <button className="inline-flex min-h-11 items-center justify-center gap-1 rounded-lg border border-border bg-card px-4 text-sm font-semibold hover:bg-muted disabled:opacity-50" type="button" onClick={() => { const prevStep = Math.max(0, step - 1); setNotice(null); setStep(prevStep); focusStepHeading(prevStep); }} disabled={step === 0 || pending}><ChevronLeft size={17} aria-hidden="true" /> Back</button>}
