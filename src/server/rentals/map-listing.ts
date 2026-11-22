@@ -103,20 +103,24 @@ export function mapSubmittedRental(value: unknown, signedUrlsByPath: ReadonlyMap
     ? number(row.total_units_count, 1, Number.MAX_SAFE_INTEGER)
     : undefined;
   const units: RentalUnitSummary[] | undefined = Array.isArray(row.units)
-    ? row.units.flatMap((item, idx) => {
+    ? row.units.flatMap((item) => {
         if (!item || typeof item !== "object" || Array.isArray(item)) return [];
         const u = item as Record<string, unknown>;
+        const available = u.isAvailable ?? u.is_available;
+        const rawRent = u.monthlyRent ?? u.monthly_rent;
+        const rent = typeof rawRent === "number" ? rawRent : typeof rawRent === "string" && rawRent.trim() !== "" ? Number(rawRent) : Number.NaN;
+        if (typeof u.id !== "string" || !u.id.trim() || typeof available !== "boolean" || !Number.isFinite(rent) || rent < 0) return [];
         return [{
-          id: typeof u.id === "string" && u.id.trim() ? u.id.trim() : `unit-${idx + 1}`,
+          id: u.id.trim(),
           unitNumber: typeof (u.unitNumber ?? u.unit_number) === "string" && String(u.unitNumber ?? u.unit_number).trim()
             ? String(u.unitNumber ?? u.unit_number).trim()
             : "Room 1",
           rentalType: typeof (u.rentalType ?? u.rental_type) === "string" && String(u.rentalType ?? u.rental_type).trim()
             ? String(u.rentalType ?? u.rental_type).trim()
             : String(rentalType ?? "private_room"),
-          monthlyRent: Number(u.monthlyRent ?? u.monthly_rent ?? row.price ?? 0),
+          monthlyRent: rent,
           maxOccupants: Number(u.maxOccupants ?? u.max_occupants ?? maxOccupants ?? 1),
-          isAvailable: Boolean(u.isAvailable ?? u.is_available ?? true),
+          isAvailable: available,
         }];
       })
     : undefined;
