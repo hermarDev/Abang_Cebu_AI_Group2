@@ -19,6 +19,29 @@ test.beforeAll(async () => {
 });
 test.afterAll(async () => { if (server) await new Promise<void>(resolve => server.close(() => resolve())); });
 
+test("mobile listing actions remain in flow without covering fields", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.route("**/api/property-drafts", route => route.fulfill({ json: { drafts: [] } }));
+  await page.goto(origin);
+  await page.evaluate(() => {
+    const root = document.getElementById("root")!;
+    Object.assign(root.style, { height: "700px", overflowY: "auto" });
+  });
+  const actions = page.getByRole("button", { name: "Save draft" }).locator("../..");
+  expect(await actions.evaluate(element => getComputedStyle(element).position)).toBe("static");
+  await page.locator('[name="rentalType"]').selectOption("entire_place");
+  const bedrooms = page.locator('[name="bedrooms"]');
+  await bedrooms.scrollIntoViewIfNeeded();
+  const visible = await bedrooms.evaluate(element => {
+    const rect = element.getBoundingClientRect();
+    return document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2) === element;
+  });
+  expect(visible).toBe(true);
+  await page.getByRole("button", { name: "Continue" }).scrollIntoViewIfNeeded();
+  await expect(page.getByRole("button", { name: "Continue" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Save draft" })).toBeVisible();
+});
+
 for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 }]) {
   test(`property fields fit and follow responsive order at ${viewport.width}px`, async ({ page }) => {
     await page.setViewportSize(viewport);
