@@ -71,6 +71,14 @@ describe("mapSubmittedRental", () => {
     expect(mapSubmittedRental(submitted)).toMatchObject({ id: submitted.id, verificationStatus: "property_verified", directLandlord: true });
   });
 
+  it("omits units with unknown identity, availability or rent without losing the property", () => {
+    const valid = { id: "u", rental_type: "private_room", monthly_rent: 5000, is_available: true };
+    const result = mapSubmittedRental({ ...submitted, units: [valid, { ...valid, id: null }, { ...valid, is_available: null }, { ...valid, is_available: "false" }, { ...valid, monthly_rent: null }, { ...valid, monthly_rent: -1 }, { ...valid, monthly_rent: "invalid" }] });
+    expect(result.id).toBe(submitted.id);
+    expect(result.units?.map((unit) => unit.id)).toEqual(["u"]);
+    expect(mapSubmittedRental({ ...submitted, units: [{ ...valid, id: null }] }).units).toEqual([]);
+  });
+
   it("maps multi-unit counts and unit summaries when provided", () => {
     const result = mapSubmittedRental({
       ...submitted,
@@ -86,6 +94,26 @@ describe("mapSubmittedRental", () => {
     expect(result.units).toEqual([
       { id: "u-1", unitNumber: "Room 1", rentalType: "private_room", monthlyRent: 8500, maxOccupants: 2, isAvailable: true },
       { id: "u-2", unitNumber: "Room 2", rentalType: "private_room", monthlyRent: 9000, maxOccupants: 2, isAvailable: false },
+    ]);
+  });
+
+  it("accepts finite non-negative numeric strings for unit monthly rent while rejecting invalid strings", () => {
+    const result = mapSubmittedRental({
+      ...submitted,
+      units: [
+        { id: "str-snake", rental_type: "private_room", monthly_rent: "5000", is_available: true },
+        { id: "str-camel", rentalType: "private_room", monthlyRent: " 8500.50 ", isAvailable: true },
+        { id: "str-zero", rental_type: "private_room", monthly_rent: "0", is_available: true },
+        { id: "str-empty", rental_type: "private_room", monthly_rent: "   ", is_available: true },
+        { id: "str-neg", rental_type: "private_room", monthly_rent: "-500", is_available: true },
+        { id: "str-inf", rental_type: "private_room", monthly_rent: "Infinity", is_available: true },
+        { id: "str-nan", rental_type: "private_room", monthly_rent: "NaN", is_available: true },
+      ],
+    });
+    expect(result.units?.map((u) => [u.id, u.monthlyRent])).toEqual([
+      ["str-snake", 5000],
+      ["str-camel", 8500.5],
+      ["str-zero", 0],
     ]);
   });
 });

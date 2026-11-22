@@ -7,7 +7,84 @@ import { History, LoaderCircle, Plus, Send, Trash2, X } from "lucide-react";
 import styles from "./RestoredFinderShell.module.css";
 
 type ChatMessage = { role: "user" | "assistant"; content: string };
-type AssistantResponse = { reply?: unknown; error?: unknown };
+type AssistantListingItem = {
+  id: string;
+  unitId: string | null;
+  title: string;
+  area: string;
+  monthlyPricePHP: number;
+  propertyType: string;
+  verificationStatus: string | null;
+  overBudgetPHP: number;
+};
+type AssistantListingsPayload = {
+  matches: AssistantListingItem[];
+  alternatives: AssistantListingItem[];
+  complete?: boolean;
+};
+type AssistantResponse = { reply?: unknown; error?: unknown; listings?: unknown };
+
+function isAssistantListingItem(value: unknown): value is AssistantListingItem {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+  const item = value as Record<string, unknown>;
+  return typeof item.id === "string"
+    && (item.unitId === null || typeof item.unitId === "string")
+    && typeof item.title === "string"
+    && typeof item.area === "string"
+    && typeof item.monthlyPricePHP === "number"
+    && Number.isFinite(item.monthlyPricePHP)
+    && typeof item.propertyType === "string"
+    && (item.verificationStatus === null || typeof item.verificationStatus === "string")
+    && typeof item.overBudgetPHP === "number"
+    && Number.isFinite(item.overBudgetPHP);
+}
+
+function parseListingsPayload(value: unknown): AssistantListingsPayload | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const payload = value as { matches?: unknown; alternatives?: unknown; complete?: unknown };
+  if (!Array.isArray(payload.matches) || !Array.isArray(payload.alternatives)) return null;
+  return {
+    matches: payload.matches.filter(isAssistantListingItem),
+    alternatives: payload.alternatives.filter(isAssistantListingItem),
+    complete: typeof payload.complete === "boolean" ? payload.complete : undefined,
+  };
+}
+
+function formatPhp(amount: number): string {
+  return `₱${Math.round(amount).toLocaleString("en-US")}`;
+}
+
+function formatListingLine(item: AssistantListingItem, overBudget: boolean): string {
+  const title = item.title.replace(/[\r\n]+/g, " ").replace(/[*_`[\]()<>]/g, "").trim();
+  const area = item.area.replace(/[\r\n]+/g, " ").replace(/[*_`[\]()<>]/g, "").trim();
+  const verified = item.verificationStatus === "property_verified" || item.verificationStatus === "fully_verified"
+    ? " · Verified property"
+    : "";
+  const delta = overBudget && item.overBudgetPHP > 0 ? ` (${formatPhp(item.overBudgetPHP)} over budget)` : "";
+  return `- ${title} — ${area} · ${formatPhp(item.monthlyPricePHP)}/mo${delta}${verified}`;
+}
+
+export function buildAssistantReply(result: AssistantResponse): string | null {
+  const listings = parseListingsPayload(result.listings);
+  if (listings && (listings.matches.length > 0 || listings.alternatives.length > 0)) {
+    const sections: string[] = [];
+    if (listings.matches.length > 0) {
+      sections.push(`Matching rentals:\n${listings.matches.map((item) => formatListingLine(item, false)).join("\n")}`);
+    } else if (listings.complete === false) {
+      sections.push("No matching rentals were found in the listings checked so far.");
+    } else {
+      sections.push("I could not find a matching rental in the current listings.");
+    }
+    if (listings.alternatives.length > 0) {
+      sections.push(`Above your budget:\n${listings.alternatives.map((item) => formatListingLine(item, true)).join("\n")}`);
+    }
+    if (listings.complete === false) {
+      sections.push("Some listings could not be checked; results may be incomplete.");
+    }
+    return sections.join("\n\n");
+  }
+  return typeof result.reply === "string" && result.reply.trim() ? result.reply.trim() : null;
+}
 type SavedConversation = {
   id: string;
   title: string;
@@ -664,11 +741,12 @@ export function FinderAssistant({ open, onOpenChange: setOpen, onSearch, onFilte
         setError(typeof result.error === "string" ? result.error : "The assistant could not reply just now. Please try again.");
         return;
       }
-      if (typeof result.reply !== "string" || !result.reply.trim()) {
+      const assistantReply = buildAssistantReply(result);
+      if (!assistantReply) {
         setError("The assistant returned an empty reply. Please try again.");
         return;
       }
-      const repliedMessages = fitStoredMessages([...nextMessages, { role: "assistant" as const, content: result.reply.trim() }]);
+      const repliedMessages = fitStoredMessages([...nextMessages, { role: "assistant" as const, content: assistantReply }]);
       setMessages(repliedMessages);
       await saveConversation(repliedMessages);
     } catch {

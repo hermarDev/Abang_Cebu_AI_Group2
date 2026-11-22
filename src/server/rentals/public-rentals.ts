@@ -32,7 +32,7 @@ export async function signSubmittedPhotos(rows: unknown[]): Promise<Map<string, 
 }
 
 export type PublicRentalsResult =
-  | { status: "ok"; rentals: RentalResult[] }
+  | { status: "ok"; rentals: RentalResult[]; complete: boolean }
   | { status: "unavailable" };
 
 // Single public inventory loader (ARCH-01): finder, assistant and favorites all
@@ -61,7 +61,8 @@ export async function loadPublicRentals(
   // Submitted-property failures degrade to published listings only; they must not take down the map.
   const rawSubmittedRows = submitted && !submitted.error && Array.isArray(submitted.data) ? (submitted.data as unknown[]) : [];
   const hasListingsError = Boolean(error || !Array.isArray(data));
-  if (hasListingsError && (!submitted || submitted.error || !rawSubmittedRows.length)) {
+  const hasSubmittedError = !submitted || Boolean(submitted.error) || !Array.isArray(submitted.data);
+  if (hasListingsError && hasSubmittedError) {
     return { status: "unavailable" };
   }
   const submittedRows = targetId
@@ -85,5 +86,5 @@ export async function loadPublicRentals(
     }
   });
   const rentals = [...submittedRentals, ...publishedRentals];
-  return { status: "ok", rentals: rentals.filter((r, i) => rentals.findIndex((o) => o.id === r.id) === i) };
+  return { status: "ok", rentals: rentals.filter((r, i) => rentals.findIndex((o) => o.id === r.id) === i), complete: !hasListingsError && !hasSubmittedError && (Boolean(targetId) || (Array.isArray(data) && data.length < 200)) && rawSubmittedRows.length < 200 };
 }

@@ -114,6 +114,14 @@ describe("loadPublicRentals", () => {
     ]);
   });
 
+  it("marks either failed or capped source incomplete", async () => {
+    const ok = { data: [], error: null };
+    const failed = { data: null, error: { message: "failed" } };
+    for (const [legacy, submitted] of [[ok, failed], [failed, ok], [{ data: Array(200).fill(null), error: null }, ok], [ok, { data: Array(200).fill(null), error: null }]]) {
+      expect(await loadPublicRentals(mockSupabase(legacy, submitted), null, { signPhotos: false })).toMatchObject({ status: "ok", complete: false });
+    }
+  });
+
   it("returns unavailable when both sources fail", async () => {
     const supabase = mockSupabase({ data: null, error: { message: "db error" } }, { data: null, error: { message: "rpc error" } });
     expect(await loadPublicRentals(supabase)).toEqual({ status: "unavailable" });
