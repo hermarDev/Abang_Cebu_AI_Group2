@@ -94,16 +94,7 @@ export function HelpCenterClient({
             <ArrowLeft size={18} aria-hidden="true" />
             <span>{backLabel}</span>
           </Link>
-          <div className="flex items-center gap-3">
-            <Link
-              href="/support"
-              className="inline-flex min-h-10 items-center gap-1.5 rounded-lg border border-border/80 bg-card px-3 text-xs font-semibold text-foreground hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
-            >
-              <Headset size={15} aria-hidden="true" />
-              <span>Contact support</span>
-            </Link>
-            <BrandLogo className="h-auto w-28 sm:w-32" />
-          </div>
+          <BrandLogo className="h-auto w-28 sm:w-32" />
         </header>
 
         <div
