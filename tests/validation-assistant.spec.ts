@@ -71,6 +71,17 @@ test("assistant listings are clickable and follow-ups reuse the last results", a
       },
     });
   });
+  await page.route("**/api/rentals**", route => {
+    const url = new URL(route.request().url());
+    return route.fulfill({
+      status: 200,
+      json: {
+        rentals: url.searchParams.get("id") === "m-1"
+          ? [{ id: "m-1", title: "Mandaue Verified Room", locality: "Mandaue", type: "room", description: "", available: true, price: 8500, coordinates: [123.9, 10.3], amenities: [] }]
+          : [],
+      },
+    });
+  });
   await page.goto("/");
   await page.getByRole("button", { name: "Open rental assistant" }).click();
   const panel = page.getByRole("region", { name: "AbangCebu assistant" });

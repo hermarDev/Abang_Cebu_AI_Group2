@@ -97,8 +97,8 @@ describe("FinderAssistant", () => {
     expect(assistantSource).toContain("chatListingLink");
     expect(assistantSource).toContain("onOpenListing(target.id)");
     expect(assistantSource).toContain("localListingFollowUp");
-    expect(assistantSource).toContain("show rooms under 5000");
-    expect(shellSource).toContain("onOpenListing={(id) => { setHelpOpen(false); openExpandedRental(id); }}");
+    expect(assistantSource).toContain("show rentals under 5000");
+    expect(shellSource).toContain("onOpenListing={openAssistantListing}");
     expect(shellCss).toContain(".chatListingLink");
   });
 

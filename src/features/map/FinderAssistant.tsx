@@ -166,11 +166,14 @@ function renderReply(content: string, listings?: AssistantListingsPayload, onOpe
     blocks.push({ type: "paragraph", content: paragraph.join(" ").replace(/^#{1,6}\s+/, "") });
   }
 
-  const byLine = new Map<string, AssistantListingItem>();
+  const byLine = new Map<string, AssistantListingItem | null>();
   if (listings) {
     for (const item of [...listings.matches, ...listings.alternatives]) {
-      byLine.set(formatListingLine(item, false).slice(2), item);
-      byLine.set(formatListingLine(item, true).slice(2), item);
+      const lines = new Set([formatListingLine(item, false).slice(2), formatListingLine(item, true).slice(2)]);
+      for (const line of lines) {
+        if (byLine.has(line)) byLine.set(line, null);
+        else byLine.set(line, item);
+      }
     }
   }
 
@@ -299,7 +302,7 @@ function ProfileAvatar({ url, name, className }: { url: string | null; name: str
   </span>;
 }
 
-export function FinderAssistant({ open, onOpenChange: setOpen, onSearch, onFilters, onControlsTargetChange, onSignIn = () => {}, onOpenListing, onToggleSaved, onMessageLandlord, authenticated = false, userId = null, displayName = null, profilePhotoUrl = null }: { open: boolean; onOpenChange: (open: boolean) => void; onSearch: () => void; onFilters: () => void; onControlsTargetChange: (target: HTMLDivElement | null) => void; onSignIn?: () => void; onOpenListing?: (id: string) => void; onToggleSaved?: (id: string) => void; onMessageLandlord?: (id: string) => void; authenticated?: boolean; userId?: string | null; displayName?: string | null; profilePhotoUrl?: string | null }) {
+export function FinderAssistant({ open, onOpenChange: setOpen, onSearch, onFilters, onControlsTargetChange, onSignIn = () => {}, onOpenListing, onToggleSaved, onMessageLandlord, authenticated = false, userId = null, displayName = null, profilePhotoUrl = null }: { open: boolean; onOpenChange: (open: boolean) => void; onSearch: () => void; onFilters: () => void; onControlsTargetChange: (target: HTMLDivElement | null) => void; onSignIn?: () => void; onOpenListing?: (id: string) => void; onToggleSaved?: (id: string, shouldSave: boolean) => void; onMessageLandlord?: (id: string) => void; authenticated?: boolean; userId?: string | null; displayName?: string | null; profilePhotoUrl?: string | null }) {
   const [messages, setMessages] = useState<ChatMessage[]>([welcomeMessage]);
   const [drafts, setDrafts] = useState<Record<string, string>>({});
   const [isSending, setIsSending] = useState(false);
@@ -338,6 +341,7 @@ export function FinderAssistant({ open, onOpenChange: setOpen, onSearch, onFilte
   const ownerGenerationRef = useRef(0);
   useLayoutEffect(() => {
     ownerGenerationRef.current += 1;
+    lastListingsRef.current = null;
     return () => { ownerGenerationRef.current += 1; };
   }, [historyOwner]);
   const accountHeaders = { "X-Assistant-Owner": authenticated ? userId ?? "unknown" : "guest" };
@@ -371,6 +375,7 @@ export function FinderAssistant({ open, onOpenChange: setOpen, onSearch, onFilte
       updateActiveConversationLocal(false);
       updateConversations([]);
       setMessages([welcomeMessage]);
+      lastListingsRef.current = null;
       stickToBottomRef.current = true;
       setIsAtBottom(true);
       accountSyncUnavailable.current = false;
@@ -645,6 +650,7 @@ export function FinderAssistant({ open, onOpenChange: setOpen, onSearch, onFilte
 
   async function selectConversation(conversation: SavedConversation) {
     const generation = ownerGenerationRef.current;
+    lastListingsRef.current = null;
     setError(null);
     setHistoryError(null);
     setPendingDeleteId(null);
@@ -686,6 +692,7 @@ export function FinderAssistant({ open, onOpenChange: setOpen, onSearch, onFilte
   function startNewChat() {
     stickToBottomRef.current = true;
     setIsAtBottom(true);
+    lastListingsRef.current = null;
     setMessages([welcomeMessage]);
     updateActiveConversationId(null);
     updateActiveConversationLocal(false);
@@ -722,6 +729,7 @@ export function FinderAssistant({ open, onOpenChange: setOpen, onSearch, onFilte
     if (activeConversationId === conversation.id) {
       updateActiveConversationId(null);
       updateActiveConversationLocal(false);
+      lastListingsRef.current = null;
       setMessages([welcomeMessage]);
     }
     setPendingDeleteId(null);
@@ -738,16 +746,16 @@ export function FinderAssistant({ open, onOpenChange: setOpen, onSearch, onFilte
       return { reply: `Opening ${first.title} on the map.`, action: () => onOpenListing?.(first.id), close: true };
     }
     if (onToggleSaved && ["save it", "save this", "save the first one"].includes(text)) {
-      return { reply: authenticated ? `Saved ${first.title} to your list.` : `Sign in to save ${first.title}.`, action: () => onToggleSaved(first.id) };
+      return { reply: authenticated ? `Saved ${first.title} to your list.` : `Sign in to save ${first.title}.`, action: () => onToggleSaved(first.id, true) };
     }
     if (onMessageLandlord && ["message landlord", "message the landlord", "contact landlord", "contact the landlord"].includes(text)) {
       return { reply: authenticated ? `Opening a message about ${first.title}.` : `Sign in to message about ${first.title}.`, action: () => onMessageLandlord(first.id), close: true };
     }
-    if (/\bcheapest\b/.test(text)) {
+    if (["cheapest", "cheapest one", "cheapest option", "cheapest room", "which is cheapest", "what's cheapest", "the cheapest"].includes(text)) {
       const cheapest = listings!.matches[0] ?? items[0];
       return { reply: `The cheapest match is ${describe(cheapest)}.` };
     }
-    if (/\bmost expensive\b/.test(text)) {
+    if (["most expensive", "priciest", "highest priced", "which is most expensive"].includes(text)) {
       const dearest = items[items.length - 1];
       return { reply: `The highest-priced option I found is ${describe(dearest)}.` };
     }
@@ -853,11 +861,11 @@ export function FinderAssistant({ open, onOpenChange: setOpen, onSearch, onFilte
               </div>;
           })}
           {(messages.length === 1 || Boolean(messages.at(-1)?.listings)) && <div className={styles.suggestions}>
-            <button type="button" onClick={() => { void sendMessage(undefined, "show rooms under 5000"); }}>Under ₱5k</button>
-            <button type="button" onClick={() => { void sendMessage(undefined, "show rooms under 10000"); }}>Under ₱10k</button>
-            <button type="button" onClick={() => { void sendMessage(undefined, "show rooms under 15000"); }}>Under ₱15k</button>
-            <button type="button" onClick={() => { void sendMessage(undefined, "show rooms under 20000"); }}>Under ₱20k</button>
-            <button type="button" onClick={() => { void sendMessage(undefined, "show verified rooms"); }}>Verified only</button>
+            <button type="button" onClick={() => { void sendMessage(undefined, "show rentals under 5000"); }}>Under ₱5k</button>
+            <button type="button" onClick={() => { void sendMessage(undefined, "show rentals under 10000"); }}>Under ₱10k</button>
+            <button type="button" onClick={() => { void sendMessage(undefined, "show rentals under 15000"); }}>Under ₱15k</button>
+            <button type="button" onClick={() => { void sendMessage(undefined, "show rentals under 20000"); }}>Under ₱20k</button>
+            <button type="button" onClick={() => { void sendMessage(undefined, "show verified rentals"); }}>Verified only</button>
             <button type="button" onClick={() => { setOpen(false); onSearch(); }}>Search places</button>
             <button type="button" onClick={() => { setOpen(false); onFilters(); }}>Open filters</button>
           </div>}

@@ -29,7 +29,7 @@ export type AssistantSearch =
   | { kind: "not-needed" }
   | { kind: "clarify"; question: string }
   | { kind: "search"; minPrice: number | null; maxPrice: number | null; area: string | null; propertyType: string | null; verifiedOnly: boolean;
-      wifi?: boolean; aircon?: boolean; parking?: boolean; cooking?: boolean; laundry?: boolean;
+      wifi?: boolean; aircon?: boolean; parking?: boolean; cooking?: boolean; kitchen?: boolean; laundry?: boolean;
       waterIncluded?: boolean; electricityIncluded?: boolean; minOccupants?: number | null;
       curfew?: string | null; tenantPolicy?: string | null };
 
@@ -38,20 +38,24 @@ import type { RentalResult } from "@/contracts/preview";
 
 export type AssistantSelection = { id: string; unitId: string | null; title: string; area: string; monthlyPricePHP: number; propertyType: string; verificationStatus: string | null; overBudgetPHP: number };
 
+const normalizeAreaText = (value: string) => value.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim();
+
 export function selectAssistantRentals(rentals: RentalResult[], criteria: Extract<AssistantSearch, { kind: "search" }>): { matches: AssistantSelection[]; alternatives: AssistantSelection[] } {
   const selected: AssistantSelection[] = [];
   const seen = new Set<string>();
+  const area = criteria.area ? normalizeAreaText(criteria.area) : null;
   for (const rental of rentals) {
-    const location = `${rental.locality} ${rental.barangay ?? ""} ${rental.address ?? ""}`.toLowerCase();
-    if (!rental.available || (rental.availableUnitsCount !== undefined && rental.availableUnitsCount !== null && rental.availableUnitsCount <= 0) || (criteria.area && !location.includes(criteria.area)) || (criteria.verifiedOnly && rental.verificationStatus !== "property_verified" && rental.verificationStatus !== "fully_verified")) continue;
+    const location = normalizeAreaText(`${rental.locality} ${rental.barangay ?? ""} ${rental.address ?? ""}`);
+    if (!rental.available || (rental.availableUnitsCount !== undefined && rental.availableUnitsCount !== null && rental.availableUnitsCount <= 0) || (area && !location.includes(area)) || (criteria.verifiedOnly && rental.verificationStatus !== "property_verified" && rental.verificationStatus !== "fully_verified")) continue;
     if (criteria.wifi === true && rental.wifiAvailable !== true) continue;
     if (criteria.aircon === true && rental.aircon !== true) continue;
     if (criteria.parking === true && rental.motorcycleParking !== true && rental.carParking !== true) continue;
     if (criteria.cooking === true && rental.cookingAllowed !== true) continue;
+    if (criteria.kitchen === true && rental.kitchenAvailable !== true) continue;
     if (criteria.laundry === true && rental.laundryAllowed !== true) continue;
     if (criteria.waterIncluded === true && rental.waterPricingType !== "included") continue;
     if (criteria.electricityIncluded === true && rental.electricityPricingType !== "included") continue;
-    if (criteria.curfew === "none" && rental.curfewType !== "none" && rental.curfewType != null) continue;
+    if (criteria.curfew === "none" && rental.curfewType !== "none") continue;
     if (criteria.tenantPolicy && rental.tenantPolicy !== criteria.tenantPolicy) continue;
     const units = rental.units
       ? rental.units.filter((unit) => unit.isAvailable).map((unit) => ({ id: unit.id, price: unit.monthlyRent, type: unit.rentalType, occupants: unit.maxOccupants }))
@@ -161,16 +165,24 @@ export function parseAssistantSearch(userMessages: string[]): AssistantSearch {
       criteria.area = bareArea === "cebu" ? null : bareArea;
       turnIsSearch = true;
     }
-    if (/\bwi-?fi\b/.test(text)) criteria.wifi = true;
-    if (/\b(?:air ?con|air ?conditioning|air-conditioned)\b/.test(text)) criteria.aircon = true;
-    if (/\bparking\b/.test(text)) criteria.parking = true;
-    if (/\b(?:can cook|cooking allowed|allow cooking|kitchen)\b/.test(text)) criteria.cooking = true;
-    if (/\blaundry\b/.test(text)) criteria.laundry = true;
-    if (/\bwater included\b/.test(text)) criteria.waterIncluded = true;
-    if (/\b(?:electricity included|power included|electric bill included)\b/.test(text)) criteria.electricityIncluded = true;
+    const negatedAmenity = /\b(?:no|without)\s+(?:wi-?fi|air ?con|air ?conditioning|air-conditioned|parking|kitchen|cooking|laundry|water|electricity|power)\b/.test(text);
+    if (negatedAmenity) {
+      turnIsSearch = true;
+      turnClarify ??= "I can filter for rentals that have wifi, aircon, parking, a kitchen, cooking or laundry, but not for rentals that lack them. Should I search with those criteria only?";
+      pendingUnsupported = turnClarify;
+    } else {
+      if (/\bwi-?fi\b/.test(text)) criteria.wifi = true;
+      if (/\b(?:air ?con|air ?conditioning|air-conditioned)\b/.test(text)) criteria.aircon = true;
+      if (/\bparking\b/.test(text)) criteria.parking = true;
+      if (/\bkitchen\b/.test(text)) criteria.kitchen = true;
+      if (/\b(?:can cook|cooking allowed|allow cooking)\b/.test(text)) criteria.cooking = true;
+      if (/\blaundry\b/.test(text)) criteria.laundry = true;
+      if (/\bwater included\b/.test(text)) criteria.waterIncluded = true;
+      if (/\b(?:electricity included|power included|electric bill included)\b/.test(text)) criteria.electricityIncluded = true;
+      if (/\bfemale[ -]?only\b/.test(text)) criteria.tenantPolicy = "female_only";
+      if (/\bmale[ -]?only\b/.test(text)) criteria.tenantPolicy = "male_only";
+    }
     if (/\b(?:no|without) curfew\b/.test(text)) criteria.curfew = "none";
-    if (/\bfemale[ -]?only\b/.test(text)) criteria.tenantPolicy = "female_only";
-    if (/\bmale[ -]?only\b/.test(text)) criteria.tenantPolicy = "male_only";
     if (supportedAmenity.test(text)) turnIsSearch = true;
     const familyMatch = remaining.match(/\bfamily\s+of\s+(\d+)\b/i);
     const occupantMatch = familyMatch ?? remaining.match(/\b(\d+)\s*(?:persons?|people|pax|occupants?)\b/i);
