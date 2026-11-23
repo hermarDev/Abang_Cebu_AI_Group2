@@ -28,6 +28,7 @@ export type Rental = {
   id: string;
   title: string;
   address?: string;
+  barangay?: string | null;
   imageUrls?: string[];
   locality: string;
   coordinates: Coordinate;

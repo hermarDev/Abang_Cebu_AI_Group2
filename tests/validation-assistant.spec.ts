@@ -51,3 +51,41 @@ test("assistant renders deterministic matches and separately labelled above-budg
   expect(text).not.toContain("Lahug Identity Room — Cebu City · ₱9,000/mo · Verified");
   expect(text).not.toContain("IT Park Over-Budget Room — Cebu City · ₱10,001/mo (₱1 over budget) · Verified");
 });
+
+test("assistant listings are clickable and follow-ups reuse the last results", async ({ page }) => {
+  let requests = 0;
+  await page.route("**/api/assistant", route => {
+    requests++;
+    return route.fulfill({
+      status: 200,
+      json: {
+        reply: "ignored",
+        listings: {
+          matches: [
+            { id: "m-1", unitId: null, title: "Mandaue Verified Room", area: "Mandaue", monthlyPricePHP: 8500, propertyType: "room", verificationStatus: "property_verified", overBudgetPHP: 0 },
+            { id: "m-2", unitId: null, title: "Lahug Room", area: "Cebu City", monthlyPricePHP: 9500, propertyType: "room", verificationStatus: "unverified", overBudgetPHP: 0 },
+          ],
+          alternatives: [],
+          complete: true,
+        },
+      },
+    });
+  });
+  await page.goto("/");
+  await page.getByRole("button", { name: "Open rental assistant" }).click();
+  const panel = page.getByRole("region", { name: "AbangCebu assistant" });
+  await panel.getByLabel("Message the AbangCebu assistant").fill("show rooms under 10k");
+  await panel.getByRole("button", { name: "Send message" }).click();
+
+  const log = panel.getByRole("log", { name: "Conversation with AbangCebu assistant" });
+  const viewButton = panel.getByRole("button", { name: "View Mandaue Verified Room on map" });
+  await expect(viewButton).toBeVisible();
+
+  await panel.getByLabel("Message the AbangCebu assistant").fill("cheapest");
+  await panel.getByRole("button", { name: "Send message" }).click();
+  await expect(log).toContainText("The cheapest match is Mandaue Verified Room");
+  expect(requests).toBe(1);
+
+  await viewButton.click();
+  await expect(panel).toBeHidden();
+});

@@ -35,6 +35,25 @@ describe("selectAssistantRentals", () => {
     ], { kind: "search", minPrice: null, maxPrice: 10000, area: "it park", propertyType: null, verifiedOnly: false });
     expect(result.matches.map((item) => item.id)).toEqual(["itp"]);
   });
+  it("matches a barangay even when the city and street address do not contain it", () => {
+    const result = selectAssistantRentals([
+      rental({ id: "barangay", locality: "Cebu City", address: "Salinas Dr", barangay: "Lahug", price: 9000 }),
+      rental({ id: "other", locality: "Cebu City", address: "Colon St", price: 8000 }),
+    ], { kind: "search", minPrice: null, maxPrice: 10000, area: "lahug", propertyType: null, verifiedOnly: false });
+    expect(result.matches.map((item) => item.id)).toEqual(["barangay"]);
+  });
+  it("filters on data-backed amenities, occupancy and house rules", () => {
+    const base = { kind: "search" as const, minPrice: null, maxPrice: 15000, area: null, propertyType: null, verifiedOnly: false };
+    const featured = rental({ id: "featured", price: 9000, wifiAvailable: true, aircon: true, laundryAllowed: true, cookingAllowed: true, motorcycleParking: true, waterPricingType: "included", electricityPricingType: "included", maxOccupants: 2, curfewType: "none", tenantPolicy: "female_only" });
+    const plain = rental({ id: "plain", price: 8000, maxOccupants: 1 });
+    expect(selectAssistantRentals([featured, plain], { ...base, wifi: true }).matches.map((item) => item.id)).toEqual(["featured"]);
+    expect(selectAssistantRentals([featured, plain], { ...base, aircon: true }).matches.map((item) => item.id)).toEqual(["featured"]);
+    expect(selectAssistantRentals([featured, plain], { ...base, parking: true }).matches.map((item) => item.id)).toEqual(["featured"]);
+    expect(selectAssistantRentals([featured, plain], { ...base, laundry: true, cooking: true }).matches.map((item) => item.id)).toEqual(["featured"]);
+    expect(selectAssistantRentals([featured, plain], { ...base, waterIncluded: true, electricityIncluded: true }).matches.map((item) => item.id)).toEqual(["featured"]);
+    expect(selectAssistantRentals([featured, plain], { ...base, minOccupants: 2 }).matches.map((item) => item.id)).toEqual(["featured"]);
+    expect(selectAssistantRentals([featured, plain], { ...base, curfew: "none", tenantPolicy: "female_only" }).matches.map((item) => item.id)).toEqual(["featured"]);
+  });
   it("skips rentals with availableUnitsCount <= 0 even when units array is omitted", () => {
     const result = selectAssistantRentals([
       rental({ id: "zero", price: 8000, availableUnitsCount: 0, units: undefined }),
@@ -100,10 +119,38 @@ describe("parseAssistantSearch", () => {
     expect(parseAssistantSearch(["find a room in Mandaue under 10k", "make it 15000"]))
       .toMatchObject({ kind: "search", maxPrice: 15000, area: "mandaue" });
   });
-  it("clarifies unsupported amenity or occupant constraints instead of silently ignoring them", () => {
+  it("clarifies unsupported amenity constraints but supports occupant counts", () => {
     expect(parseAssistantSearch(["find a pet-friendly room under 10k"]).kind).toBe("clarify");
     expect(parseAssistantSearch(["find a room under 10k with pool"]).kind).toBe("clarify");
-    expect(parseAssistantSearch(["find a room for 2 persons under 10k"]).kind).toBe("clarify");
+    expect(parseAssistantSearch(["find a room for 2 persons under 10k"]))
+      .toMatchObject({ kind: "search", minOccupants: 2, maxPrice: 10000 });
+    expect(parseAssistantSearch(["family of 4 room under 15k"]))
+      .toMatchObject({ kind: "search", minOccupants: 4, maxPrice: 15000 });
+    expect(parseAssistantSearch(["solo studio under 5k"]))
+      .toMatchObject({ kind: "search", minOccupants: 1, maxPrice: 5000 });
+  });
+  it("accepts a bare neighborhood follow-up and the neighborhoods the assistant suggests", () => {
+    expect(parseAssistantSearch(["find rooms under 10k in Cebu", "lahug"]))
+      .toMatchObject({ kind: "search", maxPrice: 10000, area: "lahug" });
+    expect(parseAssistantSearch(["under 15000 in Cebu", "Mambaling"]))
+      .toMatchObject({ kind: "search", maxPrice: 15000, area: "mambaling" });
+    expect(parseAssistantSearch(["find rooms under 20k", "Basak San Nicolas"]))
+      .toMatchObject({ kind: "search", maxPrice: 20000, area: "basak-san nicolas" });
+    expect(parseAssistantSearch(["lahug"])).toMatchObject({ kind: "search", area: "lahug" });
+  });
+  it("treats bare Cebu as the whole province but keeps Cebu City specific", () => {
+    expect(parseAssistantSearch(["show rooms under 10k in cebu"]))
+      .toMatchObject({ kind: "search", maxPrice: 10000, area: null });
+    expect(parseAssistantSearch(["show rooms under 10k in cebu city"]))
+      .toMatchObject({ kind: "search", maxPrice: 10000, area: "cebu city" });
+  });
+  it("parses supported amenity and house-rule requests across budgets", () => {
+    expect(parseAssistantSearch(["wifi aircon room under 15k"]))
+      .toMatchObject({ kind: "search", wifi: true, aircon: true, maxPrice: 15000 });
+    expect(parseAssistantSearch(["parking laundry room under 5k"]))
+      .toMatchObject({ kind: "search", parking: true, laundry: true, maxPrice: 5000 });
+    expect(parseAssistantSearch(["female only no curfew room"]))
+      .toMatchObject({ kind: "search", tenantPolicy: "female_only", curfew: "none" });
   });
   it("understands a range", () => {
     expect(parseAssistantSearch(["show a room ₱5,000 to ₱10,000"]))
