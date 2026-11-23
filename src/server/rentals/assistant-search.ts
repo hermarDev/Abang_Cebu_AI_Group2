@@ -28,23 +28,42 @@ export function formatAssistantListingsReply(listings: { matches: AssistantSelec
 export type AssistantSearch =
   | { kind: "not-needed" }
   | { kind: "clarify"; question: string }
-  | { kind: "search"; minPrice: number | null; maxPrice: number | null; area: string | null; propertyType: string | null; verifiedOnly: boolean };
+  | { kind: "search"; minPrice: number | null; maxPrice: number | null; area: string | null; propertyType: string | null; verifiedOnly: boolean;
+      wifi?: boolean; aircon?: boolean; parking?: boolean; cooking?: boolean; kitchen?: boolean; laundry?: boolean;
+      waterIncluded?: boolean; electricityIncluded?: boolean; minOccupants?: number | null;
+      curfew?: string | null; tenantPolicy?: string | null };
 
 
 import type { RentalResult } from "@/contracts/preview";
 
 export type AssistantSelection = { id: string; unitId: string | null; title: string; area: string; monthlyPricePHP: number; propertyType: string; verificationStatus: string | null; overBudgetPHP: number };
 
+const normalizeAreaText = (value: string) => value.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim();
+
 export function selectAssistantRentals(rentals: RentalResult[], criteria: Extract<AssistantSearch, { kind: "search" }>): { matches: AssistantSelection[]; alternatives: AssistantSelection[] } {
   const selected: AssistantSelection[] = [];
   const seen = new Set<string>();
+  const area = criteria.area ? normalizeAreaText(criteria.area) : null;
   for (const rental of rentals) {
-    const location = `${rental.locality} ${rental.address ?? ""}`.toLowerCase();
-    if (!rental.available || (rental.availableUnitsCount !== undefined && rental.availableUnitsCount !== null && rental.availableUnitsCount <= 0) || (criteria.area && !location.includes(criteria.area)) || (criteria.verifiedOnly && rental.verificationStatus !== "property_verified" && rental.verificationStatus !== "fully_verified")) continue;
-    const units = rental.units ? rental.units.filter((unit) => unit.isAvailable).map((unit) => ({ id: unit.id, price: unit.monthlyRent, type: unit.rentalType })) : [{ id: null, price: rental.price, type: rental.type }];
+    const location = normalizeAreaText(`${rental.locality} ${rental.barangay ?? ""} ${rental.address ?? ""}`);
+    if (!rental.available || (rental.availableUnitsCount !== undefined && rental.availableUnitsCount !== null && rental.availableUnitsCount <= 0) || (area && !location.includes(area)) || (criteria.verifiedOnly && rental.verificationStatus !== "property_verified" && rental.verificationStatus !== "fully_verified")) continue;
+    if (criteria.wifi === true && rental.wifiAvailable !== true) continue;
+    if (criteria.aircon === true && rental.aircon !== true) continue;
+    if (criteria.parking === true && rental.motorcycleParking !== true && rental.carParking !== true) continue;
+    if (criteria.cooking === true && rental.cookingAllowed !== true) continue;
+    if (criteria.kitchen === true && rental.kitchenAvailable !== true) continue;
+    if (criteria.laundry === true && rental.laundryAllowed !== true) continue;
+    if (criteria.waterIncluded === true && rental.waterPricingType !== "included") continue;
+    if (criteria.electricityIncluded === true && rental.electricityPricingType !== "included") continue;
+    if (criteria.curfew === "none" && rental.curfewType !== "none") continue;
+    if (criteria.tenantPolicy && rental.tenantPolicy !== criteria.tenantPolicy) continue;
+    const units = rental.units
+      ? rental.units.filter((unit) => unit.isAvailable).map((unit) => ({ id: unit.id, price: unit.monthlyRent, type: unit.rentalType, occupants: unit.maxOccupants }))
+      : [{ id: null, price: rental.price, type: rental.type, occupants: rental.maxOccupants ?? null }];
     for (const unit of units) {
       const type = unit.type === "private_room" ? "room" : unit.type === "shared_room" ? "room" : unit.type === "entire_place" ? (rental.propertyType ?? rental.type) : unit.type;
       if (!Number.isFinite(unit.price) || unit.price < 0 || (criteria.minPrice !== null && unit.price < criteria.minPrice) || (criteria.propertyType && type !== criteria.propertyType)) continue;
+      if (criteria.minOccupants && unit.occupants !== null && unit.occupants < criteria.minOccupants) continue;
       const key = JSON.stringify([rental.id, unit.id]);
       if (seen.has(key)) continue;
       seen.add(key);
@@ -60,8 +79,10 @@ export function selectAssistantRentals(rentals: RentalResult[], criteria: Extrac
 }
 const amount = "(?:₱|php\\s*)?\\s*([0-9][0-9,]*(?:\\.[0-9]+)?\\s*k?)";
 const price = (value: string) => Number.parseFloat(value.replace(/,/g, "")) * (/k\s*$/i.test(value) ? 1000 : 1);
-const supportedAreas = ["mandaue", "cebu city", "cebu", "lapu-lapu", "talisay", "lahug", "it park", "banilad", "talamban", "mabolo", "consolacion", "liloan", "minglanilla", "cordova"];
-const areaAliases: Record<string, string> = { "mandaue city": "mandaue", "lapu-lapu city": "lapu-lapu", "talisay city": "talisay" };
+const supportedAreas = ["mandaue", "cebu city", "cebu", "lapu-lapu", "talisay", "lahug", "it park", "banilad", "talamban", "mabolo", "mambaling", "basak-san nicolas", "consolacion", "liloan", "minglanilla", "cordova"];
+const areaAliases: Record<string, string> = { "mandaue city": "mandaue", "lapu-lapu city": "lapu-lapu", "talisay city": "talisay", "basak san nicolas": "basak-san nicolas" };
+const supportedAmenity = /\b(?:wi-?fi|air ?con|air ?conditioning|air-conditioned|parking|can cook|cooking allowed|allow cooking|kitchen|laundry|water included|electricity included|power included|electric bill included|(?:no|without) curfew|female[ -]?only|male[ -]?only)\b/i;
+const occupantIntent = /\b(?:\d+\s*(?:persons?|people|pax|occupants?)|solo|couple|family(?:\s+of\s+\d+)?)\b/i;
 
 export function parseAssistantSearch(userMessages: string[]): AssistantSearch {
   const criteria: Extract<AssistantSearch, { kind: "search" }> = { kind: "search", minPrice: null, maxPrice: null, area: null, propertyType: null, verifiedOnly: false };
@@ -71,13 +92,16 @@ export function parseAssistantSearch(userMessages: string[]): AssistantSearch {
   for (let index = 0; index < userMessages.length; index++) {
     const isLastTurn = index === userMessages.length - 1;
     const text = userMessages[index].toLowerCase();
+    let remaining = text;
+    const bareText = remaining.trim().replace(/[.!?]+$/, "");
+    const bareArea = supportedAreas.includes(bareText) ? bareText : areaAliases[bareText] ?? null;
     const appHelp = /\bhow\s+(?:do|can|should)\s+i\s+(?:list|search|find|post)\b/.test(text);
     if (appHelp) {
       if (isLastTurn) return { kind: "not-needed" };
       continue;
     }
     const initialCriteria = new RegExp(`\\b(?:under|below|less than|up to|ubos|budget)\\s*${amount}.*\\b(?:in|near|around|sa)\\s+`, "i").test(text);
-    const explicitSearch = /\b(?:list|find|search|show|looking for|available|rentals?|rooms?|kwarto|apartments?|bedspaces?|studios?|houses?|condos?|property|properties|listings?|places?)\b/.test(text) || initialCriteria;
+    const explicitSearch = /\b(?:list|find|search|show|looking for|available|rentals?|rooms?|kwarto|apartments?|bedspaces?|studios?|houses?|condos?|property|properties|listings?|places?)\b/.test(text) || initialCriteria || Boolean(bareArea) || supportedAmenity.test(text) || occupantIntent.test(text);
     if (explicitSearch) searching = true;
     if (!searching) {
       lastTurnIsSearch = false;
@@ -95,17 +119,11 @@ export function parseAssistantSearch(userMessages: string[]): AssistantSearch {
       turnIsSearch = true;
       turnClarify ??= "Which supported rental type should I search?";
     }
-    if (/\b(?:pet[- ]?friendly|pets?|pool|gym|balcony|furnished|unfurnished|female[- ]?only|male[- ]?only|curfew|parking|aircon|wifi|wi-fi|cooking|laundry)\b/.test(text)) {
-      turnIsSearch = true;
-      turnClarify ??= "I can filter chat searches by budget, Cebu area, rental type, and verified status. Should I search with those criteria only?";
-      pendingUnsupported = turnClarify;
-    }
     const range = text.match(new RegExp(`${amount}\\s*(?:to|[-–])\\s*${amount}`, "i"));
     const maximum = text.match(new RegExp(`(?:under|below|less than|up to|ubos(?:\\s+(?:sa|ug))?|budget(?:\\s+(?:of|to|is))?|(?:increase|raise|change|make)(?:\\s+(?:my|the))?(?:\\s+budget)?(?:\\s+it)?(?:\\s+to)?)\\s*${amount}`, "i"));
     const currency = text.match(new RegExp(`(?:₱|php\\s*)\\s*([0-9][0-9,]*(?:\\.[0-9]+)?\\s*k?)`, "i"));
     const bareFollowUp = text.match(/^\s*([0-9][0-9,]*(?:\.[0-9]+)?\s*k?)\s*$/i);
     const budgetReset = /\b(?:no\s+budget\s+limit|(?:remove|clear)(?:\s+(?:my|the))?\s+budget|any\s+(?:price|budget))\b/.test(text);
-    let remaining = text;
     if (budgetReset) {
       criteria.minPrice = null;
       criteria.maxPrice = null;
@@ -137,12 +155,52 @@ export function parseAssistantSearch(userMessages: string[]): AssistantSearch {
     if (location) {
       const normalizedArea = areaAliases[location[1]] ?? location[1];
       if (supportedAreas.includes(normalizedArea)) {
-        criteria.area = normalizedArea;
+        criteria.area = normalizedArea === "cebu" ? null : normalizedArea;
         turnIsSearch = true;
       } else if (explicitSearch || /^\s*(?:in|near|around|sa)\s+[a-z-]+(?:\s+(?:city|park))?\s*$/.test(remaining)) {
         turnIsSearch = true;
         turnClarify ??= "Which Cebu area should I search?";
       }
+    } else if (bareArea) {
+      criteria.area = bareArea === "cebu" ? null : bareArea;
+      turnIsSearch = true;
+    }
+    const negatedAmenity = /\b(?:no|without)\s+(?:wi-?fi|air ?con|air ?conditioning|air-conditioned|parking|kitchen|cooking|laundry|water|electricity|power)\b/.test(text);
+    if (negatedAmenity) {
+      turnIsSearch = true;
+      turnClarify ??= "I can filter for rentals that have wifi, aircon, parking, a kitchen, cooking or laundry, but not for rentals that lack them. Should I search with those criteria only?";
+      pendingUnsupported = turnClarify;
+    } else {
+      if (/\bwi-?fi\b/.test(text)) criteria.wifi = true;
+      if (/\b(?:air ?con|air ?conditioning|air-conditioned)\b/.test(text)) criteria.aircon = true;
+      if (/\bparking\b/.test(text)) criteria.parking = true;
+      if (/\bkitchen\b/.test(text)) criteria.kitchen = true;
+      if (/\b(?:can cook|cooking allowed|allow cooking)\b/.test(text)) criteria.cooking = true;
+      if (/\blaundry\b/.test(text)) criteria.laundry = true;
+      if (/\bwater included\b/.test(text)) criteria.waterIncluded = true;
+      if (/\b(?:electricity included|power included|electric bill included)\b/.test(text)) criteria.electricityIncluded = true;
+      if (/\bfemale[ -]?only\b/.test(text)) criteria.tenantPolicy = "female_only";
+      if (/\bmale[ -]?only\b/.test(text)) criteria.tenantPolicy = "male_only";
+    }
+    if (/\b(?:no|without) curfew\b/.test(text)) criteria.curfew = "none";
+    if (supportedAmenity.test(text)) turnIsSearch = true;
+    const familyMatch = remaining.match(/\bfamily\s+of\s+(\d+)\b/i);
+    const occupantMatch = familyMatch ?? remaining.match(/\b(\d+)\s*(?:persons?|people|pax|occupants?)\b/i);
+    if (occupantMatch) {
+      const count = Number(occupantMatch[1]);
+      if (Number.isFinite(count) && count > 0) {
+        criteria.minOccupants = count;
+        turnIsSearch = true;
+      }
+    } else if (/\bsolo\b/.test(text)) {
+      criteria.minOccupants = 1;
+      turnIsSearch = true;
+    } else if (/\bcouple\b/.test(text)) {
+      criteria.minOccupants = 2;
+      turnIsSearch = true;
+    } else if (/\bfamily\b/.test(text)) {
+      criteria.minOccupants = Math.max(criteria.minOccupants ?? 0, 3);
+      turnIsSearch = true;
     }
     const type = remaining.match(/\b(rooms?|kwarto|apartments?|bedspaces?|studios?|houses?|condos?|boarding houses?)\b/);
     if (type) {
@@ -154,7 +212,7 @@ export function parseAssistantSearch(userMessages: string[]): AssistantSearch {
       criteria.verifiedOnly = !/\b(?:no need to be|not necessarily|not required to be|need not be|not|un)\s+verified\b/.test(remaining);
       turnIsSearch = true;
     }
-    const unsupportedConstraint = /\b(?:\d+\s*(?:persons?|people|pax|occupants?|bedrooms?|br)|solo|couple|family|student|students|workers?|short[- ]?term|daily|weekly|monthly\s+only|near\s+school|near\s+mall)\b/.test(remaining);
+    const unsupportedConstraint = /\b(?:\d+\s*(?:bedrooms?|br)|student|students|workers?|short[- ]?term|daily|weekly|monthly\s+only|near\s+school|near\s+mall|pool|gym|balcony|furnished|unfurnished|pets?)\b/.test(text);
     if (unsupportedConstraint) {
       turnIsSearch = true;
       turnClarify ??= "I can filter chat searches by budget, Cebu area, rental type, and verified status. Should I search with those criteria only?";

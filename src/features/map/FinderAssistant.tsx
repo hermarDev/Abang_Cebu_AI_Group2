@@ -6,7 +6,7 @@ import { ChatbotAvatar } from "@/components/brand";
 import { History, LoaderCircle, Plus, Send, Trash2, X } from "lucide-react";
 import styles from "./RestoredFinderShell.module.css";
 
-type ChatMessage = { role: "user" | "assistant"; content: string };
+type ChatMessage = { role: "user" | "assistant"; content: string; listings?: AssistantListingsPayload };
 type AssistantListingItem = {
   id: string;
   unitId: string | null;
@@ -125,7 +125,7 @@ function renderInlineFormatting(text: string): ReactNode[] {
   });
 }
 
-function renderReply(content: string): ReactNode[] {
+function renderReply(content: string, listings?: AssistantListingsPayload, onOpenListing?: (id: string) => void): ReactNode[] {
   const lines = content.replace(/\r\n?/g, "\n").replace(/([^\n])\s+(?=\d+[.)]\s+)/g, "$1\n").replace(/([^\n])\s+(?=[-*•]\s+)/g, "$1\n").trim().split("\n");
   const blocks: ReplyBlock[] = [];
   let index = 0;
@@ -166,11 +166,27 @@ function renderReply(content: string): ReactNode[] {
     blocks.push({ type: "paragraph", content: paragraph.join(" ").replace(/^#{1,6}\s+/, "") });
   }
 
+  const byLine = new Map<string, AssistantListingItem | null>();
+  if (listings) {
+    for (const item of [...listings.matches, ...listings.alternatives]) {
+      const lines = new Set([formatListingLine(item, false).slice(2), formatListingLine(item, true).slice(2)]);
+      for (const line of lines) {
+        if (byLine.has(line)) byLine.set(line, null);
+        else byLine.set(line, item);
+      }
+    }
+  }
+
   return blocks.map((block, blockIndex) => {
     if (block.type === "paragraph") {
       return <p key={blockIndex}>{renderInlineFormatting(block.content)}</p>;
     }
-    const items = block.items.map((item, itemIndex) => <li key={itemIndex}>{renderInlineFormatting(item)}</li>);
+    const items = block.items.map((item, itemIndex) => {
+      const target = byLine.get(item);
+      return <li key={itemIndex}>{target && onOpenListing
+        ? <button type="button" className={styles.chatListingLink} aria-label={`View ${target.title} on map`} onClick={() => onOpenListing(target.id)}>{renderInlineFormatting(item)}</button>
+        : renderInlineFormatting(item)}</li>;
+    });
     return block.type === "ordered"
       ? <ol key={blockIndex}>{items}</ol>
       : <ul key={blockIndex}>{items}</ul>;
@@ -286,7 +302,7 @@ function ProfileAvatar({ url, name, className }: { url: string | null; name: str
   </span>;
 }
 
-export function FinderAssistant({ open, onOpenChange: setOpen, onSearch, onFilters, onControlsTargetChange, onSignIn = () => {}, authenticated = false, userId = null, displayName = null, profilePhotoUrl = null }: { open: boolean; onOpenChange: (open: boolean) => void; onSearch: () => void; onFilters: () => void; onControlsTargetChange: (target: HTMLDivElement | null) => void; onSignIn?: () => void; authenticated?: boolean; userId?: string | null; displayName?: string | null; profilePhotoUrl?: string | null }) {
+export function FinderAssistant({ open, onOpenChange: setOpen, onSearch, onFilters, onControlsTargetChange, onSignIn = () => {}, onOpenListing, onToggleSaved, onMessageLandlord, authenticated = false, userId = null, displayName = null, profilePhotoUrl = null }: { open: boolean; onOpenChange: (open: boolean) => void; onSearch: () => void; onFilters: () => void; onControlsTargetChange: (target: HTMLDivElement | null) => void; onSignIn?: () => void; onOpenListing?: (id: string) => void; onToggleSaved?: (id: string, shouldSave: boolean) => void; onMessageLandlord?: (id: string) => void; authenticated?: boolean; userId?: string | null; displayName?: string | null; profilePhotoUrl?: string | null }) {
   const [messages, setMessages] = useState<ChatMessage[]>([welcomeMessage]);
   const [drafts, setDrafts] = useState<Record<string, string>>({});
   const [isSending, setIsSending] = useState(false);
@@ -305,6 +321,7 @@ export function FinderAssistant({ open, onOpenChange: setOpen, onSearch, onFilte
   const loadedHistoryFor = useRef<string | null>(null);
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
   const messageEndRef = useRef<HTMLDivElement>(null);
+  const lastListingsRef = useRef<AssistantListingsPayload | null>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLElement>(null);
   const stickToBottomRef = useRef(true);
@@ -324,6 +341,7 @@ export function FinderAssistant({ open, onOpenChange: setOpen, onSearch, onFilte
   const ownerGenerationRef = useRef(0);
   useLayoutEffect(() => {
     ownerGenerationRef.current += 1;
+    lastListingsRef.current = null;
     return () => { ownerGenerationRef.current += 1; };
   }, [historyOwner]);
   const accountHeaders = { "X-Assistant-Owner": authenticated ? userId ?? "unknown" : "guest" };
@@ -357,6 +375,7 @@ export function FinderAssistant({ open, onOpenChange: setOpen, onSearch, onFilte
       updateActiveConversationLocal(false);
       updateConversations([]);
       setMessages([welcomeMessage]);
+      lastListingsRef.current = null;
       stickToBottomRef.current = true;
       setIsAtBottom(true);
       accountSyncUnavailable.current = false;
@@ -631,6 +650,7 @@ export function FinderAssistant({ open, onOpenChange: setOpen, onSearch, onFilte
 
   async function selectConversation(conversation: SavedConversation) {
     const generation = ownerGenerationRef.current;
+    lastListingsRef.current = null;
     setError(null);
     setHistoryError(null);
     setPendingDeleteId(null);
@@ -672,6 +692,7 @@ export function FinderAssistant({ open, onOpenChange: setOpen, onSearch, onFilte
   function startNewChat() {
     stickToBottomRef.current = true;
     setIsAtBottom(true);
+    lastListingsRef.current = null;
     setMessages([welcomeMessage]);
     updateActiveConversationId(null);
     updateActiveConversationLocal(false);
@@ -708,15 +729,45 @@ export function FinderAssistant({ open, onOpenChange: setOpen, onSearch, onFilte
     if (activeConversationId === conversation.id) {
       updateActiveConversationId(null);
       updateActiveConversationLocal(false);
+      lastListingsRef.current = null;
       setMessages([welcomeMessage]);
     }
     setPendingDeleteId(null);
   }
 
-  async function sendMessage(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  function localListingFollowUp(content: string): { reply: string; action?: () => void; close?: boolean } | null {
+    const listings = lastListingsRef.current;
+    const items = listings?.matches.length ? listings.matches : listings?.alternatives ?? [];
+    if (!items.length) return null;
+    const text = content.toLowerCase().trim();
+    const first = items[0];
+    const describe = (item: AssistantListingItem) => `${item.title} — ${item.area} · ${formatPhp(item.monthlyPricePHP)}/mo`;
+    if (["open it", "open this", "open the first one", "show me that", "go there", "view it", "the first one", "that one"].includes(text)) {
+      return { reply: `Opening ${first.title} on the map.`, action: () => onOpenListing?.(first.id), close: true };
+    }
+    if (onToggleSaved && ["save it", "save this", "save the first one"].includes(text)) {
+      return { reply: authenticated ? `Saved ${first.title} to your list.` : `Sign in to save ${first.title}.`, action: () => onToggleSaved(first.id, true) };
+    }
+    if (onMessageLandlord && ["message landlord", "message the landlord", "contact landlord", "contact the landlord"].includes(text)) {
+      return { reply: authenticated ? `Opening a message about ${first.title}.` : `Sign in to message about ${first.title}.`, action: () => onMessageLandlord(first.id), close: true };
+    }
+    if (["cheapest", "cheapest one", "cheapest option", "cheapest room", "which is cheapest", "what's cheapest", "the cheapest"].includes(text)) {
+      const cheapest = listings!.matches[0] ?? items[0];
+      return { reply: `The cheapest match is ${describe(cheapest)}.` };
+    }
+    if (["most expensive", "priciest", "highest priced", "which is most expensive"].includes(text)) {
+      const dearest = items[items.length - 1];
+      return { reply: `The highest-priced option I found is ${describe(dearest)}.` };
+    }
+    if (/^(?:where|location)\b/.test(text)) return { reply: `${first.title} is in ${first.area}.` };
+    if (/^(?:how much|price|what's the price)\b/.test(text)) return { reply: `${first.title} is ${formatPhp(first.monthlyPricePHP)} per month.` };
+    return null;
+  }
+
+  async function sendMessage(event?: FormEvent<HTMLFormElement>, override?: string) {
+    event?.preventDefault();
     const generation = ownerGenerationRef.current;
-    const content = draft.trim();
+    const content = (override ?? draft).trim();
     if (!content || isSending || isLoadingHistory) return;
 
     stickToBottomRef.current = true;
@@ -725,6 +776,15 @@ export function FinderAssistant({ open, onOpenChange: setOpen, onSearch, onFilte
     setMessages(nextMessages);
     setDraft("");
     setError(null);
+    const local = localListingFollowUp(content);
+    if (local) {
+      const repliedMessages = fitStoredMessages([...nextMessages, { role: "assistant" as const, content: local.reply }]);
+      setMessages(repliedMessages);
+      void saveConversation(repliedMessages);
+      local.action?.();
+      if (local.close) setOpen(false);
+      return;
+    }
     setIsSending(true);
 
     try {
@@ -741,12 +801,16 @@ export function FinderAssistant({ open, onOpenChange: setOpen, onSearch, onFilte
         setError(typeof result.error === "string" ? result.error : "The assistant could not reply just now. Please try again.");
         return;
       }
+      const listings = parseListingsPayload(result.listings);
+      if (listings) lastListingsRef.current = listings.matches.length || listings.alternatives.length ? listings : null;
       const assistantReply = buildAssistantReply(result);
       if (!assistantReply) {
         setError("The assistant returned an empty reply. Please try again.");
         return;
       }
-      const repliedMessages = fitStoredMessages([...nextMessages, { role: "assistant" as const, content: assistantReply }]);
+      const hasListings = listings && (listings.matches.length > 0 || listings.alternatives.length > 0);
+      const replyMessage: ChatMessage = { role: "assistant", content: assistantReply, ...(hasListings ? { listings: listings! } : {}) };
+      const repliedMessages = fitStoredMessages([...nextMessages, replyMessage]);
       setMessages(repliedMessages);
       await saveConversation(repliedMessages);
     } catch {
@@ -793,10 +857,15 @@ export function FinderAssistant({ open, onOpenChange: setOpen, onSearch, onFilte
               </div>
               : <div key={`${message.role}-${index}`} className={styles.chatAssistantMessage}>
                 <ChatbotAvatar size={24} className="h-6 w-6" aria-hidden="true" />
-                <div className={styles.chatAssistantReply}>{renderReply(message.content)}</div>
+                <div className={styles.chatAssistantReply}>{renderReply(message.content, message.listings, onOpenListing)}</div>
               </div>;
           })}
-          {messages.length === 1 && <div className={styles.suggestions}>
+          {(messages.length === 1 || Boolean(messages.at(-1)?.listings)) && <div className={styles.suggestions}>
+            <button type="button" onClick={() => { void sendMessage(undefined, "show rentals under 5000"); }}>Under ₱5k</button>
+            <button type="button" onClick={() => { void sendMessage(undefined, "show rentals under 10000"); }}>Under ₱10k</button>
+            <button type="button" onClick={() => { void sendMessage(undefined, "show rentals under 15000"); }}>Under ₱15k</button>
+            <button type="button" onClick={() => { void sendMessage(undefined, "show rentals under 20000"); }}>Under ₱20k</button>
+            <button type="button" onClick={() => { void sendMessage(undefined, "show verified rentals"); }}>Verified only</button>
             <button type="button" onClick={() => { setOpen(false); onSearch(); }}>Search places</button>
             <button type="button" onClick={() => { setOpen(false); onFilters(); }}>Open filters</button>
           </div>}

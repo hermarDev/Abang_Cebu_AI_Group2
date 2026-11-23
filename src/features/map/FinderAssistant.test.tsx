@@ -93,6 +93,15 @@ function findElement<P extends Record<string, unknown> = Record<string, unknown>
 }
 
 describe("FinderAssistant", () => {
+  it("wires structured listing results to clickable map actions", () => {
+    expect(assistantSource).toContain("chatListingLink");
+    expect(assistantSource).toContain("onOpenListing(target.id)");
+    expect(assistantSource).toContain("localListingFollowUp");
+    expect(assistantSource).toContain("show rentals under 5000");
+    expect(shellSource).toContain("onOpenListing={openAssistantListing}");
+    expect(shellCss).toContain(".chatListingLink");
+  });
+
   it("renders accessible region, log, close control, and composer markup when open", () => {
     const html = renderToStaticMarkup(
       <FinderAssistant

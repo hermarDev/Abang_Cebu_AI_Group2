@@ -52,6 +52,11 @@ let rentalsMemoryCache: { rentals: RentalResult[]; fetchedAt: number } | null = 
 const RENTALS_CACHE_TTL_MS = 60_000;
 export function clearRentalsMemoryCache() { rentalsMemoryCache = null; }
 const freshRentalsCache = () => rentalsMemoryCache && Date.now() - rentalsMemoryCache.fetchedAt < RENTALS_CACHE_TTL_MS ? rentalsMemoryCache : null;
+function isRentalResult(value: unknown): value is RentalResult {
+  if (!value || typeof value !== "object") return false;
+  const rental = value as RentalResult;
+  return typeof rental.id === "string" && typeof rental.title === "string" && typeof rental.locality === "string" && typeof rental.type === "string" && typeof rental.description === "string" && typeof rental.available === "boolean" && Number.isFinite(rental.price) && Array.isArray(rental.coordinates) && rental.coordinates.length === 2 && rental.coordinates.every(Number.isFinite) && Array.isArray(rental.amenities) && rental.amenities.every((amenity: unknown) => typeof amenity === "string");
+}
 
 export function ExpandedRentalModalContent({ rental, photoIndex, onPhotoIndexChange, canSave, saved, onToggleSaved, canMessage = false, onMessage }: { rental: RentalResult; photoIndex: number; onPhotoIndexChange: (index: number) => void; canSave: boolean; saved: boolean; onToggleSaved: (id: string) => void; canMessage?: boolean; onMessage?: (id: string) => void }) {
   const photos = rental.imageUrls ?? [];
@@ -107,9 +112,7 @@ export function RestoredFinderShell({ rentalStatus: statusOverride, initialAccou
         const response = await fetch("/api/rentals", { signal: controller.signal, cache: "no-store" });
         if (!response.ok) throw new Error("Rental read failed");
         const payload: unknown = await response.json();
-        if (!payload || typeof payload !== "object" || !("rentals" in payload) || !Array.isArray(payload.rentals) || !payload.rentals.every((rental) =>
-          rental && typeof rental.id === "string" && typeof rental.title === "string" && typeof rental.locality === "string" && typeof rental.type === "string" && typeof rental.description === "string" && typeof rental.available === "boolean" && Number.isFinite(rental.price) && Array.isArray(rental.coordinates) && rental.coordinates.length === 2 && rental.coordinates.every(Number.isFinite) && Array.isArray(rental.amenities) && rental.amenities.every((amenity: unknown) => typeof amenity === "string")
-        )) throw new Error("Invalid rental response");
+        if (!payload || typeof payload !== "object" || !("rentals" in payload) || !Array.isArray(payload.rentals) || !payload.rentals.every(isRentalResult)) throw new Error("Invalid rental response");
         if (!controller.signal.aborted) {
           rentalsMemoryCache = { rentals: payload.rentals, fetchedAt: Date.now() };
           setInventory({ status: "ready", rentals: payload.rentals });
@@ -336,6 +339,26 @@ export function RestoredFinderShell({ rentalStatus: statusOverride, initialAccou
     }
     if (userId) router.push(`/messages?listing=${encodeURIComponent(id)}`);
   };
+  const openAssistantListing = (id: string) => {
+    const show = () => { setHelpOpen(false); openExpandedRental(id); };
+    if (rentals.some((rental) => rental.id === id)) {
+      show();
+      return;
+    }
+    void (async () => {
+      try {
+        const response = await fetch(`/api/rentals?id=${encodeURIComponent(id)}`, { cache: "no-store" });
+        const payload: unknown = await response.json();
+        if (!response.ok || !payload || typeof payload !== "object" || !("rentals" in payload) || !Array.isArray(payload.rentals)) throw new Error("Missing rental");
+        const found = payload.rentals.filter(isRentalResult);
+        if (!found.length) throw new Error("Missing rental");
+        setInventory((current) => ({ status: "ready", rentals: [...current.rentals.filter((rental) => rental.id !== id), ...found] }));
+        show();
+      } catch {
+        notify("error", `assistant-listing-${id}`, "That listing could not be opened right now. Please try again.");
+      }
+    })();
+  };
   if (pendingInquiryId && authenticated && userRole !== "renter") setPendingInquiryId(null);
   useEffect(() => {
     if (!pendingInquiryId || !authenticated) return;
@@ -493,5 +516,5 @@ export function RestoredFinderShell({ rentalStatus: statusOverride, initialAccou
   
   {canUseRentalAssistant && !helpOpen && <button type="button" className={styles.chatLauncher} aria-label="Open rental assistant" title="Rental assistant" onClick={() => setHelpOpen(true)}><ChatbotAvatar size={48} className="h-12 w-12" /></button>}
   {canUseRentalAssistant && helpOpen && <button type="button" className={styles.assistantBackdrop} style={{ backdropFilter: "blur(3px)", WebkitBackdropFilter: "blur(3px)" }} aria-label="Close AbangCebu assistant" tabIndex={-1} onClick={() => setHelpOpen(false)} />}
-  {canUseRentalAssistant && <FinderAssistant open={helpOpen} onOpenChange={setHelpOpen} onSearch={() => document.querySelector<HTMLInputElement>('input[role="combobox"]')?.focus()} onFilters={() => setAdvancedOpen(true)} onControlsTargetChange={setAssistantControlsTarget} onSignIn={() => { setHelpOpen(false); setAccountOpen(true); }} authenticated={authenticated} userId={userId} displayName={displayName} profilePhotoUrl={avatarUrl} />}</div></main>;
+  {canUseRentalAssistant && <FinderAssistant open={helpOpen} onOpenChange={setHelpOpen} onSearch={() => document.querySelector<HTMLInputElement>('input[role="combobox"]')?.focus()} onFilters={() => setAdvancedOpen(true)} onControlsTargetChange={setAssistantControlsTarget} onSignIn={() => { setHelpOpen(false); setAccountOpen(true); }} onOpenListing={openAssistantListing} onToggleSaved={(id, shouldSave) => { if (favoriteIds.includes(id) !== shouldSave) void toggleFavorite(id); }} onMessageLandlord={(id) => { setHelpOpen(false); messageLandlord(id); }} authenticated={authenticated} userId={userId} displayName={displayName} profilePhotoUrl={avatarUrl} />}</div></main>;
 }

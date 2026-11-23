@@ -138,7 +138,8 @@ export function mapSubmittedRental(value: unknown, signedUrlsByPath: ReadonlyMap
   });
 
   return {
-    id: text(row.id), title: text(row.title), address: row.address == null ? text(row.city) : text(row.address), imageUrls,
+    id: text(row.id), title: text(row.title), address: row.address == null ? text(row.city) : text(row.address),
+    barangay: typeof row.barangay === "string" && row.barangay.trim() ? row.barangay.trim() : null, imageUrls,
     description: parseDescription(row.description), locality: text(row.city),
     coordinates: [number(row.longitude, -180, 180), number(row.latitude, -90, 90)], price: number(row.price, 0, Number.MAX_SAFE_INTEGER),
     type: propertyType, propertyType, basis: rentalType === "bedspace" ? "bed" : "room", available: true, distanceMeters: null,

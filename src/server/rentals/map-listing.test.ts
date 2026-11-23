@@ -71,6 +71,11 @@ describe("mapSubmittedRental", () => {
     expect(mapSubmittedRental(submitted)).toMatchObject({ id: submitted.id, verificationStatus: "property_verified", directLandlord: true });
   });
 
+  it("keeps the barangay from the public RPC so assistant area searches can match it", () => {
+    expect(mapSubmittedRental({ ...submitted, barangay: " Lahug " }).barangay).toBe("Lahug");
+    expect(mapSubmittedRental(submitted).barangay).toBeNull();
+  });
+
   it("omits units with unknown identity, availability or rent without losing the property", () => {
     const valid = { id: "u", rental_type: "private_room", monthly_rent: 5000, is_available: true };
     const result = mapSubmittedRental({ ...submitted, units: [valid, { ...valid, id: null }, { ...valid, is_available: null }, { ...valid, is_available: "false" }, { ...valid, monthly_rent: null }, { ...valid, monthly_rent: -1 }, { ...valid, monthly_rent: "invalid" }] });
