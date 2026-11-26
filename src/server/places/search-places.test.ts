@@ -32,11 +32,10 @@ describe("place request sharing", () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
-  it("keeps distinct-query throttling and the provider timeout", async () => {
-    fetchMock.mockResolvedValue(response());
-    await searchPlaces("Mandaue");
-    await expect(searchPlaces("Lahug")).rejects.toThrow("rate limited");
-    expect(fetchMock).toHaveBeenCalledTimes(1);
+  it("allows concurrent distinct queries and keeps the provider timeout", async () => {
+    fetchMock.mockImplementation(async () => response());
+    await expect(Promise.all([searchPlaces("Mandaue"), searchPlaces("Lahug")])).resolves.toEqual([[], []]);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
     const options = fetchMock.mock.calls[0][1]!;
     expect(options.cache).toBe("no-store");
     expect(options.signal).toBeInstanceOf(AbortSignal);

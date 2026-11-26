@@ -4,24 +4,11 @@ import { Fragment, useCallback, useEffect, useLayoutEffect, useRef, useState, ty
 import Image from "next/image";
 import { ChatbotAvatar } from "@/components/brand";
 import { History, LoaderCircle, Plus, Send, Trash2, X } from "lucide-react";
+import { formatAssistantListingsReply, formatListingLine, formatPhp, type AssistantListingsPayload, type AssistantSelection } from "@/lib/rentals/assistant-format";
 import styles from "./RestoredFinderShell.module.css";
 
+type AssistantListingItem = AssistantSelection;
 type ChatMessage = { role: "user" | "assistant"; content: string; listings?: AssistantListingsPayload };
-type AssistantListingItem = {
-  id: string;
-  unitId: string | null;
-  title: string;
-  area: string;
-  monthlyPricePHP: number;
-  propertyType: string;
-  verificationStatus: string | null;
-  overBudgetPHP: number;
-};
-type AssistantListingsPayload = {
-  matches: AssistantListingItem[];
-  alternatives: AssistantListingItem[];
-  complete?: boolean;
-};
 type AssistantResponse = { reply?: unknown; error?: unknown; listings?: unknown };
 
 function isAssistantListingItem(value: unknown): value is AssistantListingItem {
@@ -50,38 +37,10 @@ function parseListingsPayload(value: unknown): AssistantListingsPayload | null {
   };
 }
 
-function formatPhp(amount: number): string {
-  return `₱${Math.round(amount).toLocaleString("en-US")}`;
-}
-
-function formatListingLine(item: AssistantListingItem, overBudget: boolean): string {
-  const title = item.title.replace(/[\r\n]+/g, " ").replace(/[*_`[\]()<>]/g, "").trim();
-  const area = item.area.replace(/[\r\n]+/g, " ").replace(/[*_`[\]()<>]/g, "").trim();
-  const verified = item.verificationStatus === "property_verified" || item.verificationStatus === "fully_verified"
-    ? " · Verified property"
-    : "";
-  const delta = overBudget && item.overBudgetPHP > 0 ? ` (${formatPhp(item.overBudgetPHP)} over budget)` : "";
-  return `- ${title} — ${area} · ${formatPhp(item.monthlyPricePHP)}/mo${delta}${verified}`;
-}
-
 export function buildAssistantReply(result: AssistantResponse): string | null {
   const listings = parseListingsPayload(result.listings);
   if (listings && (listings.matches.length > 0 || listings.alternatives.length > 0)) {
-    const sections: string[] = [];
-    if (listings.matches.length > 0) {
-      sections.push(`Matching rentals:\n${listings.matches.map((item) => formatListingLine(item, false)).join("\n")}`);
-    } else if (listings.complete === false) {
-      sections.push("No matching rentals were found in the listings checked so far.");
-    } else {
-      sections.push("I could not find a matching rental in the current listings.");
-    }
-    if (listings.alternatives.length > 0) {
-      sections.push(`Above your budget:\n${listings.alternatives.map((item) => formatListingLine(item, true)).join("\n")}`);
-    }
-    if (listings.complete === false) {
-      sections.push("Some listings could not be checked; results may be incomplete.");
-    }
-    return sections.join("\n\n");
+    return formatAssistantListingsReply(listings);
   }
   return typeof result.reply === "string" && result.reply.trim() ? result.reply.trim() : null;
 }
@@ -302,7 +261,7 @@ function ProfileAvatar({ url, name, className }: { url: string | null; name: str
   </span>;
 }
 
-export function FinderAssistant({ open, onOpenChange: setOpen, onSearch, onFilters, onControlsTargetChange, onSignIn = () => {}, onOpenListing, onToggleSaved, onMessageLandlord, authenticated = false, userId = null, displayName = null, profilePhotoUrl = null }: { open: boolean; onOpenChange: (open: boolean) => void; onSearch: () => void; onFilters: () => void; onControlsTargetChange: (target: HTMLDivElement | null) => void; onSignIn?: () => void; onOpenListing?: (id: string) => void; onToggleSaved?: (id: string, shouldSave: boolean) => void; onMessageLandlord?: (id: string) => void; authenticated?: boolean; userId?: string | null; displayName?: string | null; profilePhotoUrl?: string | null }) {
+export function FinderAssistant({ open, onOpenChange: setOpen, onSearch, onFilters, onControlsTargetChange, onSignIn = () => {}, onOpenListing, onToggleSaved, onMessageLandlord, authenticated = false, userId = null, displayName = null, profilePhotoUrl = null }: { open: boolean; onOpenChange: (open: boolean) => void; onSearch: () => void; onFilters: () => void; onControlsTargetChange: (target: HTMLDivElement | null) => void; onSignIn?: () => void; onOpenListing?: (id: string) => void; onToggleSaved?: (id: string, shouldSave: boolean) => Promise<boolean> | boolean; onMessageLandlord?: (id: string) => void; authenticated?: boolean; userId?: string | null; displayName?: string | null; profilePhotoUrl?: string | null }) {
   const [messages, setMessages] = useState<ChatMessage[]>([welcomeMessage]);
   const [drafts, setDrafts] = useState<Record<string, string>>({});
   const [isSending, setIsSending] = useState(false);
@@ -322,6 +281,7 @@ export function FinderAssistant({ open, onOpenChange: setOpen, onSearch, onFilte
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
   const messageEndRef = useRef<HTMLDivElement>(null);
   const lastListingsRef = useRef<AssistantListingsPayload | null>(null);
+  const lastReferencedListingRef = useRef<AssistantListingItem | null>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLElement>(null);
   const stickToBottomRef = useRef(true);
@@ -693,6 +653,7 @@ export function FinderAssistant({ open, onOpenChange: setOpen, onSearch, onFilte
     stickToBottomRef.current = true;
     setIsAtBottom(true);
     lastListingsRef.current = null;
+    lastReferencedListingRef.current = null;
     setMessages([welcomeMessage]);
     updateActiveConversationId(null);
     updateActiveConversationLocal(false);
@@ -735,32 +696,54 @@ export function FinderAssistant({ open, onOpenChange: setOpen, onSearch, onFilte
     setPendingDeleteId(null);
   }
 
-  function localListingFollowUp(content: string): { reply: string; action?: () => void; close?: boolean } | null {
+  function localListingFollowUp(content: string): {
+    reply: string;
+    action?: () => Promise<boolean> | boolean | void;
+    saveTarget?: AssistantListingItem;
+    close?: boolean;
+  } | null {
     const listings = lastListingsRef.current;
     const items = listings?.matches.length ? listings.matches : listings?.alternatives ?? [];
     if (!items.length) return null;
     const text = content.toLowerCase().trim();
     const first = items[0];
+    const target = lastReferencedListingRef.current ?? first;
     const describe = (item: AssistantListingItem) => `${item.title} — ${item.area} · ${formatPhp(item.monthlyPricePHP)}/mo`;
-    if (["open it", "open this", "open the first one", "show me that", "go there", "view it", "the first one", "that one"].includes(text)) {
+    if (["open the first one", "the first one"].includes(text)) {
       return { reply: `Opening ${first.title} on the map.`, action: () => onOpenListing?.(first.id), close: true };
     }
-    if (onToggleSaved && ["save it", "save this", "save the first one"].includes(text)) {
-      return { reply: authenticated ? `Saved ${first.title} to your list.` : `Sign in to save ${first.title}.`, action: () => onToggleSaved(first.id, true) };
+    if (["open it", "open this", "show me that", "go there", "view it", "that one"].includes(text)) {
+      return { reply: `Opening ${target.title} on the map.`, action: () => onOpenListing?.(target.id), close: true };
+    }
+    if (onToggleSaved && text === "save the first one") {
+      return {
+        reply: authenticated ? `Saved ${first.title} to your list.` : `Sign in to save ${first.title}.`,
+        saveTarget: authenticated ? first : undefined,
+        action: () => onToggleSaved(first.id, true),
+      };
+    }
+    if (onToggleSaved && ["save it", "save this"].includes(text)) {
+      return {
+        reply: authenticated ? `Saved ${target.title} to your list.` : `Sign in to save ${target.title}.`,
+        saveTarget: authenticated ? target : undefined,
+        action: () => onToggleSaved(target.id, true),
+      };
     }
     if (onMessageLandlord && ["message landlord", "message the landlord", "contact landlord", "contact the landlord"].includes(text)) {
-      return { reply: authenticated ? `Opening a message about ${first.title}.` : `Sign in to message about ${first.title}.`, action: () => onMessageLandlord(first.id), close: true };
+      return { reply: authenticated ? `Opening a message about ${target.title}.` : `Sign in to message about ${target.title}.`, action: () => onMessageLandlord(target.id), close: true };
     }
     if (["cheapest", "cheapest one", "cheapest option", "cheapest room", "which is cheapest", "what's cheapest", "the cheapest"].includes(text)) {
       const cheapest = listings!.matches[0] ?? items[0];
+      lastReferencedListingRef.current = cheapest;
       return { reply: `The cheapest match is ${describe(cheapest)}.` };
     }
     if (["most expensive", "priciest", "highest priced", "which is most expensive"].includes(text)) {
       const dearest = items[items.length - 1];
+      lastReferencedListingRef.current = dearest;
       return { reply: `The highest-priced option I found is ${describe(dearest)}.` };
     }
-    if (/^(?:where|location)\b/.test(text)) return { reply: `${first.title} is in ${first.area}.` };
-    if (/^(?:how much|price|what's the price)\b/.test(text)) return { reply: `${first.title} is ${formatPhp(first.monthlyPricePHP)} per month.` };
+    if (/^(?:where|location)\b/.test(text)) return { reply: `${target.title} is in ${target.area}.` };
+    if (/^(?:how much|price|what's the price)\b/.test(text)) return { reply: `${target.title} is ${formatPhp(target.monthlyPricePHP)} per month.` };
     return null;
   }
 
@@ -778,10 +761,20 @@ export function FinderAssistant({ open, onOpenChange: setOpen, onSearch, onFilte
     setError(null);
     const local = localListingFollowUp(content);
     if (local) {
+      if (local.saveTarget) {
+        const saved = await local.action?.();
+        const replyText = saved === false
+          ? `Could not save ${local.saveTarget.title} right now. Please try again.`
+          : local.reply;
+        const repliedMessages = fitStoredMessages([...nextMessages, { role: "assistant" as const, content: replyText }]);
+        setMessages(repliedMessages);
+        void saveConversation(repliedMessages);
+        return;
+      }
       const repliedMessages = fitStoredMessages([...nextMessages, { role: "assistant" as const, content: local.reply }]);
       setMessages(repliedMessages);
       void saveConversation(repliedMessages);
-      local.action?.();
+      void local.action?.();
       if (local.close) setOpen(false);
       return;
     }
@@ -802,7 +795,10 @@ export function FinderAssistant({ open, onOpenChange: setOpen, onSearch, onFilte
         return;
       }
       const listings = parseListingsPayload(result.listings);
-      if (listings) lastListingsRef.current = listings.matches.length || listings.alternatives.length ? listings : null;
+      if (listings) {
+        lastListingsRef.current = listings.matches.length || listings.alternatives.length ? listings : null;
+        lastReferencedListingRef.current = null;
+      }
       const assistantReply = buildAssistantReply(result);
       if (!assistantReply) {
         setError("The assistant returned an empty reply. Please try again.");

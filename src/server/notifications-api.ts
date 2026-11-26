@@ -87,74 +87,42 @@ export async function fetchNotifications(
     query = query.or(searchFilter);
   }
 
-  const unreadQuery = supabase
-    .from("notifications")
-    .select("*", { count: "exact", head: true })
-    .eq("recipient_id", userId)
-    .eq("is_read", false);
-
-  const countQueries = options.includeCounts
-    ? {
-        all: supabase
-          .from("notifications")
-          .select("*", { count: "exact", head: true })
-          .eq("recipient_id", userId),
-        unread: supabase
-          .from("notifications")
-          .select("*", { count: "exact", head: true })
-          .eq("recipient_id", userId)
-          .eq("is_read", false),
-        messages: supabase
-          .from("notifications")
-          .select("*", { count: "exact", head: true })
-          .eq("recipient_id", userId)
-          .in("type", ["message", "inquiry"]),
-        listings: supabase
-          .from("notifications")
-          .select("*", { count: "exact", head: true })
-          .eq("recipient_id", userId)
-          .in("type", ["listing_update", "listing_review", "listing_pending"]),
-        system: supabase
-          .from("notifications")
-          .select("*", { count: "exact", head: true })
-          .eq("recipient_id", userId)
-          .in("type", ["report", "security", "support"]),
-      }
+  const unreadQuery = !options.includeCounts
+    ? supabase
+        .from("notifications")
+        .select("*", { count: "exact", head: true })
+        .eq("recipient_id", userId)
+        .eq("is_read", false)
     : null;
 
-  const [{ data, count, error }, { count: unreadCount, error: unreadError }, counts] = await Promise.all([
+  const [{ data, count, error }, unreadResult, tabCountsResult] = await Promise.all([
     query,
-    unreadQuery,
-    countQueries
-      ? Promise.all([
-          countQueries.all,
-          countQueries.unread,
-          countQueries.messages,
-          countQueries.listings,
-          countQueries.system,
-        ])
-      : Promise.resolve(null),
+    unreadQuery ?? Promise.resolve({ count: 0, error: null }),
+    options.includeCounts ? supabase.rpc("get_notification_tab_counts") : Promise.resolve({ data: null, error: null }),
   ]);
   if (error) throw error;
-  if (unreadError) throw unreadError;
+  if (unreadResult.error) throw unreadResult.error;
+  if (tabCountsResult.error) throw tabCountsResult.error;
 
-  const countErrors = counts?.filter((result) => result.error) ?? [];
-  if (countErrors.length > 0) throw countErrors[0].error;
+  const rawCounts = tabCountsResult.data as
+    | { all?: number; unread?: number; messages?: number; listings?: number; system?: number }
+    | null;
+  const tabCounts = options.includeCounts && rawCounts
+    ? {
+        all: rawCounts.all ?? 0,
+        unread: rawCounts.unread ?? 0,
+        messages: rawCounts.messages ?? 0,
+        listings: rawCounts.listings ?? 0,
+        system: rawCounts.system ?? 0,
+      }
+    : undefined;
 
   return {
     notifications: (data ?? []) as NotificationItem[],
     totalCount: count ?? 0,
-    unreadCount: unreadCount ?? 0,
+    unreadCount: tabCounts ? tabCounts.unread : (unreadResult.count ?? 0),
     hasMore: offset + limit < (count ?? 0),
-    tabCounts: counts
-      ? {
-          all: counts[0].count ?? 0,
-          unread: counts[1].count ?? 0,
-          messages: counts[2].count ?? 0,
-          listings: counts[3].count ?? 0,
-          system: counts[4].count ?? 0,
-        }
-      : undefined,
+    tabCounts,
   };
 }
 

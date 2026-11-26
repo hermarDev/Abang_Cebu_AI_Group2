@@ -222,6 +222,7 @@ function subscribe(userId: string, listener: (data: FetchNotificationsResponse) 
         }
         item.realtimeChannel = null;
       }
+      if (!item.inFlight) shared.delete(userId);
     }
   };
 }

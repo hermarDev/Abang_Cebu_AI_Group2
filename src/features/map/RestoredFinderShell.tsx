@@ -280,19 +280,19 @@ export function RestoredFinderShell({ rentalStatus: statusOverride, initialAccou
     });
   };
   const closeNavigation = () => { setDrawerOpen(false); menuTrigger.current?.focus(); };
-  const toggleFavorite = async (listingId: string) => {
+  const toggleFavorite = async (listingId: string): Promise<boolean> => {
     if (!authenticated) {
       setExpandedRentalId(null);
       setDrawerOpen(false);
       setAccountMode("sign-in");
       setAccountPrompt("Sign in or create a renter account to save rentals to your list.");
       setAccountOpen(true);
-      return;
+      return false;
     }
-    if (!favoriteOwner || !favoritesLoaded) return;
+    if (!favoriteOwner || !favoritesLoaded) return false;
     const generation = favoriteState.generation;
     const requestKey = `${generation}:${listingId}`;
-    if (favoriteRequests.current.has(requestKey)) return;
+    if (favoriteRequests.current.has(requestKey)) return false;
     favoriteRequests.current.add(requestKey);
     const update = (change: (state: typeof favoriteState) => typeof favoriteState) => {
       setFavoriteState(current => current.owner === favoriteOwner && current.generation === generation ? change(current) : current);
@@ -313,6 +313,7 @@ export function RestoredFinderShell({ rentalStatus: statusOverride, initialAccou
       const successMessage = wasSaved ? "Rental removed from your saved list." : "Rental saved to your list.";
       update(current => ({ ...current, feedback: successMessage }));
       notify("success", `favorite-${listingId}`, successMessage);
+      return true;
     } catch (error) {
       const feedback = error instanceof Error && error.message === "Your account changed. Please refresh and try again."
         ? error.message : "The saved rental could not be updated. Please try again.";
@@ -320,6 +321,7 @@ export function RestoredFinderShell({ rentalStatus: statusOverride, initialAccou
         ? current.ids.includes(listingId) ? current.ids : [...current.ids, listingId]
         : current.ids.filter(id => id !== listingId), feedback }));
       notify("error", `favorite-${listingId}`, feedback);
+      return false;
     } finally {
       favoriteRequests.current.delete(requestKey);
     }
@@ -516,5 +518,5 @@ export function RestoredFinderShell({ rentalStatus: statusOverride, initialAccou
   
   {canUseRentalAssistant && !helpOpen && <button type="button" className={styles.chatLauncher} aria-label="Open rental assistant" title="Rental assistant" onClick={() => setHelpOpen(true)}><ChatbotAvatar size={48} className="h-12 w-12" /></button>}
   {canUseRentalAssistant && helpOpen && <button type="button" className={styles.assistantBackdrop} style={{ backdropFilter: "blur(3px)", WebkitBackdropFilter: "blur(3px)" }} aria-label="Close AbangCebu assistant" tabIndex={-1} onClick={() => setHelpOpen(false)} />}
-  {canUseRentalAssistant && <FinderAssistant open={helpOpen} onOpenChange={setHelpOpen} onSearch={() => document.querySelector<HTMLInputElement>('input[role="combobox"]')?.focus()} onFilters={() => setAdvancedOpen(true)} onControlsTargetChange={setAssistantControlsTarget} onSignIn={() => { setHelpOpen(false); setAccountOpen(true); }} onOpenListing={openAssistantListing} onToggleSaved={(id, shouldSave) => { if (favoriteIds.includes(id) !== shouldSave) void toggleFavorite(id); }} onMessageLandlord={(id) => { setHelpOpen(false); messageLandlord(id); }} authenticated={authenticated} userId={userId} displayName={displayName} profilePhotoUrl={avatarUrl} />}</div></main>;
+  {canUseRentalAssistant && <FinderAssistant open={helpOpen} onOpenChange={setHelpOpen} onSearch={() => document.querySelector<HTMLInputElement>('input[role="combobox"]')?.focus()} onFilters={() => setAdvancedOpen(true)} onControlsTargetChange={setAssistantControlsTarget} onSignIn={() => { setHelpOpen(false); setAccountOpen(true); }} onOpenListing={openAssistantListing} onToggleSaved={async (id, shouldSave) => (favoriteIds.includes(id) === shouldSave ? true : toggleFavorite(id))} onMessageLandlord={(id) => { setHelpOpen(false); messageLandlord(id); }} authenticated={authenticated} userId={userId} displayName={displayName} profilePhotoUrl={avatarUrl} />}</div></main>;
 }
