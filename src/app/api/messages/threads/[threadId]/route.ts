@@ -23,8 +23,9 @@ export async function GET(request: Request, context: Context) {
     if (error) return rpcFailure(error.code, { "42501": 403, "22023": 404 }, error.message);
     if (!data?.thread) return reply({ error: "Conversation or listing not found." }, 404);
 
+    const isPoll = params.get("poll") === "1";
     // Best-effort: reading must not fail because the read marker could not be written.
-    if (!before) await session.supabase.rpc("mark_rental_conversation_read", { p_conversation_id: threadId }).then(() => undefined, () => undefined);
+    if (!before && !isPoll) await session.supabase.rpc("mark_rental_conversation_read", { p_conversation_id: threadId }).then(() => undefined, () => undefined);
 
     const [thread] = await enrichThreads([data.thread]);
     const messages = await enrichMessagesWithSignedAttachments(data.messages ?? []);

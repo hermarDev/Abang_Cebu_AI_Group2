@@ -2,12 +2,10 @@ import "server-only";
 import { parsePhotonPlaces, PLACE_BOUNDS, type PlaceResult } from "@/lib/search/places";
 
 const CACHE_TTL_MS = 60 * 60 * 1000;
-const REQUEST_INTERVAL_MS = 1000;
 const CACHE_LIMIT = 100;
 
 const cache = new Map<string, { expires: number; places: PlaceResult[] }>();
 const pending = new Map<string, Promise<PlaceResult[]>>();
-let nextRequestAt = 0;
 
 export async function searchPlaces(query: string): Promise<PlaceResult[]> {
   const normalized = query.trim().toLowerCase();
@@ -15,11 +13,7 @@ export async function searchPlaces(query: string): Promise<PlaceResult[]> {
   if (cached && cached.expires > Date.now()) return cached.places;
   const existing = pending.get(normalized);
   if (existing) return existing;
-  if (Date.now() < nextRequestAt) {
-    throw new Error("Place search is rate limited.");
-  }
 
-  nextRequestAt = Date.now() + REQUEST_INTERVAL_MS;
   const operation = fetchPlaces(query, normalized);
   pending.set(normalized, operation);
   try {

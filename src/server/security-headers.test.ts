@@ -16,9 +16,10 @@ describe("HTTP Security Headers Configuration", () => {
     expect(headersMap.get("Permissions-Policy")).toBe("camera=(), microphone=(), geolocation=(self)");
     expect(headersMap.get("Strict-Transport-Security")).toContain("max-age=31536000");
 
-    const csp = headersMap.get("Content-Security-Policy-Report-Only");
+    const csp = headersMap.get("Content-Security-Policy");
     expect(csp).toBeTruthy();
     expect(csp).toContain("default-src 'self'");
+    expect(csp).not.toContain("'unsafe-eval'");
     expect(csp).toContain("frame-ancestors 'none'");
     expect(csp).toContain("*.supabase.co");
     expect(csp).toContain("https://api.groq.com");

@@ -1,7 +1,10 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { isValidUuid } from "@/lib/support/validation";
+import { createRateLimiter } from "@/server/rate-limit";
 import { reply, SUPPORT_ATTACHMENTS_BUCKET, verifyGuestSupportToken } from "@/server/support-api";
+
+const attachmentReadLimiter = createRateLimiter({ windowMs: 5 * 60_000, maxPerIp: 30, maxPerActor: 30 });
 
 type Context = { params: Promise<{ ticketId: string }> };
 
@@ -13,7 +16,7 @@ export async function GET(request: Request, context: Context) {
 
   const url = new URL(request.url);
   const path = url.searchParams.get("path");
-  const guestToken = url.searchParams.get("token")?.trim() ?? "";
+  const guestToken = request.headers.get("x-support-token")?.trim() ?? "";
 
   if (!path || path.trim().length === 0 || path.includes("..") || path.startsWith("/")) {
     return reply({ error: "Invalid attachment path." }, 400);
@@ -38,6 +41,14 @@ export async function GET(request: Request, context: Context) {
   } | null = null;
 
   if (guestToken) {
+    const rate = attachmentReadLimiter.checkDetailed(request, `guest:${ticketId}`);
+    if (!rate.allowed) {
+      return reply(
+        { error: "Too many attachment requests. Please wait a moment." },
+        429,
+        { "Retry-After": String(rate.retryAfterSeconds) },
+      );
+    }
     const { data, error: guestTicketError } = await adminClient
       .from("support_tickets")
       .select("id,user_id,attachments,guest_access_token_hash")
@@ -63,6 +74,15 @@ export async function GET(request: Request, context: Context) {
 
     if (authError || !user) {
       return reply({ error: "Sign in to access attachments." }, 401);
+    }
+
+    const rate = attachmentReadLimiter.checkDetailed(request, user.id);
+    if (!rate.allowed) {
+      return reply(
+        { error: "Too many attachment requests. Please wait a moment." },
+        429,
+        { "Retry-After": String(rate.retryAfterSeconds) },
+      );
     }
 
     const expectedUserId = request.headers.get("x-expected-user-id");

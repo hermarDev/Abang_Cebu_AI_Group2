@@ -10,7 +10,7 @@ export async function GET(request: Request, context: Context) {
     return reply({ error: "Invalid ticket ID." }, 400);
   }
 
-  const token = new URL(request.url).searchParams.get("token")?.trim() ?? "";
+  const token = request.headers.get("x-support-token")?.trim() ?? "";
   if (!token) {
     return reply({ error: "Missing ticket access token." }, 401);
   }

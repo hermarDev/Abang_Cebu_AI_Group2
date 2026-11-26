@@ -1,29 +1,5 @@
-export function formatAssistantListingsReply(listings: { matches: AssistantSelection[]; alternatives: AssistantSelection[]; complete?: boolean }): string {
-  const money = (amount: number) => `₱${Math.round(amount).toLocaleString("en-US")}`;
-  const isVerified = (status: string | null) => status === "property_verified" || status === "fully_verified";
-  const line = (item: AssistantSelection, overBudget: boolean) => {
-    const cleanTitle = item.title.replace(/[\r\n]+/g, " ").replace(/[*_`[\]()<>]/g, "").trim();
-    const cleanArea = item.area.replace(/[\r\n]+/g, " ").replace(/[*_`[\]()<>]/g, "").trim();
-    const status = isVerified(item.verificationStatus) ? " · Verified property" : "";
-    const delta = overBudget && item.overBudgetPHP > 0 ? ` (${money(item.overBudgetPHP)} over budget)` : "";
-    return `- ${cleanTitle} — ${cleanArea} · ${money(item.monthlyPricePHP)}/mo${delta}${status}`;
-  };
-  const sections: string[] = [];
-  if (listings.matches.length > 0) {
-    sections.push(`Matching rentals:\n${listings.matches.map((item) => line(item, false)).join("\n")}`);
-  } else if (listings.complete === false) {
-    sections.push("No matching rentals were found in the listings checked so far.");
-  } else {
-    sections.push("I could not find a matching rental in the current listings.");
-  }
-  if (listings.alternatives.length > 0) {
-    sections.push(`Above your budget:\n${listings.alternatives.map((item) => line(item, true)).join("\n")}`);
-  }
-  if (listings.complete === false) {
-    sections.push("Some listings could not be checked; results may be incomplete.");
-  }
-  return sections.join("\n\n");
-}
+import { formatAssistantListingsReply, type AssistantSelection } from "@/lib/rentals/assistant-format";
+export { formatAssistantListingsReply, type AssistantSelection };
 
 export type AssistantSearch =
   | { kind: "not-needed" }
@@ -35,8 +11,6 @@ export type AssistantSearch =
 
 
 import type { RentalResult } from "@/contracts/preview";
-
-export type AssistantSelection = { id: string; unitId: string | null; title: string; area: string; monthlyPricePHP: number; propertyType: string; verificationStatus: string | null; overBudgetPHP: number };
 
 const normalizeAreaText = (value: string) => value.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim();
 
@@ -215,7 +189,7 @@ export function parseAssistantSearch(userMessages: string[]): AssistantSearch {
     const unsupportedConstraint = /\b(?:\d+\s*(?:bedrooms?|br)|student|students|workers?|short[- ]?term|daily|weekly|monthly\s+only|near\s+school|near\s+mall|pool|gym|balcony|furnished|unfurnished|pets?)\b/.test(text);
     if (unsupportedConstraint) {
       turnIsSearch = true;
-      turnClarify ??= "I can filter chat searches by budget, Cebu area, rental type, and verified status. Should I search with those criteria only?";
+      turnClarify ??= "I can filter chat searches by budget, Cebu area, rental type, verified status, occupants, curfew, tenant policy, utilities included, and amenities (Wi-Fi, aircon, parking, kitchen, cooking, laundry). Should I search with those criteria only?";
       pendingUnsupported = turnClarify;
     }
     lastTurnIsSearch = turnIsSearch;

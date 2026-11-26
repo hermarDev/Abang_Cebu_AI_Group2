@@ -408,6 +408,7 @@ function MessagingInboxInner({
   const stickToBottom = useRef(true);
   const selectedRef = useRef(selectedId);
   const generationRef = useRef(0);
+  const realtimeConnectedRef = useRef(false);
   const openThreadRef = useRef<typeof openThread | null>(null);
   useEffect(() => {
     selectedRef.current = selectedId;
@@ -544,6 +545,7 @@ function MessagingInboxInner({
         }
       )
       .subscribe((status) => {
+        realtimeConnectedRef.current = status === "SUBSCRIBED";
         if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
           // Realtime will auto-reconnect; log for diagnostics
           console.warn(`Realtime channel status: ${status}`);
@@ -551,6 +553,7 @@ function MessagingInboxInner({
       });
 
     return () => {
+      realtimeConnectedRef.current = false;
       void supabase.removeChannel(channel);
     };
   }, [userId, loadThreads, selectedId]);
@@ -608,12 +611,12 @@ function MessagingInboxInner({
     if (!selectedId) return;
     let activeThreadInFlight = false;
     const timer = setInterval(async () => {
-      if (activeThreadInFlight || document.visibilityState !== "visible") return;
+      if (realtimeConnectedRef.current || activeThreadInFlight || document.visibilityState !== "visible") return;
       activeThreadInFlight = true;
       const generation = generationRef.current;
       try {
         const data = await apiJson<ThreadDetailResponse>(
-          `/api/messages/threads/${encodeURIComponent(selectedId)}?limit=50`,
+          `/api/messages/threads/${encodeURIComponent(selectedId)}?limit=50&poll=1`,
           userId
         );
         if (!alive.current || selectedRef.current !== selectedId || generationRef.current !== generation) return;

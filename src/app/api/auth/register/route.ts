@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { validateRegistration } from "@/lib/auth/validation";
-import { getClientIp } from "@/server/rate-limit";
+import { createRateLimiter, getClientIp } from "@/server/rate-limit";
 import { getSiteOrigin } from "@/server/site-origin";
 import { mapSupabaseAuthError } from "@/lib/auth/auth-error";
 import type { RegisterSuccessResponse } from "@/types/auth";
@@ -11,36 +11,13 @@ const registrationAccepted: RegisterSuccessResponse = {
   success: true,
   message: "If registration can proceed, check your email for the next steps.",
 };
-const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000;
-const MAX_TRACKED_KEYS = 10_000;
-// shortcut: process-local limits do not protect other instances or direct provider requests; use shared enforcement for multi-instance deployments.
-const attemptsByIp = new Map<string, number[]>();
-const attemptsByEmail = new Map<string, number[]>();
-
-function trackAttempt(store: Map<string, number[]>, key: string, limit: number, now: number) {
-  const recent = (store.get(key) ?? []).filter((timestamp) => now - timestamp < RATE_LIMIT_WINDOW_MS);
-  if (recent.length >= limit) {
-    store.set(key, recent);
-    return true;
-  }
-  recent.push(now);
-  store.delete(key);
-  if (store.size >= MAX_TRACKED_KEYS) {
-    const oldestKey = store.keys().next().value;
-    if (oldestKey !== undefined) store.delete(oldestKey);
-  }
-  store.set(key, recent);
-  return false;
-}
+const registerLimiter = createRateLimiter({ windowMs: 15 * 60 * 1000, maxPerIp: 5, maxPerActor: 3 });
 
 function hasExceededRateLimit(request: Request, email: string) {
   const clientIp = getClientIp(request);
   if (!clientIp) return true;
-  const now = Date.now();
-  const ipLimited = trackAttempt(attemptsByIp, clientIp, 5, now);
   const emailKey = createHash("sha256").update(email).digest("hex");
-  const emailLimited = trackAttempt(attemptsByEmail, emailKey, 3, now);
-  return ipLimited || emailLimited;
+  return !registerLimiter.check(request, emailKey);
 }
 
 export async function POST(request: Request) {
