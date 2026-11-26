@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/Button";
 import { Empty } from "@/components/ui/Empty";
 import { Input } from "@/components/ui/Input";
 import { Modal } from "@/components/ui/Modal";
+import { MediaPreviewModal } from "@/components/ui/MediaPreviewModal";
 import { Pagination } from "@/components/ui/Pagination";
 import { Select } from "@/components/ui/Select";
 import { Skeleton } from "@/components/ui/Skeleton";
@@ -148,6 +149,7 @@ export function AdminSupportQueue({
   const [reloadKey, setReloadKey] = useState(0);
 
   const [dialog, setDialog] = useState<UpdateDialog | null>(null);
+  const [previewAttachment, setPreviewAttachment] = useState<{ url: string; title: string; mimeType?: string | null } | null>(null);
   const [nextStatus, setNextStatus] = useState<SupportTicketStatus>("in_progress");
   const [nextPriority, setNextPriority] = useState<SupportTicketPriority>("normal");
   const [adminResponse, setAdminResponse] = useState("");
@@ -222,12 +224,16 @@ export function AdminSupportQueue({
   }
 
   async function openAttachment(ticketId: string, storagePath: string) {
-    const result = await adminCall<{ url?: string }>(
+    const result = await adminCall<{ url?: string; fileName?: string; mimeType?: string }>(
       `/api/support/tickets/${encodeURIComponent(ticketId)}/attachments?path=${encodeURIComponent(storagePath)}`,
       userId,
     );
     if (result.ok && result.data.url) {
-      window.open(result.data.url, "_blank", "noopener,noreferrer");
+      setPreviewAttachment({
+        url: result.data.url,
+        title: result.data.fileName || "Attachment",
+        mimeType: result.data.mimeType ?? null,
+      });
     } else {
       notify("error", "admin-support-attachment", result.ok ? "Attachment could not be opened." : result.message);
     }
@@ -450,6 +456,13 @@ export function AdminSupportQueue({
           </div>
         </div>
       </Modal>
+      <MediaPreviewModal
+        open={Boolean(previewAttachment)}
+        onClose={() => setPreviewAttachment(null)}
+        url={previewAttachment?.url ?? null}
+        title={previewAttachment?.title ?? "Attachment"}
+        mimeType={previewAttachment?.mimeType}
+      />
     </section>
   );
 }

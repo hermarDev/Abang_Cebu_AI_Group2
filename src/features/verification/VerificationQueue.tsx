@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/Button";
 import { Empty } from "@/components/ui/Empty";
 import { Input } from "@/components/ui/Input";
 import { Modal } from "@/components/ui/Modal";
+import { MediaPreviewModal } from "@/components/ui/MediaPreviewModal";
 import { Select } from "@/components/ui/Select";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { newOperationId } from "@/features/admin/admin-api";
@@ -84,6 +85,7 @@ export function VerificationQueue({
 
   // Verification modal action state
   const [activeItem, setActiveItem] = useState<VerificationQueueItem | null>(null);
+  const [previewMedia, setPreviewMedia] = useState<{ url: string; title: string } | null>(null);
   const activeItemRef = useRef(activeItem);
   useEffect(() => {
     activeItemRef.current = activeItem;
@@ -589,14 +591,14 @@ export function VerificationQueue({
                       <FileText size={14} aria-hidden="true" />
                       <span>Proof {i + 1} ({proof.kind})</span>
                       {proof.signedUrl && (
-                        <a
-                          href={proof.signedUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="ml-1 text-action underline"
+                        <button
+                          type="button"
+                          data-media-url={proof.signedUrl}
+                          onClick={() => setPreviewMedia({ url: proof.signedUrl!, title: `Proof ${i + 1} (${proof.kind})` })}
+                          className="ml-1 cursor-pointer text-action underline"
                         >
                           View
-                        </a>
+                        </button>
                       )}
                     </li>
                   ))}
@@ -634,6 +636,12 @@ export function VerificationQueue({
           </div>
         )}
       </Modal>
+      <MediaPreviewModal
+        open={Boolean(previewMedia)}
+        onClose={() => setPreviewMedia(null)}
+        url={previewMedia?.url ?? null}
+        title={previewMedia?.title ?? "Proof preview"}
+      />
     </section>
   );
 }
