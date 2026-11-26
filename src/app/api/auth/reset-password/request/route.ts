@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { PASSWORD_RESET_CALLBACK_PATH } from "@/lib/auth/password-reset";
 import { validateResetRequest } from "@/lib/auth/password-reset-validation";
-import { getClientIp } from "@/server/rate-limit";
+import { createRateLimiter, getClientIp } from "@/server/rate-limit";
 import { getSiteOrigin } from "@/server/site-origin";
 
 const genericSuccess = {
@@ -11,39 +11,15 @@ const genericSuccess = {
   message: "If an account is associated with this email, a password recovery link has been dispatched.",
 } as const;
 
-const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000;
-const EMAIL_ATTEMPT_LIMIT = 3;
-const IP_ATTEMPT_LIMIT = 5;
-const MAX_TRACKED_KEYS = 10_000;
-const attemptsByIp = new Map<string, number[]>();
-const attemptsByEmail = new Map<string, number[]>();
-
-function trackAttempt(store: Map<string, number[]>, key: string, limit: number, now: number) {
-  const recent = (store.get(key) ?? []).filter((timestamp) => now - timestamp < RATE_LIMIT_WINDOW_MS);
-  if (recent.length >= limit) {
-    store.set(key, recent);
-    return true;
-  }
-
-  recent.push(now);
-  store.delete(key);
-  if (store.size >= MAX_TRACKED_KEYS) {
-    const oldestKey = store.keys().next().value;
-    if (oldestKey !== undefined) store.delete(oldestKey);
-  }
-  store.set(key, recent);
-  return false;
-}
+const resetLimiter = createRateLimiter({ windowMs: 15 * 60 * 1000, maxPerIp: 5, maxPerActor: 3 });
 
 function hasExceededRateLimit(request: Request, email: string, now: number) {
   // Production IP identity must come from a trusted proxy (Cloudflare or Caddy reverse proxy), never a spoofable client header.
   const clientIp = getClientIp(request);
   if (!clientIp) return true;
 
-  const ipLimited = trackAttempt(attemptsByIp, clientIp, IP_ATTEMPT_LIMIT, now);
   const emailKey = createHash("sha256").update(email).digest("hex");
-  const emailLimited = trackAttempt(attemptsByEmail, emailKey, EMAIL_ATTEMPT_LIMIT, now);
-  return ipLimited || emailLimited;
+  return !resetLimiter.check(request, emailKey, now);
 }
 
 async function addTimingJitter(startedAt: number) {

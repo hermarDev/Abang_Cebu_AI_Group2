@@ -86,5 +86,11 @@ export async function loadPublicRentals(
     }
   });
   const rentals = [...submittedRentals, ...publishedRentals];
-  return { status: "ok", rentals: rentals.filter((r, i) => rentals.findIndex((o) => o.id === r.id) === i), complete: !hasListingsError && !hasSubmittedError && (Boolean(targetId) || (Array.isArray(data) && data.length < 200)) && rawSubmittedRows.length < 200 };
+  const seenIds = new Set<string>();
+  const uniqueRentals = rentals.filter((r) => {
+    if (seenIds.has(r.id)) return false;
+    seenIds.add(r.id);
+    return true;
+  });
+  return { status: "ok", rentals: uniqueRentals, complete: !hasListingsError && !hasSubmittedError && (Boolean(targetId) || (Array.isArray(data) && data.length < 200)) && rawSubmittedRows.length < 200 };
 }
