@@ -22,10 +22,10 @@ const securityHeaders = [
     value: "max-age=31536000; includeSubDomains",
   },
   {
-        key: "Content-Security-Policy-Report-Only",
+        key: "Content-Security-Policy",
         value: [
           "default-src 'self'",
-          "script-src 'self' 'unsafe-eval' 'unsafe-inline'",
+          "script-src 'self' 'unsafe-inline'",
           "style-src 'self' 'unsafe-inline'",
           "img-src 'self' blob: data: https: *.supabase.co",
           "font-src 'self' data:",

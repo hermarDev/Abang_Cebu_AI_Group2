@@ -163,12 +163,23 @@ export function SupportCenterClient({
   } | null>(null);
   const [operationId, setOperationId] = useState(() => generateUuid());
 
-  // Guest status lookup state (via ?ticket=<id>&token=<token>)
+  // Guest status lookup state (via ?ticket=<id>#token=<token>)
+  const [hashGuestToken, setHashGuestToken] = useState<string | null>(guestToken);
+  const activeGuestToken = guestToken ?? hashGuestToken;
   const [guestLookupTicket, setGuestLookupTicket] = useState<SupportTicketRecord | null>(initialGuestTicket);
   const [guestLookupLoading, setGuestLookupLoading] = useState(
-    Boolean(!authenticated && highlightTicketId && guestToken && !initialGuestTicket),
+    Boolean(!authenticated && highlightTicketId && activeGuestToken && !initialGuestTicket),
   );
   const [guestLookupError, setGuestLookupError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (authenticated || guestToken || typeof window === "undefined") return;
+    const hashToken = new URLSearchParams(window.location.hash.replace(/^#/, "")).get("token")?.trim() || null;
+    if (hashToken) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- hydrate guest token from URL fragment on mount
+      setHashGuestToken(hashToken);
+    }
+  }, [authenticated, guestToken]);
 
   // Request History State (Authenticated users)
   const [tickets, setTickets] = useState<SupportTicketRecord[]>(initialTickets);
@@ -273,7 +284,7 @@ export function SupportCenterClient({
   }, [authenticated, userId, fetchTickets]);
 
   useEffect(() => {
-    if (authenticated || !highlightTicketId || !guestToken) return;
+    if (authenticated || !highlightTicketId || !activeGuestToken) return;
     const controller = new AbortController();
     (async () => {
       await Promise.resolve();
@@ -282,8 +293,11 @@ export function SupportCenterClient({
       setGuestLookupError(null);
       try {
         const res = await fetch(
-          `/api/support/tickets/${encodeURIComponent(highlightTicketId)}?token=${encodeURIComponent(guestToken)}`,
-          { signal: controller.signal },
+          `/api/support/tickets/${encodeURIComponent(highlightTicketId)}`,
+          {
+            headers: { "x-support-token": activeGuestToken },
+            signal: controller.signal,
+          },
         );
         const payload = await res.json().catch(() => null);
         if (controller.signal.aborted) return;
@@ -304,7 +318,7 @@ export function SupportCenterClient({
       }
     })();
     return () => controller.abort();
-  }, [authenticated, highlightTicketId, guestToken]);
+  }, [authenticated, highlightTicketId, activeGuestToken]);
 
   useEffect(() => {
     if (highlightTicketId) {
@@ -402,13 +416,15 @@ export function SupportCenterClient({
   async function handleDownloadAttachment(ticketId: string, storagePath: string) {
     try {
       const query = new URLSearchParams({ path: storagePath });
-      if (!authenticated && guestToken) {
-        query.set("token", guestToken);
+      const headers: Record<string, string> = {};
+      if (userId) headers["x-expected-user-id"] = userId;
+      if (!authenticated && activeGuestToken) {
+        headers["x-support-token"] = activeGuestToken;
       }
       const response = await fetch(
         `/api/support/tickets/${encodeURIComponent(ticketId)}/attachments?${query.toString()}`,
         {
-          headers: userId ? { "x-expected-user-id": userId } : undefined,
+          headers: Object.keys(headers).length > 0 ? headers : undefined,
         }
       );
       const data = await response.json().catch(() => null);
@@ -542,7 +558,7 @@ export function SupportCenterClient({
         typeof payload?.guestToken === "string" && payload.guestToken ? payload.guestToken : null;
       const guestStatusUrl =
         !authenticated && returnedToken
-          ? `/support?ticket=${encodeURIComponent(createdId)}&token=${encodeURIComponent(returnedToken)}`
+          ? `/support?ticket=${encodeURIComponent(createdId)}#token=${encodeURIComponent(returnedToken)}`
           : null;
       const returnedAttachments = Array.isArray(payload?.ticket?.attachments)
         ? (payload.ticket.attachments as SupportTicketRecord["attachments"])

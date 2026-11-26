@@ -390,14 +390,24 @@ describe("GET /api/support/tickets/[ticketId]", () => {
       error: null,
     });
 
+    const queryOnlyRes = await GET_TICKET(
+      new Request(`http://localhost/api/support/tickets/${ticketId}?token=${rawToken}`),
+      ctx,
+    );
+    expect(queryOnlyRes.status).toBe(401);
+
     const badRes = await GET_TICKET(
-      new Request(`http://localhost/api/support/tickets/${ticketId}?token=wrong-token`),
+      new Request(`http://localhost/api/support/tickets/${ticketId}`, {
+        headers: { "x-support-token": "wrong-token" },
+      }),
       ctx,
     );
     expect(badRes.status).toBe(403);
 
     const okRes = await GET_TICKET(
-      new Request(`http://localhost/api/support/tickets/${ticketId}?token=${rawToken}`),
+      new Request(`http://localhost/api/support/tickets/${ticketId}`, {
+        headers: { "x-support-token": rawToken },
+      }),
       ctx,
     );
     expect(okRes.status).toBe(200);

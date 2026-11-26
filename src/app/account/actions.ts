@@ -6,6 +6,8 @@ import { normalizePhilippineAccountMobile } from "@/lib/phone-number";
 import { createClient } from "@/lib/supabase/server";
 import { PROFILE_AVATAR_BUCKET, signProfileAvatar } from "@/lib/profile-avatar";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { createBoundedFetch } from "@/lib/supabase/fetch-timeout";
+import { inspectDraftMedia } from "@/app/api/property-drafts/media-validation";
 import { validatePasswordStrength } from "@/types/auth";
 
 const MAX_AVATAR_BYTES = 2 * 1024 * 1024;
@@ -89,8 +91,12 @@ export async function updateAccountAvatar(formData: FormData): Promise<AvatarAct
   if (profileReadError || !profile) return { success: false, message: "We couldn’t load your profile. Please try again." };
 
   const extension = AVATAR_TYPES[value.type as keyof typeof AVATAR_TYPES];
+  const bytes = new Uint8Array(await value.arrayBuffer());
+  if (!inspectDraftMedia("photo", value.type, bytes)) {
+    return { success: false, message: "Choose a JPG, PNG, or WebP image." };
+  }
   const avatarPath = `${user.id}/${crypto.randomUUID()}.${extension}`;
-  const { error: uploadError } = await createAdminClient().storage.from(PROFILE_AVATAR_BUCKET).upload(avatarPath, value, {
+  const { error: uploadError } = await createAdminClient().storage.from(PROFILE_AVATAR_BUCKET).upload(avatarPath, bytes, {
     cacheControl: "3600",
     contentType: value.type,
     upsert: false,
@@ -149,7 +155,10 @@ export async function updateAccountPassword(formData: FormData): Promise<Account
     if (!user.identities || !user.email) return { success: false, message: "We couldn’t verify your sign-in method. Please try again." };
     if (!user.identities.some((identity) => identity.provider === "email")) return { success: false, message: "This account uses an external sign-in provider. Manage your password with that provider." };
 
-    const verifier = createSupabaseClient(url, anonKey, { auth: { autoRefreshToken: false, persistSession: false, detectSessionInUrl: false } });
+    const verifier = createSupabaseClient(url, anonKey, {
+      global: { fetch: createBoundedFetch(6_000) },
+      auth: { autoRefreshToken: false, persistSession: false, detectSessionInUrl: false },
+    });
     const { data, error } = await verifier.auth.signInWithPassword({ email: user.email, password: currentPassword });
     if (error?.code === "invalid_credentials") return { success: false, field: "currentPassword", message: "We couldn’t verify your current password. Please check it and try again." };
     if (error || data.user?.id !== user.id) return { success: false, message: "Password verification is temporarily unavailable. Please try again later." };

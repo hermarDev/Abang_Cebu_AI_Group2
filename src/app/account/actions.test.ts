@@ -191,7 +191,7 @@ describe("account avatar actions", () => {
   });
 
   it("updates avatar and revalidates account, home, landlord, and all admin routes", async () => {
-    const file = new File([new Uint8Array([137, 80, 78, 71])], "avatar.png", { type: "image/png" });
+    const file = new File([new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])], "avatar.png", { type: "image/png" });
     const data = new FormData();
     data.set("avatar", file);
 
@@ -203,6 +203,16 @@ describe("account avatar actions", () => {
     for (const path of ["/landlord/dashboard", "/landlord/properties", "/landlord/messages", "/admin/dashboard", "/admin/reviews", "/admin/accounts", "/admin/reports", "/admin/audit"]) {
       expect(revalidatePath).toHaveBeenCalledWith(path);
     }
+  });
+
+  it("rejects disguised non-image avatar bytes", async () => {
+    const file = new File([new TextEncoder().encode("<html>not an image</html>")], "avatar.jpg", { type: "image/jpeg" });
+    const data = new FormData();
+    data.set("avatar", file);
+
+    const result = await updateAccountAvatar(data);
+    expect(result.success).toBe(false);
+    expect(fixture.upload).not.toHaveBeenCalled();
   });
 
   it("removes avatar and revalidates account, home, landlord, and all admin routes", async () => {

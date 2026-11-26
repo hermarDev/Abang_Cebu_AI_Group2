@@ -17,8 +17,7 @@ export default async function SupportPage(props: SupportPageProps) {
   const searchParams = props.searchParams ? await props.searchParams : {};
   const highlightTicketId =
     typeof searchParams.ticket === "string" ? searchParams.ticket.trim() : null;
-  const guestToken =
-    typeof searchParams.token === "string" ? searchParams.token.trim() : null;
+  const guestToken: string | null = null;
 
   const supabase = await createClient();
   const {

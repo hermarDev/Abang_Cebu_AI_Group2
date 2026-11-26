@@ -31,7 +31,15 @@ abangcebu.tech {
             roll_keep 10
             roll_keep_for 720h
         }
-        format json
+        format filter {
+            wrap json
+            fields {
+                request>uri query {
+                    delete token
+                }
+                request>headers>X-Support-Token delete
+            }
+        }
     }
 
     # Edge HTTP Security Headers
