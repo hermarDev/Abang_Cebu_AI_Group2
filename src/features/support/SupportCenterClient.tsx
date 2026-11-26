@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState, type ChangeEvent, type FormEvent } from "react";
 import Link from "next/link";
+import { MediaPreviewModal } from "@/components/ui/MediaPreviewModal";
 import {
   ArrowLeft,
   CheckCircle2,
@@ -171,6 +172,7 @@ export function SupportCenterClient({
     Boolean(!authenticated && highlightTicketId && activeGuestToken && !initialGuestTicket),
   );
   const [guestLookupError, setGuestLookupError] = useState<string | null>(null);
+  const [previewAttachment, setPreviewAttachment] = useState<{ url: string; title: string; mimeType?: string | null } | null>(null);
 
   useEffect(() => {
     if (authenticated || guestToken || typeof window === "undefined") return;
@@ -432,7 +434,11 @@ export function SupportCenterClient({
         notify("error", "support-download-error", data?.error ?? "Attachment could not be opened.");
         return;
       }
-      window.open(data.url, "_blank", "noopener,noreferrer");
+      setPreviewAttachment({
+        url: data.url,
+        title: typeof data.fileName === "string" && data.fileName ? data.fileName : "Attachment",
+        mimeType: typeof data.mimeType === "string" ? data.mimeType : null,
+      });
     } catch {
       notify("error", "support-download-error", "Attachment could not be opened.");
     }
@@ -1330,6 +1336,13 @@ export function SupportCenterClient({
         </div>
       </div>
       {isLandlordMobile && userId && <LandlordMobileNav userId={userId} />}
+      <MediaPreviewModal
+        open={Boolean(previewAttachment)}
+        onClose={() => setPreviewAttachment(null)}
+        url={previewAttachment?.url ?? null}
+        title={previewAttachment?.title ?? "Attachment"}
+        mimeType={previewAttachment?.mimeType}
+      />
     </main>
   );
 }

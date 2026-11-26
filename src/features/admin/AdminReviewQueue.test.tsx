@@ -87,7 +87,7 @@ describe("AdminReviewQueue", () => {
   });
   it("renders the property card with media, permit link, note and actions", () => {
     const html = renderToStaticMarkup(<ReviewCard property={property} onAction={() => {}} onInspect={() => {}} />);
-    for (const text of ["Lahug room", "Pending review", "Lana Lord", "₱5,000", "Lahug, Cebu City", "photo 1", 'href="https://x/permit.pdf"', "Moderation note: Earlier note", "Approve", "Request changes / Reject"]) expect(html).toContain(text);
+    for (const text of ["Lahug room", "Pending review", "Lana Lord", "₱5,000", "Lahug, Cebu City", "photo 1", 'data-media-url="https://x/permit.pdf"', "Moderation note: Earlier note", "Approve", "Request changes / Reject"]) expect(html).toContain(text);
   });
   it("renders description, unit specs and the inspection trigger on the card", () => {
     const html = renderToStaticMarkup(<ReviewCard property={property} onAction={() => {}} onInspect={() => {}} />);
@@ -95,12 +95,12 @@ describe("AdminReviewQueue", () => {
   });
   it("renders full property details with photos and permit links in the inspection view", () => {
     const html = renderToStaticMarkup(<PropertyDetails property={property} />);
-    for (const text of ["Bright room near IT Park", "apartment", "whole_unit", "24 sqm", "1 Salinas Dr", "6000", "10.33", "123.9", "Lana Lord", "Earlier note", "photo 1", 'href="https://x/permit.pdf"', "Open permit 1"]) expect(html).toContain(text);
+    for (const text of ["Bright room near IT Park", "apartment", "whole_unit", "24 sqm", "1 Salinas Dr", "6000", "10.33", "123.9", "Lana Lord", "Earlier note", "photo 1", 'data-media-url="https://x/permit.pdf"', "Open permit 1"]) expect(html).toContain(text);
     expect(renderToStaticMarkup(<PropertyDetails property={{ id: "p2", status: "pending" }} />)).toContain("No permits uploaded.");
   });
   it("renders nested snapshot values without live-field or media fallback", () => {
     const html = renderToStaticMarkup(<PropertyDetails property={property} revision={{ id: "op", draftId: "d1", expectedRevision: 3, reviewStatus: "pending", createdAt: "", snapshotPayload: { property: { title: "New title", description: "New description", city: "New city" }, unit: { monthly_rent: 9000, bedrooms: 3 }, amenities: ["wifi"] }, snapshotMedia: [{ kind: "permit", url: "https://signed/document" }] }} />);
-    for (const text of ["New description", "New city", "₱9,000", "wifi", 'href="https://signed/document"']) expect(html).toContain(text);
+    for (const text of ["New description", "New city", "₱9,000", "wifi", 'data-media-url="https://signed/document"']) expect(html).toContain(text);
     for (const text of ["Bright room", "1 Salinas Dr", "https://x/photo.jpg", "https://x/permit.pdf"]) expect(html).not.toContain(text);
   });
   it("shows bathroom type and tenant policy from the revision", () => {

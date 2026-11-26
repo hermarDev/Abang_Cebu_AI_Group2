@@ -31,7 +31,7 @@ const securityHeaders = [
           "font-src 'self' data:",
           "connect-src 'self' https: *.supabase.co wss: *.supabase.co https://api.groq.com https://photon.komoot.io",
           "worker-src 'self' blob:",
-          "frame-src 'none'",
+          "frame-src 'self' https://*.supabase.co blob:",
           "frame-ancestors 'none'",
           "object-src 'none'",
           "base-uri 'self'",

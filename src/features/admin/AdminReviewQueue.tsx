@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/Button";
 import { Empty } from "@/components/ui/Empty";
 import { Input } from "@/components/ui/Input";
 import { Modal } from "@/components/ui/Modal";
+import { MediaPreviewModal } from "@/components/ui/MediaPreviewModal";
 import { Pagination } from "@/components/ui/Pagination";
 import { Select } from "@/components/ui/Select";
 import { Skeleton } from "@/components/ui/Skeleton";
@@ -169,10 +170,12 @@ function ChecklistView({ property }: { property: AdminProperty }) {
 
 export function PropertyDetails({
   property,
-  revision
+  revision,
+  onPreviewMedia,
 }: {
   property: AdminProperty;
   revision?: PendingRevision | null;
+  onPreviewMedia?: (media: { url: string; title: string }) => void;
 }) {
   const data = revision?.snapshotPayload.property as Record<string, unknown> | undefined;
   const unit = revision?.snapshotPayload.unit as Record<string, unknown> | undefined;
@@ -327,15 +330,15 @@ export function PropertyDetails({
                   {fieldVerificationProof.map((proof, idx) => (
                     <li key={proof.object_path || idx}>
                       {proof.signedUrl ? (
-                        <a
-                          href={proof.signedUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex min-h-9 items-center gap-1.5 text-action underline"
+                        <button
+                          type="button"
+                          data-media-url={proof.signedUrl}
+                          onClick={() => onPreviewMedia?.({ url: proof.signedUrl!, title: `Proof ${idx + 1} (${proof.kind})` })}
+                          className="inline-flex min-h-9 cursor-pointer items-center gap-1.5 text-action underline"
                         >
                           <FileText size={14} aria-hidden="true" />
                           Proof {idx + 1} ({proof.kind})
-                        </a>
+                        </button>
                       ) : <span>Proof unavailable ({proof.kind})</span>}
                     </li>
                   ))}
@@ -365,7 +368,14 @@ export function PropertyDetails({
           <ul className="m-0 flex list-none flex-wrap gap-2 p-0" aria-label="Photos">
             {photoUrls.map((url, i) => (
               <li key={url}>
-                <Image src={url} alt={`${title ?? "Property"} photo ${i + 1}`} width={160} height={120} unoptimized className="h-[120px] w-40 rounded-lg border border-border object-cover" />
+                <button
+                  type="button"
+                  onClick={() => onPreviewMedia?.({ url, title: `${title ?? "Property"} — Photo ${i + 1}` })}
+                  className="cursor-pointer rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+                  aria-label={`Preview ${title ?? "Property"} photo ${i + 1}`}
+                >
+                  <Image src={url} alt={`${title ?? "Property"} photo ${i + 1}`} width={160} height={120} unoptimized className="h-[120px] w-40 rounded-lg border border-border object-cover" />
+                </button>
               </li>
             ))}
           </ul>
@@ -376,10 +386,16 @@ export function PropertyDetails({
         <p className="m-0 mb-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Permit & certification documents</p>
         {permitUrls.length ? (
           permitUrls.map((url, i) => (
-            <a key={url} href={url} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center gap-2 text-action underline">
+            <button
+              key={url}
+              type="button"
+              data-media-url={url}
+              onClick={() => onPreviewMedia?.({ url, title: `${title ?? "Property"} — Permit ${i + 1}` })}
+              className="inline-flex min-h-11 cursor-pointer items-center gap-2 text-action underline"
+            >
               <FileText size={16} aria-hidden="true" />
               Open permit {i + 1}
-            </a>
+            </button>
           ))
         ) : (
           <p className="m-0 text-sm text-muted-foreground">No permits uploaded.</p>
@@ -398,7 +414,7 @@ export function PropertyDetails({
   );
 }
 
-export function ReviewCard({ property, onAction, onInspect }: { property: AdminProperty; onAction: (property: AdminProperty, action: ReviewAction) => void; onInspect: (property: AdminProperty) => void }) {
+export function ReviewCard({ property, onAction, onInspect, onPreviewMedia }: { property: AdminProperty; onAction: (property: AdminProperty, action: ReviewAction) => void; onInspect: (property: AdminProperty) => void; onPreviewMedia?: (media: { url: string; title: string }) => void }) {
   const specs = unitSpecs(property);
   const place = [property.streetAddress, property.barangay, property.city].filter(Boolean).join(", ");
 
@@ -440,10 +456,21 @@ export function ReviewCard({ property, onAction, onInspect }: { property: AdminP
     {property.description && <p className="m-0 line-clamp-2 break-words text-sm text-muted-foreground">{property.description}</p>}
     {!!specs.length && <ul className="m-0 flex list-none flex-wrap gap-x-4 gap-y-1 p-0 text-sm text-muted-foreground" aria-label="Unit specs">{specs.map((spec) => <li key={spec}>{spec}</li>)}</ul>}
     {!!property.photoUrls?.length && <ul className="m-0 flex list-none gap-2 overflow-x-auto p-0" aria-label="Photos">
-      {property.photoUrls.map((url, i) => <li key={url}><Image src={url} alt={`${property.title ?? "Property"} photo ${i + 1}`} width={96} height={72} unoptimized className="h-[72px] w-24 rounded-lg border border-border object-cover" /></li>)}
+      {property.photoUrls.map((url, i) => (
+        <li key={url}>
+          <button
+            type="button"
+            onClick={() => onPreviewMedia?.({ url, title: `${property.title ?? "Property"} — Photo ${i + 1}` })}
+            className="cursor-pointer rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+            aria-label={`Preview ${property.title ?? "Property"} photo ${i + 1}`}
+          >
+            <Image src={url} alt={`${property.title ?? "Property"} photo ${i + 1}`} width={96} height={72} unoptimized className="h-[72px] w-24 rounded-lg border border-border object-cover" />
+          </button>
+        </li>
+      ))}
     </ul>}
     {!!property.permitUrls?.length && <p className="m-0 flex flex-wrap gap-x-4 gap-y-1 text-sm">
-      {property.permitUrls.map((url, i) => <a key={url} href={url} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center gap-1.5 text-action underline"><FileText size={14} aria-hidden="true" />View permit {i + 1}</a>)}
+      {property.permitUrls.map((url, i) => <button key={url} type="button" data-media-url={url} onClick={() => onPreviewMedia?.({ url, title: `${property.title ?? "Property"} — Permit ${i + 1}` })} className="inline-flex min-h-11 cursor-pointer items-center gap-1.5 text-action underline"><FileText size={14} aria-hidden="true" />View permit {i + 1}</button>)}
     </p>}
     {property.moderationNote && <p className="m-0 rounded-lg bg-muted p-2 text-sm">Moderation note: {property.moderationNote}</p>}
     <div className="flex flex-wrap gap-2 pt-1 border-t border-border/60">
@@ -484,6 +511,7 @@ export function AdminReviewQueue({ userId, initialStatus = "pending", initialSea
   const [properties, setProperties] = useState<AdminProperty[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [dialog, setDialog] = useState<Dialog | null>(null);
+  const [previewMedia, setPreviewMedia] = useState<{ url: string; title: string } | null>(null);
   const [reason, setReason] = useState("");
   const [saving, setSaving] = useState(false);
   const [dialogError, setDialogError] = useState<string | null>(null);
@@ -621,12 +649,12 @@ export function AdminReviewQueue({ userId, initialStatus = "pending", initialSea
       : properties === null ? <div className="grid gap-3">{[0, 1, 2].map((i) => <Skeleton key={i} className="h-32" />)}</div>
       : properties.length === 0 ? <Empty>No listings match this view.</Empty>
       : <>
-          <div className="grid gap-3">{paginatedProperties.map((property) => <ReviewCard key={property.id} property={property} onAction={open} onInspect={openInspect} />)}</div>
+          <div className="grid gap-3">{paginatedProperties.map((property) => <ReviewCard key={property.id} property={property} onAction={open} onInspect={openInspect} onPreviewMedia={setPreviewMedia} />)}</div>
           <Pagination currentPage={page} totalPages={totalPages} totalItems={properties.length} pageSize={pageSize} onPageChange={setPage} />
         </>}
     <Modal open={!!inspecting} onClose={closeInspect} title={inspecting?.hasPendingRevision ? "Inspect pending revision" : inspecting?.title || "Untitled property"} description="Property details and permits" className="max-h-[calc(100dvh-2rem)] lg:max-h-[85dvh] max-w-2xl overflow-y-auto">
       {inspectLoading ? <p role="status">Loading submitted revision…</p> : inspectError ? <Alert variant="error">{inspectError}</Alert> : inspecting && (!inspecting.hasPendingRevision || inspectingRevision) && <>
-        <PropertyDetails property={inspecting} revision={inspectingRevision} />
+        <PropertyDetails property={inspecting} revision={inspectingRevision} onPreviewMedia={setPreviewMedia} />
         {inspectingRevision && <div className="mt-4 flex flex-wrap gap-2">
           {(() => {
             const effectiveFieldVerificationStatus = inspectingRevision.fieldVerificationStatus ?? inspecting.fieldVerificationStatus;
@@ -696,5 +724,11 @@ export function AdminReviewQueue({ userId, initialStatus = "pending", initialSea
         </div>
       </div>
     </Modal>
+    <MediaPreviewModal
+      open={Boolean(previewMedia)}
+      onClose={() => setPreviewMedia(null)}
+      url={previewMedia?.url ?? null}
+      title={previewMedia?.title ?? "Document preview"}
+    />
   </section>;
 }
