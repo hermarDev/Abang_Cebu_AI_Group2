@@ -117,4 +117,17 @@ describe("admin dashboard", () => {
     expect(html).not.toContain("No moderation activity yet.");
     expect(html).not.toMatch(/Pending review<\/span><span[^>]*>0</);
   });
+  it("runs avatar signing and dashboard overview RPC in parallel", async () => {
+    let releaseSign!: (url: string | null) => void;
+    mocks.sign.mockImplementationOnce(() => new Promise<string | null>((resolve) => { releaseSign = resolve; }));
+
+    const pending = AdminDashboardPage();
+    await vi.waitFor(() => {
+      expect(mocks.sign).toHaveBeenCalledTimes(1);
+      expect(mocks.rpc).toHaveBeenCalledWith("admin_dashboard_overview");
+    });
+
+    releaseSign("https://example.test/admin.png");
+    await pending;
+  });
 });
