@@ -1,6 +1,10 @@
-# CodeRabbit Configuration
-# Filter out test suites and SQL rehearsal scripts while keeping production migrations in review scope
 reviews:
+  auto_review:
+    enabled: true
+    drafts: false
+    auto_incremental_review: false
+    base_branches:
+      - "main"
   path_filters:
     - "!tests/**"
     - "!**/*.test.ts"
