@@ -22,7 +22,7 @@ export async function GET(request: Request) {
     );
   }
 
-  const errorRedirect = (reason: "invalid_recovery_link" | "expired_recovery_link") => {
+  const errorRedirect = (reason: "invalid_recovery_link" | "expired_recovery_link" | "password_reset_unavailable") => {
     const failed = NextResponse.redirect(new URL(`/login?error=${reason}`, origin));
     failed.cookies.delete(PASSWORD_RESET_RECOVERY_COOKIE);
     failed.headers.set("Cache-Control", "no-store");
@@ -64,7 +64,16 @@ export async function GET(request: Request) {
   try {
     ({ data, error } = await supabase.auth.exchangeCodeForSession(code));
   } catch {
-    return errorRedirect("expired_recovery_link");
+    return errorRedirect("password_reset_unavailable");
+  }
+  if (error && (
+    error.name === "AuthRetryableFetchError" ||
+    error.status === 0 ||
+    error.status === 408 ||
+    error.status === 429 ||
+    (error.status ?? 0) >= 500
+  )) {
+    return errorRedirect("password_reset_unavailable");
   }
   if (error || !data.user) {
     return errorRedirect("expired_recovery_link");

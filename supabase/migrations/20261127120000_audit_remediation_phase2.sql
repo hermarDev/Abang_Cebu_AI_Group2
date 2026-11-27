@@ -9,6 +9,7 @@
 CREATE OR REPLACE FUNCTION public.verifier_dashboard_overview()
 RETURNS jsonb
 LANGUAGE plpgsql
+STABLE
 SECURITY DEFINER
 SET search_path = ''
 AS $$
@@ -236,6 +237,14 @@ BEGIN
   IF p_expected_updated_at IS NOT NULL
      AND pg_catalog.date_trunc('milliseconds', v_ticket.updated_at) <> pg_catalog.date_trunc('milliseconds', p_expected_updated_at) THEN
     RAISE EXCEPTION 'support ticket changed concurrently' USING ERRCODE = '40001';
+  END IF;
+
+  IF p_status = 'awaiting_landlord'
+     AND (v_ticket.status <> 'awaiting_landlord'
+       OR v_ticket.reported_landlord_id IS NULL
+       OR NULLIF(pg_catalog.btrim(v_ticket.landlord_inquiry_note), '') IS NULL
+       OR v_ticket.landlord_inquiry_sent_at IS NULL) THEN
+    RAISE EXCEPTION 'active landlord inquiry required' USING ERRCODE = '22023';
   END IF;
 
   v_next_priority := COALESCE(p_priority, v_ticket.priority);

@@ -473,7 +473,7 @@ export function RestoredFinderShell({ rentalStatus: statusOverride, initialAccou
         <div className={styles.recoveryAlert} role="alert">
           <CircleAlert size={18} className="text-destructive shrink-0 mt-0.5" aria-hidden="true" />
           <div className={styles.recoveryAlertBody}>
-            <p className={styles.recoveryAlertTitle}>Password reset link expired or invalid</p>
+            <p className={styles.recoveryAlertTitle}>Password reset needs attention</p>
             <p className={styles.recoveryAlertText}>{initialError}</p>
             <button
               type="button"

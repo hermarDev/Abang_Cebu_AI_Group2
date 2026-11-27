@@ -104,10 +104,10 @@ describe("password reset PKCE callback", () => {
     expect(createServerClient).not.toHaveBeenCalled();
   });
 
-  it("sends transient rejected PKCE exchanges to a safe error redirect", async () => {
+  it("sends transient rejected PKCE exchanges to a temporary failure redirect", async () => {
     exchangeCodeForSession.mockRejectedValue(new Error("network unavailable"));
     const response = await GET(request("?code=transient&type=recovery&next=%2Freset-password"));
-    expect(response.headers.get("location")).toContain("expired_recovery_link");
+    expect(response.headers.get("location")).toContain("password_reset_unavailable");
     expect(response.headers.get("cache-control")).toBe("no-store");
     expect(response.headers.get("referrer-policy")).toBe("no-referrer");
     expect(response.headers.getSetCookie().some((cookie) => cookie.includes("abangcebu-password-reset=1"))).toBe(false);
