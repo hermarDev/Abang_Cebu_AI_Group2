@@ -1,11 +1,22 @@
 import { createHash } from "node:crypto";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { propertyDraftsLimiter } from "@/server/api-limiters";
+import { MAX_UPLOAD_MULTIPART_BYTES, readBoundedFormData } from "@/server/bounded-body";
 import { inspectDraftMedia } from "../media-validation";
 
 const headers = { "Cache-Control": "no-store" };
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const reply = (error: string, status: number) => Response.json({ error }, { status, headers });
+
+function enforceRateLimit(request: Request, userId: string): Response | null {
+  const { allowed, retryAfterSeconds } = propertyDraftsLimiter.checkDetailed(request, userId);
+  if (allowed) return null;
+  return Response.json(
+    { error: "Too many media requests. Please wait a moment and try again." },
+    { status: 429, headers: { ...headers, "Retry-After": String(retryAfterSeconds) } },
+  );
+}
 
 async function access(request: Request) {
   const supabase = await createClient();
@@ -21,6 +32,8 @@ async function access(request: Request) {
 export async function GET(request: Request) {
   const session = await access(request);
   if ("response" in session && session.response) return session.response;
+  const limited = enforceRateLimit(request, session.user.id);
+  if (limited) return limited;
   const draftId = new URL(request.url).searchParams.get("draftId");
   if (!draftId || !uuid.test(draftId)) return reply("Invalid media request.", 400);
   const { data: owned, error: ownedError } = await session.supabase.from("property_drafts").select("id").eq("id", draftId).eq("owner_id", session.user.id).maybeSingle();
@@ -28,25 +41,62 @@ export async function GET(request: Request) {
   if (!owned) return reply("This draft is unavailable.", 404);
   const { data, error } = await session.supabase.from("property_draft_media").select("operation_id,kind,content_type,size_bytes,content_sha256,object_path,original_name").eq("draft_id", draftId).eq("confirmed", true).order("created_at");
   if (error) return reply("Listing files could not be loaded. Please retry.", 503);
-  const media = [];
+  const validated: Array<{
+    operationId: string;
+    kind: "photo" | "permit";
+    contentType: string;
+    sizeBytes: number;
+    sha256: string;
+    originalName: string | null;
+    objectPath: string;
+  }> = [];
   for (const row of data ?? []) {
     if (!row || typeof row !== "object" || typeof row.operation_id !== "string" || !uuid.test(row.operation_id) || typeof row.content_sha256 !== "string" || !/^[0-9a-f]{64}$/.test(row.content_sha256) || (row.kind !== "photo" && row.kind !== "permit") || typeof row.size_bytes !== "number" || !Number.isSafeInteger(row.size_bytes) || row.size_bytes < 1 || row.size_bytes > 10485760) return reply("Listing files could not be loaded. Please retry.", 503);
     const extension = row.content_type === "application/pdf" && row.kind === "permit" ? "pdf" : row.content_type === "image/png" ? "png" : row.content_type === "image/webp" ? "webp" : row.content_type === "image/jpeg" ? "jpg" : null;
     if (!extension || row.object_path !== `${session.user.id}/${draftId}/${row.operation_id}/${row.content_sha256}.${extension}`) return reply("Listing files could not be loaded. Please retry.", 503);
-    try {
-      const { data: signed, error: signError } = await createAdminClient().storage.from("property-draft-media").createSignedUrl(row.object_path, 300);
-      if (signError || !signed?.signedUrl) return reply("Listing files could not be loaded. Please retry.", 503);
-      media.push({ operationId: row.operation_id, kind: row.kind, contentType: row.content_type, sizeBytes: row.size_bytes, sha256: row.content_sha256, originalName: typeof row.original_name === "string" && row.original_name ? row.original_name : null, signedUrl: signed.signedUrl });
-    } catch {
+    validated.push({
+      operationId: row.operation_id,
+      kind: row.kind,
+      contentType: row.content_type,
+      sizeBytes: row.size_bytes,
+      sha256: row.content_sha256,
+      originalName: typeof row.original_name === "string" && row.original_name ? row.original_name : null,
+      objectPath: row.object_path,
+    });
+  }
+  if (validated.length === 0) return Response.json({ media: [] }, { headers });
+  try {
+    const { data: signedList, error: signError } = await createAdminClient().storage
+      .from("property-draft-media")
+      .createSignedUrls(validated.map((item) => item.objectPath), 300);
+    if (signError || !Array.isArray(signedList)) return reply("Listing files could not be loaded. Please retry.", 503);
+    const signedByPath = new Map<string, string>();
+    for (const entry of signedList) {
+      if (entry?.path && entry.signedUrl && !entry.error) signedByPath.set(entry.path, entry.signedUrl);
+    }
+    if (validated.some((item) => !signedByPath.has(item.objectPath))) {
       return reply("Listing files could not be loaded. Please retry.", 503);
     }
+    const media = validated.map((item) => ({
+      operationId: item.operationId,
+      kind: item.kind,
+      contentType: item.contentType,
+      sizeBytes: item.sizeBytes,
+      sha256: item.sha256,
+      originalName: item.originalName,
+      signedUrl: signedByPath.get(item.objectPath)!,
+    }));
+    return Response.json({ media }, { headers });
+  } catch {
+    return reply("Listing files could not be loaded. Please retry.", 503);
   }
-  return Response.json({ media }, { headers });
 }
 
 export async function DELETE(request: Request) {
   const session = await access(request);
   if ("response" in session && session.response) return session.response;
+  const limited = enforceRateLimit(request, session.user.id);
+  if (limited) return limited;
   let body: unknown;
   try { body = await request.json(); } catch { return reply("Invalid media request.", 400); }
   if (!body || typeof body !== "object" || Array.isArray(body) || !("draftId" in body) || typeof body.draftId !== "string" || !uuid.test(body.draftId) || !("operationId" in body) || typeof body.operationId !== "string" || !uuid.test(body.operationId)) return reply("Invalid media request.", 400);
@@ -62,8 +112,16 @@ export async function DELETE(request: Request) {
 export async function POST(request: Request) {
   const session = await access(request);
   if ("response" in session && session.response) return session.response;
-  let form: FormData;
-  try { form = await request.formData(); } catch { return reply("Invalid file request.", 400); }
+  const limited = enforceRateLimit(request, session.user.id);
+  if (limited) return limited;
+  const parsedForm = await readBoundedFormData(request, MAX_UPLOAD_MULTIPART_BYTES);
+  if (!parsedForm.ok) {
+    return reply(
+      parsedForm.reason === "too_large" ? "Choose a supported file no larger than 10 MB." : "Invalid file request.",
+      parsedForm.reason === "too_large" ? 413 : 400,
+    );
+  }
+  const form = parsedForm.form;
   const draftId = form.get("draftId");
   const operationId = form.get("operationId");
   const kind = form.get("kind");
@@ -97,14 +155,18 @@ export async function POST(request: Request) {
   if (stored.objectPath !== objectPath || stored.sha256 !== sha256 || (stored.confirmed !== undefined && typeof stored.confirmed !== "boolean")) return reply("Listing files could not be prepared. Please retry.", 503);
   try {
     const storage = createAdminClient().storage.from("property-draft-media");
+    let needsVerification = Boolean(stored.resumed || stored.confirmed);
     if (!stored.confirmed) {
       const { error: uploadError } = await storage.upload(stored.objectPath, file, { contentType, upsert: false });
       if (uploadError && uploadError.status !== 409) return reply("The file could not be saved. Please retry.", 503);
+      if (uploadError?.status === 409) needsVerification = true;
     }
-    const { data: existing, error: downloadError } = await storage.download(stored.objectPath);
-    if (downloadError || !existing || existing.size !== bytes.length) return reply("The file could not be saved. Please retry.", 503);
-    const existingHash = createHash("sha256").update(new Uint8Array(await existing.arrayBuffer())).digest("hex");
-    if (existingHash !== sha256) return reply("The file could not be saved. Please retry.", 503);
+    if (needsVerification) {
+      const { data: existing, error: downloadError } = await storage.download(stored.objectPath);
+      if (downloadError || !existing || existing.size !== bytes.length) return reply("The file could not be saved. Please retry.", 503);
+      const existingHash = createHash("sha256").update(new Uint8Array(await existing.arrayBuffer())).digest("hex");
+      if (existingHash !== sha256) return reply("The file could not be saved. Please retry.", 503);
+    }
   } catch {
     return reply("The file could not be saved. Please retry.", 503);
   }

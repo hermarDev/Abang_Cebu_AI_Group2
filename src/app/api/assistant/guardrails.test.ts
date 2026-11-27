@@ -97,6 +97,38 @@ it("enforces rate limits on assistant requests and returns 429 with retry-after 
   expect(body.error).toMatch(/too many assistant requests/i);
 });
 
+it("isolates guest rate-limit buckets by client IP", async () => {
+  mocks.access.mockResolvedValue({ user: null, supabase: {} });
+  mocks.provider.mockImplementation(() => Promise.resolve(Response.json({ choices: [{ message: { content: "Helpful answer" } }] })));
+  vi.stubGlobal("fetch", mocks.provider);
+  vi.stubEnv("GROQ_API_KEY", "test-key");
+
+  for (const ip of ["198.51.100.10", "198.51.100.11"]) {
+    for (let i = 0; i < 15; i++) {
+      const res = await POST(new Request("http://localhost/api/assistant", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Assistant-Owner": "guest", "X-Real-IP": ip },
+        body: JSON.stringify({ messages: [{ role: "user", content: `Query ${i}` }] }),
+      }));
+      expect(res?.status).toBe(200);
+    }
+  }
+
+  const thirdIp = await POST(new Request("http://localhost/api/assistant", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "X-Assistant-Owner": "guest", "X-Real-IP": "198.51.100.12" },
+    body: JSON.stringify({ messages: [{ role: "user", content: "Query from IP 3" }] }),
+  }));
+  expect(thirdIp?.status).toBe(200);
+
+  const firstIpLimited = await POST(new Request("http://localhost/api/assistant", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "X-Assistant-Owner": "guest", "X-Real-IP": "198.51.100.10" },
+    body: JSON.stringify({ messages: [{ role: "user", content: "Query 16" }] }),
+  }));
+  expect(firstIpLimited?.status).toBe(429);
+});
+
 it("isolates rental inventory inside untrusted XML delimiters and defends against prompt injection", async () => {
   mocks.access.mockResolvedValue({ user: null, supabase: {} });
   mocks.provider.mockResolvedValue(Response.json({ choices: [{ message: { content: "Safe response" } }] }));

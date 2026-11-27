@@ -176,6 +176,21 @@ describe("POST /api/messages/threads/[threadId]/attachments", () => {
     expect(body.error).toContain("Only JPEG, PNG, and WebP");
   });
 
+  it("returns 413 when multipart payload exceeds 11 MB cap", async () => {
+    const req = new Request(`http://localhost/api/messages/threads/${threadUuid}/attachments`, {
+      method: "POST",
+      headers: new Headers({
+        "x-expected-user-id": validUser,
+        "content-type": "multipart/form-data; boundary=----boundary",
+        "content-length": String(11 * 1024 * 1024 + 1),
+      }),
+      body: "placeholder",
+    });
+    const res = await POST(req, { params: Promise.resolve({ threadId: threadUuid }) });
+    expect(res.status).toBe(413);
+    expect(mocks.upload).not.toHaveBeenCalled();
+  });
+
   it("returns 201 with signed URL and storage path on valid image upload", async () => {
     const file = new File([validJpeg], "kitchen.jpg", { type: "image/jpeg" });
     const res = await POST(postRequest(file), {

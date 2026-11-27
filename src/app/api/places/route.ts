@@ -1,4 +1,5 @@
 import { placesSearchLimiter } from "@/server/api-limiters";
+import { getClientIp } from "@/server/rate-limit";
 import { searchPlaces } from "@/server/places/search-places";
 
 export async function GET(request: Request) {
@@ -8,7 +9,7 @@ export async function GET(request: Request) {
     return Response.json({ error: "Enter 3–120 characters to search Cebu." }, { status: 400, headers });
   }
 
-  const { allowed, retryAfterSeconds } = placesSearchLimiter.checkDetailed(request, "search");
+  const { allowed, retryAfterSeconds } = placesSearchLimiter.checkDetailed(request, getClientIp(request) ?? "unknown-ip");
   if (!allowed) {
     return Response.json(
       { error: "Too many place search requests. Please wait a moment before searching again." },

@@ -1,8 +1,15 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const mocks = vi.hoisted(() => ({ getUser: vi.fn(), profile: vi.fn(), rpc: vi.fn(), createSignedUrls: vi.fn(), signAvatar: vi.fn() }));
-vi.mock("@/lib/supabase/admin", () => ({ createAdminClient: () => ({ storage: { from: () => ({ createSignedUrls: mocks.createSignedUrls }) } }) }));
-vi.mock("@/lib/profile-avatar", () => ({ signProfileAvatar: mocks.signAvatar }));
+const mocks = vi.hoisted(() => ({ getUser: vi.fn(), profile: vi.fn(), rpc: vi.fn(), createSignedUrls: vi.fn(), createAvatarSignedUrls: vi.fn() }));
+vi.mock("@/lib/supabase/admin", () => ({
+  createAdminClient: () => ({
+    storage: {
+      from: (bucket: string) => ({
+        createSignedUrls: bucket === "profile-avatars" ? mocks.createAvatarSignedUrls : mocks.createSignedUrls,
+      }),
+    },
+  }),
+}));
 vi.mock("@/lib/supabase/server", () => ({ createClient: async () => ({
   auth: { getUser: mocks.getUser },
   rpc: mocks.rpc,
@@ -29,7 +36,7 @@ beforeEach(() => {
   mocks.profile.mockResolvedValue({ data: { role: "renter", is_suspended: false }, error: null });
   mocks.rpc.mockResolvedValue({ data: null, error: null });
   mocks.createSignedUrls.mockResolvedValue({ data: [], error: null });
-  mocks.signAvatar.mockResolvedValue(null);
+  mocks.createAvatarSignedUrls.mockResolvedValue({ data: [], error: null });
 });
 
 import { GET, PATCH, POST } from "./route";
@@ -61,7 +68,7 @@ describe("GET /api/messages/threads/[threadId]", () => {
     const owner = { id: uuid, fullName: "abangcebu landlord", role: "landlord", avatarUrl: `${uuid}/o.png`, email: "o@x.com" };
     const counterpart = role === "landlord" ? { id: uuid2, fullName: "abangcebu renter", role: "renter", avatarUrl: null } : owner;
     mocks.rpc.mockResolvedValue({ data: { thread: { id: uuid, counterpart, listingOwner: owner }, messages: [], hasMore: false }, error: null });
-    mocks.signAvatar.mockImplementation(async (id: string) => `https://signed.example/${id}.png`);
+    mocks.createAvatarSignedUrls.mockResolvedValue({ data: [{ path: `${uuid}/o.png`, signedUrl: `https://signed.example/${uuid}.png` }], error: null });
     const body = await (await CALL(headers())).json();
     expect(body.thread.listingOwner).toEqual({ id: uuid, fullName: "abangcebu landlord", role: "landlord", avatarUrl: `https://signed.example/${uuid}.png` });
     expect(JSON.stringify(body)).not.toContain("o@x.com");
@@ -86,7 +93,7 @@ describe("GET /api/messages/threads/[threadId]", () => {
   it("returns an enriched thread, marks read, and leaks nothing", async () => {
     mocks.rpc.mockImplementation(async (fn: string) => (fn === "get_rental_conversation_detail" ? { data: detail, error: null } : { data: {}, error: null }));
     mocks.createSignedUrls.mockResolvedValue({ data: [{ path, signedUrl: "https://signed.example/t.webp" }], error: null });
-    mocks.signAvatar.mockResolvedValue("https://signed.example/a.png");
+    mocks.createAvatarSignedUrls.mockResolvedValue({ data: [{ path: `${uuid2}/a.png`, signedUrl: "https://signed.example/a.png" }], error: null });
     const r = await get(headers());
     const body = await r.json();
     expect(r.status).toBe(200);

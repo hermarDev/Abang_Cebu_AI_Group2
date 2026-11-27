@@ -36,44 +36,7 @@ export function verifyGuestSupportToken(token: string, expectedHash: string | nu
   return actual.length === expected.length && timingSafeEqual(actual, expected);
 }
 
-export async function readBoundedBody(
-  request: Request,
-  maxBytes: number,
-): Promise<{ ok: true; bytes: Uint8Array } | { ok: false }> {
-  const headerLen = request.headers.get("content-length");
-  if (headerLen && /^\d+$/.test(headerLen.trim()) && Number(headerLen.trim()) > maxBytes) {
-    return { ok: false };
-  }
-
-  if (!request.body) {
-    return { ok: true, bytes: new Uint8Array(0) };
-  }
-
-  const reader = request.body.getReader();
-  const chunks: Uint8Array[] = [];
-  let total = 0;
-
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    if (value) {
-      total += value.byteLength;
-      if (total > maxBytes) {
-        await reader.cancel().catch(() => {});
-        return { ok: false };
-      }
-      chunks.push(value);
-    }
-  }
-
-  const out = new Uint8Array(total);
-  let offset = 0;
-  for (const chunk of chunks) {
-    out.set(chunk, offset);
-    offset += chunk.byteLength;
-  }
-  return { ok: true, bytes: out };
-}
+export { readBoundedBody } from "@/server/bounded-body";
 
 export function mapSupportTicketRow(row: Record<string, unknown>): SupportTicketRecord {
   const rawAttachments = row.attachments;

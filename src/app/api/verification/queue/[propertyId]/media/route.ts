@@ -1,5 +1,7 @@
 import { createHash } from "node:crypto";
+import { inspectDraftMedia } from "@/app/api/property-drafts/media-validation";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { MAX_UPLOAD_MULTIPART_BYTES, readBoundedFormData } from "@/server/bounded-body";
 import {
   isUuid,
   jsonError,
@@ -8,34 +10,6 @@ import {
   requireActiveVerifier,
   verificationLimiter,
 } from "@/server/verification-access";
-
-function inspectVerificationMedia(
-  kind: "proof",
-  mime: string,
-  bytes: Uint8Array
-): string | null {
-  if (bytes.length === 0 || bytes.length > 10 * 1024 * 1024) return null;
-  const starts = (sig: number[]) => sig.every((b, i) => bytes[i] === b);
-  const png = starts([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
-  const jpeg = starts([0xff, 0xd8, 0xff]);
-  const webp =
-    starts([0x52, 0x49, 0x46, 0x46]) &&
-    bytes.length >= 12 &&
-    bytes[8] === 0x57 &&
-    bytes[9] === 0x45 &&
-    bytes[10] === 0x42 &&
-    bytes[11] === 0x50;
-  const pdf = starts([0x25, 0x50, 0x44, 0x46, 0x2d]);
-
-  if (kind === "proof") {
-    if (mime === "application/pdf" && pdf) return mime;
-    if (mime === "image/png" && png) return mime;
-    if (mime === "image/jpeg" && jpeg) return mime;
-    if (mime === "image/webp" && webp) return mime;
-    return null;
-  }
-  return null;
-}
 
 type RouteContext = { params: Promise<{ propertyId: string }> };
 
@@ -49,12 +23,16 @@ export async function POST(request: Request, { params }: RouteContext) {
   const { propertyId } = await params;
   if (!isUuid(propertyId)) return jsonError("Invalid property ID.", 400);
 
-  let form: FormData;
-  try {
-    form = await request.formData();
-  } catch {
-    return jsonError("Invalid file form data.", 400);
+  const parsedForm = await readBoundedFormData(request, MAX_UPLOAD_MULTIPART_BYTES);
+  if (!parsedForm.ok) {
+    return jsonError(
+      parsedForm.reason === "too_large"
+        ? "File size must be between 1 byte and 10 MB."
+        : "Invalid file form data.",
+      parsedForm.reason === "too_large" ? 413 : 400,
+    );
   }
+  const form = parsedForm.form;
 
   const operationId = form.get("operationId");
   const kind = form.get("kind");
@@ -74,7 +52,7 @@ export async function POST(request: Request, { params }: RouteContext) {
   }
 
   const bytes = new Uint8Array(await file.arrayBuffer());
-  const contentType = inspectVerificationMedia("proof", file.type, bytes);
+  const contentType = inspectDraftMedia("permit", file.type, bytes);
   if (!contentType) {
     return jsonError("Unsupported or invalid file format.", 400);
   }
