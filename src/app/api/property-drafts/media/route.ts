@@ -1,8 +1,8 @@
 import { createHash } from "node:crypto";
-import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { propertyDraftsLimiter } from "@/server/api-limiters";
 import { MAX_UPLOAD_MULTIPART_BYTES, readBoundedFormData } from "@/server/bounded-body";
+import { createRoleGuard } from "@/server/role-access";
 import { inspectDraftMedia } from "../media-validation";
 
 const headers = { "Cache-Control": "no-store" };
@@ -18,16 +18,11 @@ function enforceRateLimit(request: Request, userId: string): Response | null {
   );
 }
 
-async function access(request: Request) {
-  const supabase = await createClient();
-  const { data: { user }, error } = await supabase.auth.getUser();
-  if (error || !user) return { response: reply("Sign in to upload listing files.", 401) } as const;
-  if (request.headers.get("x-expected-user-id") !== user.id) return { response: reply("Your account changed. Please refresh and try again.", 409) } as const;
-  const { data: profile, error: profileError } = await supabase.from("profiles").select("role,is_suspended").eq("id", user.id).maybeSingle();
-  if (profileError) return { response: reply("Your account could not be checked. Please try again.", 503) } as const;
-  if (profile?.role !== "landlord" || profile.is_suspended) return { response: reply("Listing files are available to active landlord accounts only.", 403) } as const;
-  return { supabase, user } as const;
-}
+const access = createRoleGuard({
+  allowedRoles: ["landlord"],
+  unauthenticatedMessage: "Sign in to upload listing files.",
+  forbiddenMessage: "Listing files are available to active landlord accounts only.",
+});
 
 export async function GET(request: Request) {
   const session = await access(request);

@@ -26,28 +26,25 @@ export async function GET(request: Request) {
   const photos = rows.map((row) => paths(row.photoPaths).filter((p) => PHOTO_PATH.test(p)));
   const permits = rows.map((row) => paths(row.permitPaths));
   const allPaths = [...new Set([...photos.flat(), ...permits.flat()])];
-  const signed = new Map<string, string>();
-  if (allPaths.length) {
-    try {
-      const { data: urls } = await createAdminClient().storage.from("property-draft-media").createSignedUrls(allPaths, 900);
-      for (const entry of urls ?? []) if (entry?.path && entry.signedUrl) signed.set(entry.path, entry.signedUrl);
-    } catch {
-      // Degrade to empty media lists if signing fails.
-    }
-  }
-  const urlsFor = (list: string[]) => list.map((p) => signed.get(p)).filter((u): u is string => Boolean(u));
   const proofPaths = [...new Set(rows.flatMap((row) => Array.isArray(row.fieldVerificationProof)
     ? row.fieldVerificationProof.flatMap((proof) => proof && typeof proof === "object" && typeof proof.object_path === "string" ? [proof.object_path as string] : [])
     : []))];
+  const signed = new Map<string, string>();
   const proofSigned = new Map<string, string>();
-  if (proofPaths.length) {
+  const signBucket = async (bucket: string, bucketPaths: string[], target: Map<string, string>) => {
+    if (!bucketPaths.length) return;
     try {
-      const { data: urls } = await createAdminClient().storage.from("field-verification-media").createSignedUrls(proofPaths, 900);
-      for (const entry of urls ?? []) if (entry?.path && entry.signedUrl) proofSigned.set(entry.path, entry.signedUrl);
+      const { data: urls } = await createAdminClient().storage.from(bucket).createSignedUrls(bucketPaths, 900);
+      for (const entry of urls ?? []) if (entry?.path && entry.signedUrl) target.set(entry.path, entry.signedUrl);
     } catch {
-      // Proof remains unavailable when signing fails.
+      // Degrade to empty media URLs when signing fails.
     }
-  }
+  };
+  await Promise.all([
+    signBucket("property-draft-media", allPaths, signed),
+    signBucket("field-verification-media", proofPaths, proofSigned),
+  ]);
+  const urlsFor = (list: string[]) => list.map((p) => signed.get(p)).filter((u): u is string => Boolean(u));
   return jsonOk({ properties: rows.map((row, i) => ({
     ...row,
     photoUrls: urlsFor(photos[i]),

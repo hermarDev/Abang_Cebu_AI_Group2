@@ -6,7 +6,7 @@ import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { loadProfile } from "@/lib/supabase/profile";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { amenityLabels, photoPaths, type SubmissionRow } from "@/server/landlord-properties";
+import { amenityLabels, fetchActivePropertyUnits, photoPaths, type SubmissionRow } from "@/server/landlord-properties";
 import { LandlordPropertyMap, type LandlordPropertyMapItem } from "@/features/landlord/LandlordPropertyMap";
 import { LandlordMobileNav } from "@/features/landlord/LandlordMobileNav";
 
@@ -43,42 +43,13 @@ export default async function LandlordMapPage(props?: { searchParams?: Promise<{
   const selected = params?.selected;
   const initialSelectedId = typeof selected === "string" ? selected : undefined;
   const propertyIds = (submitted ?? []).map(row => row.id);
-  const activeUnits: { property_id: string; monthly_rent: number | string | null; is_available: boolean }[] = [];
-  let unitsError: unknown = null;
-  if (propertyIds.length) {
-    const UNIT_BATCH_SIZE = 100;
-    const UNIT_PAGE_SIZE = 1000;
-    const chunks: string[][] = [];
-    for (let i = 0; i < propertyIds.length; i += UNIT_BATCH_SIZE) {
-      chunks.push(propertyIds.slice(i, i + UNIT_BATCH_SIZE));
-    }
-    const results = await Promise.all(chunks.map(async (chunk) => {
-      const chunkUnits: typeof activeUnits = [];
-      for (let from = 0; ; from += UNIT_PAGE_SIZE) {
-        const res = await supabase
-          .from("rental_units")
-          .select("property_id,monthly_rent,is_available")
-          .in("property_id", chunk)
-          .eq("is_retired", false)
-          .order("created_at", { ascending: true })
-          .order("id", { ascending: true })
-          .range(from, from + UNIT_PAGE_SIZE - 1);
-        if (res.error) return { units: chunkUnits, error: res.error };
-        const batch = res.data ?? [];
-        chunkUnits.push(...batch);
-        if (batch.length < UNIT_PAGE_SIZE) break;
-      }
-      return { units: chunkUnits, error: null };
-    }));
-    for (const result of results) {
-      if (result.error) {
-        unitsError = result.error;
-        break;
-      }
-      activeUnits.push(...result.units);
-    }
-  }
-  const unitsByProperty = new Map<string, (typeof activeUnits)[number]>();
+  type MapUnitRow = { property_id: string; monthly_rent: number | string | null; is_available: boolean };
+  const { units: activeUnits, error: unitsError } = await fetchActivePropertyUnits<MapUnitRow>(
+    supabase,
+    propertyIds,
+    "property_id,monthly_rent,is_available",
+  );
+  const unitsByProperty = new Map<string, MapUnitRow>();
   for (const unit of activeUnits) {
     if (!unitsByProperty.has(unit.property_id)) unitsByProperty.set(unit.property_id, unit);
   }
