@@ -1,5 +1,6 @@
 import { revalidatePath } from "next/cache";
 import { invalidatePublicRentalsCache } from "@/server/rentals/public-rentals";
+import { invalidateLandlordPortfolioCache } from "@/server/landlord-portfolio-cache";
 import { adminLifecycleLimiter, rateLimited, requireActiveAdmin } from "@/server/admin-access";
 
 const headers = { "Cache-Control": "no-store" };
@@ -69,6 +70,7 @@ export async function POST(request: Request) {
   if (error) return reply("The review could not be saved. Please retry.", 503);
   if (!data || typeof data !== "object" || !("status" in data)) return reply("Review could not be confirmed. Please retry.", 503);
   invalidatePublicRentalsCache();
+  invalidateLandlordPortfolioCache();
   try {
     for (const path of ["/", "/landlord/dashboard", "/landlord/properties", "/landlord/map", "/admin/dashboard", "/admin/reviews", "/admin/audit"]) {
       revalidatePath(path);

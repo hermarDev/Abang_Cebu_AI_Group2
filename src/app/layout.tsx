@@ -38,9 +38,17 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const supabaseOrigin = (() => {
+    try { return process.env.NEXT_PUBLIC_SUPABASE_URL ? new URL(process.env.NEXT_PUBLIC_SUPABASE_URL).origin : null; }
+    catch { return null; }
+  })();
+
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        <link rel="preload" href="/styles/osm.json" as="fetch" crossOrigin="anonymous" />
+        <link rel="preload" href="/maplibre-gl/maplibre-gl-worker.mjs" as="worker" crossOrigin="anonymous" />
+        {supabaseOrigin && <link rel="preconnect" href={supabaseOrigin} crossOrigin="anonymous" />}
         <script dangerouslySetInnerHTML={{ __html: `(() => {
           let theme;
           try { theme = localStorage.getItem("abangcebu-theme"); } catch {}

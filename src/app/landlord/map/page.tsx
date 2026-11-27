@@ -5,8 +5,7 @@ import { ArrowLeft } from "lucide-react";
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { loadProfile } from "@/lib/supabase/profile";
-import { createAdminClient } from "@/lib/supabase/admin";
-import { amenityLabels, fetchActivePropertyUnits, photoPaths, type SubmissionRow } from "@/server/landlord-properties";
+import { amenityLabels, fetchLandlordMapData, photoPaths, type SubmissionRow } from "@/server/landlord-properties";
 import { LandlordPropertyMap, type LandlordPropertyMapItem } from "@/features/landlord/LandlordPropertyMap";
 import { LandlordMobileNav } from "@/features/landlord/LandlordMobileNav";
 
@@ -23,32 +22,13 @@ export default async function LandlordMapPage(props?: { searchParams?: Promise<{
   if (!user) redirect("/login?next=%2Flandlord%2Fmap");
   if (profileError || profile?.role !== "landlord" || profile.is_suspended) notFound();
   const supabase = await createClient();
-  const [params, { data, error }, { data: submitted, error: propertiesError }, { data: submittedDrafts, error: submissionsError }] = await Promise.all([
+  const [params, { listings: data, submitted, activeUnits, submittedDrafts, signedByPath, loadError }] = await Promise.all([
     searchParams,
-    supabase.from("listings")
-      .select("id,title,price,property_type,address,city,latitude,longitude,is_available,status,image_urls")
-      .eq("owner_id", user.id)
-      .order("created_at", { ascending: false })
-      .limit(100),
-    // Column names follow supabase/migrations/20261104111000_property_unit_storage.sql grants.
-    supabase.from("properties")
-      .select("id,title,description,property_type,street_address,city,latitude,longitude,status")
-      .eq("landlord_id", user.id)
-      .order("created_at", { ascending: false }),
-    supabase.from("property_submissions")
-      .select("property_id,draft_id,expected_revision,superseded_by,snapshot_payload,snapshot_media")
-      .eq("owner_id", user.id)
-      .order("created_at", { ascending: false }),
+    fetchLandlordMapData(supabase, user.id),
   ]);
   const selected = params?.selected;
   const initialSelectedId = typeof selected === "string" ? selected : undefined;
-  const propertyIds = (submitted ?? []).map(row => row.id);
   type MapUnitRow = { property_id: string; monthly_rent: number | string | null; is_available: boolean };
-  const { units: activeUnits, error: unitsError } = await fetchActivePropertyUnits<MapUnitRow>(
-    supabase,
-    propertyIds,
-    "property_id,monthly_rent,is_available",
-  );
   const unitsByProperty = new Map<string, MapUnitRow>();
   for (const unit of activeUnits) {
     if (!unitsByProperty.has(unit.property_id)) unitsByProperty.set(unit.property_id, unit);
@@ -56,21 +36,12 @@ export default async function LandlordMapPage(props?: { searchParams?: Promise<{
 
   const draftTargets = new Map<string, { draftId: string; revision: number }>();
   const activeSubmissions = new Map<string, SubmissionRow>();
-  for (const submission of (submittedDrafts ?? []) as SubmissionRow[]) {
+  for (const submission of submittedDrafts) {
     if (submission.superseded_by) continue;
     if (!activeSubmissions.has(submission.property_id)) activeSubmissions.set(submission.property_id, submission);
     if (!draftTargets.has(submission.property_id) && Number.isSafeInteger(submission.expected_revision) && submission.expected_revision > 0) {
       draftTargets.set(submission.property_id, { draftId: submission.draft_id, revision: submission.expected_revision });
     }
-  }
-
-  const paths = [...new Set((submitted ?? []).filter(hasCoordinates).flatMap(row => photoPaths(activeSubmissions.get(row.id), user.id)))];
-  const signedByPath = new Map<string, string>();
-  if (paths.length) {
-    try {
-      const { data: signed } = await createAdminClient().storage.from("property-draft-media").createSignedUrls(paths, 3600);
-      for (const item of signed ?? []) if (item.path && item.signedUrl) signedByPath.set(item.path, item.signedUrl);
-    } catch { /* Photos are optional; render the map without them if signing fails. */ }
   }
 
   const properties: LandlordPropertyMapItem[] = (submitted ?? []).filter(hasCoordinates).map(row => {
@@ -101,7 +72,7 @@ export default async function LandlordMapPage(props?: { searchParams?: Promise<{
         <Link href="/landlord/dashboard" aria-label="Back to dashboard" className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-border bg-card px-3 text-sm font-semibold hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"><ArrowLeft size={17} aria-hidden="true" /><span className="hidden sm:inline">Back to dashboard</span><span className="sm:hidden">Dashboard</span></Link>
       </div>
     </header>
-    <LandlordPropertyMap properties={properties} loadError={Boolean(error || propertiesError || unitsError || submissionsError)} initialSelectedId={initialSelectedId} />
+    <LandlordPropertyMap properties={properties} loadError={loadError} initialSelectedId={initialSelectedId} />
     <LandlordMobileNav userId={user.id} />
   </main>;
 }

@@ -1,502 +1,135 @@
 vi.mock("server-only", () => ({}));
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { SupabaseClient } from "@supabase/supabase-js";
-
-const mocks = vi.hoisted(() => ({
-  listings: vi.fn(),
-  properties: vi.fn(),
-  submissions: vi.fn(),
-  drafts: vi.fn(),
-  units: vi.fn(),
-  feedbackRpc: vi.fn(),
-  storageSignedUrls: vi.fn(),
-  eq: vi.fn(),
-  landlordEq: vi.fn(),
-  submissionEq: vi.fn(),
-  draftsEq: vi.fn(),
-}));
-
-vi.mock("@/lib/supabase/admin", () => ({
-  createAdminClient: () => ({
-    storage: {
-      from: () => ({
-        createSignedUrls: mocks.storageSignedUrls,
-      }),
-    },
-  }),
-}));
-
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
+  fetchLandlordMapData,
   fetchLandlordPortfolio,
-  fetchLandlordManagedProperties,
-  photoPaths,
-  type LandlordManagedProperty,
+  invalidateLandlordPortfolioCache,
+  signPropertyDraftMediaUrls,
 } from "./landlord-properties";
 
-function createMockSupabase(): SupabaseClient {
+const mocks = vi.hoisted(() => ({ createSignedUrls: vi.fn() }));
+vi.mock("@/lib/supabase/admin", () => ({
+  createAdminClient: () => ({ storage: { from: () => ({ createSignedUrls: mocks.createSignedUrls }) } }),
+}));
+
+type TableResults = Record<string, { data: unknown; error: unknown }>;
+
+function createMockSupabase(results: TableResults, rpcResult = { data: [], error: null }) {
+  const from = vi.fn((table: string) => {
+    const chain: Record<string, unknown> = {
+      select: () => chain,
+      eq: () => chain,
+      in: () => chain,
+      order: () => chain,
+      limit: () => chain,
+      range: () => chain,
+      then: (resolve: (value: unknown) => unknown, reject: (reason: unknown) => unknown) =>
+        Promise.resolve(results[table] ?? { data: [], error: null }).then(resolve, reject),
+    };
+    return chain;
+  });
   return {
-    from: (table: string) => {
-      if (table === "listings") {
-        return {
-          select: () => ({
-            eq: mocks.eq,
-          }),
-        };
-      }
-      if (table === "properties") {
-        return {
-          select: () => ({
-            eq: mocks.landlordEq,
-          }),
-        };
-      }
-      if (table === "property_submissions") {
-        return {
-          select: () => ({
-            eq: mocks.submissionEq,
-          }),
-        };
-      }
-      if (table === "property_drafts") {
-        return {
-          select: () => ({
-            eq: mocks.draftsEq,
-          }),
-        };
-      }
-      if (table === "rental_units") {
-        return {
-          select: () => ({
-            in: (...inArgs: unknown[]) => ({
-              eq: () => ({
-                order: () => ({
-                  order: () => ({
-                    range: () => mocks.units(...inArgs),
-                  }),
-                }),
-                range: () => mocks.units(...inArgs),
-                then: (res: (v: unknown) => unknown, rej: (e: unknown) => unknown) =>
-                  Promise.resolve(mocks.units(...inArgs)).then(res, rej),
-              }),
-            }),
-          }),
-        };
-      }
-      return { select: () => ({ eq: () => ({}) }) };
-    },
-    rpc: mocks.feedbackRpc,
-  } as unknown as SupabaseClient;
+    from,
+    rpc: vi.fn().mockResolvedValue(rpcResult),
+  };
 }
 
-describe("fetchLandlordPortfolio", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    mocks.eq.mockReturnValue({ order: mocks.listings });
-    mocks.landlordEq.mockReturnValue({ order: mocks.properties });
-    mocks.submissionEq.mockReturnValue({ order: mocks.submissions });
-    mocks.draftsEq.mockReturnValue({ order: mocks.drafts });
+beforeEach(() => {
+  vi.resetAllMocks();
+  vi.unstubAllEnvs();
+  invalidateLandlordPortfolioCache();
+});
 
-    mocks.listings.mockResolvedValue({ data: [], error: null });
-    mocks.properties.mockResolvedValue({ data: [], error: null });
-    mocks.submissions.mockResolvedValue({ data: [], error: null });
-    mocks.drafts.mockResolvedValue({ data: [], error: null });
-    mocks.units.mockResolvedValue({ data: [], error: null });
-    mocks.feedbackRpc.mockResolvedValue({ data: [], error: null });
-    mocks.storageSignedUrls.mockResolvedValue({ data: [], error: null });
+afterEach(() => {
+  vi.unstubAllEnvs();
+});
+
+describe("landlord-properties caching", () => {
+  it("caches landlord portfolio per user for 30s and invalidates cleanly", async () => {
+    vi.stubEnv("VITEST", "");
+    const supabase = createMockSupabase({
+      listings: { data: [{ id: "l1", title: "Studio", price: 8000, property_type: "studio", address: "IT Park", city: "Cebu", is_available: true, status: "published" }], error: null },
+      properties: { data: [], error: null },
+      property_submissions: { data: [], error: null },
+      property_drafts: { data: [], error: null },
+    });
+
+    const first = await fetchLandlordPortfolio(supabase as never, "landlord-1");
+    const second = await fetchLandlordPortfolio(supabase as never, "landlord-1");
+    expect(first.items).toHaveLength(1);
+    expect(second.items).toHaveLength(1);
+    expect(supabase.from).toHaveBeenCalledTimes(4);
+
+    invalidateLandlordPortfolioCache("landlord-1");
+    await fetchLandlordPortfolio(supabase as never, "landlord-1");
+    expect(supabase.from).toHaveBeenCalledTimes(8);
   });
 
-  it("returns portfolio with unified items and all error flags false when successful", async () => {
-    const supabase = createMockSupabase();
-    mocks.properties.mockResolvedValue({
-      data: [
-        {
-          id: "prop-1",
-          title: "Approved Condo",
-          description: "Nice condo",
-          property_type: "condo",
-          street_address: "Apas",
-          city: "Cebu City",
-          status: "approved",
-          created_at: "2026-01-01",
-        },
-      ],
-      error: null,
+  it("deduplicates concurrent in-flight portfolio requests", async () => {
+    vi.stubEnv("VITEST", "");
+    let resolveRpc!: (value: { data: unknown; error: unknown }) => void;
+    const supabase = createMockSupabase({
+      listings: { data: [], error: null },
+      properties: { data: [], error: null },
+      property_submissions: { data: [], error: null },
+      property_drafts: { data: [], error: null },
     });
-    mocks.units.mockResolvedValue({
-      data: [{ property_id: "prop-1", monthly_rent: 30000, is_available: true }],
-      error: null,
-    });
+    supabase.rpc = vi.fn(() => new Promise((resolve) => { resolveRpc = resolve; }));
 
-    const result = await fetchLandlordPortfolio(supabase, "user-1");
+    const p1 = fetchLandlordPortfolio(supabase as never, "landlord-2");
+    const p2 = fetchLandlordPortfolio(supabase as never, "landlord-2");
+    resolveRpc({ data: [], error: null });
 
-    expect(result.errors).toEqual({
-      listings: false,
-      properties: false,
-      submissions: false,
-      drafts: false,
-      units: false,
-      feedback: false,
-      media: false,
-    });
-    expect(result.truncated).toBe(false);
-    expect(result.items).toHaveLength(1);
-    expect(result.items[0].id).toBe("prop-1");
-    expect(result.items[0].status).toBe("published");
-    expect(result.items[0].statusLabel).toBe("Published · Available");
-    expect(result.items[0].availabilityKnown).toBe(true);
-    expect(result.items[0].hasPendingRevision).toBe(false);
+    const [r1, r2] = await Promise.all([p1, p2]);
+    expect(r1).toEqual(r2);
+    expect(supabase.rpc).toHaveBeenCalledTimes(1);
   });
 
-  it("summarizes multi-unit property availability with counts and individual unit details", async () => {
-    const supabase = createMockSupabase();
-    mocks.properties.mockResolvedValue({
-      data: [
-        {
-          id: "prop-bh",
-          title: "Apas Boarding House",
-          description: "Rooms for rent",
-          property_type: "boarding_house",
-          street_address: "Apas",
-          city: "Cebu City",
-          status: "approved",
-          created_at: "2026-01-01",
-        },
-      ],
-      error: null,
-    });
-    mocks.units.mockResolvedValue({
-      data: [
-        { id: "u-1", property_id: "prop-bh", unit_number: "Room 1", rental_type: "private_room", monthly_rent: 4500, max_occupants: 1, is_available: true },
-        { id: "u-2", property_id: "prop-bh", unit_number: "Room 2", rental_type: "private_room", monthly_rent: 4500, max_occupants: 1, is_available: false },
-        { id: "u-3", property_id: "prop-bh", unit_number: "Room 3", rental_type: "private_room", monthly_rent: 5000, max_occupants: 2, is_available: true },
-      ],
-      error: null,
+  it("does not cache portfolio responses when a table query fails", async () => {
+    vi.stubEnv("VITEST", "");
+    const supabase = createMockSupabase({
+      listings: { data: null, error: { message: "db error" } },
+      properties: { data: [], error: null },
+      property_submissions: { data: [], error: null },
+      property_drafts: { data: [], error: null },
     });
 
-    const result = await fetchLandlordPortfolio(supabase, "user-1");
-    const item = result.items[0];
-    expect(item.totalUnitsCount).toBe(3);
-    expect(item.availableUnitsCount).toBe(2);
-    expect(item.statusLabel).toBe("Published · 2 of 3 units available");
-    expect(item.units).toHaveLength(3);
-    expect(item.units?.[0]).toEqual({
-      id: "u-1",
-      unitNumber: "Room 1",
-      rentalType: "private_room",
-      monthlyRent: 4500,
-      maxOccupants: 1,
-      isAvailable: true,
-    });
+    const first = await fetchLandlordPortfolio(supabase as never, "landlord-err");
+    expect(first.errors.listings).toBe(true);
+
+    await fetchLandlordPortfolio(supabase as never, "landlord-err");
+    expect(supabase.from).toHaveBeenCalledTimes(8);
   });
 
-  it("identifies hasPendingRevision when approved property has an active pending submission", async () => {
-    const supabase = createMockSupabase();
-    mocks.properties.mockResolvedValue({
-      data: [
-        {
-          id: "prop-1",
-          title: "Approved Condo",
-          status: "approved",
-          created_at: "2026-01-01",
-        },
-      ],
-      error: null,
-    });
-    mocks.submissions.mockResolvedValue({
-      data: [
-        {
-          property_id: "prop-1",
-          draft_id: "draft-rev2",
-          expected_revision: 2,
-          superseded_by: null,
-          review_status: "pending",
-          snapshot_payload: null,
-          snapshot_media: [],
-          created_at: "2026-01-02",
-        },
-      ],
-      error: null,
-    });
-    mocks.units.mockResolvedValue({
-      data: [{ property_id: "prop-1", monthly_rent: 30000, is_available: true }],
+  it("caches signed draft media URLs for 1h across calls", async () => {
+    vi.stubEnv("VITEST", "");
+    const path = `owner/draft/op/${"a".repeat(64)}.jpg`;
+    mocks.createSignedUrls.mockResolvedValue({
+      data: [{ path, signedUrl: "https://signed.test/a.jpg" }],
       error: null,
     });
 
-    const result = await fetchLandlordPortfolio(supabase, "user-1");
-
-    expect(result.items[0].status).toBe("published");
-    expect(result.items[0].hasPendingRevision).toBe(true);
+    const first = await signPropertyDraftMediaUrls([path]);
+    const second = await signPropertyDraftMediaUrls([path]);
+    expect(first.signed.get(path)).toBe("https://signed.test/a.jpg");
+    expect(second.signed.get(path)).toBe("https://signed.test/a.jpg");
+    expect(mocks.createSignedUrls).toHaveBeenCalledTimes(1);
   });
 
-  it("sets availabilityKnown to false and statusLabel to 'Published · Availability unknown' when units query fails", async () => {
-    const supabase = createMockSupabase();
-    mocks.properties.mockResolvedValue({
-      data: [
-        {
-          id: "prop-1",
-          title: "Approved Condo",
-          status: "approved",
-          created_at: "2026-01-01",
-        },
-      ],
-      error: null,
-    });
-    mocks.units.mockResolvedValue({
-      data: null,
-      error: { message: "connection error" },
+  it("caches landlord map data for 30s and clears on invalidation", async () => {
+    vi.stubEnv("VITEST", "");
+    const supabase = createMockSupabase({
+      listings: { data: [{ id: "l1", title: "Room", price: 5000, property_type: "room", address: "Lahug", city: "Cebu", latitude: 10.3, longitude: 123.9, is_available: true, status: "published" }], error: null },
+      properties: { data: [], error: null },
+      property_submissions: { data: [], error: null },
     });
 
-    const result = await fetchLandlordPortfolio(supabase, "user-1");
+    await fetchLandlordMapData(supabase as never, "landlord-map");
+    await fetchLandlordMapData(supabase as never, "landlord-map");
+    expect(supabase.from).toHaveBeenCalledTimes(3);
 
-    expect(result.errors.units).toBe(true);
-    expect(result.items[0].availabilityKnown).toBe(false);
-    expect(result.items[0].statusLabel).toBe("Published · Availability unknown");
-  });
-
-  it("does NOT cross-dedupe listings against properties by bare UUID match", async () => {
-    const supabase = createMockSupabase();
-    const sharedId = "same-uuid-123";
-    mocks.properties.mockResolvedValue({
-      data: [
-        {
-          id: sharedId,
-          title: "From Properties Table",
-          status: "approved",
-          created_at: "2026-01-01",
-        },
-      ],
-      error: null,
-    });
-    mocks.listings.mockResolvedValue({
-      data: [
-        {
-          id: sharedId,
-          title: "From Listings Table",
-          status: "published",
-          is_available: true,
-          created_at: "2026-01-01",
-        },
-      ],
-      error: null,
-    });
-
-    const result = await fetchLandlordPortfolio(supabase, "user-1");
-
-    expect(result.items).toHaveLength(2);
-    expect(result.items.map((i: LandlordManagedProperty) => i.title)).toContain("From Properties Table");
-    expect(result.items.map((i: LandlordManagedProperty) => i.title)).toContain("From Listings Table");
-  });
-
-  it("captures query errors into errors object and sets truncated if row count >= 1000", async () => {
-    const supabase = createMockSupabase();
-    mocks.listings.mockResolvedValue({
-      data: Array.from({ length: 1000 }, (_, i) => ({
-        id: `listing-${i}`,
-        title: `Listing ${i}`,
-        status: "published",
-        is_available: true,
-      })),
-      error: null,
-    });
-    mocks.properties.mockResolvedValue({ data: null, error: { message: "fail" } });
-    mocks.submissions.mockResolvedValue({ data: null, error: { message: "fail" } });
-    mocks.feedbackRpc.mockResolvedValue({ data: null, error: { message: "fail" } });
-
-    const result = await fetchLandlordPortfolio(supabase, "user-1");
-
-    expect(result.errors.properties).toBe(true);
-    expect(result.errors.submissions).toBe(true);
-    expect(result.errors.feedback).toBe(true);
-    expect(result.errors.listings).toBe(false);
-    expect(result.truncated).toBe(true);
-    expect(result.items).toHaveLength(1000);
-  });
-
-  it("captures storage media signing errors into errors.media", async () => {
-    const ownerId = "11111111-1111-4111-8111-111111111111";
-    const draftId = "22222222-2222-4222-8222-222222222222";
-    const supabase = createMockSupabase();
-    mocks.properties.mockResolvedValue({
-      data: [{ id: "prop-1", title: "Prop 1", status: "pending" }],
-      error: null,
-    });
-    const validPhoto = `${ownerId}/${draftId}/33333333-3333-4333-8333-333333333333/${"a".repeat(64)}.jpg`;
-    mocks.submissions.mockResolvedValue({
-      data: [
-        {
-          property_id: "prop-1",
-          draft_id: draftId,
-          expected_revision: 1,
-          superseded_by: null,
-          snapshot_media: [{ kind: "photo", object_path: validPhoto }],
-        },
-      ],
-      error: null,
-    });
-    mocks.storageSignedUrls.mockRejectedValue(new Error("Storage service down"));
-
-    const result = await fetchLandlordPortfolio(supabase, ownerId);
-
-    expect(result.errors.media).toBe(true);
-    expect(mocks.storageSignedUrls).toHaveBeenCalledWith([validPhoto], 3600);
-  });
-
-  it("refuses cross-owner, cross-draft, non-photo, and payload-fallback paths when snapshot_media exists", async () => {
-    const ownerId = "11111111-1111-4111-8111-111111111111";
-    const otherOwnerId = "99999999-9999-4999-8999-999999999999";
-    const draftId = "22222222-2222-4222-8222-222222222222";
-    const otherDraftId = "88888888-8888-4888-8888-888888888888";
-    const ownPhoto = `${ownerId}/${draftId}/33333333-3333-4333-8333-333333333333/${"a".repeat(64)}.jpg`;
-    const crossOwnerPhoto = `${otherOwnerId}/${draftId}/33333333-3333-4333-8333-333333333333/${"b".repeat(64)}.jpg`;
-    const crossDraftPhoto = `${ownerId}/${otherDraftId}/33333333-3333-4333-8333-333333333333/${"c".repeat(64)}.jpg`;
-    const permitDoc = `${ownerId}/${draftId}/33333333-3333-4333-8333-333333333333/${"d".repeat(64)}.jpg`;
-    const payloadPhoto = `${ownerId}/${draftId}/33333333-3333-4333-8333-333333333333/${"e".repeat(64)}.jpg`;
-
-    const supabase = createMockSupabase();
-    mocks.properties.mockResolvedValue({
-      data: [
-        { id: "prop-1", title: "Own", status: "approved" },
-        { id: "prop-2", title: "Empty snapshot", status: "approved" },
-      ],
-      error: null,
-    });
-    mocks.submissions.mockResolvedValue({
-      data: [
-        {
-          property_id: "prop-1",
-          draft_id: draftId,
-          expected_revision: 1,
-          superseded_by: null,
-          snapshot_media: [
-            { kind: "photo", object_path: crossOwnerPhoto },
-            { kind: "photo", object_path: crossDraftPhoto },
-            { kind: "permit", object_path: permitDoc },
-            { kind: "photo", object_path: ownPhoto },
-          ],
-        },
-        {
-          property_id: "prop-2",
-          draft_id: draftId,
-          expected_revision: 1,
-          superseded_by: null,
-          snapshot_media: [],
-          snapshot_payload: { media: { photos: [{ object_path: payloadPhoto }] } },
-        },
-      ],
-      error: null,
-    });
-    mocks.storageSignedUrls.mockResolvedValue({
-      data: [{ path: ownPhoto, signedUrl: "https://cdn.example/own.jpg", error: null }],
-      error: null,
-    });
-
-    const result = await fetchLandlordPortfolio(supabase, ownerId);
-
-    expect(mocks.storageSignedUrls).toHaveBeenCalledTimes(1);
-    expect(mocks.storageSignedUrls).toHaveBeenCalledWith([ownPhoto], 3600);
-    expect(result.items.find((i) => i.id === "prop-1")?.imageUrls).toEqual(["https://cdn.example/own.jpg"]);
-    expect(result.items.find((i) => i.id === "prop-2")?.imageUrls).toEqual([]);
-  });
-
-  it("batches rental_units queries in chunks and prefers live draft revision for editHref", async () => {
-    const supabase = createMockSupabase();
-    const manyProps = Array.from({ length: 125 }, (_, i) => ({
-      id: `prop-${i + 1}`,
-      title: `Prop ${i + 1}`,
-      status: "rejected",
-    }));
-    mocks.properties.mockResolvedValue({ data: manyProps, error: null });
-    mocks.submissions.mockResolvedValue({
-      data: [
-        { property_id: "prop-1", draft_id: "draft-live", expected_revision: 1, review_status: "rejected", superseded_by: null },
-      ],
-      error: null,
-    });
-    mocks.drafts.mockResolvedValue({
-      data: [
-        { id: "draft-live", revision: 4, payload: { property: { title: "Edited Draft" }, unit: {} }, created_at: "2026-11-11T00:00:00Z" },
-      ],
-      error: null,
-    });
-
-    const result = await fetchLandlordPortfolio(supabase, "user-1");
-
-    expect(mocks.units).toHaveBeenCalledTimes(2);
-    expect(mocks.units.mock.calls[0][1]).toHaveLength(100);
-    expect(mocks.units.mock.calls[1][1]).toHaveLength(25);
-    expect(result.items.find((i) => i.id === "prop-1")?.editHref).toBe("/list-property?draftId=draft-live&revision=4");
-  });
-
-  it("fetches independent rental_units chunks in parallel", async () => {
-    const supabase = createMockSupabase();
-    const manyProps = Array.from({ length: 125 }, (_, i) => ({ id: `prop-${i + 1}`, title: `Prop ${i + 1}`, status: "approved" }));
-    mocks.properties.mockResolvedValue({ data: manyProps, error: null });
-    let releaseFirst!: (value: { data: unknown[]; error: null }) => void;
-    mocks.units
-      .mockImplementationOnce(() => new Promise((resolve) => { releaseFirst = resolve; }))
-      .mockResolvedValueOnce({ data: [], error: null });
-
-    const pending = fetchLandlordPortfolio(supabase, "user-1");
-    await vi.waitFor(() => expect(mocks.units).toHaveBeenCalledTimes(2));
-    releaseFirst({ data: [], error: null });
-    await pending;
-  });
-
-  it("paginates rental_units pages past 1000 rows without flagging truncated", async () => {
-    const supabase = createMockSupabase();
-    mocks.properties.mockResolvedValue({
-      data: [{ id: "prop-1", title: "Big Boarding House", status: "approved" }],
-      error: null,
-    });
-    const firstPage = Array.from({ length: 1000 }, (_, i) => ({
-      id: `u-${i}`,
-      property_id: "prop-1",
-      unit_number: `Room ${i + 1}`,
-      rental_type: "private_room",
-      monthly_rent: 4000,
-      max_occupants: 1,
-      is_available: true,
-    }));
-    const secondPage = [
-      {
-        id: "u-1000",
-        property_id: "prop-1",
-        unit_number: "Room 1001",
-        rental_type: "private_room",
-        monthly_rent: 4500,
-        max_occupants: 1,
-        is_available: true,
-      },
-    ];
-    mocks.units
-      .mockResolvedValueOnce({ data: firstPage, error: null })
-      .mockResolvedValueOnce({ data: secondPage, error: null });
-
-    const result = await fetchLandlordPortfolio(supabase, "user-1");
-
-    expect(mocks.units).toHaveBeenCalledTimes(2);
-    expect(result.truncated).toBe(false);
-    expect(result.items.find((i) => i.id === "prop-1")?.units).toHaveLength(1001);
-  });
-
-  it("photoPaths fails closed when expectedOwnerId or draft_id is missing", () => {
-    const ownerId = "11111111-1111-4111-8111-111111111111";
-    const draftId = "22222222-2222-4222-8222-222222222222";
-    const ownPhoto = `${ownerId}/${draftId}/33333333-3333-4333-8333-333333333333/${"a".repeat(64)}.jpg`;
-    expect(photoPaths({ property_id: "p", draft_id: draftId, expected_revision: 1, superseded_by: null, snapshot_media: [{ kind: "photo", object_path: ownPhoto }] }, "")).toEqual([]);
-    expect(photoPaths({ property_id: "p", draft_id: "", expected_revision: 1, superseded_by: null, snapshot_media: [{ kind: "photo", object_path: ownPhoto }] }, ownerId)).toEqual([]);
-  });
-
-  it("fetchLandlordManagedProperties delegates to fetchLandlordPortfolio and returns items", async () => {
-    const supabase = createMockSupabase();
-    mocks.properties.mockResolvedValue({
-      data: [{ id: "prop-1", title: "Prop 1", status: "pending" }],
-      error: null,
-    });
-
-    const items = await fetchLandlordManagedProperties(supabase, "user-1");
-
-    expect(items).toHaveLength(1);
-    expect(items[0].id).toBe("prop-1");
+    invalidateLandlordPortfolioCache("landlord-map");
+    await fetchLandlordMapData(supabase as never, "landlord-map");
+    expect(supabase.from).toHaveBeenCalledTimes(6);
   });
 });

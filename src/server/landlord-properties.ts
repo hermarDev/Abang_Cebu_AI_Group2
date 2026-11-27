@@ -1,6 +1,23 @@
 import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import {
+  PORTFOLIO_CACHE_LIMIT,
+  PORTFOLIO_CACHE_TTL_MS,
+  SIGNED_URL_CACHE_LIMIT,
+  SIGNED_URL_CACHE_TTL_MS,
+  boundedSet,
+  getCacheEpoch,
+  invalidateLandlordPortfolioCache,
+  isCacheDisabled,
+  mapCache,
+  pendingMap,
+  pendingPortfolio,
+  portfolioCache,
+  signedUrlCache,
+} from "@/server/landlord-portfolio-cache";
+
+export { invalidateLandlordPortfolioCache };
 
 export const PHOTO_PATH = /^[0-9a-f-]+\/[0-9a-f-]+\/[0-9a-f-]+\/[0-9a-f]{64}\.(?:jpg|png|webp)$/i;
 
@@ -110,6 +127,85 @@ export type LandlordPortfolioResult = {
   truncated: boolean;
 };
 
+export type LandlordMapData = {
+  listings: Array<{
+    id: string;
+    title: string;
+    price: number | string;
+    property_type: string;
+    address: string;
+    city: string;
+    latitude: unknown;
+    longitude: unknown;
+    is_available: boolean;
+    status: "draft" | "pending" | "approved" | "rejected" | "published" | "archived";
+    image_urls?: unknown;
+  }>;
+  submitted: Array<{
+    id: string;
+    title: string;
+    description: string | null;
+    property_type: string;
+    street_address: string;
+    city: string;
+    latitude: unknown;
+    longitude: unknown;
+    status: "draft" | "pending" | "approved" | "rejected" | "published" | "archived";
+  }>;
+  activeUnits: Array<{ property_id: string; monthly_rent: number | string | null; is_available: boolean }>;
+  submittedDrafts: SubmissionRow[];
+  signedByPath: Map<string, string>;
+  loadError: boolean;
+};
+
+/** Sign property-draft-media paths with a 1h bounded memory cache. */
+export async function signPropertyDraftMediaUrls(
+  paths: string[],
+): Promise<{ signed: Map<string, string>; mediaError: boolean }> {
+  const signed = new Map<string, string>();
+  if (!paths.length) return { signed, mediaError: false };
+
+  const now = Date.now();
+  const bypassCache = isCacheDisabled();
+  const missing: string[] = [];
+
+  for (const path of paths) {
+    if (!bypassCache) {
+      const cached = signedUrlCache.get(path);
+      if (cached && cached.expires > now) {
+        signed.set(path, cached.url);
+        continue;
+      }
+      if (cached) signedUrlCache.delete(path);
+    }
+    missing.push(path);
+  }
+
+  let mediaError = false;
+  if (missing.length) {
+    try {
+      const { data, error } = await createAdminClient().storage.from("property-draft-media").createSignedUrls(missing, 3600);
+      if (error) {
+        mediaError = true;
+      } else {
+        const expires = Date.now() + SIGNED_URL_CACHE_TTL_MS;
+        for (const item of data ?? []) {
+          if (item.path && item.signedUrl) {
+            signed.set(item.path, item.signedUrl);
+            if (!bypassCache) {
+              boundedSet(signedUrlCache, item.path, { expires, url: item.signedUrl }, SIGNED_URL_CACHE_LIMIT);
+            }
+          }
+        }
+      }
+    } catch {
+      mediaError = true;
+    }
+  }
+
+  return { signed, mediaError };
+}
+
 export async function fetchActivePropertyUnits<TRow>(
   supabase: SupabaseClient,
   propertyIds: string[],
@@ -154,6 +250,35 @@ export async function fetchActivePropertyUnits<TRow>(
 }
 
 export async function fetchLandlordPortfolio(
+  supabase: SupabaseClient,
+  userId: string,
+): Promise<LandlordPortfolioResult> {
+  if (!isCacheDisabled()) {
+    const cached = portfolioCache.get(userId);
+    if (cached && cached.expires > Date.now()) return cached.data as LandlordPortfolioResult;
+    if (cached) portfolioCache.delete(userId);
+    const inFlight = pendingPortfolio.get(userId);
+    if (inFlight) return inFlight as Promise<LandlordPortfolioResult>;
+  }
+
+  const startEpoch = getCacheEpoch();
+  const promise = loadLandlordPortfolio(supabase, userId).then((result) => {
+    const hasError = Object.values(result.errors).some(Boolean);
+    if (!isCacheDisabled() && !hasError && getCacheEpoch() === startEpoch) {
+      boundedSet(portfolioCache, userId, { expires: Date.now() + PORTFOLIO_CACHE_TTL_MS, data: result }, PORTFOLIO_CACHE_LIMIT);
+    }
+    return result;
+  }).finally(() => {
+    pendingPortfolio.delete(userId);
+  });
+
+  if (!isCacheDisabled()) {
+    pendingPortfolio.set(userId, promise);
+  }
+  return promise;
+}
+
+async function loadLandlordPortfolio(
   supabase: SupabaseClient,
   userId: string,
 ): Promise<LandlordPortfolioResult> {
@@ -245,20 +370,7 @@ export async function fetchLandlordPortfolio(
 
   // Collect photo paths to sign from property submissions (owner + draft bound)
   const paths = [...new Set((properties ?? []).flatMap((p) => photoPaths(activeSubmissions.get(p.id), userId)))];
-  const signed = new Map<string, string>();
-  let mediaError = false;
-  if (paths.length) {
-    try {
-      const { data, error } = await createAdminClient().storage.from("property-draft-media").createSignedUrls(paths, 3600);
-      if (error) {
-        mediaError = true;
-      } else {
-        for (const item of data ?? []) if (item.path && item.signedUrl) signed.set(item.path, item.signedUrl);
-      }
-    } catch {
-      mediaError = true;
-    }
-  }
+  const { signed, mediaError } = await signPropertyDraftMediaUrls(paths);
 
   const unitsByPropertyId = new Map<string, typeof units>();
   for (const u of units) {
@@ -451,4 +563,85 @@ export async function fetchLandlordManagedProperties(
 ): Promise<LandlordManagedProperty[]> {
   const portfolio = await fetchLandlordPortfolio(supabase, userId);
   return portfolio.items;
+}
+
+const hasValidCoords = (row: { latitude: unknown; longitude: unknown }) =>
+  row.latitude != null &&
+  row.longitude != null &&
+  Number.isFinite(Number(row.latitude)) &&
+  Number.isFinite(Number(row.longitude)) &&
+  Math.abs(Number(row.latitude)) <= 90 &&
+  Math.abs(Number(row.longitude)) <= 180;
+
+/** Load and cache landlord map portfolio data for 30s with in-flight deduplication. */
+export async function fetchLandlordMapData(
+  supabase: SupabaseClient,
+  userId: string,
+): Promise<LandlordMapData> {
+  if (!isCacheDisabled()) {
+    const cached = mapCache.get(userId);
+    if (cached && cached.expires > Date.now()) return cached.data as LandlordMapData;
+    if (cached) mapCache.delete(userId);
+    const inFlight = pendingMap.get(userId);
+    if (inFlight) return inFlight as Promise<LandlordMapData>;
+  }
+
+  const startEpoch = getCacheEpoch();
+  const promise = (async (): Promise<LandlordMapData> => {
+    const [{ data, error }, { data: submitted, error: propertiesError }, { data: submittedDrafts, error: submissionsError }] = await Promise.all([
+      supabase.from("listings")
+        .select("id,title,price,property_type,address,city,latitude,longitude,is_available,status,image_urls")
+        .eq("owner_id", userId)
+        .order("created_at", { ascending: false })
+        .limit(100),
+      // Column names follow supabase/migrations/20261104111000_property_unit_storage.sql grants.
+      supabase.from("properties")
+        .select("id,title,description,property_type,street_address,city,latitude,longitude,status")
+        .eq("landlord_id", userId)
+        .order("created_at", { ascending: false }),
+      supabase.from("property_submissions")
+        .select("property_id,draft_id,expected_revision,superseded_by,snapshot_payload,snapshot_media")
+        .eq("owner_id", userId)
+        .order("created_at", { ascending: false }),
+    ]);
+
+    const submittedRows = (submitted ?? []) as LandlordMapData["submitted"];
+    const propertyIds = submittedRows.map((row) => row.id);
+    const { units: activeUnits, error: unitsError } = await fetchActivePropertyUnits<LandlordMapData["activeUnits"][number]>(
+      supabase,
+      propertyIds,
+      "property_id,monthly_rent,is_available",
+    );
+
+    const activeSubmissions = new Map<string, SubmissionRow>();
+    for (const submission of (submittedDrafts ?? []) as SubmissionRow[]) {
+      if (submission.superseded_by) continue;
+      if (!activeSubmissions.has(submission.property_id)) activeSubmissions.set(submission.property_id, submission);
+    }
+
+    const paths = [...new Set(submittedRows.filter(hasValidCoords).flatMap((row) => photoPaths(activeSubmissions.get(row.id), userId)))];
+    const { signed: signedByPath } = await signPropertyDraftMediaUrls(paths);
+    const loadError = Boolean(error || propertiesError || unitsError || submissionsError);
+
+    return {
+      listings: (data ?? []) as LandlordMapData["listings"],
+      submitted: submittedRows,
+      activeUnits,
+      submittedDrafts: (submittedDrafts ?? []) as SubmissionRow[],
+      signedByPath,
+      loadError,
+    };
+  })().then((result) => {
+    if (!isCacheDisabled() && !result.loadError && getCacheEpoch() === startEpoch) {
+      boundedSet(mapCache, userId, { expires: Date.now() + PORTFOLIO_CACHE_TTL_MS, data: result }, PORTFOLIO_CACHE_LIMIT);
+    }
+    return result;
+  }).finally(() => {
+    pendingMap.delete(userId);
+  });
+
+  if (!isCacheDisabled()) {
+    pendingMap.set(userId, promise);
+  }
+  return promise;
 }
