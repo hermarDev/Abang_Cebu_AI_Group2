@@ -14,6 +14,7 @@ const unavailableFavorite = (listingId: string, savedAt: string): SavedFavorite 
 async function loadSubmittedRentalsMap(
   supabase: unknown,
   targetIds: Set<string>,
+  signPhotos = true,
 ): Promise<Map<string, Omit<SavedFavorite, "savedAt">>> {
   const result = new Map<string, Omit<SavedFavorite, "savedAt">>();
   if (targetIds.size === 0) return result;
@@ -27,7 +28,7 @@ async function loadSubmittedRentalsMap(
       return r && typeof r.id === "string" && targetIds.has(r.id) && typeof r.moderation_status === "string" && (PUBLIC_SUBMITTED_STATUSES as readonly string[]).includes(r.moderation_status);
     });
     if (matched.length === 0) return result;
-    const signed = await signSubmittedPhotos(matched);
+    const signed = signPhotos ? await signSubmittedPhotos(matched) : new Map<string, string>();
     for (const row of matched) {
       try {
         const rental = mapSubmittedRental(row, signed);
@@ -175,7 +176,7 @@ export async function POST(request: Request) {
 
     if (listingError) return Response.json({ error: "The rental could not be checked. Please try again." }, { status: 503, headers: noStoreHeaders });
     if (!listing) {
-      const submittedById = await loadSubmittedRentalsMap(session.supabase, new Set([listingId]));
+      const submittedById = await loadSubmittedRentalsMap(session.supabase, new Set([listingId]), false);
       if (!submittedById.has(listingId)) {
         return Response.json({ error: "This rental is no longer available to save." }, { status: 409, headers: noStoreHeaders });
       }

@@ -97,7 +97,8 @@ describe("favorites account consistency", () => {
     expect((await GET(request("GET", "account-a")))?.status).toBe(401);
     expect(mocks.profile).not.toHaveBeenCalled();
   });
-  it("allows saving a submitted property from get_public_submitted_rentals when not in listings", async () => {
+  it("allows saving a submitted property from get_public_submitted_rentals when not in listings without signing photos", async () => {
+    const validPath = "11111111-1111-4111-8111-111111111111/22222222-2222-4222-8222-222222222222/33333333-3333-4333-8333-333333333333/" + "a".repeat(64) + ".jpg";
     mocks.listing.mockResolvedValue({ data: null, error: null });
     mocks.rpc.mockResolvedValue({
       data: [{
@@ -112,13 +113,14 @@ describe("favorites account consistency", () => {
         latitude: 10.3089,
         longitude: 123.9081,
         moderation_status: "approved",
-        photo_paths: [],
+        photo_paths: [validPath],
       }],
       error: null,
     });
     const response = await POST(request("POST", "account-b"));
     expect(response?.status).toBe(201);
     expect(mocks.insert).toHaveBeenCalledWith({ user_id: "account-b", listing_id: listingId });
+    expect(mocks.createSignedUrls).not.toHaveBeenCalled();
   });
   it("returns submitted property details with signed photo URLs on GET when not in listings", async () => {
     const validPath = "11111111-1111-4111-8111-111111111111/22222222-2222-4222-8222-222222222222/33333333-3333-4333-8333-333333333333/" + "a".repeat(64) + ".jpg";

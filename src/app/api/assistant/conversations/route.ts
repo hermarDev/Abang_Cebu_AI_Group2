@@ -1,3 +1,4 @@
+import { assistantConversationsLimiter } from "@/server/api-limiters";
 import { getAssistantAccess } from "@/server/assistant-access";
 import type { Json } from "@/types/database";
 
@@ -95,10 +96,26 @@ export async function POST(request: Request) {
   const authenticated = await getAuthenticatedClient(request);
   if ("response" in authenticated) return authenticated.response;
 
+  const limit = assistantConversationsLimiter.checkDetailed(request, authenticated.user.id);
+  if (!limit.allowed) {
+    return Response.json(
+      { error: "Too many conversation requests. Please wait a moment and try again." },
+      { status: 429, headers: { ...responseHeaders, "Retry-After": String(limit.retryAfterSeconds) } },
+    );
+  }
+
   let body: unknown;
   try { body = await request.json(); } catch { return Response.json({ error: "Send a valid conversation." }, { status: 400, headers: responseHeaders }); }
   const messages = body && typeof body === "object" ? parseMessages((body as { messages?: unknown }).messages) : null;
   if (!messages) return Response.json({ error: "This conversation is invalid or too long to save." }, { status: 400, headers: responseHeaders });
+
+  const { count, error: countError } = await authenticated.supabase.from("assistant_conversations")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", authenticated.user.id);
+  if (countError) return Response.json({ error: "Chat history could not be saved." }, { status: 503, headers: responseHeaders });
+  if ((count ?? 0) >= 50) {
+    return Response.json({ error: "You have reached the 50-conversation limit. Delete an old chat to save a new one." }, { status: 409, headers: responseHeaders });
+  }
 
   const { data, error } = await authenticated.supabase.from("assistant_conversations")
     .insert({ title: conversationTitle(messages), messages: messages as unknown as Json })
@@ -111,6 +128,14 @@ export async function POST(request: Request) {
 export async function PATCH(request: Request) {
   const authenticated = await getAuthenticatedClient(request);
   if ("response" in authenticated) return authenticated.response;
+
+  const limit = assistantConversationsLimiter.checkDetailed(request, authenticated.user.id);
+  if (!limit.allowed) {
+    return Response.json(
+      { error: "Too many conversation requests. Please wait a moment and try again." },
+      { status: 429, headers: { ...responseHeaders, "Retry-After": String(limit.retryAfterSeconds) } },
+    );
+  }
 
   let body: unknown;
   try { body = await request.json(); } catch { return Response.json({ error: "Send a valid conversation." }, { status: 400, headers: responseHeaders }); }
@@ -134,6 +159,14 @@ export async function PATCH(request: Request) {
 export async function DELETE(request: Request) {
   const authenticated = await getAuthenticatedClient(request);
   if ("response" in authenticated) return authenticated.response;
+
+  const limit = assistantConversationsLimiter.checkDetailed(request, authenticated.user.id);
+  if (!limit.allowed) {
+    return Response.json(
+      { error: "Too many conversation requests. Please wait a moment and try again." },
+      { status: 429, headers: { ...responseHeaders, "Retry-After": String(limit.retryAfterSeconds) } },
+    );
+  }
 
   let body: unknown;
   try { body = await request.json(); } catch { return Response.json({ error: "Choose a chat to delete." }, { status: 400, headers: responseHeaders }); }

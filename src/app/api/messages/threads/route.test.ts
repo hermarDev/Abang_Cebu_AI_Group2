@@ -1,8 +1,15 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const mocks = vi.hoisted(() => ({ getUser: vi.fn(), profile: vi.fn(), rpc: vi.fn(), createSignedUrls: vi.fn(), signAvatar: vi.fn() }));
-vi.mock("@/lib/supabase/admin", () => ({ createAdminClient: () => ({ storage: { from: () => ({ createSignedUrls: mocks.createSignedUrls }) } }) }));
-vi.mock("@/lib/profile-avatar", () => ({ signProfileAvatar: mocks.signAvatar }));
+const mocks = vi.hoisted(() => ({ getUser: vi.fn(), profile: vi.fn(), rpc: vi.fn(), createSignedUrls: vi.fn(), createAvatarSignedUrls: vi.fn() }));
+vi.mock("@/lib/supabase/admin", () => ({
+  createAdminClient: () => ({
+    storage: {
+      from: (bucket: string) => ({
+        createSignedUrls: bucket === "profile-avatars" ? mocks.createAvatarSignedUrls : mocks.createSignedUrls,
+      }),
+    },
+  }),
+}));
 vi.mock("@/lib/supabase/server", () => ({ createClient: async () => ({
   auth: { getUser: mocks.getUser },
   rpc: mocks.rpc,
@@ -29,7 +36,7 @@ beforeEach(() => {
   mocks.profile.mockResolvedValue({ data: { role: "renter", is_suspended: false }, error: null });
   mocks.rpc.mockResolvedValue({ data: null, error: null });
   mocks.createSignedUrls.mockResolvedValue({ data: [], error: null });
-  mocks.signAvatar.mockResolvedValue(null);
+  mocks.createAvatarSignedUrls.mockResolvedValue({ data: [], error: null });
 });
 
 import { GET, POST } from "./route";
@@ -70,7 +77,7 @@ describe("GET /api/messages/threads", () => {
     const owner = { id: uuid, fullName: "abangcebu landlord", role: "landlord", avatarUrl: `${uuid}/o.png`, email: "owner@x.com", phone_number: "0918" };
     const renterAsCounterpart = { id: uuid2, fullName: "abangcebu renter", role: "renter", avatarUrl: null };
     mocks.rpc.mockResolvedValue({ data: [thread({ counterpart: renterAsCounterpart, listingOwner: owner }), thread({ counterpart: renterAsCounterpart, listingOwner: null }), thread({ counterpart: renterAsCounterpart })], error: null });
-    mocks.signAvatar.mockImplementation(async (id: string) => `https://signed.example/${id}.png`);
+    mocks.createAvatarSignedUrls.mockResolvedValue({ data: [{ path: `${uuid}/o.png`, signedUrl: `https://signed.example/${uuid}.png` }], error: null });
     const { threads } = await (await get(headers())).json();
     expect(threads[0].listingOwner).toEqual({ id: uuid, fullName: "abangcebu landlord", role: "landlord", avatarUrl: `https://signed.example/${uuid}.png` });
     expect(threads[0].counterpart.fullName).toBe("abangcebu renter");
@@ -79,10 +86,42 @@ describe("GET /api/messages/threads", () => {
     expect(JSON.stringify(threads)).not.toMatch(/owner@x\.com|0918/);
   });
 
+  it("batch-signs unique counterpart and listingOwner avatars in a single createSignedUrls call", async () => {
+    const owner = { id: uuid, fullName: "Owner", role: "landlord", avatarUrl: `${uuid}/o.png` };
+    const c1 = { id: uuid2, fullName: "Ana", avatarUrl: `${uuid2}/a.png` };
+    const c2 = { id: uuid2, fullName: "Ana", avatarUrl: `${uuid2}/a.png` };
+    const cHttps = { id: "32345678-1234-4234-8234-123456789abc", fullName: "Web", avatarUrl: "https://cdn.example/avatar.png" };
+    const cBad = { id: "42345678-1234-4234-8234-123456789abc", fullName: "Spoof", avatarUrl: `${uuid}/o.png` };
+    mocks.rpc.mockResolvedValue({
+      data: [
+        thread({ id: uuid, counterpart: c1, listingOwner: owner }),
+        thread({ id: uuid2, counterpart: c2, listingOwner: owner }),
+        thread({ id: "32345678-1234-4234-8234-123456789abc", counterpart: cHttps }),
+        thread({ id: "42345678-1234-4234-8234-123456789abc", counterpart: cBad }),
+      ],
+      error: null,
+    });
+    mocks.createAvatarSignedUrls.mockResolvedValue({
+      data: [
+        { path: `${uuid2}/a.png`, signedUrl: "https://signed.example/a.png" },
+        { path: `${uuid}/o.png`, signedUrl: "https://signed.example/o.png" },
+      ],
+      error: null,
+    });
+    const { threads } = await (await get(headers())).json();
+    expect(mocks.createAvatarSignedUrls).toHaveBeenCalledTimes(1);
+    expect(mocks.createAvatarSignedUrls).toHaveBeenCalledWith([`${uuid2}/a.png`, `${uuid}/o.png`], 60 * 60 * 24 * 7);
+    expect(threads[0].counterpart.avatarUrl).toBe("https://signed.example/a.png");
+    expect(threads[1].counterpart.avatarUrl).toBe("https://signed.example/a.png");
+    expect(threads[0].listingOwner.avatarUrl).toBe("https://signed.example/o.png");
+    expect(threads[2].counterpart.avatarUrl).toBe("https://cdn.example/avatar.png");
+    expect(threads[3].counterpart.avatarUrl).toBeNull();
+  });
+
   it("signs thumbnails and avatars and leaks no contact details or raw paths", async () => {
     mocks.rpc.mockResolvedValue({ data: [thread(), thread({ id: uuid2, listingPhotoPath: "https://cdn.example/p.jpg" }), thread({ listingPhotoPath: "../etc/passwd" })], error: null });
     mocks.createSignedUrls.mockResolvedValue({ data: [{ path, signedUrl: "https://signed.example/t.jpg" }], error: null });
-    mocks.signAvatar.mockResolvedValue("https://signed.example/a.png");
+    mocks.createAvatarSignedUrls.mockResolvedValue({ data: [{ path: `${uuid2}/a.png`, signedUrl: "https://signed.example/a.png" }], error: null });
     const r = await get(headers(), "?archived=true");
     const { threads } = await r.json();
     expect(r.status).toBe(200);

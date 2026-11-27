@@ -41,3 +41,15 @@ export const supportTicketsLimiter = createRateLimiter({
   maxPerIp: 5,
   maxPerActor: 8,
 });
+
+export const supportTicketLookupLimiter = createRateLimiter({
+  windowMs: 60 * 1000,
+  maxPerIp: 20,
+  maxPerActor: 20,
+});
+
+export const assistantConversationsLimiter = createRateLimiter({
+  windowMs: 60 * 1000,
+  maxPerIp: 30,
+  maxPerActor: 30,
+});

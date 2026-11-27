@@ -106,6 +106,23 @@ describe("POST /api/verification/queue/[propertyId]/media", () => {
     expect((await res.json()).kind).toBe("proof");
   });
 
+  it("returns 413 when multipart payload exceeds 11 MB cap", async () => {
+    const res = await POST(
+      new Request(`http://localhost/api/verification/queue/${propId}/media`, {
+        method: "POST",
+        headers: {
+          ...H,
+          "content-type": "multipart/form-data; boundary=----boundary",
+          "content-length": String(11 * 1024 * 1024 + 1),
+        },
+        body: "placeholder",
+      }),
+      { params: Promise.resolve({ propertyId: propId }) }
+    );
+    expect(res.status).toBe(413);
+    expect(mocks.upload).not.toHaveBeenCalled();
+  });
+
   it("uploads valid photo and returns storage object path and signed url", async () => {
     const fd = new FormData();
     fd.append("operationId", opId);

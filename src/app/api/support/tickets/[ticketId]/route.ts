@@ -1,5 +1,6 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isValidUuid } from "@/lib/support/validation";
+import { supportTicketLookupLimiter } from "@/server/api-limiters";
 import { mapSupportTicketRow, reply, verifyGuestSupportToken } from "@/server/support-api";
 
 type Context = { params: Promise<{ ticketId: string }> };
@@ -13,6 +14,15 @@ export async function GET(request: Request, context: Context) {
   const token = request.headers.get("x-support-token")?.trim() ?? "";
   if (!token) {
     return reply({ error: "Missing ticket access token." }, 401);
+  }
+
+  const { allowed, retryAfterSeconds } = supportTicketLookupLimiter.checkDetailed(request, ticketId);
+  if (!allowed) {
+    return reply(
+      { error: "Too many ticket lookup requests. Please wait a moment before trying again." },
+      429,
+      { "Retry-After": String(retryAfterSeconds) },
+    );
   }
 
   if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
@@ -38,7 +48,7 @@ export async function GET(request: Request, context: Context) {
     return reply({ error: "Could not load support ticket." }, 503);
   }
   if (!ticket) {
-    return reply({ error: "Ticket not found." }, 404);
+    return reply({ error: "Invalid or expired ticket access link." }, 403);
   }
 
   const expectedHash = (ticket as Record<string, unknown>).guest_access_token_hash as string | null | undefined;

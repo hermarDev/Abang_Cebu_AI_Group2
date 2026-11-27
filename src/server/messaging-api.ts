@@ -1,12 +1,14 @@
 import { isAuthRetryableFetchError } from "@supabase/supabase-js";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
-import { signProfileAvatar } from "@/lib/profile-avatar";
 import type { createRateLimiter } from "@/server/rate-limit";
 
 export const noStoreHeaders = { "Cache-Control": "no-store" };
 export const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const DRAFT_MEDIA_PATH = /^[0-9a-f-]{36}\/[0-9a-f-]{36}\/[0-9a-f-]{36}\/[0-9a-f]{64}\.(?:jpg|png|webp)$/i;
+const PROFILE_AVATAR_BUCKET = "profile-avatars";
+const PROFILE_AVATAR_URL_TTL = 60 * 60 * 24 * 7;
+const PROFILE_AVATAR_PATH = /^[0-9a-f-]+\/[\w-]+\.(?:jpg|png|webp)$/i;
 
 export const reply = (body: unknown, status: number, extra: Record<string, string> = {}) =>
   Response.json(body, { status, headers: { ...noStoreHeaders, ...extra } });
@@ -113,27 +115,56 @@ export function rpcFailure(code: string | undefined, map: Record<string, number>
   return reply({ error }, status);
 }
 
-type Thread = Record<string, unknown> & { listingPhotoPath?: unknown; counterpart?: Record<string, unknown> & { id?: string; avatarUrl?: unknown }; listingOwner?: (Record<string, unknown> & { id?: string; avatarUrl?: unknown }) | null };
+type ThreadProfile = Record<string, unknown> & { id?: string; avatarUrl?: unknown };
+type Thread = Record<string, unknown> & { listingPhotoPath?: unknown; counterpart?: ThreadProfile; listingOwner?: ThreadProfile | null };
+
+function validAvatarStoragePath(profile: ThreadProfile | null | undefined): string | null {
+  if (!profile || typeof profile.id !== "string" || typeof profile.avatarUrl !== "string") return null;
+  const ref = profile.avatarUrl;
+  if (/^https:\/\//i.test(ref)) return null;
+  return ref.startsWith(`${profile.id}/`) && PROFILE_AVATAR_PATH.test(ref) ? ref : null;
+}
 
 /** Signs listing thumbnails + counterpart avatars; strips raw paths and any contact fields. */
-async function sanitizeProfile(profile: (Record<string, unknown> & { id?: string; avatarUrl?: unknown }) | null | undefined) {
+function sanitizeProfile(profile: ThreadProfile | null | undefined, signedAvatars: Map<string, string>) {
   const { email: _e, phone_number: _p, phoneNumber: _n, phone: _ph, avatarUrl, ...safe } = profile ?? {};
   void _e; void _p; void _n; void _ph;
-  return { ...safe, avatarUrl: typeof profile?.id === "string" ? await signProfileAvatar(profile.id, typeof avatarUrl === "string" ? avatarUrl : null) : null };
+  const rawAvatar = typeof avatarUrl === "string" ? avatarUrl : null;
+  let resolvedAvatar: string | null = null;
+  if (typeof profile?.id === "string" && rawAvatar) {
+    if (/^https:\/\//i.test(rawAvatar)) {
+      resolvedAvatar = rawAvatar;
+    } else {
+      const validPath = validAvatarStoragePath(profile);
+      resolvedAvatar = validPath ? (signedAvatars.get(validPath) ?? null) : null;
+    }
+  }
+  return { ...safe, avatarUrl: resolvedAvatar };
 }
 
 export async function enrichThreads(threads: Thread[]) {
   const paths = [...new Set(threads.map((t) => t.listingPhotoPath).filter((p): p is string => typeof p === "string" && DRAFT_MEDIA_PATH.test(p)))];
+  const avatarPaths = [...new Set(
+    threads.flatMap((t) => [validAvatarStoragePath(t.counterpart), validAvatarStoragePath(t.listingOwner)]).filter((p): p is string => Boolean(p)),
+  )];
+
   const signed = new Map<string, string>();
-  if (paths.length) {
-    try {
-      const { data } = await createAdminClient().storage.from("property-draft-media").createSignedUrls(paths, 3600);
-      for (const e of data ?? []) if (e?.path && e.signedUrl && /^https?:\/\//i.test(e.signedUrl)) signed.set(e.path, e.signedUrl);
-    } catch {
-      // Degrade to no thumbnail if signing fails.
-    }
-  }
-  return Promise.all(threads.map(async (t) => {
+  const signedAvatars = new Map<string, string>();
+
+  await Promise.all([
+    paths.length
+      ? createAdminClient().storage.from("property-draft-media").createSignedUrls(paths, 3600).then(({ data }) => {
+          for (const e of data ?? []) if (e?.path && e.signedUrl && /^https?:\/\//i.test(e.signedUrl)) signed.set(e.path, e.signedUrl);
+        }).catch(() => { /* Degrade to no thumbnail if signing fails. */ })
+      : Promise.resolve(),
+    avatarPaths.length
+      ? createAdminClient().storage.from(PROFILE_AVATAR_BUCKET).createSignedUrls(avatarPaths, PROFILE_AVATAR_URL_TTL).then(({ data }) => {
+          for (const e of data ?? []) if (e?.path && e.signedUrl && /^https?:\/\//i.test(e.signedUrl)) signedAvatars.set(e.path, e.signedUrl);
+        }).catch(() => { /* Degrade to no avatar if signing fails. */ })
+      : Promise.resolve(),
+  ]);
+
+  return threads.map((t) => {
     const { listingPhotoPath, counterpart, listingOwner, ...rest } = t;
     const photo = typeof listingPhotoPath === "string" ? listingPhotoPath : null;
     const signedPhoto = photo && /^https:\/\//i.test(photo) ? photo : photo ? (signed.get(photo) ?? null) : null;
@@ -141,8 +172,8 @@ export async function enrichThreads(threads: Thread[]) {
       ...rest,
       listingThumbnailUrl: signedPhoto,
       listingPhotoUrl: signedPhoto,
-      counterpart: await sanitizeProfile(counterpart),
-      ...(listingOwner === undefined ? {} : { listingOwner: listingOwner === null ? null : await sanitizeProfile(listingOwner) }),
+      counterpart: sanitizeProfile(counterpart, signedAvatars),
+      ...(listingOwner === undefined ? {} : { listingOwner: listingOwner === null ? null : sanitizeProfile(listingOwner, signedAvatars) }),
     };
-  }));
+  });
 }

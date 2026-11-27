@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { assistantLimiter } from "@/server/api-limiters";
 import { getAssistantAccess } from "@/server/assistant-access";
+import { getClientIp } from "@/server/rate-limit";
 import { formatAssistantListingsReply, parseAssistantSearch, selectAssistantRentals, type AssistantSearch, type AssistantSelection } from "@/server/rentals/assistant-search";
 import { loadPublicRentals } from "@/server/rentals/public-rentals";
 
@@ -43,7 +44,7 @@ export async function POST(request: Request) {
     return Response.json({ error: "Your account changed. Reload before sending a message." }, { status: 409, headers: responseHeaders });
   }
 
-  const actor = access.user?.id ? `user:${access.user.id}` : "guest";
+  const actor = access.user?.id ? `user:${access.user.id}` : `guest:${getClientIp(request) ?? "unknown"}`;
   const { allowed, retryAfterSeconds } = assistantLimiter.checkDetailed(request, actor);
   if (!allowed) {
     return Response.json(
@@ -118,7 +119,6 @@ export async function POST(request: Request) {
   try {
     const systemMessage = `${assistantInstructions}\n\nNo listing lookup is needed for this general message.`;
     const model = process.env.GROQ_MODEL?.trim() || "llama-3.3-70b-versatile";
-    const isGroq = GROQ_CHAT_COMPLETIONS_URL.includes("groq.com") || /^(?:groq\/|llama|mixtral|gemma)/i.test(model);
     const upstream = await fetch(GROQ_CHAT_COMPLETIONS_URL, {
       method: "POST",
       headers: {
@@ -130,7 +130,6 @@ export async function POST(request: Request) {
         messages: [{ role: "system", content: systemMessage }, ...messages],
         max_completion_tokens: 1200,
         temperature: 0.6,
-        ...(!isGroq ? { reasoning_effort: "medium", include_reasoning: false } : {}),
       }),
       cache: "no-store",
       signal: AbortSignal.timeout(30_000),

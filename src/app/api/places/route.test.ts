@@ -71,5 +71,10 @@ describe("GET /api/places", () => {
     expect(await limited.json()).toEqual({
       error: "Too many place search requests. Please wait a moment before searching again.",
     });
+
+    const otherIp = await GET(new Request("http://localhost/api/places?q=Cebu", {
+      headers: { "X-Real-IP": "198.51.100.51" },
+    }));
+    expect(otherIp.status).toBe(200);
   });
 });

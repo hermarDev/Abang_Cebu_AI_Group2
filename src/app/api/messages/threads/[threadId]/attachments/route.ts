@@ -1,5 +1,6 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { inspectDraftMedia } from "@/app/api/property-drafts/media-validation";
+import { MAX_UPLOAD_MULTIPART_BYTES, readBoundedFormData } from "@/server/bounded-body";
 import { createRateLimiter } from "@/server/rate-limit";
 import { limited, reply, requireMessagingUser, uuidPattern } from "@/server/messaging-api";
 
@@ -29,12 +30,14 @@ export async function POST(request: Request, context: Context) {
       return reply({ error: "Conversation is closed." }, 403);
     }
 
-    let form: FormData;
-    try {
-      form = await request.formData();
-    } catch {
-      return reply({ error: "Invalid form data." }, 400);
+    const parsedForm = await readBoundedFormData(request, MAX_UPLOAD_MULTIPART_BYTES);
+    if (!parsedForm.ok) {
+      return reply(
+        { error: parsedForm.reason === "too_large" ? "Images must be 10MB or less." : "Invalid form data." },
+        parsedForm.reason === "too_large" ? 413 : 400,
+      );
     }
+    const form = parsedForm.form;
 
     const file = form.get("file");
     if (!(file instanceof File)) {
