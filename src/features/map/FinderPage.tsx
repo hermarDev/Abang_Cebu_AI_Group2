@@ -1,21 +1,28 @@
 import { redirect } from "next/navigation";
 import { RestoredFinderShell } from "@/features/map/RestoredFinderShell";
-import { createClient } from "@/lib/supabase/server";
+import { loadProfile } from "@/lib/supabase/profile";
 import { signProfileAvatar } from "@/lib/profile-avatar";
 import { getRoleHomeRoute, isWorkspaceRole } from "@/types/auth";
 import type { UserRole } from "@/types/database";
 import type { User } from "@supabase/supabase-js";
 
-export async function FinderPage({ initialErrorMessage, verifiedSession }: { initialErrorMessage?: string; verifiedSession?: { user: User; supabase: Awaited<ReturnType<typeof createClient>> } } = {}) {
-  const supabase = verifiedSession?.supabase ?? await createClient();
-  const { data: { user }, error } = verifiedSession ? { data: { user: verifiedSession.user }, error: null } : await supabase.auth.getUser();
-  const authenticated = !error && Boolean(user);
+export async function FinderPage({ initialErrorMessage, verifiedSession }: { initialErrorMessage?: string; verifiedSession?: { user: User; supabase: Awaited<ReturnType<typeof import("@/lib/supabase/server").createClient>> } } = {}) {
+  const { user, profile } = verifiedSession
+    ? await (async () => {
+        const { data } = await verifiedSession.supabase
+          .from("profiles")
+          .select("id, role, full_name, phone_number, avatar_url, is_suspended")
+          .eq("id", verifiedSession.user.id)
+          .maybeSingle();
+        return { user: verifiedSession.user, profile: data };
+      })()
+    : await loadProfile();
+  const authenticated = Boolean(user);
   let displayName: string | null = null;
   let avatarUrl: string | null = null;
   let userRole: UserRole | null = null;
 
   if (authenticated && user) {
-    const { data: profile } = await supabase.from("profiles").select("full_name, avatar_url, role, is_suspended").eq("id", user.id).maybeSingle();
     if (!initialErrorMessage && !profile?.is_suspended && isWorkspaceRole(profile?.role)) redirect(getRoleHomeRoute(profile.role));
 
     const metadataName = [user.user_metadata.full_name, user.user_metadata.name].find((value): value is string => typeof value === "string" && Boolean(value.trim()));

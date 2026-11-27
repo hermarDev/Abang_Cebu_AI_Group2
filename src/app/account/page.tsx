@@ -3,7 +3,7 @@ import Link from "next/link";
 import { BrandLogo } from "@/components/brand";
 import { ArrowLeft } from "lucide-react";
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { loadProfile } from "@/lib/supabase/profile";
 import { signProfileAvatar } from "@/lib/profile-avatar";
 import { AccountSettingsForm } from "./AccountSettingsForm";
 import { LandlordMobileNav } from "@/features/landlord/LandlordMobileNav";
@@ -14,15 +14,8 @@ export const metadata: Metadata = {
 };
 
 export default async function AccountPage() {
-  const supabase = await createClient();
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
-  if (authError || !user) redirect("/login?next=%2Faccount");
-
-  const { data: profile, error: profileError } = await supabase
-    .from("profiles")
-    .select("full_name, phone_number, role, avatar_url")
-    .eq("id", user.id)
-    .maybeSingle();
+  const { user, profile, profileError } = await loadProfile();
+  if (!user) redirect("/login?next=%2Faccount");
   const avatarUrl = profile ? await signProfileAvatar(user.id, profile.avatar_url) : null;
   const back = profile?.role === "admin" ? { href: "/admin/dashboard", label: "Back to admin workspace" }
     : profile?.role === "landlord" ? { href: "/landlord/dashboard", label: "Back to workspace" }

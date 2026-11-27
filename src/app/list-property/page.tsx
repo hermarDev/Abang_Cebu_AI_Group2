@@ -4,7 +4,7 @@ import { isAuthRetryableFetchError } from "@supabase/supabase-js";
 import { ArrowLeft, MapPinned } from "lucide-react";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { loadProfile } from "@/lib/supabase/profile";
 import { signProfileAvatar } from "@/lib/profile-avatar";
 import { LandlordWorkspaceLayout } from "@/app/landlord/dashboard/LandlordWorkspaceLayout";
 import { ListPropertyForm } from "./ListPropertyForm";
@@ -12,12 +12,10 @@ import { ListPropertyForm } from "./ListPropertyForm";
 export const metadata: Metadata = { title: "List your property — AbangCebu" };
 
 export default async function ListPropertyPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
-  const supabase = await createClient();
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  const { user, profile, authError, profileError } = await loadProfile();
   if (authError && isAuthRetryableFetchError(authError)) return <main><p role="alert">Your account could not be checked. Please refresh the page to try again.</p></main>;
   if (authError || !user) redirect("/login?next=%2Flist-property");
-  const { data: profile, error } = await supabase.from("profiles").select("full_name,avatar_url,role,is_suspended").eq("id", user.id).maybeSingle();
-  if (error || profile?.role !== "landlord" || profile.is_suspended) notFound();
+  if (profileError || profile?.role !== "landlord" || profile.is_suspended) notFound();
   const [params, avatarUrl] = await Promise.all([searchParams, signProfileAvatar(user.id, profile.avatar_url)]);
   const displayName = profile.full_name?.trim() || "landlord";
   const draftIdParam = Array.isArray(params.draftId) ? params.draftId[0] : params.draftId;

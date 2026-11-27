@@ -1,5 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+vi.mock("@/lib/useDeferredInteractive", () => ({ useDeferredInteractive: () => true }));
+
 const hooks = vi.hoisted(() => ({
   active: false,
   slots: [] as unknown[],

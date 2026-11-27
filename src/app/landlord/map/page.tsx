@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { loadProfile } from "@/lib/supabase/profile";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { amenityLabels, photoPaths, type SubmissionRow } from "@/server/landlord-properties";
 import { LandlordPropertyMap, type LandlordPropertyMapItem } from "@/features/landlord/LandlordPropertyMap";
@@ -18,11 +19,10 @@ export default async function LandlordMapPage(props: { searchParams?: Promise<{ 
 export default async function LandlordMapPage(): Promise<React.JSX.Element>;
 export default async function LandlordMapPage(props?: { searchParams?: Promise<{ selected?: string | string[] }> }): Promise<React.JSX.Element> {
   const searchParams = props?.searchParams;
-  const supabase = await createClient();
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
-  if (authError || !user) redirect("/login?next=%2Flandlord%2Fmap");
-  const { data: profile, error: profileError } = await supabase.from("profiles").select("role,is_suspended").eq("id", user.id).maybeSingle();
+  const { user, profile, profileError } = await loadProfile();
+  if (!user) redirect("/login?next=%2Flandlord%2Fmap");
   if (profileError || profile?.role !== "landlord" || profile.is_suspended) notFound();
+  const supabase = await createClient();
   const [params, { data, error }, { data: submitted, error: propertiesError }, { data: submittedDrafts, error: submissionsError }] = await Promise.all([
     searchParams,
     supabase.from("listings")
@@ -48,8 +48,12 @@ export default async function LandlordMapPage(props?: { searchParams?: Promise<{
   if (propertyIds.length) {
     const UNIT_BATCH_SIZE = 100;
     const UNIT_PAGE_SIZE = 1000;
+    const chunks: string[][] = [];
     for (let i = 0; i < propertyIds.length; i += UNIT_BATCH_SIZE) {
-      const chunk = propertyIds.slice(i, i + UNIT_BATCH_SIZE);
+      chunks.push(propertyIds.slice(i, i + UNIT_BATCH_SIZE));
+    }
+    const results = await Promise.all(chunks.map(async (chunk) => {
+      const chunkUnits: typeof activeUnits = [];
       for (let from = 0; ; from += UNIT_PAGE_SIZE) {
         const res = await supabase
           .from("rental_units")
@@ -59,16 +63,24 @@ export default async function LandlordMapPage(props?: { searchParams?: Promise<{
           .order("created_at", { ascending: true })
           .order("id", { ascending: true })
           .range(from, from + UNIT_PAGE_SIZE - 1);
-        if (res.error) {
-          unitsError = res.error;
-          break;
-        }
+        if (res.error) return { units: chunkUnits, error: res.error };
         const batch = res.data ?? [];
-        activeUnits.push(...batch);
+        chunkUnits.push(...batch);
         if (batch.length < UNIT_PAGE_SIZE) break;
       }
-      if (unitsError) break;
+      return { units: chunkUnits, error: null };
+    }));
+    for (const result of results) {
+      if (result.error) {
+        unitsError = result.error;
+        break;
+      }
+      activeUnits.push(...result.units);
     }
+  }
+  const unitsByProperty = new Map<string, (typeof activeUnits)[number]>();
+  for (const unit of activeUnits) {
+    if (!unitsByProperty.has(unit.property_id)) unitsByProperty.set(unit.property_id, unit);
   }
 
   const draftTargets = new Map<string, { draftId: string; revision: number }>();
@@ -91,7 +103,7 @@ export default async function LandlordMapPage(props?: { searchParams?: Promise<{
   }
 
   const properties: LandlordPropertyMapItem[] = (submitted ?? []).filter(hasCoordinates).map(row => {
-    const unit = activeUnits.find(item => item.property_id === row.id);
+    const unit = unitsByProperty.get(row.id);
     const target = draftTargets.get(row.id);
     const active = activeSubmissions.get(row.id);
     const amenities = amenityLabels(active?.snapshot_payload?.amenities);

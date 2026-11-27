@@ -1,5 +1,5 @@
 import { notFound, redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { loadProfile } from "@/lib/supabase/profile";
 import { signProfileAvatar } from "@/lib/profile-avatar";
 import { SupportDeskWorkspaceLayout } from "@/features/support-desk/SupportDeskWorkspaceLayout";
 import { SupportDeskQueue } from "@/features/support-desk/SupportDeskQueue";
@@ -12,18 +12,8 @@ export default async function SupportDeskTicketsPage({
   searchParams?: Promise<{ status?: string }>;
 }) {
   const { status } = (await searchParams) ?? {};
-  const supabase = await createClient();
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
-  if (authError || !user) redirect("/login?next=%2Fsupport-desk%2Ftickets");
-
-  const { data: profile, error: profileError } = await supabase
-    .from("profiles")
-    .select("role,is_suspended,full_name,avatar_url")
-    .eq("id", user.id)
-    .maybeSingle();
+  const { user, profile, profileError } = await loadProfile();
+  if (!user) redirect("/login?next=%2Fsupport-desk%2Ftickets");
 
   if (
     profileError ||

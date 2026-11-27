@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { loadProfile } from "@/lib/supabase/profile";
 import { NotificationsHubContent } from "@/features/notifications/NotificationsHubContent";
 import type { UserRole } from "@/types/database";
 
@@ -11,21 +11,11 @@ export const metadata: Metadata = {
 };
 
 export default async function NotificationsPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
+  const { user, profile, profileError } = await loadProfile();
 
-  if (authError || !user) {
+  if (!user) {
     redirect("/login?next=%2Fnotifications");
   }
-
-  const { data: profile, error: profileError } = await supabase
-    .from("profiles")
-    .select("role,is_suspended")
-    .eq("id", user.id)
-    .maybeSingle();
 
   if (profileError) {
     return (

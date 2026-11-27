@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { loadProfile } from "@/lib/supabase/profile";
 import { SavedRentalsContent } from "./SavedRentalsContent";
 
 export const dynamic = "force-dynamic";
@@ -10,15 +10,8 @@ export const metadata: Metadata = {
 };
 
 export default async function SavedRentalsPage() {
-  const supabase = await createClient();
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
-  if (authError || !user) redirect("/login?next=%2Ffavorites");
-
-  const { data: profile, error: profileError } = await supabase
-    .from("profiles")
-    .select("role,is_suspended")
-    .eq("id", user.id)
-    .maybeSingle();
+  const { user, profile, profileError } = await loadProfile();
+  if (!user) redirect("/login?next=%2Ffavorites");
 
   if (profileError) {
     return <main className="grid min-h-[100dvh] place-items-center bg-background p-5 text-foreground">

@@ -32,6 +32,14 @@ vi.mock("react", async (importOriginal) => ({
   useEffect: (effect: () => void | (() => void)) => { hooks.effect ??= effect; hooks.effects.push(effect); },
 }));
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
+vi.mock("./FinderAssistantLazy", async () => {
+  const { FinderAssistant } = await import("./FinderAssistant");
+  return { FinderAssistantLazy: FinderAssistant };
+});
+vi.mock("@/features/rentals/PropertyDetailsSheetLazy", async () => {
+  const { PropertyDetailsSheet } = await import("@/features/rentals/PropertyDetailsSheet");
+  return { PropertyDetailsSheetLazy: PropertyDetailsSheet };
+});
 vi.mock("@/components/map/MapCanvasLoader", () => ({ default: ({ rentals = [], onFiltersChange, onSearchCenterChange }: { rentals?: RentalResult[]; onFiltersChange: (filters: RentalFilters) => void; onSearchCenterChange: (center: [number, number]) => void }) => {
   hooks.changeFilters = onFiltersChange;
   hooks.mapRentals = rentals;

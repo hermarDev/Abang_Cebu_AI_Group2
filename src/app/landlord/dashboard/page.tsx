@@ -6,6 +6,7 @@ import { ArrowRight, Building2, CircleAlert, Clock3, Compass, MapPinned } from "
 import { DashboardAttentionQueue } from "@/components/dashboard/DashboardAttentionQueue";
 import { DashboardStatCard } from "@/components/dashboard/DashboardStatCard";
 import { createClient } from "@/lib/supabase/server";
+import { loadProfile } from "@/lib/supabase/profile";
 import { signProfileAvatar } from "@/lib/profile-avatar";
 import { fetchLandlordPortfolio } from "@/server/landlord-properties";
 import { LandlordSubmissionsList } from "./LandlordSubmissionsList";
@@ -14,8 +15,7 @@ import { LandlordWorkspaceLayout } from "./LandlordWorkspaceLayout";
 export const dynamic = "force-dynamic";
 
 export default async function LandlordDashboardPage() {
-  const supabase = await createClient();
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  const { user, profile, authError, profileError } = await loadProfile();
   // A transient network failure is not a missing session; redirecting would bounce /login <-> here.
   if (authError && isAuthRetryableFetchError(authError)) {
     return (
@@ -26,14 +26,9 @@ export default async function LandlordDashboardPage() {
   }
   if (authError || !user) redirect("/login?next=%2Flandlord%2Fdashboard");
 
-  const { data: profile, error: profileError } = await supabase
-    .from("profiles")
-    .select("full_name,avatar_url,role,is_suspended")
-    .eq("id", user.id)
-    .maybeSingle();
-
   if (profileError || profile?.role !== "landlord" || profile.is_suspended) notFound();
   const displayName = profile.full_name?.trim() || "landlord";
+  const supabase = await createClient();
 
   const [avatarUrl, portfolio] = await Promise.all([
     signProfileAvatar(user.id, profile.avatar_url),

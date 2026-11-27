@@ -172,8 +172,14 @@ export async function fetchLandlordPortfolio(
   if (propertyIds.length) {
     const UNIT_BATCH_SIZE = 100;
     const UNIT_PAGE_SIZE = 1000;
+    const chunks: string[][] = [];
     for (let i = 0; i < propertyIds.length; i += UNIT_BATCH_SIZE) {
-      const chunk = propertyIds.slice(i, i + UNIT_BATCH_SIZE);
+      chunks.push(propertyIds.slice(i, i + UNIT_BATCH_SIZE));
+    }
+    // Independent property chunks can be fetched in parallel; pagination inside
+    // a chunk stays sequential because each page depends on the previous one.
+    const chunkResults = await Promise.all(chunks.map(async (chunk) => {
+      const chunkUnits: typeof units = [];
       for (let from = 0; ; from += UNIT_PAGE_SIZE) {
         const unitsRes = await supabase
           .from("rental_units")
@@ -183,15 +189,19 @@ export async function fetchLandlordPortfolio(
           .order("created_at", { ascending: true })
           .order("id", { ascending: true })
           .range(from, from + UNIT_PAGE_SIZE - 1);
-        if (unitsRes.error) {
-          unitsError = true;
-          break;
-        }
+        if (unitsRes.error) return { units: chunkUnits, error: true };
         const batch = unitsRes.data ?? [];
-        units.push(...batch);
+        chunkUnits.push(...batch);
         if (batch.length < UNIT_PAGE_SIZE) break;
       }
-      if (unitsError) break;
+      return { units: chunkUnits, error: false };
+    }));
+    for (const result of chunkResults) {
+      if (result.error) {
+        unitsError = true;
+        break;
+      }
+      units.push(...result.units);
     }
   }
 
