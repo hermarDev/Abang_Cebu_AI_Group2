@@ -86,6 +86,10 @@ export function VerificationQueue({
   // Verification modal action state
   const [activeItem, setActiveItem] = useState<VerificationQueueItem | null>(null);
   const [previewMedia, setPreviewMedia] = useState<{ url: string; title: string } | null>(null);
+  const closeActiveItem = () => {
+    setActiveItem(null);
+    setPreviewMedia(null);
+  };
   const activeItemRef = useRef(activeItem);
   useEffect(() => {
     activeItemRef.current = activeItem;
@@ -265,7 +269,7 @@ export function VerificationQueue({
           ? "Property marked as verified & notified admin."
           : "Property flagged with issues."
       );
-      setActiveItem(null);
+      closeActiveItem();
       setReloadKey((k) => k + 1);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Failed to submit verification.";
@@ -469,7 +473,7 @@ export function VerificationQueue({
       <Modal
         open={Boolean(activeItem)}
         onClose={() => {
-          if (!actionSaving) setActiveItem(null);
+          if (!actionSaving) closeActiveItem();
         }}
         title="Field Verification Inspection"
         description={activeItem?.title || "Verify Property"}
@@ -613,7 +617,7 @@ export function VerificationQueue({
             <div className="flex flex-wrap justify-end gap-2 pt-2 border-t border-border">
               <Button
                 variant="outline"
-                onClick={() => setActiveItem(null)}
+                onClick={closeActiveItem}
                 disabled={actionSaving}
               >
                 Cancel

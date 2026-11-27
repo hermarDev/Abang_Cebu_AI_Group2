@@ -1,5 +1,15 @@
 import type { NextConfig } from "next";
 
+function getSupabaseFrameOrigin(): string {
+  const raw = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
+  if (!raw) return "https://*.supabase.co";
+  try {
+    return new URL(raw).origin;
+  } catch {
+    return "https://*.supabase.co";
+  }
+}
+
 const securityHeaders = [
   {
     key: "X-Content-Type-Options",
@@ -31,7 +41,7 @@ const securityHeaders = [
           "font-src 'self' data:",
           "connect-src 'self' https: *.supabase.co wss: *.supabase.co https://api.groq.com https://photon.komoot.io",
           "worker-src 'self' blob:",
-          "frame-src 'self' https://*.supabase.co blob:",
+          `frame-src 'self' ${getSupabaseFrameOrigin()} blob:`,
           "frame-ancestors 'none'",
           "object-src 'none'",
           "base-uri 'self'",

@@ -573,7 +573,7 @@ export function AdminReviewQueue({ userId, initialStatus = "pending", initialSea
   const [inspectLoading, setInspectLoading] = useState(false);
   const [inspectError, setInspectError] = useState<string | null>(null);
   useEffect(() => () => { inspectController.current?.abort(); }, [userId]);
-  const closeInspect = () => { inspectController.current?.abort(); setInspecting(null); setInspectingRevision(null); };
+  const closeInspect = () => { inspectController.current?.abort(); setInspecting(null); setInspectingRevision(null); setPreviewMedia(null); };
   const openInspect = async (property: AdminProperty) => {
     inspectController.current?.abort();
     const abort = new AbortController();
