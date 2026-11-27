@@ -1,10 +1,12 @@
 import { revalidatePath } from "next/cache";
+import { invalidateLandlordPortfolioCache } from "@/server/landlord-portfolio-cache";
 import { propertyDraftsLimiter } from "@/server/api-limiters";
 import { createRoleGuard } from "@/server/role-access";
 import type { Json } from "@/types/database";
 
 const LANDLORD_REVALIDATE_PATHS = ["/landlord/dashboard", "/landlord/properties", "/landlord/map"] as const;
 function revalidateLandlordPaths() {
+  invalidateLandlordPortfolioCache();
   try {
     for (const path of LANDLORD_REVALIDATE_PATHS) revalidatePath(path);
   } catch { /* ignore outside Next request context */ }

@@ -1,5 +1,6 @@
 import { revalidatePath } from "next/cache";
 import { invalidatePublicRentalsCache } from "@/server/rentals/public-rentals";
+import { invalidateLandlordPortfolioCache } from "@/server/landlord-portfolio-cache";
 import { landlordSubmissionsLimiter } from "@/server/api-limiters";
 import { createRoleGuard } from "@/server/role-access";
 
@@ -64,6 +65,7 @@ export async function POST(request: Request) {
   }
 
   invalidatePublicRentalsCache();
+  invalidateLandlordPortfolioCache(session.user.id);
   try {
     for (const path of ["/landlord/dashboard", "/landlord/properties", "/landlord/map"]) {
       revalidatePath(path);

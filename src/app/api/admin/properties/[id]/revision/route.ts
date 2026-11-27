@@ -30,27 +30,30 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     if (!object(payload) || !object(payload.property) || !object(payload.unit) || !Array.isArray(media)) return jsonError("Submission snapshot is unavailable.", 409);
     if (media.some((item) => !object(item) || !["photo", "permit"].includes(String(item.kind)) || typeof item.object_path !== "string" || !storagePath.test(item.object_path) || (item.kind === "photo" && !/\.(jpg|png|webp)$/i.test(item.object_path)))) return jsonError("Submission media is unavailable.", 503);
     const paths = [...new Set(media.map((item) => item.object_path as string))];
+    let fieldVerificationProof: unknown = submission.field_verification_proof;
+    const proofPaths = Array.isArray(fieldVerificationProof)
+      ? [...new Set(fieldVerificationProof.flatMap((proof) => object(proof) && typeof proof.object_path === "string" ? [proof.object_path as string] : []))]
+      : [];
+
+    const [mediaSignRes, proofSignRes] = await Promise.all([
+      paths.length
+        ? admin.storage.from("property-draft-media").createSignedUrls(paths, 900)
+        : Promise.resolve({ data: [], error: null }),
+      proofPaths.length
+        ? admin.storage.from("field-verification-media").createSignedUrls(proofPaths, 900).catch(() => ({ data: null }))
+        : Promise.resolve({ data: [] }),
+    ]);
+
     const signed = new Map<string, string>();
     if (paths.length) {
-      const { data, error: signingError } = await admin.storage.from("property-draft-media").createSignedUrls(paths, 900);
-      if (signingError) return jsonError("Submission media could not be loaded.", 503);
-      for (const entry of data ?? []) if (entry.path && entry.signedUrl) signed.set(entry.path, entry.signedUrl);
+      if (mediaSignRes.error) return jsonError("Submission media could not be loaded.", 503);
+      for (const entry of mediaSignRes.data ?? []) if (entry.path && entry.signedUrl) signed.set(entry.path, entry.signedUrl);
       if (paths.some((path) => !signed.has(path))) return jsonError("Submission media could not be loaded.", 503);
     }
 
-    // Sign field_verification_proof object paths using field-verification-media bucket
-    let fieldVerificationProof: unknown = submission.field_verification_proof;
     if (Array.isArray(fieldVerificationProof)) {
-      const proofPaths = [...new Set(fieldVerificationProof.flatMap((proof) => object(proof) && typeof proof.object_path === "string" ? [proof.object_path as string] : []))];
       const proofSigned = new Map<string, string>();
-      if (proofPaths.length) {
-        try {
-          const { data: urls } = await admin.storage.from("field-verification-media").createSignedUrls(proofPaths, 900);
-          for (const entry of urls ?? []) if (entry?.path && entry.signedUrl) proofSigned.set(entry.path, entry.signedUrl);
-        } catch {
-          // Degrade gracefully: signedUrl stays null
-        }
-      }
+      for (const entry of proofSignRes.data ?? []) if (entry?.path && entry.signedUrl) proofSigned.set(entry.path, entry.signedUrl);
       fieldVerificationProof = fieldVerificationProof.map((proof) => object(proof) && typeof proof.object_path === "string"
         ? { ...proof, signedUrl: proofSigned.get(proof.object_path) ?? null } : proof);
     }

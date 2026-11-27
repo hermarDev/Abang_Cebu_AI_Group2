@@ -365,7 +365,10 @@ export function ListPropertyForm({ userId, restoreTarget }: { userId: string; re
 
   useEffect(() => {
     if (!dirty || restoreKey) return;
-    try { sessionStorage.setItem(autosaveKey, JSON.stringify(createDraftPayload(currentValues()))); } catch { /* storage full/blocked: refresh just starts empty */ }
+    const timer = window.setTimeout(() => {
+      try { sessionStorage.setItem(autosaveKey, JSON.stringify(createDraftPayload(currentValues()))); } catch { /* storage full/blocked: refresh just starts empty */ }
+    }, 300);
+    return () => window.clearTimeout(timer);
     // currentValues reads the live form; autosaveKey/restoreKey guard the effect's scope
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dirty, formEdits, step, photos.length, permitPhotos.length, permitNotRequiredConfirmed, address, location, restoreKey, autosaveKey]);
