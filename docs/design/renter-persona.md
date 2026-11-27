@@ -2,7 +2,6 @@
 
 **Document Version:** 1.0.0  
 **Status:** Approved / Active Specification  
-**Jira Reference:** [SCRUM-61](https://abangcebuai.atlassian.net/browse/SCRUM-61)  
 **Related Documents:**
 - Role-Based Access Control (RBAC) Matrix: [`docs/security/rbac-matrix.md`](../security/rbac-matrix.md)
 - Database ERD Architecture: [`docs/database/database-erd.md`](../database/database-erd.md)

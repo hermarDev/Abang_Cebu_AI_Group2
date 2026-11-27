@@ -2,7 +2,6 @@
 
 **Document Version:** 1.0.0  
 **Status:** Approved Architecture Specification  
-**Jira Ticket Reference:** [SCRUM-118](https://abangcebuai.atlassian.net/browse/SCRUM-118) — *Sub-Process 2.2: Spatial Search, Landmark Auto-Suggest & PostGIS Query Flowchart*  
 **Sprint:** Sprint 2 (Spatial Discovery & Map Architecture Track)  
 **Author:** John Lloyd Ando (Engineering Team)  
 **Reviewed by:** Hermar Centillas (Lead / Scrum Master)  
@@ -10,7 +9,7 @@
 - **Draw.io Editable XML:** [`docs/flowcharts/map-search-spatial-query.drawio`](../../flowcharts/map-search-spatial-query.drawio)
 - **Vector PDF Document:** [`docs/pdf/map-search-spatial-query.pdf`](../../pdf/map-search-spatial-query.pdf)
 - **High-Resolution PNG (200 DPI):** [`docs/assets/flowcharts/map-search-spatial-query.png`](../../assets/flowcharts/map-search-spatial-query.png)
-- **Master Flowchart Link:** [`docs/flowcharts/map-master-orchestration.drawio`](../../flowcharts/map-master-orchestration.drawio) ([SCRUM-116](https://abangcebuai.atlassian.net/browse/SCRUM-116))
+- **Master Flowchart Link:** [`docs/flowcharts/map-master-orchestration.drawio`](../../flowcharts/map-master-orchestration.drawio) (SCRUM-116)
 
 ---
 
@@ -41,7 +40,7 @@ This specification dictates the debounced search interface, landmark geocoding r
 
 | Node ID | Shape | Step Name | Technical Execution & Data Contract |
 |---|---|---|---|
-| `node_start` | Stadium | **START** | Entry from Map Initialization ([SCRUM-117](https://abangcebuai.atlassian.net/browse/SCRUM-117)) via Connector `(S)`. |
+| `node_start` | Stadium | **START** | Entry from Map Initialization (SCRUM-117) via Connector `(S)`. |
 | `node_search_entry` | Parallelogram | **User Interacts with Spatial Search Bar** | User types in floating search bar, selects quick landmark chip, or pans the map canvas. |
 | `node_landmark_decision` | Diamond | **Landmark Selected?** | Evaluates whether search payload contains an explicit landmark ID or raw geographic viewport bounds. Strictly binary: **YES** / **NO**. |
 | `node_resolve_landmark` | Rectangle | **Resolve Landmark Geocoding & Centroid** | *YES Branch:* Matches landmark dictionary (e.g., IT Park: `[10.3297, 123.9064]`, USC-Talamban: `[10.3541, 123.9114]`). |
@@ -58,7 +57,7 @@ This specification dictates the debounced search interface, landmark geocoding r
 | `node_populate_drawer` | Rectangle | **Populate Floating Results Drawer** | Hydrates property cards in desktop floating drawer / mobile 3-snap bottom sheet. |
 | `node_url_sync` | Rectangle | **Sync Spatial Query State to URL** | Replaces URL SearchParams with active filter and spatial envelope. |
 | `node_attach_listeners` | Rectangle | **Register Viewport Settle & Idle Listener** | Listens for MapLibre `moveend` and debounces 300ms before re-triggering query. |
-| `node_connector_f` | Circle (F) | **Connector (F) to Filter Pills Sub-Process** | Dispatches to Multi-Criteria Filter Pills Sub-Process 2.3 ([SCRUM-119](https://abangcebuai.atlassian.net/browse/SCRUM-119)). |
+| `node_connector_f` | Circle (F) | **Connector (F) to Filter Pills Sub-Process** | Dispatches to Multi-Criteria Filter Pills Sub-Process 2.3 (SCRUM-119). |
 | `node_end` | Stadium | **END** | Spatial search complete; ready for secondary filtering or card inspection. |
 
 ---

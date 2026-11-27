@@ -3,7 +3,6 @@
 **Sprint 1 System Architecture Specification**  
 **Document Version:** 1.0.0  
 **Status:** Approved & Active Design Specification  
-**Jira Ticket Reference:** [SCRUM-74](https://abangcebuai.atlassian.net/browse/SCRUM-74) — *Design Admin Dashboard Wireframe / Mockup*  
 **Sprint:** Sprint 1 (Foundations & Core Infrastructure)  
 **Author:** Neah Moneva (UI/UX Designer)  
 **Reviewed & Audited by:** Hermar Centillas (Lead / Scrum Master)  
@@ -473,7 +472,6 @@ All admin dashboard components, colors, and elevations map directly to the Tailw
 
 ### 8.1 Verification Checklist
 
-- [x] **Jira Traceability**: Document explicitly linked to Jira ticket [SCRUM-74](https://abangcebuai.atlassian.net/browse/SCRUM-74).
 - [x] **Balsamiq/Figma Blueprint Conventions**: Grayscale monochrome foundation, clean strokes, crossed `[X]` image placeholders, and authentic hardware device frames.
 - [x] **Desktop Viewport Specification (1440 × 900 · 16:10)**: Authentic MacBook Air chassis, 260px fixed dark sidebar navigation, admin profile dossier with health indicator, 4-metric executive bar, KYC review triage table, side-by-side inspection drawer, and scam moderation feed.
 - [x] **Mobile Viewport Specification (393 × 852 · 100dvh)**: Authentic iPhone 16 Pro chassis, Dynamic Island, safe-area header with Admin console badge and alert counter, 2x2 metric grid, 4-tab persistent bottom bar, and iOS Safari floating address bar.

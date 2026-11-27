@@ -1,7 +1,5 @@
 # Sprint 2 Deliverables — Module 4: Admin KYC Verification & Listing Moderation
 
-**Jira:** [SCRUM-126](https://abangcebuai.atlassian.net/browse/SCRUM-126)  
-**Status:** Complete; all 3 standardized flowcharts audited (0 defects) and synchronized to Jira attachments (.drawio, .png, .pdf).
 
 ## Specification
 - [Admin verification and moderation specification](admin-verification-moderation-spec.md)
@@ -17,4 +15,3 @@
 ## Validation
 - 100% ANSI X3.5 / ISO 5807 compliance verified via `python3 scripts/audit_flowcharts.py --sprint2` (0 defects across all 7 Quality Gates).
 - High-contrast academic monochrome (`fillColor=#FFFFFF`, `strokeColor=#000000`), 1050px canvas width, central vertical spine centered at `x = 500`.
-- All 9 artifact deliverables (.drawio, .png, .pdf across 3 workflows) uploaded and synchronized to Jira issue SCRUM-126.

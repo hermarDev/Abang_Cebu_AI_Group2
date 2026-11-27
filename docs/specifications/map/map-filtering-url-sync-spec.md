@@ -2,7 +2,6 @@
 
 **Document Version:** 1.0.0  
 **Status:** Approved Architecture Specification  
-**Jira Ticket Reference:** [SCRUM-119](https://abangcebuai.atlassian.net/browse/SCRUM-119) — *Sub-Process 2.3: Multi-Criteria Filter Pills & URL State Sync Flowchart*  
 **Sprint:** Sprint 2 (Spatial Discovery & Map Architecture Track)  
 **Author:** Joan Marie Inting (Engineering Team) & Hermar Centillas (Lead Architect)  
 **Reviewed by:** Hermar Centillas (Lead / Scrum Master)  
@@ -10,7 +9,7 @@
 - **Draw.io Editable XML:** [`docs/flowcharts/map-filtering-url-sync.drawio`](../../flowcharts/map-filtering-url-sync.drawio)
 - **Vector PDF Document:** [`docs/pdf/map-filtering-url-sync.pdf`](../../pdf/map-filtering-url-sync.pdf)
 - **High-Resolution PNG (200 DPI):** [`docs/assets/flowcharts/map-filtering-url-sync.png`](../../assets/flowcharts/map-filtering-url-sync.png)
-- **Master Flowchart Link:** [`docs/flowcharts/map-master-orchestration.drawio`](../../flowcharts/map-master-orchestration.drawio) ([SCRUM-116](https://abangcebuai.atlassian.net/browse/SCRUM-116))
+- **Master Flowchart Link:** [`docs/flowcharts/map-master-orchestration.drawio`](../../flowcharts/map-master-orchestration.drawio) (SCRUM-116)
 
 ---
 
@@ -46,7 +45,7 @@ This subsystem provides zero-reload, instantaneous UI feedback via horizontal sc
 
 | Node ID | Shape | Step Name | Technical Execution & Data Contract |
 |---|---|---|---|
-| `node_start` | Stadium | **START** | Entry from Spatial Search Sub-Process 2.2 ([SCRUM-118](https://abangcebuai.atlassian.net/browse/SCRUM-118)) via Connector `(F)`. |
+| `node_start` | Stadium | **START** | Entry from Spatial Search Sub-Process 2.2 (SCRUM-118) via Connector `(F)`. |
 | `node_filter_entry` | Parallelogram | **User Toggles Filter Pill or Submits Filter Sheet** | Event triggered by clicking quick filter pills (e.g. *"Under ₱5k"*, *"Bedspace"*, *"Aircon"*) or submitting the full Filter Modal sheet. |
 | `node_criteria_decision` | Diamond | **Valid Filter Criteria?** | Validates user input boundaries (e.g., `min_rent <= max_rent`, valid enum types). Strictly binary: **YES** / **NO**. |
 | `node_filter_error` | Rectangle | **Display Validation Notice & Reset Field** | *NO Branch:* Shows inline toast/notice (e.g., *"Min rent cannot exceed Max rent"*), resets erroneous input field, and loops back to filter entry. |
@@ -60,7 +59,7 @@ This subsystem provides zero-reload, instantaneous UI feedback via horizontal sc
 | `node_update_pins` | Rectangle | **Update Map Marker Layer & Price Pills** | Updates MapLibre client-side GeoJSON source `map.getSource('rental-points').setData(geojsonData)`. |
 | `node_update_drawer` | Rectangle | **Refresh Results Drawer & Counter** | Updates drawer list view and counter (e.g., *"Showing 14 verified rentals matching criteria"*). |
 | `node_cache_state` | Rectangle | **Persist Active Filters to SessionStorage** | Writes active filter JSON to `sessionStorage.setItem('abangcebu_active_filters', ...)`. |
-| `node_connector_d` | Circle (D) | **Connector (D)** | Transfers control to Sub-Process 2.4: Bidirectional Pin Marker & 3-Snap Gesture Drawer ([SCRUM-120](https://abangcebuai.atlassian.net/browse/SCRUM-120)). |
+| `node_connector_d` | Circle (D) | **Connector (D)** | Transfers control to Sub-Process 2.4: Bidirectional Pin Marker & 3-Snap Gesture Drawer (SCRUM-120). |
 | `node_end` | Stadium | **END** | Process cycle concluded; UI in synchronized, settled state. |
 
 ---
@@ -165,8 +164,8 @@ sequenceDiagram
 
 ## 6. Integration Contract & Downstream Handoff
 
-1. **Upstream Inbound:** Sub-Process 2.2 Spatial Search & Viewport Query ([SCRUM-118](https://abangcebuai.atlassian.net/browse/SCRUM-118)) passes geographic coordinates and bounds to Connector `(F)`.
-2. **Downstream Outbound:** Upon successful GeoJSON layer update or empty-state presentation, Connector `(D)` transfers control to Sub-Process 2.4: Bidirectional Pin Marker & 3-Snap Gesture Drawer ([SCRUM-120](https://abangcebuai.atlassian.net/browse/SCRUM-120)).
+1. **Upstream Inbound:** Sub-Process 2.2 Spatial Search & Viewport Query (SCRUM-118) passes geographic coordinates and bounds to Connector `(F)`.
+2. **Downstream Outbound:** Upon successful GeoJSON layer update or empty-state presentation, Connector `(D)` transfers control to Sub-Process 2.4: Bidirectional Pin Marker & 3-Snap Gesture Drawer (SCRUM-120).
 3. **Quality & Test Acceptance:**
    - URL updating must not trigger full Next.js page re-renders or WebGL map destruction.
    - Debounce on price slider must be set to 300ms.

@@ -2,7 +2,6 @@
 
 **Document Version:** 1.0.0  
 **Status:** Approved Architecture Specification  
-**Jira Ticket Reference:** [SCRUM-117](https://abangcebuai.atlassian.net/browse/SCRUM-117) — *Sub-Process 2.1: Map Initialization, Viewport & Geolocation Flowchart*  
 **Sprint:** Sprint 2 (Spatial Discovery & Map Architecture Track)  
 **Author:** John Lloyd Ando (Engineering Team) & Angel Crushein Yaun (UI/UX Designer)  
 **Reviewed by:** Hermar Centillas (Lead / Scrum Master)  
@@ -10,7 +9,7 @@
 - **Draw.io Editable XML:** [`docs/flowcharts/map-initialization-geolocation.drawio`](../../flowcharts/map-initialization-geolocation.drawio)
 - **Vector PDF Document:** [`docs/pdf/map-initialization-geolocation.pdf`](../../pdf/map-initialization-geolocation.pdf)
 - **High-Resolution PNG (200 DPI):** [`docs/assets/flowcharts/map-initialization-geolocation.png`](../../assets/flowcharts/map-initialization-geolocation.png)
-- **Master Flowchart Link:** [`docs/flowcharts/map-master-orchestration.drawio`](../../flowcharts/map-master-orchestration.drawio) ([SCRUM-116](https://abangcebuai.atlassian.net/browse/SCRUM-116))
+- **Master Flowchart Link:** [`docs/flowcharts/map-master-orchestration.drawio`](../../flowcharts/map-master-orchestration.drawio) (SCRUM-116)
 
 ---
 
@@ -56,7 +55,7 @@ The **Map Initialization, Viewport & Geolocation** subsystem governs the foundat
 | `node_attach_listeners` | Rectangle | **Attach Debounced Map Move & Zoom Listeners** | Registers `map.on('moveend')` debounced at 300ms to trigger spatial query re-evaluation. |
 | `node_listen_context_loss` | Rectangle | **Register WebGL Context Loss / Restore Watcher** | Listens to `webglcontextlost` (calls `e.preventDefault()`) and `webglcontextrestored` (reloads tile layers). |
 | `node_sync_state` | Rectangle | **Dispatch Viewport Ready Event & Sync State** | Updates `MapContext` state (`viewportState`, `bbox`, `isReady: true`) and replaces URL SearchParams without history stack pollution. |
-| `node_connector_s` | Circle (S) | **Connector (S) to Spatial Search Sub-Process 2.2** | Dispatches bounding box coordinates to [SCRUM-118](https://abangcebuai.atlassian.net/browse/SCRUM-118). |
+| `node_connector_s` | Circle (S) | **Connector (S) to Spatial Search Sub-Process 2.2** | Dispatches bounding box coordinates to SCRUM-118. |
 | `node_end` | Stadium | **END** | Initialization routine complete; interactive discovery state active. |
 
 ---

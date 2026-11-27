@@ -2,7 +2,6 @@
 **Abang Cebu AI — Sprint 1 Architecture Specification**
 *Author: Joan Marie Encallado Inting*  
 *Reviewed & Audited by: Hermar Centillas (Lead / Scrum Master)*  
-*Jira Reference: [SCRUM-63](https://abangcebuai.atlassian.net/browse/SCRUM-63)*
 
 ---
 

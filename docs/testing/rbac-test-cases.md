@@ -2,7 +2,6 @@
 
 **Document Identifier:** AC-TEST-RBAC-001  
 **Version:** 1.0.0  
-**Jira Ticket:** [SCRUM-70](https://abangcebuai.atlassian.net/browse/SCRUM-70) — *Draft Role & Access Permission Verification Test Cases*  
 **Related Epics & Tasks:** SCRUM-47 (Testing Strategy & Planning), SCRUM-63 (RBAC Matrix), SCRUM-55 (RLS Policies), SCRUM-54 (Users & Profiles Schema), SCRUM-57 (Session Lifecycle), SCRUM-74 (Admin Dashboard)  
 **Author:** Anne KC M. Casinay (QA / Test Engineer)  
 **Reviewed By:** Hermar Centillas (Lead / Scrum Master)  
@@ -572,7 +571,6 @@ describe('Supabase Row Level Security Isolation', () => {
 
 ## 5. Traceability & Definition of Done (DoD) Sign-Off
 
-- [x] **Jira SCRUM-70 Alignment**: Full test scenario matrix verifying Public Guests, Renters, Landlords, and Admins.
 - [x] **PostgreSQL RLS Consistency**: Maps 1:1 with `docs/security/rls-policies.md` and `docs/security/rbac-matrix.md`.
 - [x] **Anti-Scam Architecture**: Comprehensive tests for `is_suspended` instant lockout and listing archival.
 - [x] **Automation Test Specifications**: Executable Playwright and Vitest test code provided.

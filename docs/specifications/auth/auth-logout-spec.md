@@ -2,11 +2,10 @@
 
 **Document Version:** 1.0.0  
 **Status:** Approved Architecture Specification  
-**Jira Ticket Reference:** [SCRUM-58](https://abangcebuai.atlassian.net/browse/SCRUM-58) — *Specify User Logout & Session Invalidation*  
 **Sprint:** Sprint 1 (Foundations & Core Infrastructure)  
 **Author:** junrilldisoy90 (Engineering Team)  
 **Reviewed & Audited by:** Hermar Centillas (Lead / Scrum Master)  
-**Database Foundation:** [SCRUM-54](https://abangcebuai.atlassian.net/browse/SCRUM-54) (`supabase/migrations/20260929000001_users_and_profiles.sql`)  
+**Database Foundation:** SCRUM-54 (`supabase/migrations/20260929000001_users_and_profiles.sql`)  
 **Related Specifications:**
 - User Login & Session Token Lifecycle: [`docs/specifications/auth/auth-session-lifecycle.md`](./auth-session-lifecycle.md)
 - User Registration Specification: [`docs/specifications/auth/auth-registration-spec.md`](./auth-registration-spec.md)
@@ -465,9 +464,9 @@ When a landlord is reported and verified as a scammer:
 
 ---
 
-## 10. Acceptance Criteria Verification (Jira SCRUM-58)
+## 10. Acceptance Criteria Verification (issue tracker SCRUM-58)
 
-| Jira SCRUM-58 Requirement | Specification Coverage | Architecture Verification |
+| issue tracker SCRUM-58 Requirement | Specification Coverage | Architecture Verification |
 |---|---|---|
 | **Specify server-side session revocation in Supabase Auth** | Fully covered in **Section 3** | Details `supabase.auth.signOut({ scope })` execution across `local`, `global`, and `others` scopes, including database-level effects in `auth.sessions` and `auth.refresh_tokens`. |
 | **Define removal of session cookies and local storage tokens** | Fully covered in **Section 4** | Specifies exact `Set-Cookie` headers (`Max-Age=0`, `Expires=1970`), chunk cookie iteration (`sb-<ref>-auth-token.[0..n]`), and client-side memory cleanup. |

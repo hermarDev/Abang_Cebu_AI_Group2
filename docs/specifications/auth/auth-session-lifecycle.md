@@ -4,10 +4,9 @@
 
 **Document Version:** 1.0.0  
 **Status:** Approved Architecture Specification  
-**Jira Ticket Reference:** [SCRUM-57](https://abangcebuai.atlassian.net/browse/SCRUM-57) — *Specify User Login & Session Token Lifecycle*  
 **Sprint:** Sprint 1 (Foundations & Core Infrastructure)  
 **Author:** John Lloyd Ando (Engineering Team)  
-**Database Foundation:** [SCRUM-54](https://abangcebuai.atlassian.net/browse/SCRUM-54) (`supabase/migrations/20260929000001_users_and_profiles.sql`)  
+**Database Foundation:** SCRUM-54 (`supabase/migrations/20260929000001_users_and_profiles.sql`)  
 **Related Specifications:**
 - User Registration Specification: [`docs/specifications/auth/auth-registration-spec.md`](./auth-registration-spec.md)
 - Product Vision & Platform Goals: [`docs/architecture/what-is-abangcebu-ai.md`](../../architecture/what-is-abangcebu-ai.md)
@@ -693,7 +692,7 @@ flowchart TD
 ### 11.1 Sprint 1 Policy Verification
 - [x] **Zero Premature UI Policy:** This deliverable provides complete architectural specifications, data dictionaries, state machines, and TypeScript contracts. No JSX form widgets or frontend UI components have been introduced.
 - [x] **Strict Type Synchronization:** All TypeScript contracts (`LoginPayload`, `SessionTokens`, `LoginSuccessResponse`, `SupabaseJwtClaims`, `SessionState`, `CookieConfig`, `AuthErrorCode`) are compiled and validated with `pnpm exec tsc --noEmit` yielding 0 errors.
-- [x] **Engineering Authorship:** Engineered by John Lloyd Ando (Engineering Team) under ticket [SCRUM-57](https://abangcebuai.atlassian.net/browse/SCRUM-57).
+- [x] **Engineering Authorship:** Engineered by John Lloyd Ando (Engineering Team) under ticket SCRUM-57.
 
 ---
 

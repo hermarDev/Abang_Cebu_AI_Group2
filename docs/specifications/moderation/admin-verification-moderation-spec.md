@@ -2,7 +2,6 @@
 
 **Version:** 1.2.0  
 **Status:** Sprint 2 planning specification  
-**Jira:** [SCRUM-126](https://abangcebuai.atlassian.net/browse/SCRUM-126)  
 **Sprint 1 sources:** SCRUM-54 (users/KYC schema), SCRUM-55 (RLS), SCRUM-63 (RBAC), SCRUM-74 (admin dashboard wireframe), SCRUM-10 (system flowchart scope).  
 **Related Sprint 2:** SCRUM-125 (listing submission), SCRUM-104–108 (auth), SCRUM-116–121 (public discovery and gatekeeper).
 

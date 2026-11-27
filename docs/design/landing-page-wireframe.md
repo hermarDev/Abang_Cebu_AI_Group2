@@ -2,7 +2,6 @@
 **Sprint 1 System Architecture Specification**  
 **Document Version:** 1.0.0  
 **Status:** Approved & Active Design Specification  
-**Jira Ticket Reference:** [SCRUM-64](https://abangcebuai.atlassian.net/browse/SCRUM-64) — *Design Landing Page Wireframe / Mockup*  
 **Sprint:** Sprint 1 (Foundations & Core Infrastructure)  
 **Author:** Angel Crushein Yaun (UI/UX Designer)  
 **Reviewed & Audited by:** Hermar Centillas (Lead / Scrum Master)  
@@ -477,7 +476,7 @@ On mobile browsers (iOS Safari, Android Chrome), classic `100vh` fails because d
 * [x] Desktop floating left search & results card (408px) with 68px left rail, horizontal chips, and collapsible chevron specified.
 * [x] Mobile 3-snap bottom sheet drawer (Peek, Mid, Full) and listing detail modal documented.
 * [x] Landmark auto-suggest and quick category pills mapped to authentic Metro Cebu locations (CIT-U, USC, IT Park).
-* [x] Standardized Delivery Artifacts: Mid-fidelity blueprints rendered in authentic hardware chassis (MacBook Air desktop & iPhone 16 Pro mobile), high-resolution PNGs for Jira inline preview, and formal engineering PDF.
+* [x] Standardized Delivery Artifacts: Mid-fidelity blueprints rendered in authentic hardware chassis (MacBook Air desktop & iPhone 16 Pro mobile), high-resolution PNGs for inline preview, and formal engineering PDF.
 * [x] Touch target ergonomics (44×44px WCAG 2.2 AA) and 16px mobile input zoom prevention rule enforced.
 * [x] Clean human engineering attribution: **Angel Crushein Yaun (UI/UX Designer)** and **Hermar Centillas (Lead / Scrum Master)** with zero AI markers.
 * [x] Sprint 1 Boundary Verified: ZERO premature React/JSX feature code created.

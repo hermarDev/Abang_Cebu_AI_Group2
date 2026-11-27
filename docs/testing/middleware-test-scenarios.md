@@ -2,7 +2,6 @@
 
 **Document Version:** 1.0.0  
 **Status:** Approved  
-**Jira Ticket References:** [SCRUM-71](https://abangcebuai.atlassian.net/browse/SCRUM-71), [SCRUM-113](https://abangcebuai.atlassian.net/browse/SCRUM-113) (Route Guards & Middleware Security Test Cases)
 **Sprint:** Sprint 1 (Foundations & Core Infrastructure)  
 **Author:** Karla Hiyas (QA Engineer)  
 **Reviewed & Audited by:** Hermar Centillas (Lead / Scrum Master)  
