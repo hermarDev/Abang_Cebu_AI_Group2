@@ -28,6 +28,9 @@ export function markNavigationEnd(): void {
     lastNavigationDuration = entries.length ? entries[entries.length - 1].duration : null;
   } catch {
     // The root layout guard swallows invalid timestamps; leave the last value intact.
+  } finally {
+    performance.clearMarks?.(NAV_START_MARK);
+    performance.clearMarks?.(NAV_END_MARK);
   }
 }
 

@@ -1,6 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
-  NAV_END_MARK,
   NAV_MEASURE,
   NAV_START_MARK,
   SOFT_NAV_MEASURE,
@@ -59,12 +58,12 @@ describe("navigation timing", () => {
     vi.unstubAllGlobals();
   });
 
-  it("measures a navigation between start and end marks", () => {
+  it("measures a navigation between start and end marks and clears them", () => {
     markNavigationStart();
     markNavigationEnd();
-    expect(perf.marks.map((entry) => entry.name)).toEqual([NAV_START_MARK, NAV_END_MARK]);
     expect(perf.measures).toMatchObject([{ name: NAV_MEASURE, duration: 1 }]);
     expect(getNavigationMeasures()).toHaveLength(1);
+    expect(perf.marks).toHaveLength(0);
   });
 
   it("does not measure without a start mark", () => {

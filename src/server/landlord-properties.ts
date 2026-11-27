@@ -145,11 +145,12 @@ export async function fetchActivePropertyUnits<TRow>(
   }));
 
   const units: TRow[] = [];
+  let hasError = false;
   for (const result of chunkResults) {
-    if (result.error) return { units, error: true };
     units.push(...result.units);
+    if (result.error) hasError = true;
   }
-  return { units, error: false };
+  return { units, error: hasError };
 }
 
 export async function fetchLandlordPortfolio(

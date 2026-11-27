@@ -175,6 +175,7 @@ export function loadNotifications(
 function subscribe(userId: string, listener: (data: FetchNotificationsResponse) => void) {
   const item = entry(userId);
   item.listeners.add(listener);
+  if (item.data) listener(item.data);
   if (!channel && typeof BroadcastChannel !== "undefined") {
     channel = new BroadcastChannel("abangcebu:notifications");
     channel.onmessage = ({ data }: MessageEvent<{ userId?: string; data?: FetchNotificationsResponse }>) => {
