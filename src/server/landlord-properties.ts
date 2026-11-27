@@ -239,11 +239,18 @@ export async function fetchLandlordPortfolio(
     }
   }
 
+  const unitsByPropertyId = new Map<string, typeof units>();
+  for (const u of units) {
+    const list = unitsByPropertyId.get(u.property_id);
+    if (list) list.push(u);
+    else unitsByPropertyId.set(u.property_id, [u]);
+  }
+
   const items: LandlordManagedProperty[] = [];
 
   // 1. Submitted properties (approved/published, pending, rejected, archived)
   for (const p of properties ?? []) {
-    const propUnits = units.filter((u) => u.property_id === p.id);
+    const propUnits = unitsByPropertyId.get(p.id) ?? [];
     const totalUnitsCount = propUnits.length;
     const availableUnitsCount = propUnits.filter((u) => u.is_available).length;
     const unit = propUnits[0];

@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { adminLifecycleLimiter } from "@/server/admin-access";
 import { POST } from "./route";
 
 const mocks = vi.hoisted(() => ({
@@ -27,7 +28,10 @@ function request(body: unknown, user = "admin-1") {
 const approve = () => ({ propertyId: "11111111-1111-4111-8111-111111111111", operationId: "22222222-2222-4222-8222-222222222222", decision: "approved", submissionDraftId: "33333333-3333-4333-8333-333333333333", submissionExpectedRevision: 1 });
 const chain = (data: unknown) => ({ data, error: null });
 
-beforeEach(() => vi.clearAllMocks());
+beforeEach(() => {
+  vi.clearAllMocks();
+  adminLifecycleLimiter.reset();
+});
 
 describe("admin property review", () => {
   it("rejects guests, non-admins, and account mismatch", async () => {
@@ -118,5 +122,14 @@ describe("admin property review", () => {
     expect(res.status).toBe(409);
     const json = await res.json();
     expect(json.error).toContain("Field verification is required");
+  });
+
+  it("returns 429 when adminLifecycleLimiter is exceeded", async () => {
+    for (let i = 0; i < 60; i++) {
+      expect((await POST(request(approve()))).status).toBe(200);
+    }
+    const limited = await POST(request(approve()));
+    expect(limited.status).toBe(429);
+    expect(Number(limited.headers.get("Retry-After"))).toBeGreaterThan(0);
   });
 });

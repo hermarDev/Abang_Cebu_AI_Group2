@@ -1,3 +1,4 @@
+import { notificationsMutationLimiter } from "@/server/api-limiters";
 import {
   clearNotifications,
   deleteNotification,
@@ -45,8 +46,17 @@ export async function GET(request: Request) {
 }
 
 export async function PATCH(request: Request) {
-  const auth = await requireNotificationUser(request);
+  const auth = await requireNotificationUser(request, { requireExpectedUserId: true });
   if ("response" in auth) return auth.response;
+
+  const limit = notificationsMutationLimiter.checkDetailed(request, auth.user.id);
+  if (!limit.allowed) {
+    return reply(
+      { error: "Too many notification actions. Please wait before trying again.", retryAfterSeconds: limit.retryAfterSeconds },
+      429,
+      { "Retry-After": String(limit.retryAfterSeconds) },
+    );
+  }
 
   try {
     const body = (await request.json().catch(() => ({}))) as Record<string, unknown>;
@@ -70,8 +80,17 @@ export async function PATCH(request: Request) {
 }
 
 export async function DELETE(request: Request) {
-  const auth = await requireNotificationUser(request);
+  const auth = await requireNotificationUser(request, { requireExpectedUserId: true });
   if ("response" in auth) return auth.response;
+
+  const limit = notificationsMutationLimiter.checkDetailed(request, auth.user.id);
+  if (!limit.allowed) {
+    return reply(
+      { error: "Too many notification actions. Please wait before trying again.", retryAfterSeconds: limit.retryAfterSeconds },
+      429,
+      { "Retry-After": String(limit.retryAfterSeconds) },
+    );
+  }
 
   const url = new URL(request.url);
   const id = url.searchParams.get("id");

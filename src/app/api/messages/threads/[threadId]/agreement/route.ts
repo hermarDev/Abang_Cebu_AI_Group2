@@ -1,4 +1,6 @@
+import { agreementLimiter } from "@/server/api-limiters";
 import {
+  limited,
   readJson,
   reply,
   requireMessagingUser,
@@ -13,6 +15,8 @@ export async function POST(request: Request, context: Context) {
   try {
     const session = await requireMessagingUser(request);
     if (session.response) return session.response;
+    const limit = limited(agreementLimiter, request, session.user.id);
+    if (limit) return limit;
     const { threadId } = await context.params;
     if (!uuidPattern.test(threadId)) return badThread();
 

@@ -121,6 +121,9 @@ export async function POST(request: Request) {
     .insert({ title: conversationTitle(messages), messages: messages as unknown as Json })
     .select("id,title,messages,created_at,updated_at")
     .single();
+  if (error?.code === "54000") {
+    return Response.json({ error: "You have reached the 50-conversation limit. Delete an old chat to save a new one." }, { status: 409, headers: responseHeaders });
+  }
   if (error || !data) return Response.json({ error: "Chat history could not be saved." }, { status: 503, headers: responseHeaders });
   return Response.json({ conversation: serializeConversation(data) }, { status: 201, headers: responseHeaders });
 }

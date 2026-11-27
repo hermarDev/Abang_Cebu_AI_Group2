@@ -1,5 +1,6 @@
 import React from "react";
-import { CHATBOT_LOGO_DATA } from "./brand-assets";
+
+const CHATBOT_LOGO_SRC = "/icons/chatbot_logo.svg";
 
 export interface ChatbotAvatarProps extends React.SVGProps<SVGSVGElement> {
   size?: number | string;
@@ -23,7 +24,7 @@ export function ChatbotAvatar({
       {...props}
     >
       <title>AbangCebu Rental Assistant</title>
-      <image href={CHATBOT_LOGO_DATA} width="300" height="300" />
+      <image href={CHATBOT_LOGO_SRC} width="300" height="300" />
     </svg>
   );
 }

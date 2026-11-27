@@ -1,24 +1,15 @@
 import { revalidatePath } from "next/cache";
-import { createClient } from "@/lib/supabase/server";
+import { adminLifecycleLimiter, rateLimited, requireActiveAdmin } from "@/server/admin-access";
 
 const headers = { "Cache-Control": "no-store" };
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const reply = (error: string, status: number) => Response.json({ error }, { status, headers });
 
-async function access(request: Request) {
-  const supabase = await createClient();
-  const { data: { user }, error } = await supabase.auth.getUser();
-  if (error || !user) return { response: reply("Sign in to review listings.", 401) } as const;
-  if (request.headers.get("x-expected-user-id") !== user.id) return { response: reply("Your account changed. Please refresh and try again.", 409) } as const;
-  const { data: profile, error: profileError } = await supabase.from("profiles").select("role,is_suspended").eq("id", user.id).maybeSingle();
-  if (profileError) return { response: reply("Your account could not be checked. Please try again.", 503) } as const;
-  if (profile?.role !== "admin" || profile.is_suspended) return { response: reply("Listing review is available to active admins only.", 403) } as const;
-  return { supabase, user } as const;
-}
-
 export async function POST(request: Request) {
-  const session = await access(request);
+  const session = await requireActiveAdmin(request);
   if ("response" in session && session.response) return session.response;
+  const limited = rateLimited(adminLifecycleLimiter, request, session.user.id);
+  if (limited) return limited;
   let body: unknown;
   try { body = await request.json(); } catch { return reply("Invalid review.", 400); }
   if (!body || typeof body !== "object" || Array.isArray(body)) return reply("Invalid review.", 400);

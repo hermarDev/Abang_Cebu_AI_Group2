@@ -27,7 +27,15 @@ describe("verification dashboard", () => {
     mocks.notFound.mockImplementation(() => { throw new Error("not found"); });
     mocks.getUser.mockResolvedValue({ data: { user: { id: "verif-1" } }, error: null });
     mocks.profile.mockResolvedValue({ data: { role: "verification_officer", is_suspended: false, full_name: "Alex" }, error: null });
-    mocks.rpc.mockResolvedValue({ data: queueItems, error: null });
+    mocks.rpc.mockResolvedValue({
+      data: {
+        pendingCount: 4,
+        verifiedCount: 1,
+        flaggedCount: 1,
+        latestPending: queueItems.filter((i) => i.fieldVerificationStatus === "pending_verification"),
+      },
+      error: null,
+    });
     mocks.sign.mockResolvedValue("https://example.test/verif.png");
   });
 
@@ -50,7 +58,7 @@ describe("verification dashboard", () => {
 
   it("renders 3 clickable KPI cards in Admin-style 2-column overview without a fake 4th card", async () => {
     const html = renderToStaticMarkup(await VerificationDashboardPage());
-    expect(mocks.rpc).toHaveBeenCalledWith("verifier_list_queue", { p_status: null, p_search: null, p_limit: 100, p_offset: 0 });
+    expect(mocks.rpc).toHaveBeenCalledWith("verifier_dashboard_overview");
     expect(html).toContain("Welcome back, Alex");
     expect(html).toContain("<h1 class=\"m-0 text-3xl font-bold tracking-tight\">Welcome back, Alex</h1>");
     expect(html).toContain("Overview of landlord listing verifications, site visits, and pending inspection queues.");
@@ -92,9 +100,20 @@ describe("verification dashboard", () => {
   });
 
   it("shows empty state when no pending items", async () => {
-    mocks.rpc.mockResolvedValueOnce({ data: [{ id: "p1", fieldVerificationStatus: "verified" }], error: null });
+    mocks.rpc.mockResolvedValueOnce({ data: { pendingCount: 0, verifiedCount: 1, flaggedCount: 0, latestPending: [] }, error: null });
     const html = renderToStaticMarkup(await VerificationDashboardPage());
     expect(html).toMatch(/All submitted listings have been inspected/);
+  });
+
+  it("renders uncapped counts above 100 from verifier_dashboard_overview", async () => {
+    mocks.rpc.mockResolvedValueOnce({
+      data: { pendingCount: 142, verifiedCount: 108, flaggedCount: 12, latestPending: [queueItems[0]] },
+      error: null,
+    });
+    const html = renderToStaticMarkup(await VerificationDashboardPage());
+    expect(html).toMatch(/tabular-nums[^>]*>142</);
+    expect(html).toMatch(/tabular-nums[^>]*>108</);
+    expect(html).toMatch(/tabular-nums[^>]*>12</);
   });
 
   it("renders Quick Actions banner with Verification map and Open Queue links", async () => {
@@ -117,7 +136,7 @@ describe("verification dashboard", () => {
   });
 
   it("renders genuine zero counts when queue is empty", async () => {
-    mocks.rpc.mockResolvedValueOnce({ data: [], error: null });
+    mocks.rpc.mockResolvedValueOnce({ data: { pendingCount: 0, verifiedCount: 0, flaggedCount: 0, latestPending: [] }, error: null });
     const html = renderToStaticMarkup(await VerificationDashboardPage());
     expect(html).toMatch(/tabular-nums[^>]*>0<[\s\S]*?Pending verification/);
     expect(html).toMatch(/tabular-nums[^>]*>0<[\s\S]*?Verified/);

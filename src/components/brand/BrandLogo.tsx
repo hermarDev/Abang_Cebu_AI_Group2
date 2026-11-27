@@ -1,5 +1,7 @@
 import React from "react";
-import { MAIN_LOGO_LIGHT_DATA, MAIN_LOGO_DARK_DATA } from "./brand-assets";
+
+const MAIN_LOGO_LIGHT_SRC = "/icons/main_logo.svg";
+const MAIN_LOGO_DARK_SRC = "/icons/main_logo_dark.svg";
 
 export interface BrandLogoProps extends React.SVGProps<SVGSVGElement> {
   theme?: "light" | "dark" | "auto";
@@ -23,20 +25,20 @@ export function BrandLogo({
     >
       <title>AbangCebu</title>
       {theme === "dark" ? (
-        <image href={MAIN_LOGO_DARK_DATA} width="720" height="240" />
+        <image href={MAIN_LOGO_DARK_SRC} width="720" height="240" />
       ) : theme === "light" ? (
-        <image href={MAIN_LOGO_LIGHT_DATA} width="720" height="240" />
+        <image href={MAIN_LOGO_LIGHT_SRC} width="720" height="240" />
       ) : (
         <>
           <image
             className="block dark:hidden"
-            href={MAIN_LOGO_LIGHT_DATA}
+            href={MAIN_LOGO_LIGHT_SRC}
             width="720"
             height="240"
           />
           <image
             className="hidden dark:block"
-            href={MAIN_LOGO_DARK_DATA}
+            href={MAIN_LOGO_DARK_SRC}
             width="720"
             height="240"
           />

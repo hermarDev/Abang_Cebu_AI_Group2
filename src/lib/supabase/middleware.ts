@@ -48,7 +48,7 @@ export async function updateSession(request: NextRequest) {
     const errorParam = request.nextUrl.searchParams.get("error");
     const isRecoveryErrorOnLogin =
       pathname === "/login" &&
-      (errorParam === "expired_recovery_link" || errorParam === "invalid_recovery_link");
+      (errorParam === "expired_recovery_link" || errorParam === "invalid_recovery_link" || errorParam === "password_reset_unavailable");
 
     if (!authError && authData?.user && !isRecoveryErrorOnLogin) {
       const { data: profile, error: profileError } = await supabase

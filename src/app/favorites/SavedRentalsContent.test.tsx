@@ -44,7 +44,6 @@ vi.mock("react", async (importOriginal) => {
 
 vi.mock("next/image", () => ({ default: () => null }));
 vi.mock("next/link", () => ({ default: ({ children, ...props }: { children: ReactNode }) => <a {...props}>{children}</a> }));
-vi.mock("@/app/account/AccountMapBackground", () => ({ AccountMapBackground: () => null }));
 
 const rental = {
   id: "rental-1",

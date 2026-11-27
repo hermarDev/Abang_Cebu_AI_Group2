@@ -124,6 +124,11 @@ describe("POST /api/admin/support/[ticketId]", () => {
     expect((await callRoute(validBody)).status).toBe(expectedStatus);
   });
 
+  it.each(["escalated", "awaiting_landlord"])("accepts %s status update", async (status) => {
+    expect((await callRoute({ ...validBody, status })).status).toBe(200);
+    expect(mocks.rpc).toHaveBeenLastCalledWith("admin_update_support_ticket", expect.objectContaining({ p_status: status }));
+  });
+
   it("returns 429 when adminSupportLimiter is exceeded", async () => {
     for (let i = 0; i < 60; i++) {
       expect((await callRoute(validBody)).status).toBe(200);

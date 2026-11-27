@@ -125,6 +125,12 @@ describe("GET /api/admin/support", () => {
     });
   });
 
+  it.each(["escalated", "awaiting_landlord"])("accepts %s status filter", async (status) => {
+    const res = await getTickets(`?status=${status}`);
+    expect(res.status).toBe(200);
+    expect(mocks.rpc).toHaveBeenCalledWith("admin_list_support_tickets", expect.objectContaining({ p_status: status }));
+  });
+
   it("maps RPC 42501 to 403 and other errors to 503", async () => {
     mocks.rpc.mockResolvedValue({ data: null, error: { code: "42501" } });
     expect((await getTickets()).status).toBe(403);

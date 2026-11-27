@@ -4,7 +4,6 @@ import AccountPage from "./page";
 
 const fixture = vi.hoisted(() => ({ profile: null as null | { full_name: string; phone_number: null; role: string; avatar_url: null } }));
 vi.mock("@/lib/supabase/server", () => ({ createClient: async () => ({ auth: { getUser: async () => ({ data: { user: { id: "fixture", email: "fixture@example.test" } }, error: null }) }, from: () => ({ select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: fixture.profile, error: null }) }) }) }) }) }));
-vi.mock("./AccountMapBackground", () => ({ AccountMapBackground: () => <div data-testid="account-map-background" /> }));
 vi.mock("./AccountSettingsForm", () => ({ AccountSettingsForm: () => null }));
 vi.mock("@/lib/profile-avatar", () => ({ signProfileAvatar: async () => null }));
 

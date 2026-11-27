@@ -1,8 +1,10 @@
 import { createClient } from "@/lib/supabase/server";
+import { supportRespondLimiter } from "@/server/api-limiters";
 import { uuidPattern } from "@/server/support-desk-access";
 
 const noStoreHeaders = { "Cache-Control": "no-store" };
-const reply = (body: unknown, status = 200) => Response.json(body, { status, headers: noStoreHeaders });
+const reply = (body: unknown, status = 200, extra: Record<string, string> = {}) =>
+  Response.json(body, { status, headers: { ...noStoreHeaders, ...extra } });
 
 type Context = { params: Promise<{ ticketId: string }> };
 
@@ -18,7 +20,7 @@ export async function POST(request: Request, context: Context) {
   }
 
   const expectedUserId = request.headers.get("x-expected-user-id");
-  if (expectedUserId && expectedUserId !== user.id) {
+  if (expectedUserId !== user.id) {
     return reply({ error: "Your account changed. Please refresh and try again." }, 409);
   }
 
@@ -30,6 +32,15 @@ export async function POST(request: Request, context: Context) {
 
   if (profileError || profile?.role !== "landlord" || profile?.is_suspended) {
     return reply({ error: "Landlord complaint response is restricted to active landlords." }, 403);
+  }
+
+  const { allowed, retryAfterSeconds } = supportRespondLimiter.checkDetailed(request, user.id);
+  if (!allowed) {
+    return reply(
+      { error: "Too many ticket responses. Please wait before trying again.", retryAfterSeconds },
+      429,
+      { "Retry-After": String(retryAfterSeconds) },
+    );
   }
 
   const { ticketId } = await context.params;

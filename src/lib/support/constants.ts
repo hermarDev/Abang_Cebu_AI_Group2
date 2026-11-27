@@ -13,6 +13,8 @@ export type SupportCategory = (typeof SUPPORT_CATEGORIES)[number]["value"];
 export const SUPPORT_STATUSES = [
   { value: "open", label: "Open" },
   { value: "in_progress", label: "In progress" },
+  { value: "awaiting_landlord", label: "Awaiting landlord" },
+  { value: "escalated", label: "Escalated" },
   { value: "resolved", label: "Resolved" },
   { value: "closed", label: "Closed" },
 ] as const;
@@ -86,6 +88,8 @@ export const SUPPORT_CATEGORY_LABELS: Record<SupportCategory, string> = {
 export const SUPPORT_STATUS_LABELS: Record<SupportTicketStatus, string> = {
   open: "Open",
   in_progress: "In progress",
+  awaiting_landlord: "Awaiting landlord",
+  escalated: "Escalated",
   resolved: "Resolved",
   closed: "Closed",
 };

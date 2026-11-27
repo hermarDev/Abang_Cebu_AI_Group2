@@ -7,14 +7,17 @@ export const noStoreHeaders = { "Cache-Control": "no-store" };
 export const reply = (body: unknown, status: number, extra: Record<string, string> = {}) =>
   Response.json(body, { status, headers: { ...noStoreHeaders, ...extra } });
 
-export async function requireNotificationUser(request: Request) {
+export async function requireNotificationUser(
+  request: Request,
+  options: { requireExpectedUserId?: boolean } = {},
+) {
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError && isAuthRetryableFetchError(authError)) return { response: reply({ error: "Your account could not be checked. Please try again." }, 503) } as const;
   if (authError || !user) return { response: reply({ error: "Sign in to access notifications." }, 401) } as const;
 
   const expectedId = request.headers.get("x-expected-user-id");
-  if (expectedId && expectedId !== user.id) {
+  if ((options.requireExpectedUserId && expectedId !== user.id) || (expectedId && expectedId !== user.id)) {
     return { response: reply({ error: "Your account changed. Please refresh and try again." }, 409) } as const;
   }
 

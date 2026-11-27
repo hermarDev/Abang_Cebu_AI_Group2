@@ -225,4 +225,15 @@ describe("account avatar actions", () => {
       expect(revalidatePath).toHaveBeenCalledWith(path);
     }
   });
+
+  it("still succeeds when deleting the old avatar from storage throws", async () => {
+    fixture.remove.mockRejectedValueOnce(new Error("storage unavailable"));
+    const file = new File([new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])], "avatar.png", { type: "image/png" });
+    const data = new FormData();
+    data.set("avatar", file);
+    expect((await updateAccountAvatar(data)).success).toBe(true);
+
+    fixture.remove.mockRejectedValueOnce(new Error("storage unavailable"));
+    expect((await removeAccountAvatar()).success).toBe(true);
+  });
 });

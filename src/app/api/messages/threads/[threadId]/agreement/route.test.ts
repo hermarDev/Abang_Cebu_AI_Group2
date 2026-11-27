@@ -27,12 +27,14 @@ const headers = (...args: [expected?: string]): Record<string, string> => ({
 
 beforeEach(() => {
   vi.resetAllMocks();
+  agreementLimiter.reset();
   uid = `account-b-${++actorCounter}`;
   mocks.getUser.mockResolvedValue({ data: { user: { id: uid } }, error: null });
   mocks.profile.mockResolvedValue({ data: { role: "renter", is_suspended: false }, error: null });
   mocks.rpc.mockResolvedValue({ data: { agreementId: "ag-1", status: "renter_agreed", bothAgreed: false }, error: null });
 });
 
+import { agreementLimiter } from "@/server/api-limiters";
 import { POST } from "./route";
 
 const ctx = (threadId = threadUuid) => ({ params: Promise.resolve({ threadId }) });
@@ -89,5 +91,15 @@ describe("POST /api/messages/threads/[threadId]/agreement", () => {
 
     const resInvalid = await post({ operationId: opUuid, agree: true, expectedVersion: -1 });
     expect(resInvalid.status).toBe(400);
+  });
+
+  it("returns 429 when agreementLimiter is exceeded", async () => {
+    const h = headers();
+    for (let i = 0; i < 20; i++) {
+      expect((await post({ operationId: opUuid, agree: true }, h)).status).toBe(200);
+    }
+    const limited = await post({ operationId: opUuid, agree: true }, h);
+    expect(limited.status).toBe(429);
+    expect(Number(limited.headers.get("Retry-After"))).toBeGreaterThan(0);
   });
 });
