@@ -427,6 +427,21 @@ describe("fetchLandlordPortfolio", () => {
     expect(result.items.find((i) => i.id === "prop-1")?.editHref).toBe("/list-property?draftId=draft-live&revision=4");
   });
 
+  it("fetches independent rental_units chunks in parallel", async () => {
+    const supabase = createMockSupabase();
+    const manyProps = Array.from({ length: 125 }, (_, i) => ({ id: `prop-${i + 1}`, title: `Prop ${i + 1}`, status: "approved" }));
+    mocks.properties.mockResolvedValue({ data: manyProps, error: null });
+    let releaseFirst!: (value: { data: unknown[]; error: null }) => void;
+    mocks.units
+      .mockImplementationOnce(() => new Promise((resolve) => { releaseFirst = resolve; }))
+      .mockResolvedValueOnce({ data: [], error: null });
+
+    const pending = fetchLandlordPortfolio(supabase, "user-1");
+    await vi.waitFor(() => expect(mocks.units).toHaveBeenCalledTimes(2));
+    releaseFirst({ data: [], error: null });
+    await pending;
+  });
+
   it("paginates rental_units pages past 1000 rows without flagging truncated", async () => {
     const supabase = createMockSupabase();
     mocks.properties.mockResolvedValue({

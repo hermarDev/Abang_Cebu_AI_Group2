@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { loadProfile } from "@/lib/supabase/profile";
 import { MessagingInbox } from "@/features/messages/MessagingInbox";
 
 export const dynamic = "force-dynamic";
@@ -12,15 +12,13 @@ export default async function MessagesPage(props: { searchParams?: Promise<{ thr
 export default async function MessagesPage(): Promise<React.JSX.Element>;
 export default async function MessagesPage(props?: { searchParams?: Promise<{ thread?: string | string[]; listing?: string | string[] }> }): Promise<React.JSX.Element> {
   const searchParams = props?.searchParams;
-  const supabase = await createClient();
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
-  if (authError || !user) {
+  const { user, profile } = await loadProfile();
+  if (!user) {
     const sp = await searchParams;
     const listing = sp?.listing;
     const next = typeof listing === "string" ? `/messages?listing=${encodeURIComponent(listing)}` : "/messages";
     redirect(`/login?next=${encodeURIComponent(next)}`);
   }
-  const { data: profile } = await supabase.from("profiles").select("role,is_suspended").eq("id", user.id).maybeSingle();
   if (!profile || profile.is_suspended) redirect("/login");
   if (profile.role === "landlord") redirect("/landlord/messages");
   if (profile.role === "admin") redirect("/admin/dashboard");

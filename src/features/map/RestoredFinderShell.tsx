@@ -10,12 +10,12 @@ import { SAMPLE_RENTALS } from "@/features/listings/preview-rentals";
 import { formatPrice, searchPreviewRentals } from "@/features/rentals/search";
 import { DEFAULT_RENTAL_FILTERS, type RentalFilters } from "@/contracts/rental-filters";
 import { Skeleton } from "@/components/ui/Skeleton";
-import { RentalFilterDialog } from "@/features/rentals/RentalFilterDialog";
+import { RentalFilterDialogLazy } from "@/features/rentals/RentalFilterDialogLazy";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { BrandLogo, ChatbotAvatar } from "@/components/brand";
-import { FinderAssistant } from "./FinderAssistant";
+import { FinderAssistantLazy } from "./FinderAssistantLazy";
 import { Building2, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, CircleAlert, Info, LogIn, Menu, MessageSquare, Pencil, Search, X } from "lucide-react";
 import { AccountAccessContent, type AccountMode } from "@/components/auth/AccountAccessContent";
 import MapSearch from "@/components/map/MapSearch";
@@ -27,7 +27,7 @@ import { Button } from "@/components/ui/Button";
 import { notify } from "@/components/ui/AppToaster";
 import { QuickFilters, getActiveFilterCount, propertyTypes } from "./FinderQuickFilters";
 import { RentalCard, formatVerificationLabel } from "@/features/listings/RentalCard";
-import { PropertyDetailsSheet } from "@/features/rentals/PropertyDetailsSheet";
+import { PropertyDetailsSheetLazy } from "@/features/rentals/PropertyDetailsSheetLazy";
 import {
   formatCurfew,
   formatOccupancy,
@@ -462,7 +462,7 @@ export function RestoredFinderShell({ rentalStatus: statusOverride, initialAccou
       <footer className={listingStyles.radiusFooter}><span>Search area: <b>{effectiveRadius} km radius</b></span><button type="button" aria-label="Edit search radius" onClick={() => setAdvancedOpen(true)}><span className={listingStyles.srOnly}>Edit search radius</span><Pencil size={16} aria-hidden="true" /></button></footer>
     </div>
   </div>
-  {advancedOpen && <RentalFilterDialog filters={filters} open onOpenChange={setAdvancedOpen} onApply={setFilters} matchCount={visibleRentals.length} mapRadius={effectiveRadius} onMapRadiusChange={updateMapRadius} getDraftCount={rentalStatus === "ready" ? (draft, radius) => searchPreviewRentals(rentals, { ...draft, radiusKm: radius }, "", searchCenter).length : undefined} />}
+  {advancedOpen && <RentalFilterDialogLazy filters={filters} open onOpenChange={setAdvancedOpen} onApply={setFilters} matchCount={visibleRentals.length} mapRadius={effectiveRadius} onMapRadiusChange={updateMapRadius} getDraftCount={rentalStatus === "ready" ? (draft, radius) => searchPreviewRentals(rentals, { ...draft, radiusKm: radius }, "", searchCenter).length : undefined} />}
   <Modal surface="finder" open={accountOpen} onCloseAutoFocus={(event) => { event.preventDefault(); menuTrigger.current?.focus(); }} onClose={() => { setAccountOpen(false); setAccountPrompt(null); setPendingInquiryId(null); }} title="Account access" description={authenticated ? "Manage your profile and security." : "Log in or register to continue."} className={styles.accountDialog} hideTitle closeControl={<button type="button" aria-label="Close account dialog" className={styles.accountClose}><X size={18} aria-hidden="true" /></button>}>
 
     <div className={styles.accountHeader}>
@@ -504,7 +504,7 @@ export function RestoredFinderShell({ rentalStatus: statusOverride, initialAccou
     </div>
   </Modal>
   {expandedRental && (
-    <PropertyDetailsSheet
+    <PropertyDetailsSheetLazy
       open
       onClose={() => setExpandedRentalId(null)}
       rental={expandedRental}
@@ -518,5 +518,5 @@ export function RestoredFinderShell({ rentalStatus: statusOverride, initialAccou
   
   {canUseRentalAssistant && !helpOpen && <button type="button" className={styles.chatLauncher} aria-label="Open rental assistant" title="Rental assistant" onClick={() => setHelpOpen(true)}><ChatbotAvatar size={48} className="h-12 w-12" /></button>}
   {canUseRentalAssistant && helpOpen && <button type="button" className={styles.assistantBackdrop} style={{ backdropFilter: "blur(3px)", WebkitBackdropFilter: "blur(3px)" }} aria-label="Close AbangCebu assistant" tabIndex={-1} onClick={() => setHelpOpen(false)} />}
-  {canUseRentalAssistant && <FinderAssistant open={helpOpen} onOpenChange={setHelpOpen} onSearch={() => document.querySelector<HTMLInputElement>('input[role="combobox"]')?.focus()} onFilters={() => setAdvancedOpen(true)} onControlsTargetChange={setAssistantControlsTarget} onSignIn={() => { setHelpOpen(false); setAccountOpen(true); }} onOpenListing={openAssistantListing} onToggleSaved={async (id, shouldSave) => (favoriteIds.includes(id) === shouldSave ? true : toggleFavorite(id))} onMessageLandlord={(id) => { setHelpOpen(false); messageLandlord(id); }} authenticated={authenticated} userId={userId} displayName={displayName} profilePhotoUrl={avatarUrl} />}</div></main>;
+  {canUseRentalAssistant && <FinderAssistantLazy open={helpOpen} onOpenChange={setHelpOpen} onSearch={() => document.querySelector<HTMLInputElement>('input[role="combobox"]')?.focus()} onFilters={() => setAdvancedOpen(true)} onControlsTargetChange={setAssistantControlsTarget} onSignIn={() => { setHelpOpen(false); setAccountOpen(true); }} onOpenListing={openAssistantListing} onToggleSaved={async (id, shouldSave) => (favoriteIds.includes(id) === shouldSave ? true : toggleFavorite(id))} onMessageLandlord={(id) => { setHelpOpen(false); messageLandlord(id); }} authenticated={authenticated} userId={userId} displayName={displayName} profilePhotoUrl={avatarUrl} />}</div></main>;
 }

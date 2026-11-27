@@ -4,8 +4,9 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { loadProfile } from "@/lib/supabase/profile";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { amenityLabels, photoPaths, type SubmissionRow } from "@/server/landlord-properties";
+import { amenityLabels, fetchActivePropertyUnits, photoPaths, type SubmissionRow } from "@/server/landlord-properties";
 import { LandlordPropertyMap, type LandlordPropertyMapItem } from "@/features/landlord/LandlordPropertyMap";
 import { LandlordMobileNav } from "@/features/landlord/LandlordMobileNav";
 
@@ -18,11 +19,10 @@ export default async function LandlordMapPage(props: { searchParams?: Promise<{ 
 export default async function LandlordMapPage(): Promise<React.JSX.Element>;
 export default async function LandlordMapPage(props?: { searchParams?: Promise<{ selected?: string | string[] }> }): Promise<React.JSX.Element> {
   const searchParams = props?.searchParams;
-  const supabase = await createClient();
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
-  if (authError || !user) redirect("/login?next=%2Flandlord%2Fmap");
-  const { data: profile, error: profileError } = await supabase.from("profiles").select("role,is_suspended").eq("id", user.id).maybeSingle();
+  const { user, profile, profileError } = await loadProfile();
+  if (!user) redirect("/login?next=%2Flandlord%2Fmap");
   if (profileError || profile?.role !== "landlord" || profile.is_suspended) notFound();
+  const supabase = await createClient();
   const [params, { data, error }, { data: submitted, error: propertiesError }, { data: submittedDrafts, error: submissionsError }] = await Promise.all([
     searchParams,
     supabase.from("listings")
@@ -43,32 +43,15 @@ export default async function LandlordMapPage(props?: { searchParams?: Promise<{
   const selected = params?.selected;
   const initialSelectedId = typeof selected === "string" ? selected : undefined;
   const propertyIds = (submitted ?? []).map(row => row.id);
-  const activeUnits: { property_id: string; monthly_rent: number | string | null; is_available: boolean }[] = [];
-  let unitsError: unknown = null;
-  if (propertyIds.length) {
-    const UNIT_BATCH_SIZE = 100;
-    const UNIT_PAGE_SIZE = 1000;
-    for (let i = 0; i < propertyIds.length; i += UNIT_BATCH_SIZE) {
-      const chunk = propertyIds.slice(i, i + UNIT_BATCH_SIZE);
-      for (let from = 0; ; from += UNIT_PAGE_SIZE) {
-        const res = await supabase
-          .from("rental_units")
-          .select("property_id,monthly_rent,is_available")
-          .in("property_id", chunk)
-          .eq("is_retired", false)
-          .order("created_at", { ascending: true })
-          .order("id", { ascending: true })
-          .range(from, from + UNIT_PAGE_SIZE - 1);
-        if (res.error) {
-          unitsError = res.error;
-          break;
-        }
-        const batch = res.data ?? [];
-        activeUnits.push(...batch);
-        if (batch.length < UNIT_PAGE_SIZE) break;
-      }
-      if (unitsError) break;
-    }
+  type MapUnitRow = { property_id: string; monthly_rent: number | string | null; is_available: boolean };
+  const { units: activeUnits, error: unitsError } = await fetchActivePropertyUnits<MapUnitRow>(
+    supabase,
+    propertyIds,
+    "property_id,monthly_rent,is_available",
+  );
+  const unitsByProperty = new Map<string, MapUnitRow>();
+  for (const unit of activeUnits) {
+    if (!unitsByProperty.has(unit.property_id)) unitsByProperty.set(unit.property_id, unit);
   }
 
   const draftTargets = new Map<string, { draftId: string; revision: number }>();
@@ -91,7 +74,7 @@ export default async function LandlordMapPage(props?: { searchParams?: Promise<{
   }
 
   const properties: LandlordPropertyMapItem[] = (submitted ?? []).filter(hasCoordinates).map(row => {
-    const unit = activeUnits.find(item => item.property_id === row.id);
+    const unit = unitsByProperty.get(row.id);
     const target = draftTargets.get(row.id);
     const active = activeSubmissions.get(row.id);
     const amenities = amenityLabels(active?.snapshot_payload?.amenities);

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useDeferredInteractive } from "@/lib/useDeferredInteractive";
 
 export const UNREAD_POLL_MS = 30_000;
 export const MESSAGES_UPDATED_EVENT = "abangcebu:messages-updated";
@@ -71,6 +72,7 @@ export function useUnreadMessageCount(userId: string | null | undefined, enabled
 
   const [state, setState] = useState<ScopedCountState>(() => buildBaselineState(scope));
   const latest = useRef(0);
+  const interactive = useDeferredInteractive(Boolean(scope));
 
   const effective = state.scope === scope
     ? state
@@ -95,7 +97,7 @@ export function useUnreadMessageCount(userId: string | null | undefined, enabled
   }, [scope, effective.generation]);
 
   useEffect(() => {
-    if (!scope) return;
+    if (!scope || !interactive) return;
     const requestCounter = latest;
     const stop = startUnreadPolling({ refresh: () => { void refresh(); }, win: window, doc: document });
     const peer = typeof BroadcastChannel !== "undefined" ? new BroadcastChannel("abangcebu:messages") : null;
@@ -111,7 +113,7 @@ export function useUnreadMessageCount(userId: string | null | undefined, enabled
       stop();
       peer?.close();
     };
-  }, [scope, refresh]);
+  }, [scope, refresh, interactive]);
 
   return { unreadCount: effective.unreadCount, refresh };
 }

@@ -3,10 +3,10 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 type Result = { data: unknown; error: unknown };
-const mocks = vi.hoisted(() => ({ signed: vi.fn(), from: vi.fn(), getUser: vi.fn(), profile: vi.fn(), eq: vi.fn(), inFilter: vi.fn(), results: {} as Record<string, Result>, redirect: vi.fn(), notFound: vi.fn() }));
+const mocks = vi.hoisted(() => ({ signed: vi.fn(), from: vi.fn(), getUser: vi.fn(), profile: vi.fn(), eq: vi.fn(), inFilter: vi.fn(), results: {} as Record<string, Result>, unitQueue: [] as Array<Promise<Result> | Result>, redirect: vi.fn(), notFound: vi.fn() }));
 // Every chain step returns a thenable builder resolving to the table's configured result.
 const builder = (table: string) => {
-  const result = () => mocks.results[table];
+  const result = () => (table === "rental_units" && mocks.unitQueue.length ? mocks.unitQueue.shift()! : mocks.results[table]);
   const chain: Record<string, unknown> = {
     select: () => chain,
     eq: (...args: unknown[]) => { mocks.eq(table, ...args); return chain; },
@@ -30,6 +30,7 @@ import LandlordMapPage from "./page";
 describe("landlord property map", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mocks.unitQueue = [];
     mocks.redirect.mockImplementation(() => { throw new Error("redirect"); });
     mocks.notFound.mockImplementation(() => { throw new Error("not found"); });
     mocks.getUser.mockResolvedValue({ data: { user: { id: "owner-a" } }, error: null });
@@ -142,5 +143,32 @@ describe("landlord property map", () => {
     mocks.signed.mockRejectedValue(new Error("not configured"));
     mocks.results.property_submissions = { data: [{ property_id: "p-pending", draft_id: draftId, expected_revision: 2, superseded_by: null, snapshot_media: [{ kind: "photo", object_path: `${ownerId}/${draftId}/33333333-3333-4333-8333-333333333333/${"a".repeat(64)}.png` }] }], error: null };
     expect(renderToStaticMarkup(await LandlordMapPage())).toContain(`Pending room|pending|7500|/list-property?draftId=${draftId}&amp;revision=2, Rejected`);
+  });
+  it("fetches independent rental_units chunks in parallel", async () => {
+    const manyProps = Array.from({ length: 125 }, (_, i) => ({
+      id: `prop-${i + 1}`,
+      title: `Prop ${i + 1}`,
+      street_address: "1 St",
+      city: "Cebu",
+      latitude: 10.31,
+      longitude: 123.89,
+      status: "approved",
+    }));
+    mocks.results.properties = { data: manyProps, error: null };
+
+    let releaseFirst!: (value: Result) => void;
+    mocks.unitQueue.push(
+      new Promise<Result>((resolve) => { releaseFirst = resolve; }),
+      { data: [], error: null },
+    );
+
+    const pending = LandlordMapPage();
+    await vi.waitFor(() => {
+      const unitCalls = mocks.inFilter.mock.calls.filter(([table]) => table === "rental_units");
+      expect(unitCalls).toHaveLength(2);
+    });
+
+    releaseFirst({ data: [], error: null });
+    await pending;
   });
 });

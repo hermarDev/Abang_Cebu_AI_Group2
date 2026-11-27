@@ -110,6 +110,49 @@ export type LandlordPortfolioResult = {
   truncated: boolean;
 };
 
+export async function fetchActivePropertyUnits<TRow>(
+  supabase: SupabaseClient,
+  propertyIds: string[],
+  selectColumns: string,
+): Promise<{ units: TRow[]; error: boolean }> {
+  if (!propertyIds.length) return { units: [], error: false };
+
+  const UNIT_BATCH_SIZE = 100;
+  const UNIT_PAGE_SIZE = 1000;
+  const chunks: string[][] = [];
+  for (let i = 0; i < propertyIds.length; i += UNIT_BATCH_SIZE) {
+    chunks.push(propertyIds.slice(i, i + UNIT_BATCH_SIZE));
+  }
+  // Independent property chunks can be fetched in parallel; pagination inside
+  // a chunk stays sequential because each page depends on the previous one.
+  const chunkResults = await Promise.all(chunks.map(async (chunk) => {
+    const chunkUnits: TRow[] = [];
+    for (let from = 0; ; from += UNIT_PAGE_SIZE) {
+      const unitsRes = await supabase
+        .from("rental_units")
+        .select(selectColumns)
+        .in("property_id", chunk)
+        .eq("is_retired", false)
+        .order("created_at", { ascending: true })
+        .order("id", { ascending: true })
+        .range(from, from + UNIT_PAGE_SIZE - 1);
+      if (unitsRes.error) return { units: chunkUnits, error: true };
+      const batch = (unitsRes.data ?? []) as TRow[];
+      chunkUnits.push(...batch);
+      if (batch.length < UNIT_PAGE_SIZE) break;
+    }
+    return { units: chunkUnits, error: false };
+  }));
+
+  const units: TRow[] = [];
+  let hasError = false;
+  for (const result of chunkResults) {
+    units.push(...result.units);
+    if (result.error) hasError = true;
+  }
+  return { units, error: hasError };
+}
+
 export async function fetchLandlordPortfolio(
   supabase: SupabaseClient,
   userId: string,
@@ -157,8 +200,7 @@ export async function fetchLandlordPortfolio(
   const draftsError = Boolean(draftsRes.error);
 
   const propertyIds = (properties ?? []).map((p) => p.id);
-  let unitsError = false;
-  const units: {
+  type PortfolioUnitRow = {
     id: string;
     property_id: string;
     unit_number: string | null;
@@ -167,33 +209,12 @@ export async function fetchLandlordPortfolio(
     max_occupants: number | null;
     is_available: boolean;
     is_retired?: boolean | null;
-  }[] = [];
-
-  if (propertyIds.length) {
-    const UNIT_BATCH_SIZE = 100;
-    const UNIT_PAGE_SIZE = 1000;
-    for (let i = 0; i < propertyIds.length; i += UNIT_BATCH_SIZE) {
-      const chunk = propertyIds.slice(i, i + UNIT_BATCH_SIZE);
-      for (let from = 0; ; from += UNIT_PAGE_SIZE) {
-        const unitsRes = await supabase
-          .from("rental_units")
-          .select("id,property_id,unit_number,rental_type,monthly_rent,max_occupants,is_available")
-          .in("property_id", chunk)
-          .eq("is_retired", false)
-          .order("created_at", { ascending: true })
-          .order("id", { ascending: true })
-          .range(from, from + UNIT_PAGE_SIZE - 1);
-        if (unitsRes.error) {
-          unitsError = true;
-          break;
-        }
-        const batch = unitsRes.data ?? [];
-        units.push(...batch);
-        if (batch.length < UNIT_PAGE_SIZE) break;
-      }
-      if (unitsError) break;
-    }
-  }
+  };
+  const { units, error: unitsError } = await fetchActivePropertyUnits<PortfolioUnitRow>(
+    supabase,
+    propertyIds,
+    "id,property_id,unit_number,rental_type,monthly_rent,max_occupants,is_available",
+  );
 
   const draftRevisionById = new Map<string, number>();
   for (const d of drafts ?? []) {

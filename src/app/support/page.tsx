@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { createClient } from "@/lib/supabase/server";
+import { loadProfile } from "@/lib/supabase/profile";
 import { SupportCenterClient } from "@/features/support/SupportCenterClient";
 
 export const dynamic = "force-dynamic";
@@ -19,10 +19,7 @@ export default async function SupportPage(props: SupportPageProps) {
     typeof searchParams.ticket === "string" ? searchParams.ticket.trim() : null;
   const guestToken: string | null = null;
 
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { user, profile } = await loadProfile();
 
   let userRole: string | null = null;
   let isSuspended = false;
@@ -31,13 +28,6 @@ export default async function SupportPage(props: SupportPageProps) {
 
   if (user) {
     initialEmail = user.email ?? "";
-
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("full_name, role, is_suspended")
-      .eq("id", user.id)
-      .maybeSingle();
-
     if (profile) {
       userRole = profile.role ?? null;
       isSuspended = Boolean(profile.is_suspended);

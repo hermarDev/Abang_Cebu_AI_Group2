@@ -17,7 +17,7 @@ export async function requireNotificationUser(
   if (authError || !user) return { response: reply({ error: "Sign in to access notifications." }, 401) } as const;
 
   const expectedId = request.headers.get("x-expected-user-id");
-  if ((options.requireExpectedUserId && expectedId !== user.id) || (expectedId && expectedId !== user.id)) {
+  if (expectedId !== user.id && (options.requireExpectedUserId || expectedId)) {
     return { response: reply({ error: "Your account changed. Please refresh and try again." }, 409) } as const;
   }
 

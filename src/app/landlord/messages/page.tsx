@@ -4,7 +4,7 @@ import { BrandLogo } from "@/components/brand";
 import { isAuthRetryableFetchError } from "@supabase/supabase-js";
 import { MapPinned } from "lucide-react";
 import { notFound, redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { loadProfile } from "@/lib/supabase/profile";
 import { signProfileAvatar } from "@/lib/profile-avatar";
 import { MessagingInbox } from "@/features/messages/MessagingInbox";
 import { LandlordWorkspaceLayout } from "../dashboard/LandlordWorkspaceLayout";
@@ -16,11 +16,9 @@ export default async function LandlordMessagesPage(props: { searchParams?: Promi
 export default async function LandlordMessagesPage(): Promise<React.JSX.Element>;
 export default async function LandlordMessagesPage(props?: { searchParams?: Promise<{ thread?: string | string[] }> }): Promise<React.JSX.Element> {
   const searchParams = props?.searchParams;
-  const supabase = await createClient();
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  const { user, profile, authError, profileError } = await loadProfile();
   if (authError && isAuthRetryableFetchError(authError)) return <main><p role="alert">Your account could not be checked. Please refresh the page to try again.</p></main>;
   if (authError || !user) redirect("/login?next=%2Flandlord%2Fmessages");
-  const { data: profile, error: profileError } = await supabase.from("profiles").select("full_name,avatar_url,role,is_suspended").eq("id", user.id).maybeSingle();
   if (profileError || profile?.role !== "landlord" || profile.is_suspended) notFound();
   const displayName = profile?.full_name?.trim() || "landlord";
   const avatarUrl = await signProfileAvatar(user.id, profile?.avatar_url);

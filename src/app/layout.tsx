@@ -7,6 +7,7 @@ import { ThemeSync } from "@/components/theme/ThemeSync";
 import { AppToaster } from "@/components/ui/AppToaster";
 import StartupReady from "@/components/startup/StartupReady";
 import StartupSplash from "@/components/startup/StartupSplash";
+import NavigationTiming from "@/components/startup/NavigationTiming";
 
 const manrope = localFont({ src: "../../public/fonts/manrope-latin-wght-normal.woff2", variable: "--font-manrope", weight: "200 800" });
 
@@ -71,6 +72,7 @@ export default function RootLayout({
         <AppToaster />
         <StartupSplash />
         <StartupReady />
+        <NavigationTiming />
         {children}
       </body>
     </html>

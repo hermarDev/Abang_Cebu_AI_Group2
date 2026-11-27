@@ -12,6 +12,7 @@ import {
 import { DashboardAttentionQueue } from "@/components/dashboard/DashboardAttentionQueue";
 import { DashboardStatCard } from "@/components/dashboard/DashboardStatCard";
 import { createClient } from "@/lib/supabase/server";
+import { loadProfile } from "@/lib/supabase/profile";
 import { signProfileAvatar } from "@/lib/profile-avatar";
 import { VerificationWorkspaceLayout } from "@/features/verification/VerificationWorkspaceLayout";
 
@@ -27,19 +28,9 @@ type QueueItem = {
 };
 
 export default async function VerificationDashboardPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
+  const { user, profile, profileError } = await loadProfile();
 
-  if (authError || !user) redirect("/login?next=%2Fverification%2Fdashboard");
-
-  const { data: profile, error: profileError } = await supabase
-    .from("profiles")
-    .select("role,is_suspended,full_name,avatar_url")
-    .eq("id", user.id)
-    .maybeSingle();
+  if (!user) redirect("/login?next=%2Fverification%2Fdashboard");
 
   if (
     profileError ||
@@ -49,9 +40,11 @@ export default async function VerificationDashboardPage() {
     notFound();
   }
 
-  const avatarUrl = await signProfileAvatar(user.id, profile.avatar_url);
-
-  const { data: overviewData, error: rpcError } = await supabase.rpc("verifier_dashboard_overview");
+  const supabase = await createClient();
+  const [avatarUrl, { data: overviewData, error: rpcError }] = await Promise.all([
+    signProfileAvatar(user.id, profile.avatar_url),
+    supabase.rpc("verifier_dashboard_overview"),
+  ]);
 
   const overview = overviewData && typeof overviewData === "object" && !Array.isArray(overviewData)
     ? (overviewData as {

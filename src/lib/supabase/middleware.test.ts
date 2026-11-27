@@ -75,3 +75,28 @@ describe("workspace routing", () => {
     expect(mocks.profile).not.toHaveBeenCalled();
   });
 });
+
+describe("RSC navigation", () => {
+  function rscRequest(path: string) {
+    return new NextRequest(`https://example.test${path}`, {
+      headers: { cookie: "sb-access-token=test" },
+    });
+  }
+
+  it("skips the session refresh on RSC navigations", async () => {
+    const response = await middleware(rscRequest("/landlord/dashboard?_rsc=abc"));
+    expect(mocks.getUser).not.toHaveBeenCalled();
+    expect(response.headers.get("location")).toBeNull();
+  });
+
+  it("still refreshes the session on full document navigations", async () => {
+    await middleware(rscRequest("/landlord/dashboard"));
+    expect(mocks.getUser).toHaveBeenCalledOnce();
+  });
+
+  it("keeps no-store on RSC requests to public entry routes", async () => {
+    const response = await middleware(rscRequest("/?_rsc=abc"));
+    expect(response.headers.get("cache-control")).toContain("no-store");
+    expect(mocks.getUser).not.toHaveBeenCalled();
+  });
+});

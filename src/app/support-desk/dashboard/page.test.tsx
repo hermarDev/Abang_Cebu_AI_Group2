@@ -218,7 +218,7 @@ describe("support desk dashboard", () => {
     // Temporarily verify the page survives when attention query returns a direct promise without .order
     const serverModule = await import("@/lib/supabase/server");
     const origCreateClient = serverModule.createClient;
-    vi.spyOn(serverModule, "createClient").mockResolvedValueOnce({
+    vi.spyOn(serverModule, "createClient").mockResolvedValue({
       auth: { getUser: mocks.getUser },
       from: (table: string) => {
         if (table === "profiles") {

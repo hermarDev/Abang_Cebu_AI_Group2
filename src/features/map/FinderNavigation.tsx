@@ -133,7 +133,7 @@ export function FinderNavigation({
               <span>Find rentals</span>
             </Link>
             {(userRole === "renter" || !authenticated) && (
-              <Link href="/favorites" className={styles.navItem} onClick={onClose}>
+              <Link prefetch href="/favorites" className={styles.navItem} onClick={onClose}>
                 <Bookmark aria-hidden="true" />
                 <span>Saved rentals</span>
               </Link>
@@ -145,19 +145,19 @@ export function FinderNavigation({
             <section className={styles.section} aria-label="Workspace">
               <p className={sectionHeaderClass}>Workspace</p>
               {userRole === "landlord" && (
-                <Link href="/landlord/dashboard" className={styles.navItem} onClick={onClose}>
+                <Link prefetch href="/landlord/dashboard" className={styles.navItem} onClick={onClose}>
                   <LayoutDashboard aria-hidden="true" />
                   <span>Landlord workspace</span>
                 </Link>
               )}
               {userRole === "verification_officer" && (
-                <Link href="/verification/dashboard" className={styles.navItem} onClick={onClose}><LayoutDashboard aria-hidden="true" /><span>Verification workspace</span></Link>
+                <Link prefetch href="/verification/dashboard" className={styles.navItem} onClick={onClose}><LayoutDashboard aria-hidden="true" /><span>Verification workspace</span></Link>
               )}
               {userRole === "customer_support" && (
-                <Link href="/support-desk/dashboard" className={styles.navItem} onClick={onClose}><LayoutDashboard aria-hidden="true" /><span>Support workspace</span></Link>
+                <Link prefetch href="/support-desk/dashboard" className={styles.navItem} onClick={onClose}><LayoutDashboard aria-hidden="true" /><span>Support workspace</span></Link>
               )}
               {userRole === "admin" && (
-                <Link href="/admin/dashboard" className={styles.navItem} onClick={onClose}>
+                <Link prefetch href="/admin/dashboard" className={styles.navItem} onClick={onClose}>
                   <LayoutDashboard aria-hidden="true" />
                   <span>Admin workspace</span>
                 </Link>
@@ -170,7 +170,7 @@ export function FinderNavigation({
             <section className={styles.section} aria-label="Communication">
               <p className={sectionHeaderClass}>Communication</p>
               {userRole === "renter" && (
-                <Link href="/messages" className={styles.navItem} onClick={onClose}>
+                <Link prefetch href="/messages" className={styles.navItem} onClick={onClose}>
                   <MessageSquare aria-hidden="true" />
                   <span>Messages</span>
                   {badgeCount > 0 && (
@@ -180,7 +180,7 @@ export function FinderNavigation({
                   )}
                 </Link>
               )}
-              <Link href="/notifications" className={styles.navItem} onClick={onClose}>
+              <Link prefetch href="/notifications" className={styles.navItem} onClick={onClose}>
                 <Bell aria-hidden="true" />
                 <span>Notifications</span>
                 {notificationCount !== null && (
@@ -216,11 +216,11 @@ export function FinderNavigation({
           {/* 4. SUPPORT */}
           <section className={styles.section} aria-label="Support">
             <p className={sectionHeaderClass}>Support</p>
-            <Link href="/help" className={styles.navItem} onClick={onClose}>
+            <Link prefetch href="/help" className={styles.navItem} onClick={onClose}>
               <CircleHelp aria-hidden="true" />
               <span>Help Center</span>
             </Link>
-            <Link href="/support" className={styles.navItem} onClick={onClose}>
+            <Link prefetch href="/support" className={styles.navItem} onClick={onClose}>
               <Headset aria-hidden="true" />
               <span>Contact support</span>
             </Link>

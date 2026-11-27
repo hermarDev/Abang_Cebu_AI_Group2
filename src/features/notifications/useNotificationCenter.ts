@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { useDeferredInteractive } from "@/lib/useDeferredInteractive";
 import type { NotificationItem } from "@/types/database";
 
 export const NOTIFICATION_POLL_MS = 30_000;
@@ -174,6 +175,7 @@ export function loadNotifications(
 function subscribe(userId: string, listener: (data: FetchNotificationsResponse) => void) {
   const item = entry(userId);
   item.listeners.add(listener);
+  if (item.data) listener(item.data);
   if (!channel && typeof BroadcastChannel !== "undefined") {
     channel = new BroadcastChannel("abangcebu:notifications");
     channel.onmessage = ({ data }: MessageEvent<{ userId?: string; data?: FetchNotificationsResponse }>) => {
@@ -280,6 +282,7 @@ export function useNotificationCenter(
 
   const [state, setState] = useState<ScopedState>(() => buildBaselineState(scope, initialPage));
   const activeScopeRef = useRef<string | null>(scope);
+  const interactive = useDeferredInteractive(Boolean(scope));
 
   // Scope/reset state immediately on userId or enabled transitions so stale cross-user data is never rendered.
   const effective = state.scope === scope ? state : buildBaselineState(scope, initialPage, state.epoch + 1);
@@ -384,7 +387,7 @@ export function useNotificationCenter(
 
   useEffect(() => {
     activeScopeRef.current = scope;
-    if (!scope) return;
+    if (!scope || !interactive) return;
 
     const targetScope = scope;
     let cancelled = false;
@@ -440,7 +443,7 @@ export function useNotificationCenter(
       window.removeEventListener(NOTIFICATIONS_UPDATED_EVENT, onTimerOrUpdate);
       document.removeEventListener("visibilitychange", onFocusOrVisible);
     };
-  }, [scope, currentPage, pageSize]);
+  }, [scope, currentPage, pageSize, interactive]);
 
   const markAsRead = useCallback(
     async (id: string) => {

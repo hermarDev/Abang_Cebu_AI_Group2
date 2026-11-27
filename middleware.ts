@@ -3,8 +3,12 @@ import { updateSession } from "@/lib/supabase/middleware";
 
 export async function middleware(request: NextRequest) {
   // Route handlers verify their own session; cookie-less visitors have nothing to refresh.
+  // RSC navigations carry `_rsc` in the query string (Flight headers are hidden from
+  // middleware). Skipping the session refresh here avoids a second Supabase auth round
+  // trip on every client navigation; pages already verify their own session.
+  const isRscNavigation = request.nextUrl.searchParams.has("_rsc");
   let response: NextResponse;
-  if (request.nextUrl.pathname.startsWith("/api/") || !request.cookies.getAll().some(({ name }) => name.startsWith("sb-"))) {
+  if (isRscNavigation || request.nextUrl.pathname.startsWith("/api/") || !request.cookies.getAll().some(({ name }) => name.startsWith("sb-"))) {
     response = NextResponse.next({ request });
   } else {
     response = await updateSession(request);

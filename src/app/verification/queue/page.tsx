@@ -1,5 +1,5 @@
 import { notFound, redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { loadProfile } from "@/lib/supabase/profile";
 import { signProfileAvatar } from "@/lib/profile-avatar";
 import { VerificationWorkspaceLayout } from "@/features/verification/VerificationWorkspaceLayout";
 import { VerificationQueue } from "@/features/verification/VerificationQueue";
@@ -19,19 +19,9 @@ export default async function VerificationQueuePage({
   searchParams: Promise<SearchParams>;
 }) {
   const resolvedParams = await searchParams;
-  const supabase = await createClient();
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
+  const { user, profile, profileError } = await loadProfile();
 
-  if (authError || !user) redirect("/login?next=%2Fverification%2Fqueue");
-
-  const { data: profile, error: profileError } = await supabase
-    .from("profiles")
-    .select("role,is_suspended,full_name,avatar_url")
-    .eq("id", user.id)
-    .maybeSingle();
+  if (!user) redirect("/login?next=%2Fverification%2Fqueue");
 
   if (
     profileError ||

@@ -5,6 +5,7 @@ import { isAuthRetryableFetchError } from "@supabase/supabase-js";
 import { notFound, redirect } from "next/navigation";
 import { MapPinned } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { loadProfile } from "@/lib/supabase/profile";
 import { signProfileAvatar } from "@/lib/profile-avatar";
 import { fetchLandlordPortfolio } from "@/server/landlord-properties";
 import { LandlordWorkspaceLayout } from "../dashboard/LandlordWorkspaceLayout";
@@ -17,20 +18,14 @@ export const metadata: Metadata = {
 };
 
 export default async function LandlordPropertiesPage() {
-  const supabase = await createClient();
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  const { user, profile, authError, profileError } = await loadProfile();
   // A transient network failure is not a missing session; redirecting would bounce /login <-> here.
   if (authError && isAuthRetryableFetchError(authError)) return <main><p role="alert">Your account could not be checked. Please refresh the page to try again.</p></main>;
   if (authError || !user) redirect("/login?next=%2Flandlord%2Fproperties");
 
-  const { data: profile, error: profileError } = await supabase
-    .from("profiles")
-    .select("full_name,avatar_url,role,is_suspended")
-    .eq("id", user.id)
-    .maybeSingle();
-
   if (profileError || profile?.role !== "landlord" || profile.is_suspended) notFound();
 
+  const supabase = await createClient();
   const [avatarUrl, portfolio] = await Promise.all([
     signProfileAvatar(user.id, profile.avatar_url),
     fetchLandlordPortfolio(supabase, user.id),

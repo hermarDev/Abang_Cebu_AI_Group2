@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { DashboardStatCard } from "@/components/dashboard/DashboardStatCard";
 import { createClient } from "@/lib/supabase/server";
+import { loadProfile } from "@/lib/supabase/profile";
 import { signProfileAvatar } from "@/lib/profile-avatar";
 import type { AuditEntry } from "@/features/admin/AdminAuditEntries";
 import { formatAdminDate } from "@/features/admin/admin-api";
@@ -53,13 +54,14 @@ async function loadOverview(supabase: Awaited<ReturnType<typeof createClient>>):
 }
 
 export default async function AdminDashboardPage() {
-  const supabase = await createClient();
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
-  if (authError || !user) redirect("/login?next=%2Fadmin%2Fdashboard");
-  const { data: profile, error: profileError } = await supabase.from("profiles").select("role,is_suspended,full_name,avatar_url").eq("id", user.id).maybeSingle();
+  const { user, profile, profileError } = await loadProfile();
+  if (!user) redirect("/login?next=%2Fadmin%2Fdashboard");
   if (profileError || profile?.role !== "admin" || profile.is_suspended) notFound();
-  const avatarUrl = await signProfileAvatar(user.id, profile.avatar_url);
-  const overview = await loadOverview(supabase);
+  const supabase = await createClient();
+  const [avatarUrl, overview] = await Promise.all([
+    signProfileAvatar(user.id, profile.avatar_url),
+    loadOverview(supabase),
+  ]);
   const recent = overview?.recentAuditEntries ?? [];
 
   const pendingCount = overview?.pendingReviewCount ?? 0;
@@ -82,9 +84,9 @@ export default async function AdminDashboardPage() {
       {!overview ? (
         <section role="alert" className="rounded-xl border border-destructive/40 bg-destructive/10 p-4 text-foreground">
           <p>Could not load the admin overview. Please try again.</p>
-          <a href="/admin/dashboard" className="inline-flex min-h-11 items-center font-semibold text-action underline">
+          <Link href="/admin/dashboard" className="inline-flex min-h-11 items-center font-semibold text-action underline">
             Try again
-          </a>
+          </Link>
         </section>
       ) : (
         <div className="space-y-6">

@@ -154,4 +154,18 @@ describe("verification dashboard", () => {
       expect(html).not.toContain("Welcome back,");
     }
   });
+
+  it("runs avatar signing and verifier overview RPC in parallel", async () => {
+    let releaseSign!: (url: string | null) => void;
+    mocks.sign.mockImplementationOnce(() => new Promise<string | null>((resolve) => { releaseSign = resolve; }));
+
+    const pending = VerificationDashboardPage();
+    await vi.waitFor(() => {
+      expect(mocks.sign).toHaveBeenCalledTimes(1);
+      expect(mocks.rpc).toHaveBeenCalledWith("verifier_dashboard_overview");
+    });
+
+    releaseSign("https://example.test/verif.png");
+    await pending;
+  });
 });
