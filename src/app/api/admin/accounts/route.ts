@@ -1,4 +1,6 @@
 import { createAdminClient } from "@/lib/supabase/admin";
+import { invalidateProfileCache } from "@/lib/supabase/profile";
+import { invalidatePublicRentalsCache } from "@/server/rentals/public-rentals";
 import { validatePasswordStrength } from "@/types/auth";
 import {
   adminAccountsLimiter,
@@ -131,6 +133,7 @@ export async function POST(request: Request) {
     }
     if (rpcError) return jsonError("Staff account could not be assigned role. Please retry.", 503);
 
+    invalidateProfileCache(targetUserId);
     return jsonOk({
       success: true,
       user: {
@@ -160,5 +163,7 @@ export async function POST(request: Request) {
   if (error?.code === "23505" || error?.code === "40001") return jsonError("This account changed or the operation was already used. Reload and retry.", 409);
   if (error?.code === "22023") return jsonError("Invalid account request.", 400);
   if (error) return jsonError("The account change could not be confirmed. Reload before retrying.", 503);
+  invalidateProfileCache(input.targetUserId);
+  if (input.unpublishListings !== false) invalidatePublicRentalsCache();
   return jsonOk({ account: data });
 }

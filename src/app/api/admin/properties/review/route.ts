@@ -1,4 +1,5 @@
 import { revalidatePath } from "next/cache";
+import { invalidatePublicRentalsCache } from "@/server/rentals/public-rentals";
 import { adminLifecycleLimiter, rateLimited, requireActiveAdmin } from "@/server/admin-access";
 
 const headers = { "Cache-Control": "no-store" };
@@ -67,6 +68,7 @@ export async function POST(request: Request) {
   if (error?.code === "42501" || error?.code === "22023") return reply("This property is not pending review.", 409);
   if (error) return reply("The review could not be saved. Please retry.", 503);
   if (!data || typeof data !== "object" || !("status" in data)) return reply("Review could not be confirmed. Please retry.", 503);
+  invalidatePublicRentalsCache();
   try {
     for (const path of ["/", "/landlord/dashboard", "/landlord/properties", "/landlord/map", "/admin/dashboard", "/admin/reviews", "/admin/audit"]) {
       revalidatePath(path);

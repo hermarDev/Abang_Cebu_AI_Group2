@@ -1,5 +1,5 @@
-import { describe, expect, it, vi } from "vitest";
-import { loadPublicRentals } from "./public-rentals";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { invalidatePublicRentalsCache, loadPublicRentals, resetSignedPhotoCache } from "./public-rentals";
 
 const mocks = vi.hoisted(() => ({ createSignedUrls: vi.fn() }));
 vi.mock("@/lib/supabase/admin", () => ({
@@ -17,6 +17,17 @@ function mockSupabase(listingsResult: unknown, submittedResult: unknown) {
     rpc: vi.fn().mockResolvedValue(submittedResult),
   } as unknown as Parameters<typeof loadPublicRentals>[0];
 }
+
+beforeEach(() => {
+  vi.resetAllMocks();
+  vi.unstubAllEnvs();
+  resetSignedPhotoCache();
+  invalidatePublicRentalsCache();
+});
+
+afterEach(() => {
+  vi.unstubAllEnvs();
+});
 
 describe("loadPublicRentals", () => {
   it("combines published listings with approved submitted rentals only and preserves multi-unit fields", async () => {
@@ -125,5 +136,21 @@ describe("loadPublicRentals", () => {
   it("returns unavailable when both sources fail", async () => {
     const supabase = mockSupabase({ data: null, error: { message: "db error" } }, { data: null, error: { message: "rpc error" } });
     expect(await loadPublicRentals(supabase)).toEqual({ status: "unavailable" });
+  });
+
+  it("caches complete public inventory and deduplicates concurrent loads until invalidated", async () => {
+    vi.stubEnv("VITEST", "");
+    const supabase = mockSupabase({ data: [], error: null }, { data: [], error: null });
+    const [a, b] = await Promise.all([loadPublicRentals(supabase), loadPublicRentals(supabase)]);
+    expect(a).toEqual({ status: "ok", rentals: [], complete: true });
+    expect(b).toEqual({ status: "ok", rentals: [], complete: true });
+    expect(supabase.from).toHaveBeenCalledTimes(1);
+
+    await loadPublicRentals(supabase);
+    expect(supabase.from).toHaveBeenCalledTimes(1);
+
+    invalidatePublicRentalsCache();
+    await loadPublicRentals(supabase);
+    expect(supabase.from).toHaveBeenCalledTimes(2);
   });
 });

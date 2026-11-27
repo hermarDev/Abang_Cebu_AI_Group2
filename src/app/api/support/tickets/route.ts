@@ -268,31 +268,43 @@ export async function POST(request: Request) {
   const attachmentsMeta: SupportAttachmentMeta[] = [];
 
   if (files.length > 0) {
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-      const bytes = fileBuffers[i];
-      const ext = getFileExtension(file.type, file.name);
-      const storagePath = `${ticketId}/${crypto.randomUUID()}.${ext}`;
+    const prepared = files.map((file, i) => ({
+      file,
+      bytes: fileBuffers[i],
+      storagePath: `${ticketId}/${crypto.randomUUID()}.${getFileExtension(file.type, file.name)}`,
+    }));
 
-      const { error: uploadError } = await adminClient.storage
-        .from(SUPPORT_ATTACHMENTS_BUCKET)
-        .upload(storagePath, bytes, {
-          contentType: file.type,
-          upsert: false,
+    const results = await Promise.all(
+      prepared.map(async ({ file, bytes, storagePath }) => {
+        try {
+          const { error: uploadError } = await adminClient.storage
+            .from(SUPPORT_ATTACHMENTS_BUCKET)
+            .upload(storagePath, bytes, {
+              contentType: file.type,
+              upsert: false,
+            });
+          return { file, storagePath, uploadError };
+        } catch (err) {
+          return { file, storagePath, uploadError: err ?? new Error("Upload failed") };
+        }
+      }),
+    );
+
+    for (const res of results) {
+      if (!res.uploadError) {
+        uploadedPaths.push(res.storagePath);
+        attachmentsMeta.push({
+          storagePath: res.storagePath,
+          fileName: sanitizeSupportFilename(res.file.name),
+          fileSize: res.file.size,
+          mimeType: res.file.type,
         });
-
-      if (uploadError) {
-        await cleanupSupportUploads(uploadedPaths);
-        return reply({ error: "Failed to upload attachments. Please retry." }, 503);
       }
+    }
 
-      uploadedPaths.push(storagePath);
-      attachmentsMeta.push({
-        storagePath,
-        fileName: sanitizeSupportFilename(file.name),
-        fileSize: file.size,
-        mimeType: file.type,
-      });
+    if (results.some((res) => res.uploadError)) {
+      await cleanupSupportUploads(uploadedPaths);
+      return reply({ error: "Failed to upload attachments. Please retry." }, 503);
     }
   }
 

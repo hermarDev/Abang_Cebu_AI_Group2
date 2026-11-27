@@ -4,7 +4,8 @@ import { revalidatePath } from "next/cache";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { normalizePhilippineAccountMobile } from "@/lib/phone-number";
 import { createClient } from "@/lib/supabase/server";
-import { PROFILE_AVATAR_BUCKET, signProfileAvatar } from "@/lib/profile-avatar";
+import { PROFILE_AVATAR_BUCKET, invalidateProfileAvatarCache, signProfileAvatar } from "@/lib/profile-avatar";
+import { invalidateProfileCache } from "@/lib/supabase/profile";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createBoundedFetch } from "@/lib/supabase/fetch-timeout";
 import { inspectDraftMedia } from "@/app/api/property-drafts/media-validation";
@@ -74,6 +75,7 @@ export async function updateAccountProfile(formData: FormData): Promise<AccountA
 
   if (error || !data) return { success: false, message: "We couldn’t save your details. Please try again." };
 
+  invalidateProfileCache(user.id);
   revalidateAccountSurfaces();
   return { success: true, message: "Your account details were saved.", profile: { fullName, phoneNumber } };
 }
@@ -110,6 +112,9 @@ export async function updateAccountAvatar(formData: FormData): Promise<AvatarAct
   }
 
   const oldPath = profile.avatar_url;
+  invalidateProfileAvatarCache(oldPath);
+  invalidateProfileAvatarCache(avatarPath);
+  invalidateProfileCache(user.id);
   if (oldPath && oldPath.startsWith(`${user.id}/`) && /^[0-9a-f-]+\/[\w-]+\.(?:jpg|png|webp)$/i.test(oldPath) && oldPath !== avatarPath) {
     try { await createAdminClient().storage.from(PROFILE_AVATAR_BUCKET).remove([oldPath]); } catch { /* best-effort cleanup */ }
   }
@@ -130,6 +135,8 @@ export async function removeAccountAvatar(): Promise<AvatarActionResult> {
   if (error || !data) return { success: false, message: "We couldn’t remove your photo. Please try again." };
 
   const oldPath = profile.avatar_url;
+  invalidateProfileAvatarCache(oldPath);
+  invalidateProfileCache(user.id);
   if (oldPath && oldPath.startsWith(`${user.id}/`) && /^[0-9a-f-]+\/[\w-]+\.(?:jpg|png|webp)$/i.test(oldPath)) {
     try { await createAdminClient().storage.from(PROFILE_AVATAR_BUCKET).remove([oldPath]); } catch { /* best-effort cleanup */ }
   }

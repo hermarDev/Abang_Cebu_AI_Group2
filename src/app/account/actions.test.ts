@@ -9,6 +9,7 @@ const fixture = vi.hoisted(() => ({
   upload: vi.fn(async () => ({ error: null })),
   remove: vi.fn(async () => ({ error: null })),
   signProfileAvatar: vi.fn(async () => "https://example.test/signed.png"),
+  invalidateProfileAvatarCache: vi.fn(),
 }));
 
 vi.mock("@supabase/supabase-js", () => ({ createClient: () => ({ auth: { signInWithPassword: fixture.signIn } }) }));
@@ -26,6 +27,7 @@ vi.mock("@/lib/supabase/admin", () => ({
 vi.mock("@/lib/profile-avatar", () => ({
   PROFILE_AVATAR_BUCKET: "avatars",
   signProfileAvatar: fixture.signProfileAvatar,
+  invalidateProfileAvatarCache: fixture.invalidateProfileAvatarCache,
 }));
 vi.mock("@/lib/supabase/server", () => ({
   createClient: async () => ({

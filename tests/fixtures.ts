@@ -10,7 +10,8 @@ export const test = base.extend<{ blockedRequests: string[] }>({
     await context.route("**/*", async (route) => {
       const request = route.request();
       const url = new URL(request.url());
-      if (url.origin !== origin || (!["GET", "HEAD"].includes(request.method()) && !url.pathname.startsWith("/auth/v1/"))) {
+      const isMockSupabaseAuth = url.origin === "http://127.0.0.1:9" && url.pathname.startsWith("/auth/v1/");
+      if (!isMockSupabaseAuth && (url.origin !== origin || !["GET", "HEAD"].includes(request.method()))) {
         blockedRequests.push(`${request.method()} ${url.href}`);
         return route.abort("blockedbyclient");
       }
@@ -28,7 +29,7 @@ export const test = base.extend<{ blockedRequests: string[] }>({
           layers: [{ id: "background", type: "background", paint: { "background-color": url.pathname.includes("osm-dark") ? "#0c0c0c" : "#e5edf0" } }, { id: "fixture", type: "circle", source: "fixture" }],
         } });
       }
-      return route.continue();
+      return route.fallback();
     });
     await provide(context);
   },

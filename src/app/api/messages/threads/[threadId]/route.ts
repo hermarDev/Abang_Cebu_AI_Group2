@@ -24,11 +24,14 @@ export async function GET(request: Request, context: Context) {
     if (!data?.thread) return reply({ error: "Conversation or listing not found." }, 404);
 
     const isPoll = params.get("poll") === "1";
-    // Best-effort: reading must not fail because the read marker could not be written.
-    if (!before && !isPoll) await session.supabase.rpc("mark_rental_conversation_read", { p_conversation_id: threadId }).then(() => undefined, () => undefined);
-
-    const [thread] = await enrichThreads([data.thread]);
-    const messages = await enrichMessagesWithSignedAttachments(data.messages ?? []);
+    const [, [thread], messages] = await Promise.all([
+      // Best-effort: reading must not fail because the read marker could not be written.
+      !before && !isPoll
+        ? session.supabase.rpc("mark_rental_conversation_read", { p_conversation_id: threadId }).then(() => undefined, () => undefined)
+        : Promise.resolve(),
+      enrichThreads([data.thread]),
+      enrichMessagesWithSignedAttachments(data.messages ?? []),
+    ]);
     return reply({ thread, messages, hasMore: Boolean(data.hasMore) }, 200);
   } catch {
     return rpcFailure(undefined, {});

@@ -99,6 +99,7 @@ export function AccountMenu({
           </div>
           <div className="my-1 h-px bg-border/80" role="separator" />
           <Link
+            prefetch={false}
             href="/account"
             onClick={handleLinkClick}
             className="inline-flex min-h-11 items-center gap-2 rounded-lg px-3 text-sm font-semibold hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
@@ -149,6 +150,7 @@ export function AccountMenu({
         </div>
         <div className="my-1 h-px bg-border/80" role="separator" />
         <Link
+          prefetch={false}
           href="/account"
           onClick={handleLinkClick}
           className="inline-flex min-h-11 items-center gap-2 rounded-lg px-3 text-sm font-semibold hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"

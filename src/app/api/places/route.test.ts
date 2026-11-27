@@ -41,7 +41,7 @@ describe("GET /api/places", () => {
     const response = await GET(new Request("http://localhost/api/places?q=%20Cebu%20IT%20Park%20"));
 
     expect(response.status).toBe(200);
-    expect(response.headers.get("Cache-Control")).toBe("no-store");
+    expect(response.headers.get("Cache-Control")).toBe("public, max-age=300, stale-while-revalidate=600");
     expect(await response.json()).toEqual({ places });
     expect(mockSearchPlaces).toHaveBeenCalledWith("Cebu IT Park");
   });

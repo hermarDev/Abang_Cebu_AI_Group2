@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
+import { memo, useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -49,7 +49,7 @@ import {
   attachmentPreviewLabel,
   type MessageScrollerHandle,
 } from "@/components/ui/chat";
-import { PropertyDetailsSheet } from "@/features/rentals/PropertyDetailsSheet";
+import { PropertyDetailsSheetLazy } from "@/features/rentals/PropertyDetailsSheetLazy";
 import { notify } from "@/components/ui/AppToaster";
 import { submitInquiry } from "./ListingInquiryModal";
 import { dispatchMessagesUpdated } from "./useUnreadMessageCount";
@@ -440,12 +440,6 @@ function MessagingInboxInner({
   const draft = (selectedId && drafts[selectedId]) || "";
   const outbox = (selectedId && outboxes[selectedId]) || NO_OUTBOX;
 
-  useEffect(() => {
-    const el = textareaRef.current;
-    if (!el) return;
-    el.style.height = "auto";
-    el.style.height = `${Math.min(el.scrollHeight, 128)}px`;
-  }, [draft]);
   const setDraft = (value: string) => {
     if (selectedId) retain((r) => ({ ...r, drafts: { ...r.drafts, [selectedId]: value } }));
   };
@@ -794,9 +788,10 @@ function MessagingInboxInner({
     }
   };
 
-  function startReply(m: RentalMessageItem) {
+  const counterPartFullName = detail?.counterpart?.fullName ?? "Landlord";
+  const startReply = useCallback((m: RentalMessageItem) => {
     const isMine = m.senderId === userId;
-    const senderName = isMine ? "yourself" : detail?.counterpart?.fullName ?? "Landlord";
+    const senderName = isMine ? "yourself" : counterPartFullName;
     setReplyingTo({
       id: m.id,
       senderId: m.senderId,
@@ -805,9 +800,9 @@ function MessagingInboxInner({
       attachments: m.attachments,
     });
     textareaRef.current?.focus();
-  }
+  }, [userId, counterPartFullName]);
 
-  function jumpToMessage(targetId: string) {
+  const jumpToMessage = useCallback((targetId: string) => {
     const el = document.getElementById(`message-${targetId}`);
     if (el) {
       el.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -816,7 +811,15 @@ function MessagingInboxInner({
         el.classList.remove("ring-2", "ring-action", "transition-all");
       }, 1500);
     }
-  }
+  }, []);
+
+  const handleReportMessage = useCallback((messageId: string) => {
+    setReportTarget({ targetType: "message", messageId });
+  }, []);
+
+  const handlePhotoClick = useCallback((url: string) => {
+    setLightboxUrl(url);
+  }, []);
 
   async function deliver(item: OutboxItem) {
     if (!selectedId) return;
@@ -999,10 +1002,10 @@ function MessagingInboxInner({
         mine={isMine}
         counterpart={thread?.counterpart}
         showAvatar={showAvatar}
-        onReport={() => setReportTarget({ targetType: "message", messageId: current.id })}
-        onReply={(msg) => startReply(msg)}
-        onJumpToMessage={(targetId) => jumpToMessage(targetId)}
-        onPhotoClick={(url) => setLightboxUrl(url)}
+        onReport={handleReportMessage}
+        onReply={startReply}
+        onJumpToMessage={jumpToMessage}
+        onPhotoClick={handlePhotoClick}
       />
     );
   }
@@ -1799,7 +1802,7 @@ function MessagingInboxInner({
                 }}
               />
             )}
-            <PropertyDetailsSheet
+            <PropertyDetailsSheetLazy
               open={propertySheetOpen}
               onClose={() => setPropertySheetOpen(false)}
               thread={thread}
@@ -1850,7 +1853,7 @@ function MessagingInboxInner({
   );
 }
 
-export function MessageItem({
+export const MessageItem = memo(function MessageItem({
   message: m,
   mine,
   onReport,
@@ -1862,7 +1865,7 @@ export function MessageItem({
 }: {
   message: RentalMessageItem;
   mine: boolean;
-  onReport: () => void;
+  onReport: (messageId: string) => void;
   onReply?: (m: RentalMessageItem) => void;
   onJumpToMessage?: (id: string) => void;
   onPhotoClick?: (url: string) => void;
@@ -2001,7 +2004,7 @@ export function MessageItem({
                     size="sm"
                     aria-label="Report message"
                     className="size-7 min-h-7 p-0 text-muted-foreground opacity-80 group-hover:opacity-100 hover:text-foreground focus-visible:opacity-100"
-                    onClick={onReport}
+                    onClick={() => onReport(m.id)}
                   >
                     <Flag size={13} aria-hidden="true" />
                   </Button>
@@ -2018,7 +2021,7 @@ export function MessageItem({
         </MessageContent>
       </Message>
   );
-}
+});
 
 function ReportDialog({
   thread,

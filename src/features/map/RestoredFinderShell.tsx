@@ -153,7 +153,12 @@ export function RestoredFinderShell({ rentalStatus: statusOverride, initialAccou
       }
     }
     void loadFavorites();
-    return () => controller.abort();
+    const onFavoritesUpdated = () => void loadFavorites();
+    if (typeof window !== "undefined") window.addEventListener("abangcebu:favorites-updated", onFavoritesUpdated);
+    return () => {
+      controller.abort();
+      if (typeof window !== "undefined") window.removeEventListener("abangcebu:favorites-updated", onFavoritesUpdated);
+    };
   }, [favoriteOwner, favoriteState.generation]);
   const usingSamples = sampleMode;
   const rentalStatus = usingSamples ? "ready" : statusOverride ?? inventory.status;

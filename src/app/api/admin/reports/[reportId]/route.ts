@@ -1,3 +1,5 @@
+import { invalidateProfileCache } from "@/lib/supabase/profile";
+import { invalidatePublicRentalsCache } from "@/server/rentals/public-rentals";
 import { adminReportsLimiter, adminRpc, jsonError, jsonOk, rateLimited, readJsonObject, requireActiveAdmin, validUuid } from "@/server/admin-access";
 
 type Context = { params: Promise<{ reportId: string }> };
@@ -37,5 +39,7 @@ export async function POST(request: Request, context: Context) {
   if (error?.code === "23505" || error?.code === "40001") return jsonError("This report changed or the operation was already used. Reload and retry.", 409);
   if (error?.code === "22023") return jsonError("Invalid report request.", 400);
   if (error) return jsonError("The decision could not be confirmed. Reload before retrying.", 503);
+  if (suspendTargetUser) invalidateProfileCache();
+  if (unpublishTargetListing) invalidatePublicRentalsCache();
   return jsonOk({ report: data });
 }

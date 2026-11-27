@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 import { FinderNavigation } from "./FinderNavigation";
@@ -267,5 +268,14 @@ describe("renter drawer notifications link and badge", () => {
     expect(html).toContain(">5<");
 
     mockNotificationState.unreadCount = 0;
+  });
+
+  it("disables eager prefetch on dynamic sidebar links to prevent RSC prefetch storms", () => {
+    const source = readFileSync("src/features/map/FinderNavigation.tsx", "utf8");
+    const dynamicLinks = [...source.matchAll(/<Link\b[^>]*>/g)].map((m) => m[0]).filter((tag) => !tag.includes('href="/"'));
+    expect(dynamicLinks.length).toBeGreaterThanOrEqual(8);
+    for (const tag of dynamicLinks) {
+      expect(tag).toContain("prefetch={false}");
+    }
   });
 });

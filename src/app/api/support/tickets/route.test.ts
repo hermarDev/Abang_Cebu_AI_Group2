@@ -278,6 +278,35 @@ describe("POST /api/support/tickets", () => {
     expect(mocks.rpc).toHaveBeenCalledTimes(1);
   });
 
+  it("cleans up succeeded parallel uploads when another attachment upload fails", async () => {
+    mocks.upload
+      .mockResolvedValueOnce({ data: { path: "ok-1" }, error: null })
+      .mockResolvedValueOnce({ data: null, error: { message: "storage error" } });
+
+    const formData = new FormData();
+    formData.set("operationId", "12345678-1234-4234-8234-123456789abf");
+    formData.set("requesterName", "Maria Santos");
+    formData.set("requesterEmail", "maria@example.com");
+    formData.set("category", "account_access");
+    formData.set("subject", "Cannot access my account");
+    formData.set("description", "I am unable to receive password reset emails on my account.");
+    formData.append("attachments", new File([pngBytes], "one.png", { type: "image/png" }));
+    formData.append("attachments", new File([pngBytes], "two.png", { type: "image/png" }));
+
+    const req = new Request("http://localhost/api/support/tickets", {
+      method: "POST",
+      headers: { "x-forwarded-for": nextIp() },
+      body: formData,
+    });
+
+    const res = await POST(req);
+    expect(res.status).toBe(503);
+    expect(mocks.upload).toHaveBeenCalledTimes(2);
+    expect(mocks.remove).toHaveBeenCalledTimes(1);
+    expect(mocks.remove.mock.calls[0][0]).toHaveLength(1);
+    expect(mocks.rpc).not.toHaveBeenCalled();
+  });
+
   it("rejects attachments with invalid magic bytes (400)", async () => {
     const formData = new FormData();
     formData.set("operationId", "12345678-1234-4234-8234-123456789abc");

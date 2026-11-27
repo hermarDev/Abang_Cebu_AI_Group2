@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState, type ChangeEvent, type FormEvent } from "react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { MediaPreviewModal } from "@/components/ui/MediaPreviewModal";
 import {
@@ -29,7 +30,11 @@ import { Select } from "@/components/ui/Select";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { cn } from "@/components/ui/cn";
 import { statusBadgeVariant } from "@/features/admin/status-badge";
-import { LandlordMobileNav } from "@/features/landlord/LandlordMobileNav";
+
+const LandlordMobileNav = dynamic(
+  () => import("@/features/landlord/LandlordMobileNav").then((module) => module.LandlordMobileNav),
+  { ssr: false },
+);
 import {
   SUPPORT_CATEGORIES,
   SUPPORT_CATEGORY_LABELS,
