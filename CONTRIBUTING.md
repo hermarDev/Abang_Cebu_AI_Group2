@@ -26,7 +26,7 @@ git switch -c feature/short-description
 
 If `origin` points to the central repository rather than your fork, use `origin` instead of `upstream`. If the fast-forward fails, inspect the branch divergence with the maintainer; do not force-reset your work.
 
-Use `feature/`, `fix/`, `docs/` or `chore/` followed by a short description. Jira is not required. See the [Git workflow](docs/architecture/git-workflow.md) for team conventions. Confirm ownership before editing files another contributor is changing.
+Use `feature/`, `fix/`, `docs/` or `chore/` followed by a short description. Track work with GitHub Issues and Pull Requests. See the [Git workflow](docs/architecture/git-workflow.md) for team conventions. Confirm ownership before editing files another contributor is changing.
 
 ## Keep the change focused
 

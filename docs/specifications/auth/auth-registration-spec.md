@@ -4,10 +4,9 @@
 
 **Document Version:** 1.0.0  
 **Status:** Approved Architecture Specification  
-**Jira Ticket Reference:** [SCRUM-56](https://abangcebuai.atlassian.net/browse/SCRUM-56) — *Specify User Registration Workflow & Data Contract*  
 **Sprint:** Sprint 1 (Foundations & Core Infrastructure)  
 **Author:** John Lloyd Ando (Engineering Team)  
-**Database Foundation:** [SCRUM-54](https://abangcebuai.atlassian.net/browse/SCRUM-54) (`supabase/migrations/20260929000001_users_and_profiles.sql`)  
+**Database Foundation:** SCRUM-54 (`supabase/migrations/20260929000001_users_and_profiles.sql`)  
 **Related Specifications:**
 - Users & Profiles Table Schema: [`docs/database/users-and-profiles-schema.md`](../../database/users-and-profiles-schema.md)
 - Product Vision & Platform Goals: [`docs/architecture/what-is-abangcebu-ai.md`](../../architecture/what-is-abangcebu-ai.md)

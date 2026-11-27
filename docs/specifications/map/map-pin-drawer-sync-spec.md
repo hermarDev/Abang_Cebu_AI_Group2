@@ -2,7 +2,6 @@
 
 **Document Version:** 1.0.0  
 **Status:** Approved Architecture Specification  
-**Jira Ticket Reference:** [SCRUM-120](https://abangcebuai.atlassian.net/browse/SCRUM-120) — *Sub-Process 2.4: Bidirectional Pin Marker & 3-Snap Gesture Drawer Flowchart*  
 **Sprint:** Sprint 2 (Spatial Discovery & Map Architecture Track)  
 **Author:** Karla Hiyas (Engineering Team) & Hermar Centillas (Lead Architect)  
 **Reviewed by:** Hermar Centillas (Lead / Scrum Master)  
@@ -10,7 +9,7 @@
 - **Draw.io Editable XML:** [`docs/flowcharts/map-pin-drawer-sync.drawio`](../../flowcharts/map-pin-drawer-sync.drawio)
 - **Vector PDF Document:** [`docs/pdf/map-pin-drawer-sync.pdf`](../../pdf/map-pin-drawer-sync.pdf)
 - **High-Resolution PNG (200 DPI):** [`docs/assets/flowcharts/map-pin-drawer-sync.png`](../../assets/flowcharts/map-pin-drawer-sync.png)
-- **Master Flowchart Link:** [`docs/flowcharts/map-master-orchestration.drawio`](../../flowcharts/map-master-orchestration.drawio) ([SCRUM-116](https://abangcebuai.atlassian.net/browse/SCRUM-116))
+- **Master Flowchart Link:** [`docs/flowcharts/map-master-orchestration.drawio`](../../flowcharts/map-master-orchestration.drawio) (SCRUM-116)
 
 ---
 
@@ -43,7 +42,7 @@ In a map-first real estate experience, users continuously switch attention betwe
 
 | Node ID | Shape | Step Name | Technical Execution & Data Contract |
 |---|---|---|---|
-| `node_start` | Stadium | **START** | Entry from Multi-Criteria Filter Pills Sub-Process 2.3 ([SCRUM-119](https://abangcebuai.atlassian.net/browse/SCRUM-119)) via Connector `(D)`. |
+| `node_start` | Stadium | **START** | Entry from Multi-Criteria Filter Pills Sub-Process 2.3 (SCRUM-119) via Connector `(D)`. |
 | `node_user_interaction` | Parallelogram | **User Interacts with Map Canvas, Marker Pin, or Result Card** | Captures touch, pointer hover, click, or drag events across map and drawer surfaces. |
 | `node_pin_decision` | Diamond | **Interaction on Marker Pin?** | Evaluates whether event originated from an SVG map marker. Strictly binary: **YES** / **NO**. |
 | `node_pin_extract` | Rectangle | **Extract listing_id from SVG Price Pill Marker** | Reads `e.features[0].properties.id` from MapLibre click event payload. |
@@ -57,7 +56,7 @@ In a map-first real estate experience, users continuously switch attention betwe
 | `node_mobile_snap` | Rectangle | **Execute 3-Snap Gesture Transition** | *YES Branch:* Evaluates drag velocity and snaps sheet to `88px`, `48dvh`, or `88dvh`. |
 | `node_desktop_drawer` | Rectangle | **Toggle Desktop Floating Sidebar** | *NO Branch:* Animates expand/collapse state of 408px sidebar panel. |
 | `node_intent_decision` | Diamond | **High-Intent Action Triggered?** | Convergence check: evaluates if user clicked a gated CTA (Favorite heart, View Phone, Book Viewing). Strictly binary: **YES** / **NO**. |
-| `node_connector_g` | Circle (G) | **Connector (G)** | *YES Branch:* Transfers execution to Sub-Process 2.5: High-Intent Action Interception & Auth Gatekeeper ([SCRUM-121](https://abangcebuai.atlassian.net/browse/SCRUM-121)). |
+| `node_connector_g` | Circle (G) | **Connector (G)** | *YES Branch:* Transfers execution to Sub-Process 2.5: High-Intent Action Interception & Auth Gatekeeper (SCRUM-121). |
 | `node_dismiss_decision` | Diamond | **User Dismisses or Pans Map?** | *NO Branch:* Checks if user tapped outside or panned the map away from active selection. Strictly binary: **YES** / **NO**. |
 | `node_reset_highlights` | Rectangle | **Reset Active Highlight States** | *YES Branch:* Reverts `featureState` on pins, removes active borders on cards, loops back to interaction bus. |
 | `node_retain_selection` | Rectangle | **Retain Active Selection & Visible Details** | *NO Branch:* Maintains card spotlight and active pin state while user inspects listing photos. |
@@ -147,8 +146,8 @@ export function calculateSnapTarget(
 
 ## 5. Downstream Integration Contract
 
-1. **Inbound Handoff:** Received from Multi-Criteria Filter Pills ([SCRUM-119](https://abangcebuai.atlassian.net/browse/SCRUM-119)) via Connector `(D)`.
-2. **Outbound Handoff:** High-intent interactions (favorite toggle, phone reveal, viewing schedule) transfer control via Connector `(G)` to Sub-Process 2.5: High-Intent Action Interception & Auth Gatekeeper ([SCRUM-121](https://abangcebuai.atlassian.net/browse/SCRUM-121)).
+1. **Inbound Handoff:** Received from Multi-Criteria Filter Pills (SCRUM-119) via Connector `(D)`.
+2. **Outbound Handoff:** High-intent interactions (favorite toggle, phone reveal, viewing schedule) transfer control via Connector `(G)` to Sub-Process 2.5: High-Intent Action Interception & Auth Gatekeeper (SCRUM-121).
 3. **Quality & Performance SLA:**
    - Feature state updates for pin hover must execute under `16ms` (60 FPS WebGL frame budget).
    - Card scroll into view must not jump or freeze ongoing touch drags.

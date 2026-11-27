@@ -2,7 +2,6 @@
 
 **Document Version:** 1.0.0  
 **Status:** Approved Architecture Specification  
-**Jira Ticket Reference:** [SCRUM-121](https://abangcebuai.atlassian.net/browse/SCRUM-121) — *Sub-Process 2.5: High-Intent Action Interception & Auth Gatekeeper Flowchart*  
 **Sprint:** Sprint 2 (Spatial Discovery & Map Architecture Track)  
 **Author:** Hermar Centillas (Lead Architect)  
 **Reviewed by:** Hermar Centillas (Lead / Scrum Master)  
@@ -10,7 +9,7 @@
 - **Draw.io Editable XML:** [`docs/flowcharts/map-auth-gatekeeper.drawio`](../../flowcharts/map-auth-gatekeeper.drawio)
 - **Vector PDF Document:** [`docs/pdf/map-auth-gatekeeper.pdf`](../../pdf/map-auth-gatekeeper.pdf)
 - **High-Resolution PNG (200 DPI):** [`docs/assets/flowcharts/map-auth-gatekeeper.png`](../../assets/flowcharts/map-auth-gatekeeper.png)
-- **Master Flowchart Link:** [`docs/flowcharts/map-master-orchestration.drawio`](../../flowcharts/map-master-orchestration.drawio) ([SCRUM-116](https://abangcebuai.atlassian.net/browse/SCRUM-116))
+- **Master Flowchart Link:** [`docs/flowcharts/map-master-orchestration.drawio`](../../flowcharts/map-master-orchestration.drawio) (SCRUM-116)
 
 ---
 
@@ -38,7 +37,7 @@ The gatekeeper intercepts three critical user actions:
 ### 1.3 Frictionless Deferred Intent Pattern
 When an unauthenticated guest triggers a gated action:
 1. The system **serializes the pending intent** (action type, target listing ID, map coordinates `[lng, lat]`, zoom level, and active filter state) into browser `sessionStorage`.
-2. A lightweight, contextual Auth Modal opens (linking via Connector `(L)` to Module 1 [SCRUM-105](https://abangcebuai.atlassian.net/browse/SCRUM-105) and [SCRUM-104](https://abangcebuai.atlassian.net/browse/SCRUM-104)).
+2. A lightweight, contextual Auth Modal opens (linking via Connector `(L)` to Module 1 SCRUM-105 and SCRUM-104).
 3. Upon successful login or signup verification, the gatekeeper **hydrates the session, restores the exact viewport, and automatically executes the pending action** without requiring the tenant to re-trigger the action.
 4. If the tenant dismisses the modal, the guest discovery view is seamlessly retained without disruptive page reloads.
 
@@ -48,7 +47,7 @@ When an unauthenticated guest triggers a gated action:
 
 | Node ID | Shape | Step Name | Technical Execution & Data Contract |
 |---|---|---|---|
-| `node_start` | Stadium | **START** | Entry from Sub-Process 2.4 ([SCRUM-120](https://abangcebuai.atlassian.net/browse/SCRUM-120)) via Connector `(G)`. |
+| `node_start` | Stadium | **START** | Entry from Sub-Process 2.4 (SCRUM-120) via Connector `(G)`. |
 | `node_trigger_action` | Parallelogram | **User Triggers High-Intent Action on Card or Pin** | Event fired when user clicks Heart Favorite, clicks Reveal Phone Number, or clicks Schedule Viewing. |
 | `node_auth_decision` | Diamond | **User Authenticated?** | Checks Supabase auth session (`supabase.auth.getUser()`). Strictly binary: **YES** / **NO**. |
 | `node_schedule_decision` | Diamond | **Action: Schedule Viewing?** | *YES Branch of Diamond 1:* Checks if triggered action equals `'schedule_viewing'`. Strictly binary: **YES** / **NO**. |
@@ -63,7 +62,7 @@ When an unauthenticated guest triggers a gated action:
 | `node_serialize_intent` | Rectangle | **Capture Pending Action & Viewport** | *NO Branch of Diamond 1:* Serializes `{ action, listing_id, lng, lat, zoom, filters }`. |
 | `node_store_session` | Rectangle | **Persist Intent to SessionStorage** | Stores payload under key `abangcebu_pending_intent`. |
 | `node_launch_auth_modal` | Rectangle | **Launch Frictionless Auth Modal** | Pops contextual auth modal with custom message: *"Sign in to schedule a viewing for this unit"*. |
-| `node_connector_l` | Circle (L) | **Connector (L)** | Handoff to Auth Login & Session Lifecycle Module 1 ([SCRUM-105](https://abangcebuai.atlassian.net/browse/SCRUM-105)). |
+| `node_connector_l` | Circle (L) | **Connector (L)** | Handoff to Auth Login & Session Lifecycle Module 1 (SCRUM-105). |
 | `node_auth_result_decision` | Diamond | **User Successfully Authenticates?** | Listens for auth state change or modal dismissal. Strictly binary: **YES** / **NO**. |
 | `node_dismiss_auth` | Rectangle | **Dismiss Modal & Retain View** | *NO Branch:* User closed dialog without signing in; clears pending intent and maintains current map. |
 | `node_resume_intent` | Rectangle | **Hydrate Session & Resume** | *YES Branch:* Reads `abangcebu_pending_intent`, verifies auth tokens, and auto-dispatches action. Loops back to action flow. |

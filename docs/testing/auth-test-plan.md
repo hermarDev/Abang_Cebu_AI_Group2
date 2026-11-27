@@ -5,7 +5,6 @@
 **Document Version:** 1.0.0  
 **Document Status:** Approved Test Specification (Pre-Implementation)  
 **Execution Phase:** Pending Feature Development (Sprint 2 Execution)  
-**Jira Ticket References:** [SCRUM-69](https://abangcebuai.atlassian.net/browse/SCRUM-69), [SCRUM-109](https://abangcebuai.atlassian.net/browse/SCRUM-109) (Master Plan), [SCRUM-110](https://abangcebuai.atlassian.net/browse/SCRUM-110) (Registration), [SCRUM-111](https://abangcebuai.atlassian.net/browse/SCRUM-111) (Login), [SCRUM-112](https://abangcebuai.atlassian.net/browse/SCRUM-112) (Reset & Sign-Out)
 **Sprint:** Sprint 1 (Foundations & Core Infrastructure)  
 **Author:** Jenny Villamor (QA Team)  
 **Reviewed & Audited by:** Hermar Centillas (Lead / Scrum Master)  
@@ -82,7 +81,7 @@ This QA Test Plan establishes a formal, production-grade quality assurance frame
 
 ## 4. Master QA Test Case Execution Matrix (100 Scenarios)
 
-### Suite 1: User Registration & PKCE Verification (25 Scenarios) ([SCRUM-110](https://abangcebuai.atlassian.net/browse/SCRUM-110))
+### Suite 1: User Registration & PKCE Verification (25 Scenarios) (SCRUM-110)
 
 | Test ID | Test Classification | Test Steps | Expected Confirmation / Result | Execution Status | Priority |
 |---|---|---|---|---|---|
@@ -112,7 +111,7 @@ This QA Test Plan establishes a formal, production-grade quality assurance frame
 | **TC-REG-24** | Registration - Unicode & Philippine Character Support | 1. Register with full_name containing Philippine characters: 'José Peña Niño'. | 1. Registration succeeds.<br>2. Name stored and retrieved with exact UTF-8 character encoding. | Pending Dev | P2 (Medium) |
 | **TC-REG-25** | Registration - Concurrent Registration Race Handling | 1. Submit two simultaneous registration requests with identical email from two different network threads. | 1. Exactly one registration succeeds.<br>2. Second request handled gracefully via unique constraint without crashing. | Pending Dev | P1 (High) |
 
-### Suite 2: User Login & Session Token Lifecycle (25 Scenarios) ([SCRUM-111](https://abangcebuai.atlassian.net/browse/SCRUM-111))
+### Suite 2: User Login & Session Token Lifecycle (25 Scenarios) (SCRUM-111)
 
 | Test ID | Test Classification | Test Steps | Expected Confirmation / Result | Execution Status | Priority |
 |---|---|---|---|---|---|
@@ -142,7 +141,7 @@ This QA Test Plan establishes a formal, production-grade quality assurance frame
 | **TC-LOG-24** | Login - Network Disconnection During Login Request | 1. Simulate offline state (navigator.onLine=false) right upon submitting login credentials. | 1. Client displays toast: 'Network connection lost. Please check your connection and retry.'<br>2. User input preserved in form fields. | Pending Dev | P1 (High) |
 | **TC-LOG-25** | Login - Audit Logging of Successful & Failed Logins | 1. Execute 1 successful and 1 failed login attempt.<br>2. Inspect auth audit log records. | 1. Both events recorded with timestamp, masked identifier, IP hash, and status.<br>2. Complies with RA 10173 data privacy rules. | Pending Dev | P1 (High) |
 
-### Suite 3: Self-Service Password Recovery (15 Scenarios) ([SCRUM-112](https://abangcebuai.atlassian.net/browse/SCRUM-112))
+### Suite 3: Self-Service Password Recovery (15 Scenarios) (SCRUM-112)
 
 | Test ID | Test Classification | Test Steps | Expected Confirmation / Result | Execution Status | Priority |
 |---|---|---|---|---|---|
@@ -162,7 +161,7 @@ This QA Test Plan establishes a formal, production-grade quality assurance frame
 | **TC-RST-14** | Password Reset - Open-Redirect Guard on Recovery Callback | 1. Access recovery callback with ?next=https://phishing-site.com. | 1. isSafeRedirectUrl() strips external domain.<br>2. Safely routes to /reset-password. | Pending Dev | P0 (Critical) |
 | **TC-RST-15** | Password Reset - Security Audit Log Emission | 1. Complete successful password reset.<br>2. Query auth security audit logs. | 1. Event PASSWORD_RESET_COMPLETED recorded with timestamp and masked identifier.<br>2. Notification email sent to user confirming password change. | Pending Dev | P1 (High) |
 
-### Suite 4: User Sign-Out & Multi-Tab Synchronization (15 Scenarios) ([SCRUM-112](https://abangcebuai.atlassian.net/browse/SCRUM-112))
+### Suite 4: User Sign-Out & Multi-Tab Synchronization (15 Scenarios) (SCRUM-112)
 
 | Test ID | Test Classification | Test Steps | Expected Confirmation / Result | Execution Status | Priority |
 |---|---|---|---|---|---|
@@ -182,7 +181,7 @@ This QA Test Plan establishes a formal, production-grade quality assurance frame
 | **TC-OUT-14** | Sign-Out - Open-Redirect Defense on Post-Logout Redirect | 1. Call POST /api/auth/logout with redirectUrl=https://external-phish.com. | 1. isSafeRedirectUrl() sanitizes redirect target.<br>2. Falls back to default internal /login. | Pending Dev | P0 (Critical) |
 | **TC-OUT-15** | Sign-Out - Audit Log Emission for Sign-Out Event | 1. Execute sign-out.<br>2. Check audit log entries. | 1. Event USER_LOGGED_OUT logged with timestamp, user_id, scope, and IP hash. | Pending Dev | P1 (High) |
 
-### Suite 5: Security, Rate Limiting & Edge Defense (10 Scenarios) ([SCRUM-109](https://abangcebuai.atlassian.net/browse/SCRUM-109))
+### Suite 5: Security, Rate Limiting & Edge Defense (10 Scenarios) (SCRUM-109)
 
 | Test ID | Test Classification | Test Steps | Expected Confirmation / Result | Execution Status | Priority |
 |---|---|---|---|---|---|
@@ -197,7 +196,7 @@ This QA Test Plan establishes a formal, production-grade quality assurance frame
 | **TC-SEC-09** | Security - Clickjacking Frame Protection | 1. Attempt to embed /login inside iframe on external domain. | 1. X-Frame-Options: DENY and CSP frame-ancestors 'none' prevent embedding. | Pending Dev | P1 (High) |
 | **TC-SEC-10** | Security - PII Masking in Audit Logs | 1. Trigger auth errors and check server log outputs. | 1. Passwords and tokens never logged.<br>2. Emails masked (e.g. m***@example.com) for RA 10173 compliance. | Pending Dev | P1 (High) |
 
-### Suite 6: Error Handling & Account Suspension UX (10 Scenarios) ([SCRUM-109](https://abangcebuai.atlassian.net/browse/SCRUM-109))
+### Suite 6: Error Handling & Account Suspension UX (10 Scenarios) (SCRUM-109)
 
 | Test ID | Test Classification | Test Steps | Expected Confirmation / Result | Execution Status | Priority |
 |---|---|---|---|---|---|
@@ -216,7 +215,7 @@ This QA Test Plan establishes a formal, production-grade quality assurance frame
 
 ## 5. Requirements Traceability Matrix (RTM)
 
-| Jira Ticket | Feature Specification | Covered Test Cases |
+| Reference | Feature Specification | Covered Test Cases |
 |---|---|---|
 | **SCRUM-56** | User Registration & PKCE Contract | `TC-REG-01`, `TC-REG-02`, `TC-REG-03`, `TC-REG-04`, `TC-REG-05`, `TC-REG-06`, `TC-REG-07`, `TC-VER-01`, `TC-VER-02`, `TC-VER-03`, `TC-VER-04` |
 | **SCRUM-57** | User Login & Session Token Lifecycle | `TC-LOG-01`, `TC-LOG-02`, `TC-LOG-03`, `TC-LOG-04`, `TC-LOG-05`, `TC-LOG-06`, `TC-LOG-07`, `TC-LOG-08` |

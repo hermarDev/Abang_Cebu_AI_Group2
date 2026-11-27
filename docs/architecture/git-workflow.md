@@ -1,6 +1,6 @@
 # Git and collaboration workflow
 
-Hermar Centillas and Edirch Bardilas are the current team. Coordinate ownership before changing shared files. Submit focused changes through a pull request to `main`; a related GitHub issue or pull request may be linked when useful. Jira is not required.
+Hermar Centillas and Edirch Bardilas are the current team. Coordinate ownership before changing shared files. Submit focused changes through a pull request to `main`; link a related GitHub issue or pull request when useful.
 
 ## Start a branch
 

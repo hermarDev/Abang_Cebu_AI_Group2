@@ -1,7 +1,5 @@
 # Sprint 2 Deliverables — Module 3: Landlord Onboarding & Listing Management
 
-**Jira:** [SCRUM-125](https://abangcebuai.atlassian.net/browse/SCRUM-125)  
-**Status:** Complete; all 4 standardized flowcharts audited (0 defects) and synchronized to Jira attachments (.drawio, .png, .pdf).
 
 ## Specification
 - [Landlord listing management specification](landlord-listing-management-spec.md)
@@ -19,4 +17,3 @@
 ## Validation
 - 100% ANSI X3.5 / ISO 5807 compliance verified via `python3 scripts/audit_flowcharts.py --sprint2` (0 defects across all 7 Quality Gates).
 - High-contrast academic monochrome (`fillColor=#FFFFFF`, `strokeColor=#000000`), 1050px canvas width, central vertical spine centered at `x = 500`.
-- All 12 artifact deliverables (.drawio, .png, .pdf across 4 workflows) uploaded and synchronized to Jira issue SCRUM-125.

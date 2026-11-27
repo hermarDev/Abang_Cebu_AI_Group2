@@ -4,11 +4,10 @@
 
 **Document Version:** 1.0.0  
 **Status:** Approved Architecture Specification  
-**Jira Ticket Reference:** [SCRUM-59](https://abangcebuai.atlassian.net/browse/SCRUM-59) — *Specify Password Reset & Recovery Workflow*  
 **Sprint:** Sprint 1 (Foundations & Core Infrastructure)  
 **Author:** Joan Marie Encallado Inting (Engineering Team)  
 **Reviewed & Audited by:** Hermar Centillas (Lead / Scrum Master)  
-**Database Foundation:** [SCRUM-54](https://abangcebuai.atlassian.net/browse/SCRUM-54) (`supabase/migrations/20260929000001_users_and_profiles.sql`)  
+**Database Foundation:** SCRUM-54 (`supabase/migrations/20260929000001_users_and_profiles.sql`)  
 **Related Specifications:**
 - User Logout & Session Invalidation: [`docs/specifications/auth/auth-logout-spec.md`](./auth-logout-spec.md)
 - User Login & Session Token Lifecycle: [`docs/specifications/auth/auth-session-lifecycle.md`](./auth-session-lifecycle.md)
@@ -404,9 +403,9 @@ To protect against malicious open-redirect injection in the email action link (e
 
 ---
 
-## 10. Acceptance Criteria Verification (Jira SCRUM-59)
+## 10. Acceptance Criteria Verification (issue tracker SCRUM-59)
 
-| Jira SCRUM-59 Requirement | Specification Coverage | Architecture Verification |
+| issue tracker SCRUM-59 Requirement | Specification Coverage | Architecture Verification |
 |---|---|---|
 | **Detail password reset request endpoint, rate limiting to prevent email spamming, and generic response handling** | Covered in **Section 3 & 9** | Specifies 15-min rolling rate limits, Cloudflare Turnstile bot deterrence, constant-time artificial jitter, and generic anti-enumeration response messages. |
 | **Specify email link format, one-time token expiration handling, and secure redirect to the reset form** | Covered in **Section 4, 5 & 8** | Details GoTrue PKCE action link format, 60-minute token validity window, single-use invalidation, and `/auth/callback` Route Handler with `isSafeRedirectUrl()` validation. |

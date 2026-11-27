@@ -3,7 +3,6 @@
 **Sprint 1 System Architecture Specification**  
 **Document Version:** 1.0.0  
 **Status:** Approved & Active Design Specification  
-**Jira Ticket Reference:** [SCRUM-68](https://abangcebuai.atlassian.net/browse/SCRUM-68) — *Design Profile Page Wireframe / Mockup*  
 **Sprint:** Sprint 1 (Foundations & Core Infrastructure)  
 **Author:** Angel Crushein Yaun (UI/UX Designer)  
 **Reviewed & Audited by:** Hermar Centillas (Lead / Scrum Master)  
@@ -505,7 +504,6 @@ All profile components, color tiers, and form elements map directly to the Tailw
 
 ### 8.1 Verification Checklist
 
-- [x] **Jira Traceability**: Document explicitly linked to Jira ticket [SCRUM-68](https://abangcebuai.atlassian.net/browse/SCRUM-68).
 - [x] **Balsamiq/Figma Blueprint Conventions**: Grayscale monochrome foundation, clean strokes, crossed `[X]` image placeholders, and authentic hardware device frames.
 - [x] **Desktop Viewport Specification (1440 × 900 · 16:10)**: Authentic MacBook Air chassis, 260px fixed dark sidebar navigation with active Profile & Settings link (`#047857`), Profile Header Hero Card (88px avatar, online indicator, trust badge pills, verified contact badges), accessible 3-tab bar, personal details form with corridor preferences, security snapshot with active sessions, anti-scam KYC verification gateway, and sticky bottom action bar.
 - [x] **Mobile Viewport Specification (393 × 852 · 100dvh)**: Authentic iPhone 16 Pro chassis, Dynamic Island, safe-area header with back navigation and shield icon, compact profile capsule, segmented 3-tab bar with 44x44px touch targets, single-column vertical form with 16px input rule, and persistent bottom tab bar.

@@ -2,8 +2,7 @@
 
 **Version:** 1.1.0  
 **Status:** Sprint 2 planning specification  
-**Jira:** [SCRUM-125](https://abangcebuai.atlassian.net/browse/SCRUM-125)  
-**Sprint 1 sources:** [SCRUM-54](https://abangcebuai.atlassian.net/browse/SCRUM-54), [SCRUM-55](https://abangcebuai.atlassian.net/browse/SCRUM-55), [SCRUM-62](https://abangcebuai.atlassian.net/browse/SCRUM-62)  
+**Sprint 1 sources:** SCRUM-54, SCRUM-55, SCRUM-62  
 **Related Sprint 2:** SCRUM-104–108 (authentication), SCRUM-116–121 (discovery and auth gatekeeper), SCRUM-126 (admin review).
 
 ## 1. Purpose and boundaries

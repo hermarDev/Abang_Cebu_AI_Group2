@@ -1,7 +1,6 @@
 # AbangCebuAI Mobile Map-First UI/UX & Wireframe Specifications
 **Sprint 1 System Architecture Specification**  
 *Document Version:* 1.0.0  
-*Jira Ticket Reference:* [SCRUM-64](https://abangcebuai.atlassian.net/browse/SCRUM-64) — *Design Landing Page Wireframe / Mockup*  
 *Author:* Angel Crushein Yaun (UI/UX Designer)  
 *Reviewed & Audited by:* Hermar Centillas (Lead / Scrum Master)  
 *Viewport Standard:* Mobile Small to Standard (393px × 852px, 100dvh)  

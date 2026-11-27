@@ -2,8 +2,7 @@
 
 **Version:** 1.0.2  
 **Status:** Sprint 2 planning specification (draft; independent QA and product/schema decisions pending)  
-**Jira:** [SCRUM-127](https://abangcebuai.atlassian.net/browse/SCRUM-127)  
-**Sprint 1 sources:** [SCRUM-61](https://abangcebuai.atlassian.net/browse/SCRUM-61) renter capabilities; [SCRUM-54](https://abangcebuai.atlassian.net/browse/SCRUM-54) identity/schema; [SCRUM-55](https://abangcebuai.atlassian.net/browse/SCRUM-55) RLS; [SCRUM-63](https://abangcebuai.atlassian.net/browse/SCRUM-63) permissions.  
+**Sprint 1 sources:** SCRUM-61 renter capabilities; SCRUM-54 identity/schema; SCRUM-55 RLS; SCRUM-63 permissions.  
 **Related Sprint 2:** SCRUM-116–120 map discovery; SCRUM-121 high-intent auth gate; SCRUM-125 listing lifecycle; SCRUM-126 moderation.
 
 ## 1. Purpose and boundaries

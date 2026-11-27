@@ -3,7 +3,6 @@
 **Sprint 1 System Architecture Specification**  
 **Document Version:** 1.0.0  
 **Status:** Approved & Active Design Specification  
-**Jira Ticket Reference:** [SCRUM-65](https://abangcebuai.atlassian.net/browse/SCRUM-65) — *Design Login Page Wireframe / Mockup*  
 **Sprint:** Sprint 1 (Foundations & Core Infrastructure)  
 **Author:** Neah Moneva (UI/UX Designer)  
 **Reviewed & Audited by:** Hermar Centillas (Lead / Scrum Master)  
@@ -434,7 +433,6 @@ All visual elements, spacing scales, and colors map directly to the Tailwind CSS
 
 ### 8.1 Verification Checklist
 
-- [x] **Jira Traceability**: Document explicitly linked to Jira ticket [SCRUM-65](https://abangcebuai.atlassian.net/browse/SCRUM-65).
 - [x] **Balsamiq/Figma Blueprint Conventions**: Grayscale monochrome foundation, clean strokes, crossed `[X]` placeholders, and authentic device frames.
 - [x] **Desktop Viewport Specification (1440 × 900)**: Authentic MacBook Air chassis, 50/50 split-screen architecture, Metro Cebu spatial map grid (N. Bacalso, Osmeña, IT Park, CIT-U), 3 trust pillars, and 440px centered login card.
 - [x] **Mobile Viewport Specification (393 × 852 · 100dvh)**: Authentic iPhone 16 Pro chassis, Dynamic Island, top safe-area `← Back to Map` button, single-column thumb zone ergonomics, and Safari bottom address bar.

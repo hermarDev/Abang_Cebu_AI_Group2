@@ -4,11 +4,10 @@
 
 **Document Version:** 1.0.0  
 **Status:** Approved Architecture Specification  
-**Jira Ticket Reference:** [SCRUM-60](https://abangcebuai.atlassian.net/browse/SCRUM-60) — *Document Authentication Error Handling & Edge Cases*  
 **Sprint:** Sprint 1 (Foundations & Core Infrastructure)  
 **Author:** junrilldisoy90 (Engineering Team)  
 **Reviewed & Audited by:** Hermar Centillas (Lead / Scrum Master)  
-**Database Foundation:** [SCRUM-54](https://abangcebuai.atlassian.net/browse/SCRUM-54) (`supabase/migrations/20260929000001_users_and_profiles.sql`)  
+**Database Foundation:** SCRUM-54 (`supabase/migrations/20260929000001_users_and_profiles.sql`)  
 **Related Specifications:**
 - Architecture Flowchart (SCRUM-108): [`docs/flowcharts/auth-error-handling-suspension.drawio`](../../flowcharts/auth-error-handling-suspension.drawio)
 - Password Reset & Recovery Specification: [`docs/specifications/auth/auth-password-reset-spec.md`](./auth-password-reset-spec.md)
@@ -286,9 +285,9 @@ graph TD
 
 ---
 
-## 7. Acceptance Criteria Verification (Jira SCRUM-60)
+## 7. Acceptance Criteria Verification (issue tracker SCRUM-60)
 
-| Jira SCRUM-60 Acceptance Criteria | Specification Section | Implementation Verification |
+| issue tracker SCRUM-60 Acceptance Criteria | Specification Section | Implementation Verification |
 |---|---|---|
 | **Catalog common auth failure scenarios (invalid credentials, unverified email, account locked/suspended, expired tokens)** | Section 3 | 28 distinct error codes defined covering input validation, security, lifecycle, rate limiting, and network failures. |
 | **Define consistent JSON error format with error codes, clear developer details, and user-safe messages** | Section 2 | Standardized `StandardAuthError` and `AuthErrorResponse` schemas with `code`, `message`, `status`, `feedbackMode`, `traceId`, and `actionHint`. |

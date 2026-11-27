@@ -3,7 +3,6 @@
 *Document Version:* 1.0.0  
 *Author:* Michelle Estoy (Data Access Control & Security Specification)  
 *Reviewed & Implemented by:* Hermar Centillas (Lead / Scrum Master)  
-*Jira Reference:* [SCRUM-55](https://abangcebuai.atlassian.net/browse/SCRUM-55)  
 *Status:* Approved & Production-Ready  
 
 ---
