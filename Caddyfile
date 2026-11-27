@@ -24,6 +24,20 @@ www.abangcebu.tech {
 
 # 2. Main Production Site
 abangcebu.tech {
+    encode zstd gzip
+
+    @maplibre path /maplibre-gl/*
+    header @maplibre {
+        Cache-Control "public, max-age=31536000, immutable"
+        defer
+    }
+
+    @mapstyles path /styles/*
+    header @mapstyles {
+        Cache-Control "public, max-age=3600, stale-while-revalidate=86400"
+        defer
+    }
+
     # Structured JSON access logging with rotation for CrowdSec acquisition
     log {
         output file /var/log/caddy/access.log {

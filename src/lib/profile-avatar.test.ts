@@ -1,13 +1,19 @@
-import { beforeEach, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({ createAdminClient: vi.fn(), sign: vi.fn() }));
 vi.mock("server-only", () => ({}));
 vi.mock("@/lib/supabase/admin", () => ({ createAdminClient: mocks.createAdminClient }));
-import { signProfileAvatar } from "./profile-avatar";
+import { invalidateProfileAvatarCache, resetProfileAvatarCache, signProfileAvatar } from "./profile-avatar";
 
 beforeEach(() => {
   vi.resetAllMocks();
+  vi.unstubAllEnvs();
+  resetProfileAvatarCache();
   mocks.createAdminClient.mockReturnValue({ storage: { from: () => ({ createSignedUrl: mocks.sign }) } });
+});
+
+afterEach(() => {
+  vi.unstubAllEnvs();
 });
 
 it("returns null when the signing client cannot initialize", async () => {
@@ -20,7 +26,17 @@ it("returns null when signing rejects", async () => {
   await expect(signProfileAvatar("abc123", "abc123/photo.webp")).resolves.toBeNull();
 });
 
-it("returns the signed URL when signing succeeds", async () => {
-  mocks.sign.mockResolvedValue({ data: { signedUrl: "https://example.test/photo" }, error: null });
-  await expect(signProfileAvatar("abc123", "abc123/photo.webp")).resolves.toBe("https://example.test/photo");
+it("returns the signed URL when signing succeeds and caches across calls until invalidated", async () => {
+  vi.stubEnv("VITEST", "");
+  mocks.sign
+    .mockResolvedValueOnce({ data: { signedUrl: "https://example.test/photo-1" }, error: null })
+    .mockResolvedValueOnce({ data: { signedUrl: "https://example.test/photo-2" }, error: null });
+
+  await expect(signProfileAvatar("abc123", "abc123/photo.webp")).resolves.toBe("https://example.test/photo-1");
+  await expect(signProfileAvatar("abc123", "abc123/photo.webp")).resolves.toBe("https://example.test/photo-1");
+  expect(mocks.sign).toHaveBeenCalledTimes(1);
+
+  invalidateProfileAvatarCache("abc123/photo.webp");
+  await expect(signProfileAvatar("abc123", "abc123/photo.webp")).resolves.toBe("https://example.test/photo-2");
+  expect(mocks.sign).toHaveBeenCalledTimes(2);
 });

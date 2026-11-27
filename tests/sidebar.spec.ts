@@ -155,3 +155,39 @@ test("short drawer scroll keeps account and appearance reachable", async ({ page
   await drawer.getByRole("link", { name: "Find rentals" }).click();
   await expect(drawer).toHaveCount(0);
 });
+
+test("sidebar navigation preserves mounted map canvas across overlay transitions", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.goto("/");
+  const canvas = page.locator("canvas.maplibregl-canvas");
+  await expect(canvas).toBeVisible();
+  await page.evaluate(() => {
+    (window as unknown as { __finderCanvas?: Element | null }).__finderCanvas = document.querySelector("canvas.maplibregl-canvas");
+  });
+
+  await page.getByRole("button", { name: "Open menu" }).click();
+  await page.getByRole("dialog", { name: "AbangCebu Menu" }).getByRole("link", { name: "Help Center" }).click();
+  await expect(page).toHaveURL(/\/help$/);
+
+  const overlay = page.locator("[data-finder-overlay]");
+  await expect(overlay).toBeVisible();
+  await expect(overlay.getByRole("heading", { name: "Help Center", level: 1 })).toBeVisible();
+  const keptAlive = await page.evaluate(() => {
+    const win = window as unknown as { __finderCanvas?: Element | null };
+    return Boolean(win.__finderCanvas && win.__finderCanvas.isConnected);
+  });
+  expect(keptAlive).toBe(true);
+
+  await overlay.getByRole("link", { name: "Back to map" }).click();
+  await expect(page).toHaveURL(/\/$/);
+  await expect(overlay).toHaveCount(0);
+  const sameCanvas = await page.evaluate(() => {
+    const win = window as unknown as { __finderCanvas?: Element | null };
+    return document.querySelector("canvas.maplibregl-canvas") === win.__finderCanvas;
+  });
+  expect(sameCanvas).toBe(true);
+
+  await page.goto("/help");
+  await expect(page.getByRole("heading", { name: "Help Center", level: 1 })).toBeVisible();
+  await expect(page.locator("[data-finder-overlay]")).toHaveCount(0);
+});

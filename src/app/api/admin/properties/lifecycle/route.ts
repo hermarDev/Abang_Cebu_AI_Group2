@@ -1,8 +1,10 @@
 import { revalidatePath } from "next/cache";
+import { invalidatePublicRentalsCache } from "@/server/rentals/public-rentals";
 import { adminLifecycleLimiter, adminRpc, jsonError, jsonOk, rateLimited, readJsonObject, requireActiveAdmin, validReason, validUuid } from "@/server/admin-access";
 
 const ADMIN_REVALIDATE_PATHS = ["/", "/landlord/dashboard", "/landlord/properties", "/landlord/map", "/admin/dashboard", "/admin/reviews", "/admin/audit"] as const;
 function revalidateAdminPaths() {
+  invalidatePublicRentalsCache();
   try {
     for (const path of ADMIN_REVALIDATE_PATHS) revalidatePath(path);
   } catch { /* ignore outside Next request context */ }

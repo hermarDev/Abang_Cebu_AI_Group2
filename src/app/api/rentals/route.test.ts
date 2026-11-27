@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { publicRentalsLimiter } from "@/server/api-limiters";
-import { resetSignedPhotoCache } from "@/server/rentals/public-rentals";
+import { invalidatePublicRentalsCache, resetSignedPhotoCache } from "@/server/rentals/public-rentals";
 import { GET } from "./route";
 
 const { createClient, query, createSignedUrls } = vi.hoisted(() => {
@@ -14,6 +14,7 @@ beforeEach(() => {
   vi.resetAllMocks();
   publicRentalsLimiter.reset();
   resetSignedPhotoCache();
+  invalidatePublicRentalsCache();
   createClient.mockResolvedValue({ from: vi.fn((table) => { expect(table).toBe("listings"); return query; }) });
   query.select.mockReturnValue(query);
   query.eq.mockReturnValue(query);
@@ -26,7 +27,7 @@ describe("GET /api/rentals", () => {
     const response = await GET();
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({ rentals: [] });
-    expect(response.headers.get("cache-control")).toBe("no-store");
+    expect(response.headers.get("cache-control")).toBe("public, max-age=30, stale-while-revalidate=60");
     const projection = query.select.mock.calls[0][0].split(",");
     expect(projection).toContain("title");
     expect(projection).not.toContain("*");

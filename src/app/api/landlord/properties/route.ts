@@ -1,4 +1,5 @@
 import { revalidatePath } from "next/cache";
+import { invalidatePublicRentalsCache } from "@/server/rentals/public-rentals";
 import { landlordSubmissionsLimiter } from "@/server/api-limiters";
 import { createRoleGuard } from "@/server/role-access";
 
@@ -62,6 +63,7 @@ export async function POST(request: Request) {
     return reply("Submission could not be completed. Please retry.", 503);
   }
 
+  invalidatePublicRentalsCache();
   try {
     for (const path of ["/landlord/dashboard", "/landlord/properties", "/landlord/map"]) {
       revalidatePath(path);

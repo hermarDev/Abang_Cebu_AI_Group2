@@ -105,6 +105,7 @@ function SavedRentalsSession({ userId }: { userId: string }) {
       });
       if (!response.ok) throw new Error("restore failed");
       setRentals((current) => current.some((item) => item.id === rental.id) ? current : [rental, ...current]);
+      if (typeof window !== "undefined") window.dispatchEvent(new Event("abangcebu:favorites-updated"));
       notify("success", "saved-rental-restored", "Rental restored to your saved list.");
     } catch {
       notify("error", "saved-rental-restore-failed", "Rental could not be restored. Please try again.");
@@ -130,6 +131,7 @@ function SavedRentalsSession({ userId }: { userId: string }) {
         throw new Error(message);
       }
       setRentals((current) => current.filter((rental) => rental.id !== id));
+      if (typeof window !== "undefined") window.dispatchEvent(new Event("abangcebu:favorites-updated"));
       notify("success", `saved-rental-removed-${id}`, "Rental removed from your saved list.", removedRental ? { action: { label: "Undo", onClick: () => { void restoreRental(removedRental); } } } : undefined);
       return true;
     } catch (removeError) {

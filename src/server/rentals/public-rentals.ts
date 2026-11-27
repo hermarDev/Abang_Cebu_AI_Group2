@@ -13,11 +13,18 @@ export const PUBLIC_SUBMITTED_STATUSES = ["approved"] as const;
 
 const SIGNED_PHOTO_CACHE_TTL_MS = 45 * 60 * 1000;
 const SIGNED_PHOTO_CACHE_LIMIT = 2_000;
-// shortcut: process-local signed URL cache; move to shared cache if scaled beyond one instance.
+const PUBLIC_RENTALS_CACHE_TTL_MS = 30 * 1000;
+// shortcut: process-local signed URL & public inventory caches; move to shared cache if scaled beyond one instance.
 const signedPhotoCache = new Map<string, { url: string; expiresAt: number }>();
+const publicRentalsCache = new Map<string, { result: Extract<PublicRentalsResult, { status: "ok" }>; expiresAt: number }>();
+const publicRentalsInFlight = new Map<string, Promise<PublicRentalsResult>>();
 
 export function resetSignedPhotoCache() {
   signedPhotoCache.clear();
+}
+
+export function invalidatePublicRentalsCache() {
+  publicRentalsCache.clear();
 }
 
 function isSubmittedStatus(value: unknown): value is (typeof PUBLIC_SUBMITTED_STATUSES)[number] {
@@ -71,6 +78,34 @@ export type PublicRentalsResult =
 // Single public inventory loader (ARCH-01): finder, assistant and favorites all
 // read the same two sources through the same mappers and visibility policy.
 export async function loadPublicRentals(
+  supabase: ServerSupabase,
+  targetId?: string | null,
+  options: { signPhotos?: boolean } = {},
+): Promise<PublicRentalsResult> {
+  if (!targetId && !process.env.VITEST) {
+    const cacheKey = options.signPhotos === false ? "unsigned" : "signed";
+    const cached = publicRentalsCache.get(cacheKey);
+    if (cached && cached.expiresAt > Date.now()) return cached.result;
+    if (cached) publicRentalsCache.delete(cacheKey);
+    const pending = publicRentalsInFlight.get(cacheKey);
+    if (pending) return pending;
+
+    const loadPromise = fetchPublicRentals(supabase, null, options).then((result) => {
+      if (result.status === "ok" && result.complete) {
+        publicRentalsCache.set(cacheKey, { result, expiresAt: Date.now() + PUBLIC_RENTALS_CACHE_TTL_MS });
+      }
+      return result;
+    }).finally(() => {
+      publicRentalsInFlight.delete(cacheKey);
+    });
+    publicRentalsInFlight.set(cacheKey, loadPromise);
+    return loadPromise;
+  }
+
+  return fetchPublicRentals(supabase, targetId, options);
+}
+
+async function fetchPublicRentals(
   supabase: ServerSupabase,
   targetId?: string | null,
   options: { signPhotos?: boolean } = {},
