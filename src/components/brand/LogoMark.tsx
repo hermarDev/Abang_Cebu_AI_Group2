@@ -1,5 +1,6 @@
 import React from "react";
-import { LOGO_MARK_DATA } from "./brand-assets";
+
+const LOGO_MARK_SRC = "/icons/logo_mark.svg";
 
 export interface LogoMarkProps extends React.SVGProps<SVGSVGElement> {
   size?: number | string;
@@ -23,7 +24,7 @@ export function LogoMark({
       {...props}
     >
       <title>AbangCebu Logo Mark</title>
-      <image href={LOGO_MARK_DATA} width="512" height="512" />
+      <image href={LOGO_MARK_SRC} width="512" height="512" />
     </svg>
   );
 }

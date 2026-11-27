@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { createBoundedFetch } from "@/lib/supabase/fetch-timeout";
 import { PASSWORD_RESET_FORM_PATH, PASSWORD_RESET_RECOVERY_COOKIE } from "@/lib/auth/password-reset";
 import { isSafeRedirectUrl } from "@/types/auth";
 import { getSiteOrigin } from "@/server/site-origin";
@@ -48,6 +49,7 @@ export async function GET(request: Request) {
     supabaseUrl || "https://placeholder.supabase.co",
     supabaseKey || "placeholder-anon-key",
     {
+      global: { fetch: createBoundedFetch(6_000) },
       cookies: {
         getAll: () => cookieStore.getAll(),
         setAll: (cookiesToWrite) => {

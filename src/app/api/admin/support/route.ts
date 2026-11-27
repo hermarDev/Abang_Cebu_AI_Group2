@@ -7,7 +7,7 @@ import {
   validUuid,
 } from "@/server/admin-access";
 
-const STATUSES = ["open", "in_progress", "resolved", "closed", "all"] as const;
+const STATUSES = ["open", "in_progress", "awaiting_landlord", "escalated", "resolved", "closed", "all"] as const;
 const CATEGORIES = [
   "all",
   "account_access",

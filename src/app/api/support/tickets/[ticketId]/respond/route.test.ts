@@ -14,6 +14,7 @@ vi.mock("@/lib/supabase/server", () => ({
   }),
 }));
 
+import { supportRespondLimiter } from "@/server/api-limiters";
 import { POST } from "./route";
 
 const TICKET_ID = "77100000-0000-4000-8000-000000000001";
@@ -34,6 +35,7 @@ const post = (body: unknown, id = TICKET_ID, headers: Record<string, string> = H
 
 beforeEach(() => {
   vi.resetAllMocks();
+  supportRespondLimiter.reset();
   mocks.getUser.mockResolvedValue({ data: { user: { id: LANDLORD_ID } }, error: null });
   mocks.profile.mockResolvedValue({ data: { role: "landlord", is_suspended: false }, error: null });
   mocks.rpc.mockResolvedValue({ data: { ticketId: TICKET_ID, success: true }, error: null });
@@ -74,5 +76,19 @@ describe("POST /api/support/tickets/[ticketId]/respond", () => {
     mocks.rpc.mockResolvedValue({ data: null, error: { code: "42501", message: "unauthorized" } });
     const res = await post({ operationId: OP_ID, response: "I have resolved this issue." });
     expect(res.status).toBe(403);
+  });
+
+  it("rejects missing or mismatched x-expected-user-id with 409", async () => {
+    expect((await post({ operationId: OP_ID, response: "Valid response" }, TICKET_ID, { "content-type": "application/json" })).status).toBe(409);
+    expect((await post({ operationId: OP_ID, response: "Valid response" }, TICKET_ID, { "content-type": "application/json", "x-expected-user-id": "other" })).status).toBe(409);
+  });
+
+  it("returns 429 when supportRespondLimiter is exceeded", async () => {
+    for (let i = 0; i < 30; i++) {
+      expect((await post({ operationId: OP_ID, response: "Valid response" })).status).toBe(200);
+    }
+    const limited = await post({ operationId: OP_ID, response: "Valid response" });
+    expect(limited.status).toBe(429);
+    expect(Number(limited.headers.get("Retry-After"))).toBeGreaterThan(0);
   });
 });

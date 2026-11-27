@@ -1,5 +1,4 @@
 import { test, expect } from "./fixtures";
-import { MAIN_LOGO_DARK_DATA, MAIN_LOGO_LIGHT_DATA } from "../src/components/brand/brand-assets";
 
 for (const width of [430, 1440]) {
   test(`one-tap appearance toggle and System persist at ${width}px`, async ({ page }) => {
@@ -116,9 +115,9 @@ test("explicit dark preference applies dark tokens when the operating system is 
 test("dark theme updates the finder logo asset", async ({ page }) => {
   await page.addInitScript(() => localStorage.setItem("abangcebu-theme", "light"));
   await page.goto("/");
-  await expect(page.locator('header svg[aria-label="AbangCebu"] image')).toHaveAttribute("href", MAIN_LOGO_LIGHT_DATA);
+  await expect(page.locator('header svg[aria-label="AbangCebu"] image')).toHaveAttribute("href", "/icons/main_logo.svg");
 
   await page.addInitScript(() => localStorage.setItem("abangcebu-theme", "dark"));
   await page.goto("/");
-  await expect(page.locator('header svg[aria-label="AbangCebu"] image')).toHaveAttribute("href", MAIN_LOGO_DARK_DATA);
+  await expect(page.locator('header svg[aria-label="AbangCebu"] image')).toHaveAttribute("href", "/icons/main_logo_dark.svg");
 });

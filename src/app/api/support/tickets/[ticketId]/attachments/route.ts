@@ -116,7 +116,7 @@ export async function GET(request: Request, context: Context) {
         return reply({ error: "Could not verify permissions." }, 503);
       }
 
-      if (profile?.role !== "admin" || profile.is_suspended) {
+      if ((profile?.role !== "admin" && profile?.role !== "customer_support") || profile.is_suspended) {
         return reply({ error: "Access denied." }, 403);
       }
     }

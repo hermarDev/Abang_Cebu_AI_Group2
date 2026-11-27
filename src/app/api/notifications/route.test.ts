@@ -87,8 +87,11 @@ const headers = (expected?: string): Record<string, string> => ({
   ...(expected !== undefined ? { "x-expected-user-id": expected } : {}),
 });
 
+import { notificationsMutationLimiter } from "@/server/api-limiters";
+
 beforeEach(() => {
   vi.resetAllMocks();
+  notificationsMutationLimiter.reset();
   mocks.getUser.mockResolvedValue({ data: { user: { id: uid } }, error: null });
   mocks.profile.mockResolvedValue({ data: { role: "renter", is_suspended: false }, error: null });
   mocks.selectNotifications.mockResolvedValue({
@@ -187,6 +190,15 @@ describe("Notifications API Route", () => {
       }));
       expect(res?.status).toBe(400);
     });
+
+    it("returns 409 when x-expected-user-id is missing on PATCH", async () => {
+      const res = await PATCH(new Request("http://localhost/api/notifications", {
+        method: "PATCH",
+        headers: headers(),
+        body: JSON.stringify({ action: "mark_all_read" }),
+      }));
+      expect(res?.status).toBe(409);
+    });
   });
 
   describe("DELETE /api/notifications", () => {
@@ -242,6 +254,31 @@ describe("Notifications API Route", () => {
         headers: headers(uid),
       }));
       expect(res?.status).toBe(400);
+    });
+
+    it("returns 409 when x-expected-user-id is missing on DELETE", async () => {
+      const res = await DELETE(new Request("http://localhost/api/notifications?id=n-1", {
+        method: "DELETE",
+        headers: headers(),
+      }));
+      expect(res?.status).toBe(409);
+    });
+
+    it("returns 429 when notificationsMutationLimiter is exceeded", async () => {
+      for (let i = 0; i < 60; i++) {
+        const res = await PATCH(new Request("http://localhost/api/notifications", {
+          method: "PATCH",
+          headers: headers(uid),
+          body: JSON.stringify({ action: "mark_all_read" }),
+        }));
+        expect(res?.status).toBe(200);
+      }
+      const limited = await DELETE(new Request("http://localhost/api/notifications?id=n-1", {
+        method: "DELETE",
+        headers: headers(uid),
+      }));
+      expect(limited?.status).toBe(429);
+      expect(Number(limited?.headers.get("Retry-After"))).toBeGreaterThan(0);
     });
   });
 });

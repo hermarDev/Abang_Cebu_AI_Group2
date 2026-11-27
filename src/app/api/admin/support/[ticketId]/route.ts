@@ -9,7 +9,7 @@ import {
   validUuid,
 } from "@/server/admin-access";
 
-const VALID_STATUSES = ["open", "in_progress", "resolved", "closed"] as const;
+const VALID_STATUSES = ["open", "in_progress", "awaiting_landlord", "escalated", "resolved", "closed"] as const;
 const VALID_PRIORITIES = ["low", "normal", "high", "urgent"] as const;
 
 type Context = { params: Promise<{ ticketId: string }> };

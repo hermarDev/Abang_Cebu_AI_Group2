@@ -11,6 +11,15 @@ const MEDIA_PATH = /^[0-9a-f-]+\/[0-9a-f-]+\/[0-9a-f-]+\/[0-9a-f]{64}\.(?:jpg|pn
 // Public moderation policy (CODE-01): only `approved` properties are visible on the public renter map.
 export const PUBLIC_SUBMITTED_STATUSES = ["approved"] as const;
 
+const SIGNED_PHOTO_CACHE_TTL_MS = 45 * 60 * 1000;
+const SIGNED_PHOTO_CACHE_LIMIT = 2_000;
+// shortcut: process-local signed URL cache; move to shared cache if scaled beyond one instance.
+const signedPhotoCache = new Map<string, { url: string; expiresAt: number }>();
+
+export function resetSignedPhotoCache() {
+  signedPhotoCache.clear();
+}
+
 function isSubmittedStatus(value: unknown): value is (typeof PUBLIC_SUBMITTED_STATUSES)[number] {
   return typeof value === "string" && (PUBLIC_SUBMITTED_STATUSES as readonly string[]).includes(value);
 }
@@ -22,11 +31,35 @@ export async function signSubmittedPhotos(rows: unknown[]): Promise<Map<string, 
   }))];
   const signed = new Map<string, string>();
   if (!paths.length) return signed;
+
+  const now = Date.now();
+  const uncached: string[] = [];
+  for (const path of paths) {
+    const cached = signedPhotoCache.get(path);
+    if (cached && cached.expiresAt > now) {
+      signed.set(path, cached.url);
+    } else {
+      if (cached) signedPhotoCache.delete(path);
+      uncached.push(path);
+    }
+  }
+  if (!uncached.length) return signed;
+
   try {
     const { createAdminClient } = await import("@/lib/supabase/admin");
-    const { data, error } = await createAdminClient().storage.from("property-draft-media").createSignedUrls(paths, 3600);
+    const { data, error } = await createAdminClient().storage.from("property-draft-media").createSignedUrls(uncached, 3600);
     if (error || !Array.isArray(data)) return signed;
-    for (const item of data) if (item.path && item.signedUrl && !item.error) signed.set(item.path, item.signedUrl);
+    const expiresAt = Date.now() + SIGNED_PHOTO_CACHE_TTL_MS;
+    for (const item of data) {
+      if (item.path && item.signedUrl && !item.error) {
+        signed.set(item.path, item.signedUrl);
+        if (signedPhotoCache.size >= SIGNED_PHOTO_CACHE_LIMIT && !signedPhotoCache.has(item.path)) {
+          const oldest = signedPhotoCache.keys().next().value;
+          if (oldest !== undefined) signedPhotoCache.delete(oldest);
+        }
+        signedPhotoCache.set(item.path, { url: item.signedUrl, expiresAt });
+      }
+    }
   } catch { /* shortcut: unsigned photos degrade to no image; add logging when observability exists */ }
   return signed;
 }

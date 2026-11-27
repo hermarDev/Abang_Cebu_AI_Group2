@@ -30,6 +30,8 @@ import { statusBadgeVariant } from "./status-badge";
 const statusTabs = [
   { value: "open", label: "Open" },
   { value: "in_progress", label: "In progress" },
+  { value: "awaiting_landlord", label: "Awaiting landlord" },
+  { value: "escalated", label: "Escalated" },
   { value: "resolved", label: "Resolved" },
   { value: "closed", label: "Closed" },
   { value: "all", label: "All" },

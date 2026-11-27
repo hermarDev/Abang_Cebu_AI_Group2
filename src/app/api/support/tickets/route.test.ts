@@ -568,4 +568,34 @@ describe("GET /api/support/tickets/[ticketId]/attachments", () => {
     expect(json.fileName).toBe("p.png");
     expect(json.mimeType).toBe("image/png");
   });
+
+  it("returns 200 for active customer_support staff and 403 for suspended customer_support", async () => {
+    mocks.getUser.mockResolvedValue({ data: { user: { id: "support-user" } }, error: null });
+    mocks.select
+      .mockResolvedValueOnce({
+        data: { id: ticketId, user_id: userId, attachments: [{ storagePath: validPath, fileName: "p.png", mimeType: "image/png" }] },
+        error: null,
+      })
+      .mockResolvedValueOnce({
+        data: { role: "customer_support", is_suspended: false },
+        error: null,
+      });
+
+    const req = new Request(`http://localhost/api/support/tickets/${ticketId}/attachments?path=${validPath}`);
+    const res = await GET_ATTACHMENT(req, ctx);
+    expect(res.status).toBe(200);
+
+    mocks.select
+      .mockResolvedValueOnce({
+        data: { id: ticketId, user_id: userId, attachments: [{ storagePath: validPath, fileName: "p.png", mimeType: "image/png" }] },
+        error: null,
+      })
+      .mockResolvedValueOnce({
+        data: { role: "customer_support", is_suspended: true },
+        error: null,
+      });
+
+    const suspendedRes = await GET_ATTACHMENT(req, ctx);
+    expect(suspendedRes.status).toBe(403);
+  });
 });

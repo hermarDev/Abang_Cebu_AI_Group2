@@ -51,20 +51,24 @@ export default async function VerificationDashboardPage() {
 
   const avatarUrl = await signProfileAvatar(user.id, profile.avatar_url);
 
-  const { data: queueItems, error: rpcError } = await supabase.rpc("verifier_list_queue", {
-    p_status: null,
-    p_search: null,
-    p_limit: 100,
-    p_offset: 0,
-  });
+  const { data: overviewData, error: rpcError } = await supabase.rpc("verifier_dashboard_overview");
 
-  const items: QueueItem[] = Array.isArray(queueItems) ? queueItems : [];
-  const pendingItems = items.filter((i) => i.fieldVerificationStatus === "pending_verification");
-  const verifiedCount = items.filter((i) => i.fieldVerificationStatus === "verified").length;
-  const flaggedCount = items.filter((i) => i.fieldVerificationStatus === "flagged").length;
-  const pendingCount = pendingItems.length;
+  const overview = overviewData && typeof overviewData === "object" && !Array.isArray(overviewData)
+    ? (overviewData as {
+        pendingCount?: unknown;
+        verifiedCount?: unknown;
+        flaggedCount?: unknown;
+        latestPending?: unknown;
+      })
+    : null;
 
-  const latestPending = pendingItems.slice(0, 5);
+  const countOrZero = (val: unknown) => (typeof val === "number" && Number.isFinite(val) ? val : 0);
+  const pendingCount = countOrZero(overview?.pendingCount);
+  const verifiedCount = countOrZero(overview?.verifiedCount);
+  const flaggedCount = countOrZero(overview?.flaggedCount);
+  const latestPending: QueueItem[] = Array.isArray(overview?.latestPending)
+    ? (overview.latestPending as QueueItem[]).slice(0, 5)
+    : [];
 
   const kpis = [
     {

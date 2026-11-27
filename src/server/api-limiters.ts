@@ -53,3 +53,27 @@ export const assistantConversationsLimiter = createRateLimiter({
   maxPerIp: 30,
   maxPerActor: 30,
 });
+
+export const publicRentalsLimiter = createRateLimiter({
+  windowMs: 60 * 1000,
+  maxPerIp: 60,
+  maxPerActor: 60,
+});
+
+export const supportRespondLimiter = createRateLimiter({
+  windowMs: 5 * 60 * 1000,
+  maxPerIp: 30,
+  maxPerActor: 30,
+});
+
+export const agreementLimiter = createRateLimiter({
+  windowMs: 5 * 60 * 1000,
+  maxPerIp: 20,
+  maxPerActor: 20,
+});
+
+export const notificationsMutationLimiter = createRateLimiter({
+  windowMs: 60 * 1000,
+  maxPerIp: 60,
+  maxPerActor: 60,
+});

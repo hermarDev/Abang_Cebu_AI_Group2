@@ -1,4 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { publicRentalsLimiter } from "@/server/api-limiters";
+import { resetSignedPhotoCache } from "@/server/rentals/public-rentals";
 import { GET } from "./route";
 
 const { createClient, query, createSignedUrls } = vi.hoisted(() => {
@@ -10,6 +12,8 @@ vi.mock("@/lib/supabase/admin", () => ({ createAdminClient: () => ({ storage: { 
 
 beforeEach(() => {
   vi.resetAllMocks();
+  publicRentalsLimiter.reset();
+  resetSignedPhotoCache();
   createClient.mockResolvedValue({ from: vi.fn((table) => { expect(table).toBe("listings"); return query; }) });
   query.select.mockReturnValue(query);
   query.eq.mockReturnValue(query);
@@ -141,6 +145,26 @@ describe("GET /api/rentals", () => {
       const body = await response.json();
       expect(body.rentals).toHaveLength(1);
       expect(body.rentals[0].id).toBe("p1");
+    });
+
+    it("caches signed photo URLs across requests without re-signing", async () => {
+      rpc.mockResolvedValue({ data: [row("p1", "approved", [photo])], error: null });
+      const first = await (await GET()).json();
+      const second = await (await GET()).json();
+      expect(first.rentals[0].imageUrls).toEqual(["https://signed.test/photo"]);
+      expect(second.rentals[0].imageUrls).toEqual(["https://signed.test/photo"]);
+      expect(createSignedUrls).toHaveBeenCalledTimes(1);
+    });
+
+    it("returns 429 with Retry-After when publicRentalsLimiter is exceeded", async () => {
+      rpc.mockResolvedValue({ data: [], error: null });
+      const req = () => new Request("http://localhost/api/rentals", { headers: { "x-real-ip": "203.0.113.10" } });
+      for (let i = 0; i < 60; i++) {
+        expect((await GET(req())).status).toBe(200);
+      }
+      const limited = await GET(req());
+      expect(limited.status).toBe(429);
+      expect(Number(limited.headers.get("Retry-After"))).toBeGreaterThan(0);
     });
   });
 });

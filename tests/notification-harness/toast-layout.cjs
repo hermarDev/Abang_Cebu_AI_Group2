@@ -21,8 +21,6 @@ async function main() {
     alias: { "@": path.join(root, "src") }, plugins: [{ name: "next-stubs", setup(builder) {
       builder.onResolve({ filter: /^next\/(image|link)$/ }, args => ({ path: mock, namespace: args.path === "next/link" ? "mock-link" : "file" }));
       builder.onLoad({ filter: /.*/, namespace: "mock-link" }, () => ({ contents: `export { MockLink as default } from ${JSON.stringify(mock)}`, loader: "jsx", resolveDir: root }));
-      builder.onResolve({ filter: /\/account\/AccountMapBackground$/ }, () => ({ path: mock, namespace: "mock-background" }));
-      builder.onLoad({ filter: /.*/, namespace: "mock-background" }, () => ({ contents: "export function AccountMapBackground() { return null; }", loader: "jsx" }));
     } }],
   });
   const server = http.createServer((req, res) => {

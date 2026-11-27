@@ -105,13 +105,13 @@ export async function updateAccountAvatar(formData: FormData): Promise<AvatarAct
 
   const { data, error } = await supabase.from("profiles").update({ avatar_url: avatarPath }).eq("id", user.id).select("id").maybeSingle();
   if (error || !data) {
-    await createAdminClient().storage.from(PROFILE_AVATAR_BUCKET).remove([avatarPath]);
+    try { await createAdminClient().storage.from(PROFILE_AVATAR_BUCKET).remove([avatarPath]); } catch { /* best-effort rollback */ }
     return { success: false, message: "We couldn’t save your photo. Please try again." };
   }
 
   const oldPath = profile.avatar_url;
   if (oldPath && oldPath.startsWith(`${user.id}/`) && /^[0-9a-f-]+\/[\w-]+\.(?:jpg|png|webp)$/i.test(oldPath) && oldPath !== avatarPath) {
-    await createAdminClient().storage.from(PROFILE_AVATAR_BUCKET).remove([oldPath]);
+    try { await createAdminClient().storage.from(PROFILE_AVATAR_BUCKET).remove([oldPath]); } catch { /* best-effort cleanup */ }
   }
   const avatarUrl = await signProfileAvatar(user.id, avatarPath);
   revalidateAccountSurfaces();
@@ -131,7 +131,7 @@ export async function removeAccountAvatar(): Promise<AvatarActionResult> {
 
   const oldPath = profile.avatar_url;
   if (oldPath && oldPath.startsWith(`${user.id}/`) && /^[0-9a-f-]+\/[\w-]+\.(?:jpg|png|webp)$/i.test(oldPath)) {
-    await createAdminClient().storage.from(PROFILE_AVATAR_BUCKET).remove([oldPath]);
+    try { await createAdminClient().storage.from(PROFILE_AVATAR_BUCKET).remove([oldPath]); } catch { /* best-effort cleanup */ }
   }
   revalidateAccountSurfaces();
   return { success: true, message: "Your profile photo was removed.", avatarUrl: null };
