@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
 
 const mocks = vi.hoisted(() => ({ getUser: vi.fn(), profile: vi.fn() }));
@@ -12,8 +12,13 @@ import { updateSession } from "./middleware";
 import { middleware } from "../../../middleware";
 
 beforeEach(() => {
+  vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "https://test.supabase.co");
   mocks.getUser.mockReset().mockResolvedValue({ data: { user: { id: "test-user" } }, error: null });
   mocks.profile.mockReset().mockResolvedValue({ data: { role: "renter", is_suspended: false }, error: null });
+});
+
+afterEach(() => {
+  vi.unstubAllEnvs();
 });
 
 describe("workspace routing", () => {
@@ -125,6 +130,16 @@ describe("RSC navigation", () => {
     await middleware(
       rscRequest("/landlord/dashboard?_rsc=abc", `sb-test-auth-token=${makeAuthCookieValue(expiredExp)}`),
     );
+    expect(mocks.getUser).toHaveBeenCalledOnce();
+  });
+
+  it("does not let another project's fresh cookie suppress this project's expired-session refresh", async () => {
+    const freshExp = Math.floor(Date.now() / 1000) + 300;
+    const expiredExp = Math.floor(Date.now() / 1000) - 10;
+    await middleware(rscRequest(
+      "/landlord/dashboard?_rsc=abc",
+      `sb-other-auth-token=${makeAuthCookieValue(freshExp)}; sb-test-auth-token=${makeAuthCookieValue(expiredExp)}`,
+    ));
     expect(mocks.getUser).toHaveBeenCalledOnce();
   });
 

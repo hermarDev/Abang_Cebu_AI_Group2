@@ -538,11 +538,37 @@ describe("GET /api/support/tickets", () => {
     expect(landlordSelectCall).not.toContain("admin_response");
   });
 
-  it("returns 503 when landlordComplaintsData query errors", async () => {
+  it("keeps ticket history available when the landlord complaint query errors", async () => {
     mocks.getUser.mockResolvedValue({ data: { user: { id: userId } }, error: null });
     mocks.select
-      .mockResolvedValueOnce({ data: [], error: null })
+      .mockResolvedValueOnce({
+        data: [{
+          id: "ticket-1", ticket_number: "SUP-01001", user_id: userId, requester_name: "Maria",
+          requester_email: "maria@example.com", category: "account_access", subject: "Sign in problem",
+          description: "Cannot sign in to my account despite correct credentials.", status: "open", priority: "normal",
+          created_at: "2026-11-13T00:00:00Z", updated_at: "2026-11-13T00:00:00Z",
+        }],
+        error: null,
+      })
       .mockResolvedValueOnce({ data: null, error: { message: "database error" } });
+
+    const req = new Request("http://localhost/api/support/tickets", {
+      headers: { "x-expected-user-id": userId },
+    });
+    const res = await GET(req);
+    expect(res.status).toBe(200);
+    const json = await res.json();
+    expect(json.tickets).toHaveLength(1);
+    expect(json.tickets[0].ticketNumber).toBe("SUP-01001");
+    expect(json.awaitingLandlordComplaints).toEqual([]);
+    expect(json.landlordComplaintsError).toBe("Could not load complaints awaiting your response.");
+  });
+
+  it("returns 503 when ticket history itself fails", async () => {
+    mocks.getUser.mockResolvedValue({ data: { user: { id: userId } }, error: null });
+    mocks.select
+      .mockResolvedValueOnce({ data: null, error: { message: "database error" } })
+      .mockResolvedValueOnce({ data: [], error: null });
 
     const req = new Request("http://localhost/api/support/tickets", {
       headers: { "x-expected-user-id": userId },

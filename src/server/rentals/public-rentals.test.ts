@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { invalidatePublicRentalsCache, loadPublicRentals, resetSignedPhotoCache } from "./public-rentals";
+import { invalidatePublicRentalsCache, loadPublicRentals, loadPublicSubmittedRentals, resetSignedPhotoCache } from "./public-rentals";
 
 const mocks = vi.hoisted(() => ({ createSignedUrls: vi.fn() }));
 vi.mock("@/lib/supabase/admin", () => ({
@@ -16,6 +16,28 @@ function mockSupabase(listingsResult: unknown, submittedResult: unknown) {
     from: vi.fn(() => query),
     rpc: vi.fn().mockResolvedValue(submittedResult),
   } as unknown as Parameters<typeof loadPublicRentals>[0];
+}
+
+function deferred<T>() {
+  let resolve!: (value: T) => void;
+  const promise = new Promise<T>((done) => { resolve = done; });
+  return { promise, resolve };
+}
+
+function publishedRow(id: string) {
+  return {
+    id, title: `Rental ${id}`, description: "A rental", price: 9000, currency: "PHP", rental_period: "monthly",
+    property_type: "studio", latitude: 10.31, longitude: 123.9, address: "Ayala", city: "Cebu City",
+    image_urls: [], is_available: true, status: "published",
+  };
+}
+
+function submittedRow(id: string) {
+  return {
+    id, title: `Rental ${id}`, description: "A submitted rental", price: 9000, property_type: "studio",
+    rental_type: "entire_place", latitude: 10.31, longitude: 123.9, address: "Ayala", city: "Cebu City",
+    moderation_status: "approved", photo_paths: [],
+  };
 }
 
 beforeEach(() => {
@@ -152,5 +174,65 @@ describe("loadPublicRentals", () => {
     invalidatePublicRentalsCache();
     await loadPublicRentals(supabase);
     expect(supabase.from).toHaveBeenCalledTimes(2);
+  });
+
+  it("does not let pre-invalidation loads repopulate or remove newer public inventory loads", async () => {
+    vi.stubEnv("VITEST", "");
+    const oldListings = deferred<{ data: unknown[]; error: null }>();
+    const oldSubmitted = deferred<{ data: unknown[]; error: null }>();
+    const oldClient = mockSupabase(oldListings.promise, oldSubmitted.promise);
+    const oldLoad = loadPublicRentals(oldClient, null, { signPhotos: false });
+
+    invalidatePublicRentalsCache();
+    const newListings = deferred<{ data: unknown[]; error: null }>();
+    const newSubmitted = deferred<{ data: unknown[]; error: null }>();
+    const newClient = mockSupabase(newListings.promise, newSubmitted.promise);
+    const newLoad = loadPublicRentals(newClient, null, { signPhotos: false });
+
+    oldListings.resolve({ data: [publishedRow("old")], error: null });
+    oldSubmitted.resolve({ data: [], error: null });
+    const staleResult = await oldLoad;
+    expect(staleResult.status === "ok" && staleResult.rentals.map(({ id }) => id)).toEqual(["old"]);
+
+    const joinedClient = mockSupabase({ data: [], error: null }, { data: [], error: null });
+    const joinedLoad = loadPublicRentals(joinedClient, null, { signPhotos: false });
+    expect(joinedClient.from).not.toHaveBeenCalled();
+
+    newListings.resolve({ data: [publishedRow("new")], error: null });
+    newSubmitted.resolve({ data: [], error: null });
+    const [freshResult, joinedResult] = await Promise.all([newLoad, joinedLoad]);
+    expect(freshResult.status === "ok" && freshResult.rentals.map(({ id }) => id)).toEqual(["new"]);
+    expect(joinedResult).toEqual(freshResult);
+
+    const cachedResult = await loadPublicRentals(joinedClient, null, { signPhotos: false });
+    expect(cachedResult).toEqual(freshResult);
+    expect(joinedClient.from).not.toHaveBeenCalled();
+  });
+
+  it("does not let pre-invalidation submitted-rental loads repopulate or remove newer loads", async () => {
+    vi.stubEnv("VITEST", "");
+    const oldSubmitted = deferred<{ data: unknown[]; error: null }>();
+    const oldClient = mockSupabase({ data: [], error: null }, oldSubmitted.promise);
+    const oldLoad = loadPublicSubmittedRentals(oldClient, false);
+
+    invalidatePublicRentalsCache();
+    const newSubmitted = deferred<{ data: unknown[]; error: null }>();
+    const newClient = mockSupabase({ data: [], error: null }, newSubmitted.promise);
+    const newLoad = loadPublicSubmittedRentals(newClient, false);
+
+    oldSubmitted.resolve({ data: [submittedRow("old")], error: null });
+    expect((await oldLoad).map(({ id }) => id)).toEqual(["old"]);
+
+    const joinedClient = mockSupabase({ data: [], error: null }, { data: [], error: null });
+    const joinedLoad = loadPublicSubmittedRentals(joinedClient, false);
+    expect(joinedClient.rpc).not.toHaveBeenCalled();
+
+    newSubmitted.resolve({ data: [submittedRow("new")], error: null });
+    const [freshRentals, joinedRentals] = await Promise.all([newLoad, joinedLoad]);
+    expect(freshRentals.map(({ id }) => id)).toEqual(["new"]);
+    expect(joinedRentals).toEqual(freshRentals);
+
+    expect(await loadPublicSubmittedRentals(joinedClient, false)).toEqual(freshRentals);
+    expect(joinedClient.rpc).not.toHaveBeenCalled();
   });
 });

@@ -67,30 +67,26 @@ function extractJwtExpMs(rawCookieValue: string): number | null {
   return null;
 }
 
-function collectSupabaseAuthCookieValues(request: NextRequest): string[] {
-  const unchunked = new Map<string, string>();
-  const chunked = new Map<string, Array<{ index: number; value: string }>>();
-
-  for (const { name, value } of request.cookies.getAll()) {
-    if (!name.startsWith("sb-") || name.endsWith("-code-verifier")) continue;
-    const match = /^(sb-.+?)\.(\d+)$/.exec(name);
-    if (match) {
-      const baseName = match[1];
-      const list = chunked.get(baseName) ?? [];
-      list.push({ index: Number(match[2]), value });
-      chunked.set(baseName, list);
-    } else {
-      unchunked.set(name, value);
-    }
+function collectSupabaseAuthCookieValue(request: NextRequest): string | null {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://placeholder.supabase.co";
+  let cookieName: string;
+  try {
+    cookieName = `sb-${new URL(supabaseUrl).hostname.split(".")[0]}-auth-token`;
+  } catch {
+    return null;
   }
 
-  const values: string[] = [...unchunked.values()];
-  for (const [baseName, chunks] of chunked.entries()) {
-    if (unchunked.has(baseName)) continue;
-    chunks.sort((a, b) => a.index - b.index);
-    values.push(chunks.map((chunk) => chunk.value).join(""));
-  }
-  return values;
+  const cookies = request.cookies.getAll();
+  const unchunked = cookies.find(({ name }) => name === cookieName)?.value;
+  if (unchunked) return unchunked;
+
+  const chunks = cookies.flatMap(({ name, value }) => {
+    const match = new RegExp(`^${cookieName}\\.(\\d+)$`).exec(name);
+    return match ? [{ index: Number(match[1]), value }] : [];
+  });
+  if (chunks.length === 0) return null;
+  chunks.sort((a, b) => a.index - b.index);
+  return chunks.map(({ value }) => value).join("");
 }
 
 /**
@@ -100,13 +96,11 @@ function collectSupabaseAuthCookieValues(request: NextRequest): string[] {
  */
 export function shouldSkipRscSessionRefresh(request: NextRequest): boolean {
   if (!request.nextUrl.searchParams.has("_rsc")) return false;
-  const values = collectSupabaseAuthCookieValues(request);
-  if (values.length === 0) return false;
+  const value = collectSupabaseAuthCookieValue(request);
+  if (!value) return false;
   const now = Date.now();
-  return values.some((value) => {
-    const expMs = extractJwtExpMs(value);
-    return expMs !== null && expMs - now > RSC_REFRESH_LEEWAY_MS;
-  });
+  const expMs = extractJwtExpMs(value);
+  return expMs !== null && expMs - now > RSC_REFRESH_LEEWAY_MS;
 }
 
 export async function middleware(request: NextRequest) {

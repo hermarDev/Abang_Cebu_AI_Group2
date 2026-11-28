@@ -153,7 +153,7 @@ describe("POST /api/verification/queue/[propertyId]/media", () => {
     expect(mocks.upload).not.toHaveBeenCalled();
   });
 
-  it("returns 409 when existing fieldVerificationProof already has 10 items", async () => {
+  it("allows a replacement proof upload when the submitted proof array already has 10 items", async () => {
     mocks.rpc.mockResolvedValue({
       data: { id: propId, fieldVerificationProof: Array.from({ length: 10 }, (_, i) => ({ kind: "proof", object_path: `p/${i}.png` })) },
       error: null,
@@ -164,8 +164,8 @@ describe("POST /api/verification/queue/[propertyId]/media", () => {
     fd.append("file", new File([pngHeader], "proof.png", { type: "image/png" }));
 
     const res = await postForm(fd);
-    expect(res.status).toBe(409);
-    expect(mocks.upload).not.toHaveBeenCalled();
+    expect(res.status).toBe(200);
+    expect(mocks.upload).toHaveBeenCalledOnce();
   });
 
   it("returns 503 when queue verification lookup errors", async () => {

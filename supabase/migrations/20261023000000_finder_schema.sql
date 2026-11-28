@@ -1,6 +1,39 @@
 -- Idempotent core finder schema migration.
 BEGIN;
 
+-- Permit the storage policies created by this repository's migration chain, but
+-- stop if an unreviewed permissive read policy could broaden KYC object access.
+DO $$
+DECLARE
+  v_policy text;
+BEGIN
+  SELECT p.policyname INTO v_policy
+  FROM pg_catalog.pg_policies p
+  WHERE p.schemaname = 'storage'
+    AND p.tablename = 'objects'
+    AND p.permissive = 'PERMISSIVE'
+    AND p.cmd IN ('SELECT', 'ALL')
+    AND EXISTS (
+      SELECT 1
+      FROM pg_catalog.unnest(p.roles) AS policy_roles(role_name)
+      WHERE role_name::text IN ('public', 'anon', 'authenticated')
+    )
+    AND p.policyname NOT IN (
+      'finder_images_read', 'finder_kyc_objects_read', 'finder_kyc_objects_read_guard',
+      'finder_objects_insert', 'finder_images_update', 'finder_images_delete',
+      'profile_avatars_read_own', 'profile_avatars_insert_own',
+      'profile_avatars_update_own', 'profile_avatars_delete_own',
+      'rental_attachments_read', 'rental_attachments_insert',
+      'field_verification_media_staff_read', 'field_verification_media_staff_insert',
+      'draft_media_deny_clients', 'support_attachments_deny_clients'
+    )
+  LIMIT 1;
+  IF v_policy IS NOT NULL THEN
+    RAISE EXCEPTION 'Unreviewed storage.objects read policy % requires review before Finder migration', v_policy;
+  END IF;
+END;
+$$;
+
 DO $$ BEGIN
   CREATE TYPE public.user_role AS ENUM ('renter', 'landlord', 'admin');
 EXCEPTION
@@ -144,7 +177,37 @@ BEGIN
 END;
 $$;
 DROP TRIGGER IF EXISTS finder_auth_signup ON auth.users;
-CREATE TRIGGER finder_auth_signup AFTER INSERT ON auth.users FOR EACH ROW EXECUTE FUNCTION public.finder_new_user();
+DO $$
+DECLARE
+  v_profile_handler oid := pg_catalog.to_regprocedure('public.handle_new_user()')::oid;
+BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM pg_catalog.pg_trigger t
+    WHERE t.tgrelid = 'auth.users'::regclass
+      AND NOT t.tgisinternal
+      AND NOT (
+        t.tgname = 'on_auth_user_created'
+        AND v_profile_handler IS NOT NULL
+        AND t.tgfoid = v_profile_handler
+      )
+  ) THEN
+    RAISE EXCEPTION 'Unreviewed auth.users trigger requires review before Finder migration';
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_catalog.pg_trigger t
+    WHERE t.tgrelid = 'auth.users'::regclass
+      AND NOT t.tgisinternal
+      AND t.tgname = 'on_auth_user_created'
+      AND v_profile_handler IS NOT NULL
+      AND t.tgfoid = v_profile_handler
+  ) THEN
+    EXECUTE 'CREATE TRIGGER finder_auth_signup AFTER INSERT ON auth.users FOR EACH ROW EXECUTE FUNCTION public.finder_new_user()';
+  END IF;
+END;
+$$;
 DROP TRIGGER IF EXISTS finder_profiles_updated ON public.profiles;
 CREATE TRIGGER finder_profiles_updated BEFORE UPDATE ON public.profiles FOR EACH ROW EXECUTE FUNCTION public.finder_updated_at();
 DROP TRIGGER IF EXISTS finder_kyc_updated ON public.kyc_verifications;
@@ -219,13 +282,22 @@ CREATE POLICY finder_favorite_insert ON public.favorites FOR INSERT TO authentic
 INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types) VALUES
   ('property-images', 'property-images', true, 10485760, ARRAY['image/jpeg', 'image/png', 'image/webp']),
   ('kyc-documents', 'kyc-documents', false, 10485760, ARRAY['image/jpeg', 'image/png', 'application/pdf'])
-ON CONFLICT (id) DO NOTHING;
+ON CONFLICT (id) DO UPDATE SET
+  name = EXCLUDED.name,
+  public = EXCLUDED.public,
+  file_size_limit = EXCLUDED.file_size_limit,
+  allowed_mime_types = EXCLUDED.allowed_mime_types;
 -- Public images are intentionally retrievable even before/after a listing is published.
 DROP POLICY IF EXISTS finder_images_read ON storage.objects;
 CREATE POLICY finder_images_read ON storage.objects FOR SELECT TO anon, authenticated USING (bucket_id = 'property-images');
 DROP POLICY IF EXISTS finder_kyc_objects_read ON storage.objects;
 CREATE POLICY finder_kyc_objects_read ON storage.objects FOR SELECT TO authenticated
   USING (bucket_id = 'kyc-documents' AND (storage.foldername(name))[1] = auth.uid()::text);
+-- Restrictive policy prevents any other permissive SELECT policy from widening KYC access.
+DROP POLICY IF EXISTS finder_kyc_objects_read_guard ON storage.objects;
+CREATE POLICY finder_kyc_objects_read_guard ON storage.objects AS RESTRICTIVE FOR SELECT TO anon, authenticated
+  USING (bucket_id <> 'kyc-documents' OR
+    (auth.uid() IS NOT NULL AND (storage.foldername(name))[1] = auth.uid()::text));
 DROP POLICY IF EXISTS finder_objects_insert ON storage.objects;
 CREATE POLICY finder_objects_insert ON storage.objects FOR INSERT TO authenticated
   WITH CHECK (bucket_id IN ('property-images', 'kyc-documents') AND (storage.foldername(name))[1] = auth.uid()::text

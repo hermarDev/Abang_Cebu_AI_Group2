@@ -20,14 +20,18 @@ const publicRentalsCache = new Map<string, { result: Extract<PublicRentalsResult
 const publicRentalsInFlight = new Map<string, Promise<PublicRentalsResult>>();
 const publicSubmittedCache = new Map<string, { rentals: RentalResult[]; expiresAt: number }>();
 const publicSubmittedInFlight = new Map<string, Promise<RentalResult[]>>();
+let publicRentalsGeneration = 0;
 
 export function resetSignedPhotoCache() {
   signedPhotoCache.clear();
 }
 
 export function invalidatePublicRentalsCache() {
+  publicRentalsGeneration += 1;
   publicRentalsCache.clear();
   publicSubmittedCache.clear();
+  publicRentalsInFlight.clear();
+  publicSubmittedInFlight.clear();
 }
 
 function isSubmittedStatus(value: unknown): value is (typeof PUBLIC_SUBMITTED_STATUSES)[number] {
@@ -93,13 +97,16 @@ export async function loadPublicRentals(
     const pending = publicRentalsInFlight.get(cacheKey);
     if (pending) return pending;
 
+    const generation = publicRentalsGeneration;
     const loadPromise = fetchPublicRentals(supabase, null, options).then((result) => {
-      if (result.status === "ok" && result.complete) {
+      if (generation === publicRentalsGeneration && result.status === "ok" && result.complete) {
         publicRentalsCache.set(cacheKey, { result, expiresAt: Date.now() + PUBLIC_RENTALS_CACHE_TTL_MS });
       }
       return result;
     }).finally(() => {
-      publicRentalsInFlight.delete(cacheKey);
+      if (publicRentalsInFlight.get(cacheKey) === loadPromise) {
+        publicRentalsInFlight.delete(cacheKey);
+      }
     });
     publicRentalsInFlight.set(cacheKey, loadPromise);
     return loadPromise;
@@ -180,6 +187,7 @@ export async function loadPublicSubmittedRentals(
     if (pending) return pending;
   }
 
+  const generation = publicRentalsGeneration;
   const run = (async (): Promise<RentalResult[]> => {
     const rpc = (supabase as { rpc?: (fn: string) => Promise<{ data: unknown; error: unknown }> } | null)?.rpc;
     if (typeof rpc !== "function") return [];
@@ -198,7 +206,7 @@ export async function loadPublicSubmittedRentals(
           return [];
         }
       });
-      if (!process.env.VITEST) {
+      if (!process.env.VITEST && generation === publicRentalsGeneration) {
         publicSubmittedCache.set(cacheKey, { rentals, expiresAt: Date.now() + PUBLIC_RENTALS_CACHE_TTL_MS });
       }
       return rentals;
@@ -212,6 +220,8 @@ export async function loadPublicSubmittedRentals(
   try {
     return await run;
   } finally {
-    publicSubmittedInFlight.delete(cacheKey);
+    if (publicSubmittedInFlight.get(cacheKey) === run) {
+      publicSubmittedInFlight.delete(cacheKey);
+    }
   }
 }

@@ -14,6 +14,7 @@ import { FinderNavigation } from "./FinderNavigation";
 import { FinderAssistant } from "./FinderAssistant";
 import { PropertyDetailsSheet, PropertyDetailsSheetBody, type PropertyDetailsSheetProps } from "../rentals/PropertyDetailsSheet";
 
+const routerPush = vi.hoisted(() => vi.fn());
 const hooks = vi.hoisted(() => ({ changeFilters: undefined as ((filters: RentalFilters) => void) | undefined, changeCenter: undefined as ((center: [number, number]) => void) | undefined, mapRentals: [] as RentalResult[], slots: [] as unknown[], index: 0, refs: [] as { current: unknown }[], refIndex: 0, effects: [] as (() => void | (() => void))[], effect: undefined as (() => void | (() => void)) | undefined }));
 vi.mock("react", async (importOriginal) => ({
   ...await importOriginal<typeof import("react")>(),
@@ -30,7 +31,7 @@ vi.mock("react", async (importOriginal) => ({
   useSyncExternalStore: (_subscribe: (listener: () => void) => () => void, getSnapshot: () => unknown) => getSnapshot(),
   useEffect: (effect: () => void | (() => void)) => { hooks.effect ??= effect; hooks.effects.push(effect); },
 }));
-vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push: routerPush }) }));
 vi.mock("./FinderAssistantLazy", async () => {
   const { FinderAssistant } = await import("./FinderAssistant");
   return { FinderAssistantLazy: FinderAssistant };
@@ -75,7 +76,7 @@ async function load(response: { ok: boolean; json: () => Promise<unknown> }) {
   return { html, fetchMock, cleanup };
 }
 
-afterEach(() => { clearRentalsMemoryCache(); hooks.slots = []; hooks.index = 0; hooks.refs = []; hooks.refIndex = 0; hooks.effect = undefined; hooks.effects = []; vi.unstubAllGlobals(); vi.unstubAllEnvs(); });
+afterEach(() => { clearRentalsMemoryCache(); routerPush.mockClear(); hooks.slots = []; hooks.index = 0; hooks.refs = []; hooks.refIndex = 0; hooks.effect = undefined; hooks.effects = []; vi.unstubAllGlobals(); vi.unstubAllEnvs(); });
 
 function captureShell() {
   hooks.index = 0;
@@ -606,26 +607,25 @@ describe("RestoredFinderShell", () => {
       }
     });
 
-    it("hands a guest to the login prompt, closes the expanded modal, and resumes the same listing after sign-in", async () => {
+    it("resumes the requested listing in messages after a guest signs in as a renter", async () => {
       await load({ ok: true, json: async () => ({ rentals: [gallery] }) });
       cardProps(capture()).onMessage!("live-1");
-      let tree = capture();
+      const tree = capture();
       expect(accountModal(tree)!.props.open).toBe(true);
       expect(findElement(tree, (element) => element.props.children === "Sign in or create a renter account to message the landlord.")).toBeDefined();
-      // No more ListingInquiryModal - should navigate to messages page instead
       capture(renter);
-      tree = capture(renter);
-      // After sign-in, clicking "Message landlord" should navigate to /messages?listing=<id>
-      // The modal is no longer used
+      hooks.effects.at(-1)?.();
+      expect(routerPush).toHaveBeenCalledWith("/messages?listing=live-1");
     });
 
-    it("drops a pending guest inquiry when the account dialog is dismissed or the user is not a renter", async () => {
+    it("drops a pending guest inquiry when the account dialog is dismissed", async () => {
       await load({ ok: true, json: async () => ({ rentals: [rental] }) });
-      // Guest clicks message landlord -> opens account dialog
-      // After sign-in as renter, should navigate to messages page
-      capture(renter); // the sign-in transition sets state during render
+      cardProps(capture()).onMessage!("live-1");
+      const tree = capture();
+      (accountModal(tree)!.props.onClose as () => void)();
       capture(renter);
-      // No ListingInquiryModal should appear
+      hooks.effects.at(-1)?.();
+      expect(routerPush).not.toHaveBeenCalled();
     });
 
     it("opens the inquiry from the map popup, card and expanded sheet for a signed-in renter", async () => {

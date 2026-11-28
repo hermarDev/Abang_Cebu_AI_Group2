@@ -69,12 +69,6 @@ export async function POST(request: Request, { params }: RouteContext) {
   if (!queueProperty || typeof queueProperty !== "object" || Array.isArray(queueProperty)) {
     return jsonError("Property not found in verification queue.", 404);
   }
-  const existingProof = (queueProperty as { fieldVerificationProof?: unknown }).fieldVerificationProof;
-  // shortcut: counts already-submitted proof items; unsubmitted storage uploads are capped at submission time by verifier_submit_verification.
-  if (Array.isArray(existingProof) && existingProof.length >= 10) {
-    return jsonError("Maximum proof items reached for this verification.", 409);
-  }
-
   const sha256 = createHash("sha256").update(bytes).digest("hex");
   const extension =
     contentType === "application/pdf"

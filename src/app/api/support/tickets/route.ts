@@ -80,11 +80,19 @@ export async function GET(request: Request) {
       .limit(limit),
   ]);
 
-  if (ticketsData.error || landlordComplaintsData.error) {
+  if (ticketsData.error) {
     return reply({ error: "Could not load support tickets." }, 503);
   }
 
   const tickets = (ticketsData.data ?? []).map(mapSupportTicketRow);
+  if (landlordComplaintsData.error) {
+    return reply({
+      tickets,
+      awaitingLandlordComplaints: [],
+      landlordComplaintsError: "Could not load complaints awaiting your response.",
+    }, 200);
+  }
+
   const awaitingLandlordComplaints = (landlordComplaintsData.data ?? []).map((row) => ({
     ...mapSupportTicketRow(row),
     supportResolutionNote: null,

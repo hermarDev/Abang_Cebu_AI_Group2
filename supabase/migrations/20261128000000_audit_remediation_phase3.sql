@@ -26,7 +26,7 @@ CREATE OR REPLACE FUNCTION public.admin_list_support_tickets(
   p_ticket_id uuid DEFAULT NULL
 )
 RETURNS jsonb
-LANGUAGE plpgsql
+LANGUAGE plpgsql STABLE
 SECURITY DEFINER
 SET search_path = ''
 AS $$
@@ -173,8 +173,8 @@ BEGIN
 
   SELECT * INTO v_op FROM public.support_ticket_operations WHERE actor_id = v_actor AND operation_id = p_operation_id;
   IF FOUND THEN
-    IF v_op.ticket_id <> p_ticket_id THEN
-      RAISE EXCEPTION 'operation id already used for different ticket' USING ERRCODE = '23505';
+    IF v_op.ticket_id <> p_ticket_id OR v_op.action IS DISTINCT FROM p_action THEN
+      RAISE EXCEPTION 'operation id already used for a different ticket or action' USING ERRCODE = '23505';
     END IF;
     RETURN v_op.response_payload || pg_catalog.jsonb_build_object('replayed', true);
   END IF;

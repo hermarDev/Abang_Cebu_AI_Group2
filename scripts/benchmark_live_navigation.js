@@ -26,12 +26,12 @@ function loadLocalEnv() {
   }
 }
 
-function requireEnv(name) {
-  const value = process.env[name]?.trim();
-  if (!value) {
+function requireEnv(name, { preserveWhitespace = false } = {}) {
+  const raw = process.env[name];
+  if (!raw?.trim()) {
     throw new Error(`Missing required environment variable: ${name} (set in environment or .env.local)`);
   }
-  return value;
+  return preserveWhitespace ? raw : raw.trim();
 }
 
 fs.mkdirSync(OUTPUT_DIR, { recursive: true });
@@ -39,7 +39,7 @@ fs.mkdirSync(OUTPUT_DIR, { recursive: true });
 async function runBenchmark() {
   loadLocalEnv();
   const renterEmail = requireEnv("TEST_RENTER_EMAIL");
-  const renterPassword = requireEnv("TEST_RENTER_PASSWORD");
+  const renterPassword = requireEnv("TEST_RENTER_PASSWORD", { preserveWhitespace: true });
 
   console.log("=== STARTING LIVE NAVIGATION BENCHMARK ON ABANGCEBU.TECH ===");
   const browser = await chromium.launch({

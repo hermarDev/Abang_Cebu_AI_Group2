@@ -127,6 +127,7 @@ export function SupportCenterClient({
   // Request History State (Authenticated users)
   const [tickets, setTickets] = useState<SupportTicketRecord[]>(initialTickets);
   const [awaitingLandlordComplaints, setAwaitingLandlordComplaints] = useState<SupportTicketRecord[]>([]);
+  const [landlordComplaintsError, setLandlordComplaintsError] = useState<string | null>(null);
   const [landlordResponseText, setLandlordResponseText] = useState<Record<string, string>>({});
   const [landlordSubmittingId, setLandlordSubmittingId] = useState<string | null>(null);
   const [landlordResponseError, setLandlordResponseError] = useState<string | null>(null);
@@ -145,6 +146,7 @@ export function SupportCenterClient({
       if (!authenticated || !userId) return;
       setHistoryLoading(true);
       setHistoryError(null);
+      setLandlordComplaintsError(null);
 
       try {
         const response = await fetch("/api/support/tickets", {
@@ -171,6 +173,7 @@ export function SupportCenterClient({
             : [];
         setTickets(ticketList);
         setAwaitingLandlordComplaints(Array.isArray(payload?.awaitingLandlordComplaints) ? payload.awaitingLandlordComplaints : []);
+        setLandlordComplaintsError(typeof payload?.landlordComplaintsError === "string" ? payload.landlordComplaintsError : null);
       } catch (err) {
         if (signal?.aborted) return;
         setHistoryError(
@@ -969,10 +972,11 @@ export function SupportCenterClient({
 
             {/* Right Column: Request History (Authenticated) or Sign-in Guidance (Guest) */}
             <aside className="space-y-6">
-              {authenticated && userRole === "landlord" && awaitingLandlordComplaints.length > 0 && (
+              {authenticated && userRole === "landlord" && (awaitingLandlordComplaints.length > 0 || landlordComplaintsError) && (
                 <section className="rounded-2xl border border-action/30 bg-action/5 p-5 text-card-foreground shadow-sm sm:p-6" aria-labelledby="landlord-complaints-heading">
                   <h2 id="landlord-complaints-heading" className="m-0 text-base font-semibold">Complaints Awaiting Your Response</h2>
                   <p className="mt-1 text-xs text-muted-foreground">Customer Support requested your response to the following complaints.</p>
+                  {landlordComplaintsError && <Alert variant="error" className="mt-3">{landlordComplaintsError}</Alert>}
                   {landlordResponseError && <Alert variant="error" className="mt-3">{landlordResponseError}</Alert>}
                   <div className="mt-4 grid gap-4">
                     {awaitingLandlordComplaints.map((complaint) => (
