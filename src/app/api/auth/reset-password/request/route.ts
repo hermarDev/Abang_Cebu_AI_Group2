@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { PASSWORD_RESET_CALLBACK_PATH } from "@/lib/auth/password-reset";
 import { validateResetRequest } from "@/lib/auth/password-reset-validation";
 import { createRateLimiter, getClientIp } from "@/server/rate-limit";
+import { readBoundedJson } from "@/server/bounded-body";
 import { getSiteOrigin } from "@/server/site-origin";
 
 const genericSuccess = {
@@ -34,17 +35,21 @@ async function addTimingJitter(startedAt: number) {
 
 export async function POST(request: Request) {
   const startedAt = Date.now();
-  let payload: unknown;
-  try {
-    payload = await request.json();
-  } catch {
+  const parsed = await readBoundedJson(request, 16 * 1024);
+  if (!parsed.ok) {
+    if (parsed.reason === "too_large") {
+      return NextResponse.json(
+        { success: false, error: { code: "PAYLOAD_TOO_LARGE", message: "Request body is too large." } },
+        { status: 413 },
+      );
+    }
     return NextResponse.json(
       { success: false, error: { code: "VALIDATION_ERROR", message: "Enter a valid email address." } },
       { status: 400 },
     );
   }
 
-  const validation = validateResetRequest(payload);
+  const validation = validateResetRequest(parsed.data);
   if (!validation.ok) {
     return NextResponse.json(
       { success: false, error: { code: validation.code, message: "Enter valid password recovery details." } },

@@ -210,7 +210,8 @@ export async function loadPublicSubmittedRentals(
         publicSubmittedCache.set(cacheKey, { rentals, expiresAt: Date.now() + PUBLIC_RENTALS_CACHE_TTL_MS });
       }
       return rentals;
-    } catch {
+    } catch (err) {
+      console.error("[public-rentals] get_public_submitted_rentals failed:", err);
       return [];
     }
   })();

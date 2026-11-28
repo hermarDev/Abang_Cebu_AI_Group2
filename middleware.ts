@@ -80,8 +80,9 @@ function collectSupabaseAuthCookieValue(request: NextRequest): string | null {
   const unchunked = cookies.find(({ name }) => name === cookieName)?.value;
   if (unchunked) return unchunked;
 
+  const chunkPattern = new RegExp(`^${cookieName}\\.(\\d+)$`);
   const chunks = cookies.flatMap(({ name, value }) => {
-    const match = new RegExp(`^${cookieName}\\.(\\d+)$`).exec(name);
+    const match = chunkPattern.exec(name);
     return match ? [{ index: Number(match[1]), value }] : [];
   });
   if (chunks.length === 0) return null;

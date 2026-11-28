@@ -1,6 +1,7 @@
 import { createPublicClient } from "@/lib/supabase/server";
 import { assistantLimiter } from "@/server/api-limiters";
 import { getAssistantAccess } from "@/server/assistant-access";
+import { readBoundedJson } from "@/server/bounded-body";
 import { getClientIp } from "@/server/rate-limit";
 import { formatAssistantListingsReply, parseAssistantSearch, selectAssistantRentals, type AssistantSearch, type AssistantSelection } from "@/server/rentals/assistant-search";
 import { loadPublicRentals } from "@/server/rentals/public-rentals";
@@ -53,12 +54,14 @@ export async function POST(request: Request) {
     );
   }
 
-  let body: unknown;
-  try {
-    body = await request.json();
-  } catch {
-    return Response.json({ error: "Send a valid chat message and try again." }, { status: 400, headers: responseHeaders });
+  const parsed = await readBoundedJson(request, 64 * 1024);
+  if (!parsed.ok) {
+    return Response.json(
+      { error: parsed.reason === "too_large" ? "This conversation is too long. Start a new chat message." : "Send a valid chat message and try again." },
+      { status: parsed.reason === "too_large" ? 413 : 400, headers: responseHeaders },
+    );
   }
+  const body = parsed.data;
 
   if (!body || typeof body !== "object" || Array.isArray(body)) {
     return Response.json({ error: "Send a valid chat message and try again." }, { status: 400, headers: responseHeaders });

@@ -1,4 +1,5 @@
 export const MAX_UPLOAD_MULTIPART_BYTES = 11 * 1024 * 1024;
+export const DEFAULT_JSON_MAX_BYTES = 64 * 1024;
 
 export async function readBoundedBody(
   request: Request,
@@ -52,6 +53,22 @@ export async function readBoundedFormData(
       headers: contentType ? { "content-type": contentType } : undefined,
     }).formData();
     return { ok: true, form };
+  } catch {
+    return { ok: false, reason: "invalid" };
+  }
+}
+
+/** Reads and parses JSON from a request body while enforcing a byte limit. */
+export async function readBoundedJson(
+  request: Request,
+  maxBytes = DEFAULT_JSON_MAX_BYTES,
+): Promise<{ ok: true; data: unknown } | { ok: false; reason: "too_large" | "invalid" }> {
+  const bounded = await readBoundedBody(request, maxBytes);
+  if (!bounded.ok) return { ok: false, reason: "too_large" };
+
+  try {
+    const text = new TextDecoder("utf-8", { fatal: true }).decode(bounded.bytes);
+    return { ok: true, data: JSON.parse(text) };
   } catch {
     return { ok: false, reason: "invalid" };
   }

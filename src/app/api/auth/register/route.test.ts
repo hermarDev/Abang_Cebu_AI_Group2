@@ -140,4 +140,16 @@ describe("registration route", () => {
     expect(await duplicate.json()).toEqual(createdBody);
     expect(createdBody).toEqual({ success: true, message: "If registration can proceed, check your email for the next steps." });
   });
+
+  it("rejects oversized registration bodies with 413 before contacting Supabase", async () => {
+    signUp.mockClear();
+    const oversized = new Request("http://localhost/api/auth/register", {
+      method: "POST",
+      headers: { "content-type": "application/json", "x-real-ip": "198.51.100.99" },
+      body: JSON.stringify({ ...goodPayload, fullName: "x".repeat(20 * 1024) }),
+    });
+    const response = await POST(oversized);
+    expect(response.status).toBe(413);
+    expect(signUp).not.toHaveBeenCalled();
+  });
 });

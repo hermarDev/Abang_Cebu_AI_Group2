@@ -2,6 +2,7 @@ import { revalidatePath } from "next/cache";
 import { invalidatePublicRentalsCache } from "@/server/rentals/public-rentals";
 import { invalidateLandlordPortfolioCache } from "@/server/landlord-portfolio-cache";
 import { landlordSubmissionsLimiter } from "@/server/api-limiters";
+import { readBoundedJson } from "@/server/bounded-body";
 import { createRoleGuard } from "@/server/role-access";
 
 const headers = { "Cache-Control": "no-store" };
@@ -24,8 +25,14 @@ export async function POST(request: Request) {
       { status: 429, headers: { ...headers, "Retry-After": String(limit.retryAfterSeconds) } },
     );
   }
-  let body: unknown;
-  try { body = await request.json(); } catch { return reply("Invalid submission request.", 400); }
+  const parsed = await readBoundedJson(request, 64 * 1024);
+  if (!parsed.ok) {
+    return reply(
+      parsed.reason === "too_large" ? "Submission request is too large." : "Invalid submission request.",
+      parsed.reason === "too_large" ? 413 : 400,
+    );
+  }
+  const body = parsed.data;
   if (
     !body || typeof body !== "object" || Array.isArray(body) ||
     !("operationId" in body) || typeof body.operationId !== "string" || !uuid.test(body.operationId) ||

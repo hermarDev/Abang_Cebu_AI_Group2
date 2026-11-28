@@ -2,6 +2,7 @@ import { revalidatePath } from "next/cache";
 import { invalidatePublicRentalsCache } from "@/server/rentals/public-rentals";
 import { invalidateLandlordPortfolioCache } from "@/server/landlord-portfolio-cache";
 import { adminLifecycleLimiter, rateLimited, requireActiveAdmin } from "@/server/admin-access";
+import { readBoundedJson } from "@/server/bounded-body";
 
 const headers = { "Cache-Control": "no-store" };
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -12,8 +13,11 @@ export async function POST(request: Request) {
   if ("response" in session && session.response) return session.response;
   const limited = rateLimited(adminLifecycleLimiter, request, session.user.id);
   if (limited) return limited;
-  let body: unknown;
-  try { body = await request.json(); } catch { return reply("Invalid review.", 400); }
+  const parsed = await readBoundedJson(request, 16 * 1024);
+  if (!parsed.ok) {
+    return reply(parsed.reason === "too_large" ? "Review payload is too large." : "Invalid review.", parsed.reason === "too_large" ? 413 : 400);
+  }
+  const body = parsed.data;
   if (!body || typeof body !== "object" || Array.isArray(body)) return reply("Invalid review.", 400);
   const input = body as Record<string, unknown>;
   if (typeof input.propertyId !== "string" || !uuid.test(input.propertyId) || typeof input.operationId !== "string" || !uuid.test(input.operationId) || (input.decision !== "approved" && input.decision !== "rejected")) return reply("Invalid review.", 400);

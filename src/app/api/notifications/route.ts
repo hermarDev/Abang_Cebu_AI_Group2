@@ -1,4 +1,5 @@
 import { notificationsMutationLimiter } from "@/server/api-limiters";
+import { readBoundedJson } from "@/server/bounded-body";
 import {
   clearNotifications,
   deleteNotification,
@@ -59,7 +60,11 @@ export async function PATCH(request: Request) {
   }
 
   try {
-    const body = (await request.json().catch(() => ({}))) as Record<string, unknown>;
+    const parsed = await readBoundedJson(request, 16 * 1024);
+    if (!parsed.ok && parsed.reason === "too_large") {
+      return reply({ error: "Request body is too large." }, 413);
+    }
+    const body = (parsed.ok && parsed.data && typeof parsed.data === "object" ? parsed.data : {}) as Record<string, unknown>;
     const action = body.action;
 
     if (action === "mark_all_read") {

@@ -1,5 +1,6 @@
 import { assistantConversationsLimiter } from "@/server/api-limiters";
 import { getAssistantAccess } from "@/server/assistant-access";
+import { readBoundedJson } from "@/server/bounded-body";
 import type { Json } from "@/types/database";
 
 type ConversationMessage = { role: "user" | "assistant"; content: string };
@@ -65,6 +66,14 @@ export async function GET(request: Request) {
   const authenticated = await getAuthenticatedClient(request);
   if ("response" in authenticated) return authenticated.response;
 
+  const limit = assistantConversationsLimiter.checkDetailed(request, authenticated.user.id);
+  if (!limit.allowed) {
+    return Response.json(
+      { error: "Too many conversation requests. Please wait a moment and try again." },
+      { status: 429, headers: { ...responseHeaders, "Retry-After": String(limit.retryAfterSeconds) } },
+    );
+  }
+
   const id = new URL(request.url).searchParams.get("id");
   if (id) {
     if (!idPattern.test(id)) return Response.json({ error: "This chat could not be found." }, { status: 400, headers: responseHeaders });
@@ -104,18 +113,16 @@ export async function POST(request: Request) {
     );
   }
 
-  let body: unknown;
-  try { body = await request.json(); } catch { return Response.json({ error: "Send a valid conversation." }, { status: 400, headers: responseHeaders }); }
+  const parsed = await readBoundedJson(request, 128 * 1024);
+  if (!parsed.ok) {
+    return Response.json(
+      { error: parsed.reason === "too_large" ? "This conversation is too large to save." : "Send a valid conversation." },
+      { status: parsed.reason === "too_large" ? 413 : 400, headers: responseHeaders },
+    );
+  }
+  const body = parsed.data;
   const messages = body && typeof body === "object" ? parseMessages((body as { messages?: unknown }).messages) : null;
   if (!messages) return Response.json({ error: "This conversation is invalid or too long to save." }, { status: 400, headers: responseHeaders });
-
-  const { count, error: countError } = await authenticated.supabase.from("assistant_conversations")
-    .select("id", { count: "exact", head: true })
-    .eq("user_id", authenticated.user.id);
-  if (countError) return Response.json({ error: "Chat history could not be saved." }, { status: 503, headers: responseHeaders });
-  if ((count ?? 0) >= 50) {
-    return Response.json({ error: "You have reached the 50-conversation limit. Delete an old chat to save a new one." }, { status: 409, headers: responseHeaders });
-  }
 
   const { data, error } = await authenticated.supabase.from("assistant_conversations")
     .insert({ title: conversationTitle(messages), messages: messages as unknown as Json })
@@ -140,8 +147,14 @@ export async function PATCH(request: Request) {
     );
   }
 
-  let body: unknown;
-  try { body = await request.json(); } catch { return Response.json({ error: "Send a valid conversation." }, { status: 400, headers: responseHeaders }); }
+  const parsed = await readBoundedJson(request, 128 * 1024);
+  if (!parsed.ok) {
+    return Response.json(
+      { error: parsed.reason === "too_large" ? "This conversation is too large to save." : "Send a valid conversation." },
+      { status: parsed.reason === "too_large" ? 413 : 400, headers: responseHeaders },
+    );
+  }
+  const body = parsed.data;
   const id = body && typeof body === "object" ? (body as { id?: unknown }).id : undefined;
   const messages = body && typeof body === "object" ? parseMessages((body as { messages?: unknown }).messages) : null;
   if (typeof id !== "string" || !idPattern.test(id) || !messages) {
@@ -171,8 +184,14 @@ export async function DELETE(request: Request) {
     );
   }
 
-  let body: unknown;
-  try { body = await request.json(); } catch { return Response.json({ error: "Choose a chat to delete." }, { status: 400, headers: responseHeaders }); }
+  const parsed = await readBoundedJson(request, 128 * 1024);
+  if (!parsed.ok) {
+    return Response.json(
+      { error: parsed.reason === "too_large" ? "This conversation is too large to save." : "Choose a chat to delete." },
+      { status: parsed.reason === "too_large" ? 413 : 400, headers: responseHeaders },
+    );
+  }
+  const body = parsed.data;
   const id = body && typeof body === "object" ? (body as { id?: unknown }).id : undefined;
   if (typeof id !== "string" || !idPattern.test(id)) return Response.json({ error: "Choose a valid chat to delete." }, { status: 400, headers: responseHeaders });
 

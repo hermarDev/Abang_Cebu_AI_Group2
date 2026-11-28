@@ -54,7 +54,7 @@ const securityHeaders = [
           "style-src 'self' 'unsafe-inline'",
           "img-src 'self' blob: data: https: *.supabase.co",
           "font-src 'self' data:",
-          `connect-src 'self' ${supabaseConnect.httpsOrigin} ${supabaseConnect.wssOrigin} https://*.supabase.co wss://*.supabase.co https://tiles.openfreemap.org https://photon.komoot.io`,
+          `connect-src 'self' ${supabaseConnect.httpsOrigin} ${supabaseConnect.wssOrigin} https://tiles.openfreemap.org https://photon.komoot.io`,
           "worker-src 'self' blob:",
           `frame-src 'self' ${getSupabaseFrameOrigin()} blob:`,
           "frame-ancestors 'none'",
