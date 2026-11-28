@@ -80,7 +80,7 @@ export async function GET(request: Request) {
       .limit(limit),
   ]);
 
-  if (ticketsData.error) {
+  if (ticketsData.error || landlordComplaintsData.error) {
     return reply({ error: "Could not load support tickets." }, 503);
   }
 

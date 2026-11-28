@@ -12,7 +12,7 @@ import {
   MapPinned,
   Pencil,
 } from "lucide-react";
-import { cn } from "@/components/ui/cn";
+import { cn } from "@/lib/utils";
 import type { LandlordManagedProperty, LandlordPortfolioErrors } from "@/server/landlord-properties";
 import { formatListingAddress, formatPropertyType } from "@/features/landlord/property-display";
 import { PropertyDetailsSheet } from "@/features/rentals/PropertyDetailsSheet";

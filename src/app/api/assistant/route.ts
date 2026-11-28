@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { createPublicClient } from "@/lib/supabase/server";
 import { assistantLimiter } from "@/server/api-limiters";
 import { getAssistantAccess } from "@/server/assistant-access";
 import { getClientIp } from "@/server/rate-limit";
@@ -26,7 +26,7 @@ async function loadRelevantRentals(search: Extract<AssistantSearch, { kind: "sea
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) return { status: "unavailable" };
 
   try {
-    const supabase = await createClient();
+    const supabase = createPublicClient();
     const inventory = await loadPublicRentals(supabase, null, { signPhotos: false });
     if (inventory.status !== "ok") return { status: "unavailable" };
     const { matches, alternatives } = selectAssistantRentals(inventory.rentals, search);

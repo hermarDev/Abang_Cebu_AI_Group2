@@ -7,7 +7,7 @@ import {
   type HTMLAttributes,
   type UIEvent,
 } from "react";
-import { cn } from "@/components/ui/cn";
+import { cn } from "@/lib/utils";
 
 export interface MessageScrollerHandle {
   scrollToBottom: (smooth?: boolean) => void;

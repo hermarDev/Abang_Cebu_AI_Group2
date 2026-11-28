@@ -1,4 +1,6 @@
 import { agreementLimiter } from "@/server/api-limiters";
+import { invalidateLandlordPortfolioCache } from "@/server/landlord-portfolio-cache";
+import { invalidatePublicRentalsCache } from "@/server/rentals/public-rentals";
 import {
   limited,
   readJson,
@@ -44,6 +46,11 @@ export async function POST(request: Request, context: Context) {
 
     if (error) {
       return rpcFailure(error.code, { "42501": 403, "22023": 400, "40001": 409 }, error.message);
+    }
+
+    if ((data as { bothAgreed?: boolean } | null)?.bothAgreed === true) {
+      invalidatePublicRentalsCache();
+      invalidateLandlordPortfolioCache();
     }
 
     return reply({ agreement: data }, 200);

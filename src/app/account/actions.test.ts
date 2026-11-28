@@ -5,6 +5,7 @@ const fixture = vi.hoisted(() => ({
   update: vi.fn(),
   updateUser: vi.fn(async () => ({ error: null })),
   signIn: vi.fn(async () => ({ data: { user: { id: "user-1" } }, error: null })),
+  signOut: vi.fn(async () => ({ error: null })),
   user: { id: "user-1", email: "test@example.invalid", identities: [{ provider: "email" }] } as { id: string; email: string; identities?: { provider: string }[] } | null,
   upload: vi.fn(async () => ({ error: null })),
   remove: vi.fn(async () => ({ error: null })),
@@ -12,7 +13,7 @@ const fixture = vi.hoisted(() => ({
   invalidateProfileAvatarCache: vi.fn(),
 }));
 
-vi.mock("@supabase/supabase-js", () => ({ createClient: () => ({ auth: { signInWithPassword: fixture.signIn } }) }));
+vi.mock("@supabase/supabase-js", () => ({ createClient: () => ({ auth: { signInWithPassword: fixture.signIn, signOut: fixture.signOut } }) }));
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 vi.mock("@/lib/supabase/admin", () => ({
   createAdminClient: () => ({
@@ -46,9 +47,14 @@ vi.mock("@/lib/supabase/server", () => ({
 }));
 
 import { revalidatePath } from "next/cache";
+import { accountPasswordLimiter } from "@/server/api-limiters";
 import { removeAccountAvatar, updateAccountAvatar, updateAccountPassword, updateAccountProfile } from "./actions";
 
 describe("account password safety gate", () => {
+  beforeEach(() => {
+    accountPasswordLimiter.reset();
+    fixture.signOut.mockClear();
+  });
   it("rejects invalid new passwords before contacting the provider", async () => {
     fixture.updateUser.mockClear();
     const data = new FormData();
@@ -83,6 +89,8 @@ describe("account password safety gate", () => {
     const result = await updateAccountPassword(data);
     expect(result.success).toBe(true);
     expect(fixture.signIn).toHaveBeenCalledWith({ email: "test@example.invalid", password: "Synthetic2!" });
+    expect(fixture.signOut).toHaveBeenCalledTimes(1);
+    expect(fixture.signOut).toHaveBeenCalledWith({ scope: "local" });
     expect(fixture.updateUser).toHaveBeenCalledWith({ password: "Synthetic1!", current_password: "Synthetic2!" });
     vi.unstubAllEnvs();
   });
@@ -139,6 +147,29 @@ describe("account password safety gate", () => {
     expect(result.field).toBeUndefined();
     expect(result.message).toBe("Password verification is temporarily unavailable. Please try again later.");
     expect(fixture.updateUser).not.toHaveBeenCalled();
+    vi.unstubAllEnvs();
+  });
+
+  it("rate-limits repeated password change attempts per user", async () => {
+    vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "https://example.invalid");
+    vi.stubEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY", "test-anon-key");
+    fixture.signIn.mockClear();
+    fixture.updateUser.mockClear();
+    const data = new FormData();
+    data.set("password", "Synthetic1!");
+    data.set("confirmPassword", "Synthetic1!");
+    data.set("currentPassword", "Synthetic2!");
+
+    for (let i = 0; i < 5; i++) {
+      const ok = await updateAccountPassword(data);
+      expect(ok.success).toBe(true);
+    }
+
+    const limited = await updateAccountPassword(data);
+    expect(limited.success).toBe(false);
+    expect(limited.message).toMatch(/too many password change attempts/i);
+    expect(fixture.signIn).toHaveBeenCalledTimes(5);
+    expect(fixture.updateUser).toHaveBeenCalledTimes(5);
     vi.unstubAllEnvs();
   });
 });

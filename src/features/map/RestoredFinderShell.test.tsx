@@ -12,7 +12,6 @@ import * as RadixPopover from "@radix-ui/react-popover";
 import { QuickFilters } from "./FinderQuickFilters";
 import { FinderNavigation } from "./FinderNavigation";
 import { FinderAssistant } from "./FinderAssistant";
-import { ExpandedRentalModalContent } from "./RestoredFinderShell";
 import { PropertyDetailsSheet, PropertyDetailsSheetBody, type PropertyDetailsSheetProps } from "../rentals/PropertyDetailsSheet";
 
 const hooks = vi.hoisted(() => ({ changeFilters: undefined as ((filters: RentalFilters) => void) | undefined, changeCenter: undefined as ((center: [number, number]) => void) | undefined, mapRentals: [] as RentalResult[], slots: [] as unknown[], index: 0, refs: [] as { current: unknown }[], refIndex: 0, effects: [] as (() => void | (() => void))[], effect: undefined as (() => void | (() => void)) | undefined }));
@@ -507,7 +506,7 @@ describe("RestoredFinderShell", () => {
     expect(strictTwoKm).not.toContain("Mandaue condo");
   });
 
-  it("renders consistent truthful verification pills on RentalCard and ExpandedRentalModalContent", () => {
+  it("renders consistent truthful verification pills on RentalCard and PropertyDetailsSheetBody", () => {
     const cases: Array<[string, string]> = [
       ["property_verified", "Verified property"],
       ["approved", "Verified property"],
@@ -517,8 +516,26 @@ describe("RestoredFinderShell", () => {
     for (const [status, label] of cases) {
       const sample = { ...rental, verificationStatus: status as RentalResult["verificationStatus"] };
       expect(renderToStaticMarkup(<RentalCard rental={sample} selected={false} onSelect={vi.fn()} />)).toContain(label);
-      expect(renderToStaticMarkup(<ExpandedRentalModalContent rental={sample} photoIndex={0} onPhotoIndexChange={vi.fn()} canSave={false} saved={false} onToggleSaved={vi.fn()} />)).toContain(label);
     }
+
+    const savedSlots = hooks.slots;
+    const savedIndex = hooks.index;
+    const savedRefs = hooks.refs;
+    const savedRefIndex = hooks.refIndex;
+    hooks.slots = [];
+    hooks.index = 0;
+    hooks.refs = [];
+    hooks.refIndex = 0;
+    expect(renderToStaticMarkup(<PropertyDetailsSheetBody rental={{ ...rental, verificationStatus: "property_verified" }} />)).toContain("Verified property");
+    hooks.slots = [];
+    hooks.index = 0;
+    hooks.refs = [];
+    hooks.refIndex = 0;
+    expect(renderToStaticMarkup(<PropertyDetailsSheetBody rental={{ ...rental, verificationStatus: "unverified" }} />)).toContain("Pending verification");
+    hooks.slots = savedSlots;
+    hooks.index = savedIndex;
+    hooks.refs = savedRefs;
+    hooks.refIndex = savedRefIndex;
   });
 
   it("renders a View details button and photo count badge on multi-photo rental cards", () => {
@@ -611,20 +628,15 @@ describe("RestoredFinderShell", () => {
       // No ListingInquiryModal should appear
     });
 
-    it("opens the inquiry from the map popup, card and expanded modal for a signed-in renter", async () => {
+    it("opens the inquiry from the map popup, card and expanded sheet for a signed-in renter", async () => {
       await load({ ok: true, json: async () => ({ rentals: [gallery] }) });
-      // Clicking "Message landlord" should navigate to /messages?listing=<id>
-      // The modal is no longer used - test that the action is present
-      const html = renderToStaticMarkup(<ExpandedRentalModalContent rental={gallery} photoIndex={0} onPhotoIndexChange={vi.fn()} canSave={false} saved={false} onToggleSaved={vi.fn()} canMessage onMessage={vi.fn()} />);
-      expect(html).toContain("Message landlord");
-      expect(renderToStaticMarkup(<ExpandedRentalModalContent rental={gallery} photoIndex={0} onPhotoIndexChange={vi.fn()} canSave={false} saved={false} onToggleSaved={vi.fn()} />)).not.toContain("Message landlord");
-      // Choosing the action from the expanded modal/sheet closes it before navigating
+      // Choosing the action from the expanded sheet closes it before navigating
       hooks.slots = [];
       hooks.refs = [];
       await load({ ok: true, json: async () => ({ rentals: [gallery] }) });
       cardProps(capture(renter)).onExpand!("live-1");
-      const expanded = findElementsByType(capture(renter), PropertyDetailsSheet)[0]
-        ?? findElementsByType(capture(renter), ExpandedRentalModalContent)[0];
+      const expanded = findElementsByType(capture(renter), PropertyDetailsSheet)[0];
+      expect(expanded).toBeDefined();
       expect(expanded.props.canMessage).toBe(true);
       (expanded.props.onMessage as (id: string) => void)("live-1");
       expect(findElementsByType(capture(renter), PropertyDetailsSheet)).toHaveLength(0);

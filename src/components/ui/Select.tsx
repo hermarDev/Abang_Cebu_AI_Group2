@@ -3,7 +3,7 @@
 import { Children, isValidElement, useEffect, useRef, useState, type ButtonHTMLAttributes, type FormEventHandler, type ReactNode } from "react";
 import * as RadixSelect from "@radix-ui/react-select";
 import { Check, ChevronDown } from "lucide-react";
-import { cn } from "./cn";
+import { cn } from "@/lib/utils";
 import styles from "./Select.module.css";
 
 export type SelectOption = { value: string; label: string; shortLabel?: string; disabled?: boolean };

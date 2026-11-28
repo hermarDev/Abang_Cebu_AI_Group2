@@ -64,4 +64,42 @@ describe("AdminSupportQueue", () => {
     expect(html).toContain("Looking into your account profile now.");
     expect(html).toContain("Update ticket");
   });
+
+  it("renders escalation, landlord inquiry/response, and support resolution context when present", () => {
+    const escalatedTicket: SupportTicketRecord = {
+      ...sampleTicket,
+      status: "escalated",
+      reportedLandlordId: "landlord-1",
+      reportedLandlordName: "Lando Landlord",
+      landlordInquiryNote: "Please clarify the deposit requirement.",
+      landlordInquirySentAt: "2026-11-13T02:00:00Z",
+      landlordResponse: "We removed the reservation fee notice.",
+      landlordRespondedAt: "2026-11-13T03:00:00Z",
+      handledBySupportId: "cs-1",
+      handledBySupportName: "Carla Support",
+      supportResolutionNote: "Confirmed listing terms with renter.",
+      escalatedToAdminAt: "2026-11-13T04:00:00Z",
+      escalationReason: "Repeated off-platform deposit complaints.",
+      recommendedAdminAction: "suspend_account",
+    };
+
+    const html = renderToStaticMarkup(
+      <ul>
+        <TicketRow
+          ticket={escalatedTicket}
+          highlighted={true}
+          onManage={vi.fn()}
+          onOpenAttachment={vi.fn()}
+        />
+      </ul>,
+    );
+
+    expect(html).toContain("Lando Landlord");
+    expect(html).toContain("Please clarify the deposit requirement.");
+    expect(html).toContain("We removed the reservation fee notice.");
+    expect(html).toContain("Confirmed listing terms with renter.");
+    expect(html).toContain("Carla Support");
+    expect(html).toContain("Repeated off-platform deposit complaints.");
+    expect(html).toContain("Suspend landlord account");
+  });
 });

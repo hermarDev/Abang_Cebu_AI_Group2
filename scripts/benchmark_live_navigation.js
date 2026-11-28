@@ -6,9 +6,41 @@ const path = require("path");
 const LIVE_BASE_URL = "https://abangcebu.tech";
 const OUTPUT_DIR = path.join(process.cwd(), "test-results", "navigation-benchmark");
 
+function loadLocalEnv() {
+  const envPath = path.join(process.cwd(), ".env.local");
+  if (!fs.existsSync(envPath)) return;
+  if (typeof process.loadEnvFile === "function") {
+    process.loadEnvFile(envPath);
+    return;
+  }
+  for (const rawLine of fs.readFileSync(envPath, "utf8").split(/\r?\n/)) {
+    const line = rawLine.trim();
+    if (!line || line.startsWith("#")) continue;
+    const eqIdx = line.indexOf("=");
+    if (eqIdx <= 0) continue;
+    const key = line.slice(0, eqIdx).trim();
+    const val = line.slice(eqIdx + 1).trim().replace(/^(['"])(.*)\1$/, "$2");
+    if (process.env[key] === undefined) {
+      process.env[key] = val;
+    }
+  }
+}
+
+function requireEnv(name) {
+  const value = process.env[name]?.trim();
+  if (!value) {
+    throw new Error(`Missing required environment variable: ${name} (set in environment or .env.local)`);
+  }
+  return value;
+}
+
 fs.mkdirSync(OUTPUT_DIR, { recursive: true });
 
 async function runBenchmark() {
+  loadLocalEnv();
+  const renterEmail = requireEnv("TEST_RENTER_EMAIL");
+  const renterPassword = requireEnv("TEST_RENTER_PASSWORD");
+
   console.log("=== STARTING LIVE NAVIGATION BENCHMARK ON ABANGCEBU.TECH ===");
   const browser = await chromium.launch({
     headless: true,
@@ -19,7 +51,7 @@ async function runBenchmark() {
     timestamp: new Date().toISOString(),
     environment: "production (https://abangcebu.tech)",
     auth: {
-      email: "abangcebuai+renter@gmail.com",
+      email: renterEmail,
       role: "renter"
     },
     guest_navigations: [],
@@ -303,8 +335,8 @@ async function runBenchmark() {
   const loginModal = page.getByRole("dialog");
   await loginModal.waitFor({ state: "visible" });
 
-  await loginModal.getByLabel("Email Address", { exact: true }).fill(report.auth.email);
-  await loginModal.locator("input[type=password]").fill("Abangcebuai123");
+  await loginModal.getByLabel("Email Address", { exact: true }).fill(renterEmail);
+  await loginModal.locator("input[type=password]").fill(renterPassword);
 
   const loginClickT0 = Date.now();
   await loginModal.getByRole("button", { name: "Log In", exact: true }).click();

@@ -43,3 +43,50 @@ export async function signProfileAvatar(userId: string, avatarReference: string 
     return null;
   }
 }
+
+/** Batch-signs profile avatar storage paths, reusing the process-local avatar cache. */
+export async function signProfileAvatars(
+  entries: Array<{ userId: string; avatarReference: string | null | undefined }>,
+): Promise<Map<string, string>> {
+  const result = new Map<string, string>();
+  const cacheEnabled = !process.env.VITEST;
+  const now = Date.now();
+  const uncached: string[] = [];
+  const seen = new Set<string>();
+
+  for (const { userId, avatarReference } of entries) {
+    if (!avatarReference || /^https:\/\//i.test(avatarReference)) continue;
+    if (!avatarReference.startsWith(`${userId}/`) || !/^[0-9a-f-]+\/[\w-]+\.(?:jpg|png|webp)$/i.test(avatarReference)) continue;
+    if (seen.has(avatarReference)) continue;
+    seen.add(avatarReference);
+
+    const cached = cacheEnabled ? avatarUrlCache.get(avatarReference) : undefined;
+    if (cached && cached.expiresAt > now) {
+      result.set(avatarReference, cached.url);
+    } else {
+      if (cached) avatarUrlCache.delete(avatarReference);
+      uncached.push(avatarReference);
+    }
+  }
+
+  if (!uncached.length) return result;
+  try {
+    const { data } = await createAdminClient().storage.from(PROFILE_AVATAR_BUCKET).createSignedUrls(uncached, PROFILE_AVATAR_URL_TTL);
+    const expiresAt = Date.now() + AVATAR_CACHE_TTL_MS;
+    for (const item of data ?? []) {
+      if (item?.path && item.signedUrl && /^https?:\/\//i.test(item.signedUrl)) {
+        result.set(item.path, item.signedUrl);
+        if (cacheEnabled) {
+          if (avatarUrlCache.size >= AVATAR_CACHE_LIMIT && !avatarUrlCache.has(item.path)) {
+            const oldest = avatarUrlCache.keys().next().value;
+            if (oldest !== undefined) avatarUrlCache.delete(oldest);
+          }
+          avatarUrlCache.set(item.path, { url: item.signedUrl, expiresAt });
+        }
+      }
+    }
+  } catch {
+    /* Degrade to no avatar if signing fails. */
+  }
+  return result;
+}

@@ -57,7 +57,12 @@ export type SupportTicketRecord = {
   landlordInquirySentAt?: string | null;
   landlordResponse?: string | null;
   landlordRespondedAt?: string | null;
+  handledBySupportId?: string | null;
+  handledBySupportName?: string | null;
   supportResolutionNote?: string | null;
+  escalatedToAdminAt?: string | null;
+  escalationReason?: string | null;
+  recommendedAdminAction?: string | null;
   adminResponse: string | null;
   assignedAdminId: string | null;
   assignedAdminName?: string | null;

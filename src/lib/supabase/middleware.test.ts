@@ -77,25 +77,81 @@ describe("workspace routing", () => {
 });
 
 describe("RSC navigation", () => {
-  function rscRequest(path: string) {
+  function encodeBase64Url(value: string) {
+    return Buffer.from(value, "utf8")
+      .toString("base64")
+      .replace(/\+/g, "-")
+      .replace(/\//g, "_")
+      .replace(/=+$/, "");
+  }
+
+  function makeJwt(expSeconds: number) {
+    const header = encodeBase64Url(JSON.stringify({ alg: "HS256", typ: "JWT" }));
+    const payload = encodeBase64Url(JSON.stringify({ sub: "test-user", exp: expSeconds }));
+    return `${header}.${payload}.signature`;
+  }
+
+  function makeAuthCookieValue(expSeconds: number) {
+    return `base64-${encodeBase64Url(JSON.stringify({ access_token: makeJwt(expSeconds), refresh_token: "rt" }))}`;
+  }
+
+  function rscRequest(path: string, cookieHeader: string) {
     return new NextRequest(`https://example.test${path}`, {
-      headers: { cookie: "sb-access-token=test" },
+      headers: { cookie: cookieHeader },
     });
   }
 
-  it("skips the session refresh on RSC navigations", async () => {
-    const response = await middleware(rscRequest("/landlord/dashboard?_rsc=abc"));
+  it("skips the session refresh on RSC navigations when JWT has >90s remaining", async () => {
+    const freshExp = Math.floor(Date.now() / 1000) + 300;
+    const response = await middleware(
+      rscRequest("/landlord/dashboard?_rsc=abc", `sb-test-auth-token=${makeAuthCookieValue(freshExp)}`),
+    );
     expect(mocks.getUser).not.toHaveBeenCalled();
     expect(response.headers.get("location")).toBeNull();
   });
 
+  it("skips the session refresh for chunked base64- auth cookies with fresh JWT", async () => {
+    const freshExp = Math.floor(Date.now() / 1000) + 300;
+    const encoded = makeAuthCookieValue(freshExp);
+    const midpoint = Math.floor(encoded.length / 2);
+    const cookieHeader = `sb-test-auth-token.0=${encoded.slice(0, midpoint)}; sb-test-auth-token.1=${encoded.slice(midpoint)}`;
+    const response = await middleware(rscRequest("/landlord/dashboard?_rsc=abc", cookieHeader));
+    expect(mocks.getUser).not.toHaveBeenCalled();
+    expect(response.headers.get("location")).toBeNull();
+  });
+
+  it("refreshes the session on RSC navigations when JWT is expired", async () => {
+    const expiredExp = Math.floor(Date.now() / 1000) - 10;
+    await middleware(
+      rscRequest("/landlord/dashboard?_rsc=abc", `sb-test-auth-token=${makeAuthCookieValue(expiredExp)}`),
+    );
+    expect(mocks.getUser).toHaveBeenCalledOnce();
+  });
+
+  it("refreshes the session on RSC navigations when JWT is within 90s of expiry", async () => {
+    const nearExpiryExp = Math.floor(Date.now() / 1000) + 45;
+    await middleware(
+      rscRequest("/landlord/dashboard?_rsc=abc", `sb-test-auth-token=${makeAuthCookieValue(nearExpiryExp)}`),
+    );
+    expect(mocks.getUser).toHaveBeenCalledOnce();
+  });
+
+  it("refreshes the session on RSC navigations when auth cookie is unreadable", async () => {
+    await middleware(rscRequest("/landlord/dashboard?_rsc=abc", "sb-access-token=test"));
+    expect(mocks.getUser).toHaveBeenCalledOnce();
+  });
+
   it("still refreshes the session on full document navigations", async () => {
-    await middleware(rscRequest("/landlord/dashboard"));
+    const freshExp = Math.floor(Date.now() / 1000) + 300;
+    await middleware(rscRequest("/landlord/dashboard", `sb-test-auth-token=${makeAuthCookieValue(freshExp)}`));
     expect(mocks.getUser).toHaveBeenCalledOnce();
   });
 
   it("keeps no-store on RSC requests to public entry routes", async () => {
-    const response = await middleware(rscRequest("/?_rsc=abc"));
+    const freshExp = Math.floor(Date.now() / 1000) + 300;
+    const response = await middleware(
+      rscRequest("/?_rsc=abc", `sb-test-auth-token=${makeAuthCookieValue(freshExp)}`),
+    );
     expect(response.headers.get("cache-control")).toContain("no-store");
     expect(mocks.getUser).not.toHaveBeenCalled();
   });

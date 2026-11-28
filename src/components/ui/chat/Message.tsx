@@ -1,5 +1,5 @@
 import { forwardRef, type HTMLAttributes } from "react";
-import { cn } from "@/components/ui/cn";
+import { cn } from "@/lib/utils";
 
 export interface MessageProps extends HTMLAttributes<HTMLLIElement> {
   mine?: boolean;

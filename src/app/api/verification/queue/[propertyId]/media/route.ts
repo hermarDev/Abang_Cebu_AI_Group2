@@ -9,6 +9,7 @@ import {
   rateLimited,
   requireActiveVerifier,
   verificationLimiter,
+  verifierRpc,
 } from "@/server/verification-access";
 
 type RouteContext = { params: Promise<{ propertyId: string }> };
@@ -55,6 +56,23 @@ export async function POST(request: Request, { params }: RouteContext) {
   const contentType = inspectDraftMedia("permit", file.type, bytes);
   if (!contentType) {
     return jsonError("Unsupported or invalid file format.", 400);
+  }
+
+  const { data: queueProperty, error: queueError } = await verifierRpc(
+    session.supabase,
+    "verifier_get_queue_property",
+    { p_property_id: propertyId },
+  );
+  if (queueError) {
+    return jsonError("Queue could not be verified. Please retry.", 503);
+  }
+  if (!queueProperty || typeof queueProperty !== "object" || Array.isArray(queueProperty)) {
+    return jsonError("Property not found in verification queue.", 404);
+  }
+  const existingProof = (queueProperty as { fieldVerificationProof?: unknown }).fieldVerificationProof;
+  // shortcut: counts already-submitted proof items; unsubmitted storage uploads are capped at submission time by verifier_submit_verification.
+  if (Array.isArray(existingProof) && existingProof.length >= 10) {
+    return jsonError("Maximum proof items reached for this verification.", 409);
   }
 
   const sha256 = createHash("sha256").update(bytes).digest("hex");

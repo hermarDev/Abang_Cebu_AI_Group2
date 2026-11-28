@@ -1,57 +1,42 @@
-import { createClient } from "@/lib/supabase/server";
 import { supportRespondLimiter } from "@/server/api-limiters";
-import { uuidPattern } from "@/server/support-desk-access";
+import {
+  checkRateLimit,
+  createRoleGuard,
+  noStoreHeaders,
+  readJsonObject,
+  uuidPattern,
+} from "@/server/role-access";
 
-const noStoreHeaders = { "Cache-Control": "no-store" };
 const reply = (body: unknown, status = 200, extra: Record<string, string> = {}) =>
   Response.json(body, { status, headers: { ...noStoreHeaders, ...extra } });
+
+const requireActiveLandlord = createRoleGuard({
+  allowedRoles: ["landlord"],
+  unauthenticatedMessage: "Sign in with a landlord account to continue.",
+  forbiddenMessage: "Landlord complaint response is restricted to active landlords.",
+});
 
 type Context = { params: Promise<{ ticketId: string }> };
 
 export async function POST(request: Request, context: Context) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
+  const session = await requireActiveLandlord(request);
+  if ("response" in session && session.response) return session.response;
 
-  if (authError || !user) {
-    return reply({ error: "Sign in with a landlord account to continue." }, 401);
-  }
-
-  const expectedUserId = request.headers.get("x-expected-user-id");
-  if (expectedUserId !== user.id) {
-    return reply({ error: "Your account changed. Please refresh and try again." }, 409);
-  }
-
-  const { data: profile, error: profileError } = await supabase
-    .from("profiles")
-    .select("role,is_suspended")
-    .eq("id", user.id)
-    .maybeSingle();
-
-  if (profileError || profile?.role !== "landlord" || profile?.is_suspended) {
-    return reply({ error: "Landlord complaint response is restricted to active landlords." }, 403);
-  }
-
-  const { allowed, retryAfterSeconds } = supportRespondLimiter.checkDetailed(request, user.id);
-  if (!allowed) {
-    return reply(
-      { error: "Too many ticket responses. Please wait before trying again.", retryAfterSeconds },
-      429,
-      { "Retry-After": String(retryAfterSeconds) },
-    );
-  }
+  const limited = checkRateLimit(
+    supportRespondLimiter,
+    request,
+    session.user.id,
+    "Too many ticket responses. Please wait before trying again.",
+  );
+  if (limited) return limited;
 
   const { ticketId } = await context.params;
   if (!uuidPattern.test(ticketId)) {
     return reply({ error: "Invalid ticket ID." }, 400);
   }
 
-  let body: Record<string, unknown> = {};
-  try {
-    body = (await request.json()) as Record<string, unknown>;
-  } catch {
+  const body = await readJsonObject(request);
+  if (!body) {
     return reply({ error: "Invalid request body." }, 400);
   }
 
@@ -62,7 +47,7 @@ export async function POST(request: Request, context: Context) {
     return reply({ error: "Provide a valid operation ID and a response between 5 and 2,000 characters." }, 400);
   }
 
-  const { data, error } = await supabase.rpc("landlord_respond_to_support_ticket", {
+  const { data, error } = await session.supabase.rpc("landlord_respond_to_support_ticket", {
     p_ticket_id: ticketId,
     p_operation_id: operationId,
     p_response: responseText,

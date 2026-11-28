@@ -4,7 +4,7 @@ import { useEffect, useState, type ButtonHTMLAttributes } from "react";
 import { Bell } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/Popover";
 import { Sheet } from "@/components/ui/Sheet";
-import { cn } from "@/components/ui/cn";
+import { cn } from "@/lib/utils";
 import { useNotificationCenter } from "./useNotificationCenter";
 import { NotificationCenter } from "./NotificationCenter";
 import type { UserRole } from "@/types/database";

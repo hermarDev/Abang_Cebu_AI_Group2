@@ -2,7 +2,7 @@
 
 import { useLayoutEffect, useRef, type HTMLAttributes, type ReactNode } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
-import { cn } from "./cn";
+import { cn } from "@/lib/utils";
 
 export interface ModalProps extends Omit<HTMLAttributes<HTMLDivElement>, "title"> {
   open: boolean;

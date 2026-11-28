@@ -20,7 +20,7 @@ import {
 } from "lucide-react";
 import { BrandLogo } from "@/components/brand";
 import { notify } from "@/components/ui/AppToaster";
-import { cn } from "@/components/ui/cn";
+import { cn } from "@/lib/utils";
 import { Pagination } from "@/components/ui/Pagination";
 import type { NotificationItem, NotificationType, UserRole } from "@/types/database";
 import { formatRelativeTime } from "./NotificationCenter";

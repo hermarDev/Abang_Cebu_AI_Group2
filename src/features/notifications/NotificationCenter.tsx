@@ -17,7 +17,7 @@ import {
   X,
   ArrowRight,
 } from "lucide-react";
-import { cn } from "@/components/ui/cn";
+import { cn } from "@/lib/utils";
 import type { NotificationItem, NotificationType, UserRole } from "@/types/database";
 import styles from "./NotificationCenter.module.css";
 

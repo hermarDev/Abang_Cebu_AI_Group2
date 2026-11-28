@@ -1,7 +1,7 @@
 import { beforeEach, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({ access: vi.fn(), provider: vi.fn() }));
 vi.mock("@/server/assistant-access", () => ({ getAssistantAccess: mocks.access }));
-vi.mock("@/lib/supabase/server", () => ({ createClient: vi.fn() }));
+vi.mock("@/lib/supabase/server", () => ({ createPublicClient: vi.fn() }));
 import { POST } from "./route";
 
 beforeEach(() => {

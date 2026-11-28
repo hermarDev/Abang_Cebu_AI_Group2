@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+vi.mock("server-only", () => ({}));
 
 const mocks = vi.hoisted(() => ({ getUser: vi.fn(), profile: vi.fn(), rpc: vi.fn(), createSignedUrls: vi.fn(), createAvatarSignedUrls: vi.fn() }));
 vi.mock("@/lib/supabase/admin", () => ({

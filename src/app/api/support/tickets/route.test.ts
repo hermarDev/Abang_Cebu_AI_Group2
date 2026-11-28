@@ -537,6 +537,19 @@ describe("GET /api/support/tickets", () => {
     expect(landlordSelectCall).not.toContain("support_resolution_note");
     expect(landlordSelectCall).not.toContain("admin_response");
   });
+
+  it("returns 503 when landlordComplaintsData query errors", async () => {
+    mocks.getUser.mockResolvedValue({ data: { user: { id: userId } }, error: null });
+    mocks.select
+      .mockResolvedValueOnce({ data: [], error: null })
+      .mockResolvedValueOnce({ data: null, error: { message: "database error" } });
+
+    const req = new Request("http://localhost/api/support/tickets", {
+      headers: { "x-expected-user-id": userId },
+    });
+    const res = await GET(req);
+    expect(res.status).toBe(503);
+  });
 });
 
 describe("GET /api/support/tickets/[ticketId]/attachments", () => {

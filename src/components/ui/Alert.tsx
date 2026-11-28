@@ -1,5 +1,5 @@
 import type { HTMLAttributes } from "react";
-import { cn } from "./cn";
+import { cn } from "@/lib/utils";
 
 export type AlertVariant = "warning" | "error" | "success" | "info";
 export type AlertProps = HTMLAttributes<HTMLDivElement> & { variant?: AlertVariant };

@@ -6,16 +6,14 @@ import { Card, CardTitle } from "./Card";
 import { Input } from "./Input";
 import { Select } from "./Select";
 import { Skeleton } from "./Skeleton";
-import { cn as uiCn } from "./cn";
 import { cn as sharedCn } from "@/lib/utils";
 import { Modal } from "./Modal";
 
 const render = (node: React.ReactNode) => renderToStaticMarkup(node);
 
 describe("UI primitives semantics", () => {
-  it("reuses the canonical shared class-name utility", () => {
-    expect(uiCn).toBe(sharedCn);
-    expect(uiCn("px-2", "px-4")).toBe("px-4");
+  it("exports the canonical shared class-name utility", () => {
+    expect(sharedCn("px-2", "px-4")).toBe("px-4");
   });
 
   it("renders a named native button with a 44px minimum target and visible focus token", () => {

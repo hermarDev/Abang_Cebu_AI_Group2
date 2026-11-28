@@ -3,7 +3,7 @@
 import { useLayoutEffect, useRef, type HTMLAttributes, type ReactNode } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { X } from "lucide-react";
-import { cn } from "./cn";
+import { cn } from "@/lib/utils";
 
 export interface SheetProps extends Omit<HTMLAttributes<HTMLDivElement>, "title"> {
   open: boolean;

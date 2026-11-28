@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { createPublicClient } from "@/lib/supabase/server";
 import { publicRentalsLimiter } from "@/server/api-limiters";
 import { getClientIp } from "@/server/rate-limit";
 import { loadPublicRentals } from "@/server/rentals/public-rentals";
@@ -20,7 +20,7 @@ export async function GET(request?: Request): Promise<Response> {
   try {
     const url = request ? new URL(request.url) : null;
     const targetId = url?.searchParams.get("id");
-    const supabase = await createClient();
+    const supabase = createPublicClient();
     const result = await loadPublicRentals(supabase, targetId);
     if (result.status !== "ok") {
       return Response.json({ error: "Rental listings are temporarily unavailable. Please try again later." }, { status: 503, headers: noStoreHeaders });

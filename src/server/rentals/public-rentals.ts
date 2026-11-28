@@ -18,6 +18,8 @@ const PUBLIC_RENTALS_CACHE_TTL_MS = 30 * 1000;
 const signedPhotoCache = new Map<string, { url: string; expiresAt: number }>();
 const publicRentalsCache = new Map<string, { result: Extract<PublicRentalsResult, { status: "ok" }>; expiresAt: number }>();
 const publicRentalsInFlight = new Map<string, Promise<PublicRentalsResult>>();
+const publicSubmittedCache = new Map<string, { rentals: RentalResult[]; expiresAt: number }>();
+const publicSubmittedInFlight = new Map<string, Promise<RentalResult[]>>();
 
 export function resetSignedPhotoCache() {
   signedPhotoCache.clear();
@@ -25,6 +27,7 @@ export function resetSignedPhotoCache() {
 
 export function invalidatePublicRentalsCache() {
   publicRentalsCache.clear();
+  publicSubmittedCache.clear();
 }
 
 function isSubmittedStatus(value: unknown): value is (typeof PUBLIC_SUBMITTED_STATUSES)[number] {
@@ -161,4 +164,54 @@ async function fetchPublicRentals(
     return true;
   });
   return { status: "ok", rentals: uniqueRentals, complete: !hasListingsError && !hasSubmittedError && (Boolean(targetId) || (Array.isArray(data) && data.length < 200)) && rawSubmittedRows.length < 200 };
+}
+
+/** Cached 30s loader for public approved submitted rentals (reused by favorites). */
+export async function loadPublicSubmittedRentals(
+  supabase: unknown,
+  signPhotos = true,
+): Promise<RentalResult[]> {
+  const cacheKey = signPhotos ? "signed" : "unsigned";
+  if (!process.env.VITEST) {
+    const cached = publicSubmittedCache.get(cacheKey);
+    if (cached && cached.expiresAt > Date.now()) return cached.rentals;
+    if (cached) publicSubmittedCache.delete(cacheKey);
+    const pending = publicSubmittedInFlight.get(cacheKey);
+    if (pending) return pending;
+  }
+
+  const run = (async (): Promise<RentalResult[]> => {
+    const rpc = (supabase as { rpc?: (fn: string) => Promise<{ data: unknown; error: unknown }> } | null)?.rpc;
+    if (typeof rpc !== "function") return [];
+    try {
+      const { data, error } = await rpc.call(supabase, "get_public_submitted_rentals");
+      if (error || !Array.isArray(data)) return [];
+      const visible = (data as unknown[]).filter((row) =>
+        isSubmittedStatus((row as { moderation_status?: unknown } | null)?.moderation_status),
+      );
+      if (visible.length === 0) return [];
+      const signed = signPhotos ? await signSubmittedPhotos(visible) : new Map<string, string>();
+      const rentals = visible.flatMap((row) => {
+        try {
+          return [mapSubmittedRental(row, signed)];
+        } catch {
+          return [];
+        }
+      });
+      if (!process.env.VITEST) {
+        publicSubmittedCache.set(cacheKey, { rentals, expiresAt: Date.now() + PUBLIC_RENTALS_CACHE_TTL_MS });
+      }
+      return rentals;
+    } catch {
+      return [];
+    }
+  })();
+
+  if (process.env.VITEST) return run;
+  publicSubmittedInFlight.set(cacheKey, run);
+  try {
+    return await run;
+  } finally {
+    publicSubmittedInFlight.delete(cacheKey);
+  }
 }

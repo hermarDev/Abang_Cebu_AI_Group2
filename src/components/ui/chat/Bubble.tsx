@@ -1,7 +1,7 @@
 import { forwardRef, type HTMLAttributes } from "react";
 import Image from "next/image";
 import { CornerUpLeft, Image as ImageIcon, Mic, Paperclip, Video } from "lucide-react";
-import { cn } from "@/components/ui/cn";
+import { cn } from "@/lib/utils";
 
 export type AttachmentPreviewKind = "photo" | "video" | "voice" | "file";
 

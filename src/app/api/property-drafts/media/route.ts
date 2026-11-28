@@ -2,19 +2,26 @@ import { createHash } from "node:crypto";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { propertyDraftsLimiter } from "@/server/api-limiters";
 import { MAX_UPLOAD_MULTIPART_BYTES, readBoundedFormData } from "@/server/bounded-body";
-import { createRoleGuard } from "@/server/role-access";
+import {
+  checkRateLimit,
+  createRoleGuard,
+  jsonError,
+  noStoreHeaders,
+  readJsonObject,
+  uuidPattern,
+} from "@/server/role-access";
 import { inspectDraftMedia } from "../media-validation";
 
-const headers = { "Cache-Control": "no-store" };
-const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-const reply = (error: string, status: number) => Response.json({ error }, { status, headers });
+const headers = noStoreHeaders;
+const uuid = uuidPattern;
+const reply = jsonError;
 
 function enforceRateLimit(request: Request, userId: string): Response | null {
-  const { allowed, retryAfterSeconds } = propertyDraftsLimiter.checkDetailed(request, userId);
-  if (allowed) return null;
-  return Response.json(
-    { error: "Too many media requests. Please wait a moment and try again." },
-    { status: 429, headers: { ...headers, "Retry-After": String(retryAfterSeconds) } },
+  return checkRateLimit(
+    propertyDraftsLimiter,
+    request,
+    userId,
+    "Too many media requests. Please wait a moment and try again.",
   );
 }
 
@@ -92,9 +99,8 @@ export async function DELETE(request: Request) {
   if ("response" in session && session.response) return session.response;
   const limited = enforceRateLimit(request, session.user.id);
   if (limited) return limited;
-  let body: unknown;
-  try { body = await request.json(); } catch { return reply("Invalid media request.", 400); }
-  if (!body || typeof body !== "object" || Array.isArray(body) || !("draftId" in body) || typeof body.draftId !== "string" || !uuid.test(body.draftId) || !("operationId" in body) || typeof body.operationId !== "string" || !uuid.test(body.operationId)) return reply("Invalid media request.", 400);
+  const body = await readJsonObject(request);
+  if (!body || typeof body.draftId !== "string" || !uuid.test(body.draftId) || typeof body.operationId !== "string" || !uuid.test(body.operationId)) return reply("Invalid media request.", 400);
   try {
     const { data, error } = await session.supabase.rpc("release_property_draft_media", { p_draft_id: body.draftId, p_operation_id: body.operationId });
     if (error || (data !== "released" && data !== "confirmed" && data !== "missing")) return reply("The file status could not be confirmed. Retry the same request.", 503);

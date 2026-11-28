@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { ChevronDown, ChevronUp, UserRound } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/Avatar";
-import { cn } from "@/components/ui/cn";
+import { cn } from "@/lib/utils";
 import { LogoutLink } from "@/components/ui/LogoutLink";
 
 export interface AccountMenuProps {

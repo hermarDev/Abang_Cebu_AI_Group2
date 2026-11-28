@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { normalizePhilippineAccountMobile } from "@/lib/phone-number";
 import { createClient } from "@/lib/supabase/server";
@@ -9,6 +10,7 @@ import { invalidateProfileCache } from "@/lib/supabase/profile";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createBoundedFetch } from "@/lib/supabase/fetch-timeout";
 import { inspectDraftMedia } from "@/app/api/property-drafts/media-validation";
+import { accountPasswordLimiter } from "@/server/api-limiters";
 import { validatePasswordStrength } from "@/types/auth";
 
 const MAX_AVATAR_BYTES = 2 * 1024 * 1024;
@@ -144,6 +146,20 @@ export async function removeAccountAvatar(): Promise<AvatarActionResult> {
   return { success: true, message: "Your profile photo was removed.", avatarUrl: null };
 }
 
+async function createPasswordActionRequest(): Promise<Request> {
+  try {
+    const incomingHeaders = await headers();
+    const forwardedHeaders = new Headers();
+    for (const key of ["cf-connecting-ip", "x-real-ip", "x-forwarded-for"]) {
+      const value = incomingHeaders.get(key);
+      if (value) forwardedHeaders.set(key, value);
+    }
+    return new Request("http://localhost/account", { headers: forwardedHeaders });
+  } catch {
+    return new Request("http://localhost/account");
+  }
+}
+
 export async function updateAccountPassword(formData: FormData): Promise<AccountActionResult> {
   const currentPassword = formData.get("currentPassword");
   const password = formData.get("password");
@@ -159,6 +175,16 @@ export async function updateAccountPassword(formData: FormData): Promise<Account
     const supabase = await createClient();
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) return { success: false, message: "Your session expired. Please sign in again." };
+
+    const actionRequest = await createPasswordActionRequest();
+    const { allowed, retryAfterSeconds } = accountPasswordLimiter.checkDetailed(actionRequest, user.id);
+    if (!allowed) {
+      return {
+        success: false,
+        message: `Too many password change attempts. Try again in ${Math.max(1, Math.ceil(retryAfterSeconds / 60))} minute(s).`,
+      };
+    }
+
     if (!user.identities || !user.email) return { success: false, message: "We couldn’t verify your sign-in method. Please try again." };
     if (!user.identities.some((identity) => identity.provider === "email")) return { success: false, message: "This account uses an external sign-in provider. Manage your password with that provider." };
 
@@ -169,6 +195,7 @@ export async function updateAccountPassword(formData: FormData): Promise<Account
     const { data, error } = await verifier.auth.signInWithPassword({ email: user.email, password: currentPassword });
     if (error?.code === "invalid_credentials") return { success: false, field: "currentPassword", message: "We couldn’t verify your current password. Please check it and try again." };
     if (error || data.user?.id !== user.id) return { success: false, message: "Password verification is temporarily unavailable. Please try again later." };
+    await verifier.auth.signOut({ scope: "local" }).catch(() => {});
     const { data: { user: currentUser }, error: currentError } = await supabase.auth.getUser();
     if (currentError || currentUser?.id !== user.id) return { success: false, message: "Your session expired. Please sign in again." };
     const { error: updateError } = await supabase.auth.updateUser({ password, current_password: currentPassword });

@@ -1,11 +1,15 @@
 # UI primitives
 
-Token-based form controls, actions, status, cards, dialogs, and loading placeholders. `Select` is a styled Radix single-select with a scrollable popup; import from `@/components/ui` or an individual component file. Pass visible labels or `aria-label` on controls; `Input` and `Select` intentionally do not generate labels.
+Token-based form controls, actions, status, cards, dialogs, and loading placeholders. `Select` is a styled Radix single-select with a scrollable popup; import from individual component files under `@/components/ui/*`. Pass visible labels or `aria-label` on controls; `Input` and `Select` intentionally do not generate labels.
 
 ## Examples
 
 ```tsx
-import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Input, Select } from "@/components/ui";
+import { Badge } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/Button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
+import { Input } from "@/components/ui/Input";
+import { Select } from "@/components/ui/Select";
 
 <Card>
   <CardHeader>
