@@ -62,17 +62,39 @@ function serializeConversation(row: { id: string; title: string; messages: Json;
   };
 }
 
+function checkRateLimit(request: Request, userId: string): Response | null {
+  const limit = assistantConversationsLimiter.checkDetailed(request, userId);
+  if (limit.allowed) return null;
+  return Response.json(
+    { error: "Too many conversation requests. Please wait a moment and try again." },
+    { status: 429, headers: { ...responseHeaders, "Retry-After": String(limit.retryAfterSeconds) } },
+  );
+}
+
+async function readJsonOrReply(
+  request: Request,
+  maxBytes: number,
+  tooLargeError: string,
+  invalidError: string,
+): Promise<{ data: unknown } | { response: Response }> {
+  const parsed = await readBoundedJson(request, maxBytes);
+  if (!parsed.ok) {
+    return {
+      response: Response.json(
+        { error: parsed.reason === "too_large" ? tooLargeError : invalidError },
+        { status: parsed.reason === "too_large" ? 413 : 400, headers: responseHeaders },
+      ),
+    };
+  }
+  return { data: parsed.data };
+}
+
 export async function GET(request: Request) {
   const authenticated = await getAuthenticatedClient(request);
   if ("response" in authenticated) return authenticated.response;
 
-  const limit = assistantConversationsLimiter.checkDetailed(request, authenticated.user.id);
-  if (!limit.allowed) {
-    return Response.json(
-      { error: "Too many conversation requests. Please wait a moment and try again." },
-      { status: 429, headers: { ...responseHeaders, "Retry-After": String(limit.retryAfterSeconds) } },
-    );
-  }
+  const rateLimited = checkRateLimit(request, authenticated.user.id);
+  if (rateLimited) return rateLimited;
 
   const id = new URL(request.url).searchParams.get("id");
   if (id) {
@@ -105,21 +127,11 @@ export async function POST(request: Request) {
   const authenticated = await getAuthenticatedClient(request);
   if ("response" in authenticated) return authenticated.response;
 
-  const limit = assistantConversationsLimiter.checkDetailed(request, authenticated.user.id);
-  if (!limit.allowed) {
-    return Response.json(
-      { error: "Too many conversation requests. Please wait a moment and try again." },
-      { status: 429, headers: { ...responseHeaders, "Retry-After": String(limit.retryAfterSeconds) } },
-    );
-  }
+  const rateLimited = checkRateLimit(request, authenticated.user.id);
+  if (rateLimited) return rateLimited;
 
-  const parsed = await readBoundedJson(request, 128 * 1024);
-  if (!parsed.ok) {
-    return Response.json(
-      { error: parsed.reason === "too_large" ? "This conversation is too large to save." : "Send a valid conversation." },
-      { status: parsed.reason === "too_large" ? 413 : 400, headers: responseHeaders },
-    );
-  }
+  const parsed = await readJsonOrReply(request, 128 * 1024, "This conversation is too large to save.", "Send a valid conversation.");
+  if ("response" in parsed) return parsed.response;
   const body = parsed.data;
   const messages = body && typeof body === "object" ? parseMessages((body as { messages?: unknown }).messages) : null;
   if (!messages) return Response.json({ error: "This conversation is invalid or too long to save." }, { status: 400, headers: responseHeaders });
@@ -139,21 +151,11 @@ export async function PATCH(request: Request) {
   const authenticated = await getAuthenticatedClient(request);
   if ("response" in authenticated) return authenticated.response;
 
-  const limit = assistantConversationsLimiter.checkDetailed(request, authenticated.user.id);
-  if (!limit.allowed) {
-    return Response.json(
-      { error: "Too many conversation requests. Please wait a moment and try again." },
-      { status: 429, headers: { ...responseHeaders, "Retry-After": String(limit.retryAfterSeconds) } },
-    );
-  }
+  const rateLimited = checkRateLimit(request, authenticated.user.id);
+  if (rateLimited) return rateLimited;
 
-  const parsed = await readBoundedJson(request, 128 * 1024);
-  if (!parsed.ok) {
-    return Response.json(
-      { error: parsed.reason === "too_large" ? "This conversation is too large to save." : "Send a valid conversation." },
-      { status: parsed.reason === "too_large" ? 413 : 400, headers: responseHeaders },
-    );
-  }
+  const parsed = await readJsonOrReply(request, 128 * 1024, "This conversation is too large to save.", "Send a valid conversation.");
+  if ("response" in parsed) return parsed.response;
   const body = parsed.data;
   const id = body && typeof body === "object" ? (body as { id?: unknown }).id : undefined;
   const messages = body && typeof body === "object" ? parseMessages((body as { messages?: unknown }).messages) : null;
@@ -176,21 +178,11 @@ export async function DELETE(request: Request) {
   const authenticated = await getAuthenticatedClient(request);
   if ("response" in authenticated) return authenticated.response;
 
-  const limit = assistantConversationsLimiter.checkDetailed(request, authenticated.user.id);
-  if (!limit.allowed) {
-    return Response.json(
-      { error: "Too many conversation requests. Please wait a moment and try again." },
-      { status: 429, headers: { ...responseHeaders, "Retry-After": String(limit.retryAfterSeconds) } },
-    );
-  }
+  const rateLimited = checkRateLimit(request, authenticated.user.id);
+  if (rateLimited) return rateLimited;
 
-  const parsed = await readBoundedJson(request, 128 * 1024);
-  if (!parsed.ok) {
-    return Response.json(
-      { error: parsed.reason === "too_large" ? "This conversation is too large to save." : "Choose a chat to delete." },
-      { status: parsed.reason === "too_large" ? 413 : 400, headers: responseHeaders },
-    );
-  }
+  const parsed = await readJsonOrReply(request, 16 * 1024, "Request body is too large.", "Choose a chat to delete.");
+  if ("response" in parsed) return parsed.response;
   const body = parsed.data;
   const id = body && typeof body === "object" ? (body as { id?: unknown }).id : undefined;
   if (typeof id !== "string" || !idPattern.test(id)) return Response.json({ error: "Choose a valid chat to delete." }, { status: 400, headers: responseHeaders });

@@ -10,7 +10,7 @@ vi.mock("@/server/assistant-access", () => ({
   getAssistantAccess: mocks.getAssistantAccess,
 }));
 
-import { GET, POST } from "./route";
+import { DELETE, GET, POST } from "./route";
 
 const validMessages = [
   { role: "user", content: "Any rooms in Lahug?" },
@@ -95,5 +95,22 @@ describe("assistant conversations route", () => {
     expect(res?.status).toBe(409);
     expect(insert).toHaveBeenCalledTimes(1);
     expect(mocks.from).toHaveBeenCalledTimes(1);
+  });
+
+  it("rejects oversized DELETE body over 16 KB with 413", async () => {
+    const oversized = JSON.stringify({ id: "a".repeat(17 * 1024) });
+    const req = new Request("http://localhost/api/assistant/conversations", {
+      method: "DELETE",
+      headers: {
+        "content-type": "application/json",
+        "x-real-ip": "198.51.100.10",
+        "X-Assistant-Owner": "renter-1",
+      },
+      body: oversized,
+    });
+    const res = await DELETE(req);
+    expect(res?.status).toBe(413);
+    expect(await res?.json()).toEqual({ error: "Request body is too large." });
+    expect(mocks.from).not.toHaveBeenCalled();
   });
 });
