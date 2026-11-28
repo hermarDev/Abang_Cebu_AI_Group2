@@ -1,4 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { resetSignedPhotoCache } from "@/server/rentals/public-rentals";
+vi.mock("server-only", () => ({}));
 
 const mocks = vi.hoisted(() => ({ getUser: vi.fn(), profile: vi.fn(), rpc: vi.fn(), createSignedUrls: vi.fn(), createAvatarSignedUrls: vi.fn() }));
 vi.mock("@/lib/supabase/admin", () => ({
@@ -31,6 +33,7 @@ const headers = (...args: [expected?: string]): Record<string, string> => ({
 
 beforeEach(() => {
   vi.resetAllMocks();
+  resetSignedPhotoCache();
   uid = `account-b-${++actorCounter}`;
   mocks.getUser.mockResolvedValue({ data: { user: { id: uid } }, error: null });
   mocks.profile.mockResolvedValue({ data: { role: "renter", is_suspended: false }, error: null });

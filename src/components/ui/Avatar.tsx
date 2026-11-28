@@ -11,7 +11,7 @@ import {
   type HTMLAttributes,
   type ImgHTMLAttributes,
 } from "react";
-import { cn } from "./cn";
+import { cn } from "@/lib/utils";
 
 type AvatarContextValue = {
   imageLoaded: boolean;

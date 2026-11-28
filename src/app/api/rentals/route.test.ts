@@ -3,11 +3,11 @@ import { publicRentalsLimiter } from "@/server/api-limiters";
 import { invalidatePublicRentalsCache, resetSignedPhotoCache } from "@/server/rentals/public-rentals";
 import { GET } from "./route";
 
-const { createClient, query, createSignedUrls } = vi.hoisted(() => {
+const { createPublicClient, query, createSignedUrls } = vi.hoisted(() => {
   const query = { select: vi.fn(), eq: vi.fn(), order: vi.fn(), limit: vi.fn() };
-  return { createClient: vi.fn(), query, createSignedUrls: vi.fn() };
+  return { createPublicClient: vi.fn(), query, createSignedUrls: vi.fn() };
 });
-vi.mock("@/lib/supabase/server", () => ({ createClient }));
+vi.mock("@/lib/supabase/server", () => ({ createPublicClient }));
 vi.mock("@/lib/supabase/admin", () => ({ createAdminClient: () => ({ storage: { from: (bucket: string) => { expect(bucket).toBe("property-draft-media"); return { createSignedUrls }; } } }) }));
 
 beforeEach(() => {
@@ -15,7 +15,7 @@ beforeEach(() => {
   publicRentalsLimiter.reset();
   resetSignedPhotoCache();
   invalidatePublicRentalsCache();
-  createClient.mockResolvedValue({ from: vi.fn((table) => { expect(table).toBe("listings"); return query; }) });
+  createPublicClient.mockReturnValue({ from: vi.fn((table) => { expect(table).toBe("listings"); return query; }) });
   query.select.mockReturnValue(query);
   query.eq.mockReturnValue(query);
   query.order.mockReturnValue(query);
@@ -80,7 +80,9 @@ describe("GET /api/rentals", () => {
   });
 
   it("contains unexpected client initialization failures", async () => {
-    createClient.mockRejectedValue(new Error("secret configuration"));
+    createPublicClient.mockImplementation(() => {
+      throw new Error("secret configuration");
+    });
     expect((await GET()).status).toBe(503);
   });
 
@@ -101,7 +103,7 @@ describe("GET /api/rentals", () => {
       created_at: "2026-11-08T00:00:00Z" });
     const rpc = vi.fn();
     beforeEach(() => {
-      createClient.mockResolvedValue({ from: vi.fn(() => query), rpc });
+      createPublicClient.mockReturnValue({ from: vi.fn(() => query), rpc });
       createSignedUrls.mockResolvedValue({ data: [{ path: photo, signedUrl: "https://signed.test/photo", error: null }], error: null });
     });
 

@@ -2,12 +2,12 @@ import { afterEach, beforeEach, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({ access: vi.fn(), provider: vi.fn() }));
 vi.mock("@/server/assistant-access", () => ({ getAssistantAccess: mocks.access }));
-vi.mock("@/lib/supabase/server", () => ({ createClient: vi.fn() }));
+vi.mock("@/lib/supabase/server", () => ({ createPublicClient: vi.fn() }));
 import { assistantLimiter } from "@/server/api-limiters";
-import { createClient } from "@/lib/supabase/server";
+import { createPublicClient } from "@/lib/supabase/server";
 import { POST } from "./route";
 
-const mockCreateClient = vi.mocked(createClient);
+const mockCreatePublicClient = vi.mocked(createPublicClient);
 
 beforeEach(() => {
   assistantLimiter.reset();
@@ -153,7 +153,7 @@ it("surfaces submitted properties and handles generic inventory questions withou
   query.eq.mockReturnValue(query);
   query.order.mockReturnValue(query);
   query.limit.mockResolvedValue({ data: [], error: null });
-  mockCreateClient.mockResolvedValue({
+  mockCreatePublicClient.mockReturnValue({
     from: vi.fn(() => query),
     rpc: vi.fn().mockResolvedValue({
       data: [{
@@ -218,7 +218,7 @@ it("returns deterministic matches and separately labelled over-budget alternativ
     }],
     error: null,
   });
-  mockCreateClient.mockResolvedValue({
+  mockCreatePublicClient.mockReturnValue({
     from: vi.fn(() => query),
     rpc: vi.fn().mockResolvedValue({
       data: [
@@ -271,7 +271,7 @@ it("adds an incomplete-inventory notice and does not claim exhaustive no-results
   query.eq.mockReturnValue(query);
   query.order.mockReturnValue(query);
   query.limit.mockResolvedValue({ data: [], error: null });
-  mockCreateClient.mockResolvedValue({
+  mockCreatePublicClient.mockReturnValue({
     from: vi.fn(() => query),
     rpc: vi.fn().mockResolvedValue({ data: null, error: { message: "rpc down" } }),
   } as never);
@@ -306,7 +306,7 @@ it("serves deterministic listing search and unavailable inventory even when GROQ
     }],
     error: null,
   });
-  mockCreateClient.mockResolvedValue({
+  mockCreatePublicClient.mockReturnValue({
     from: vi.fn(() => query),
     rpc: vi.fn().mockResolvedValue({ data: [], error: null }),
   } as never);
@@ -369,6 +369,6 @@ it("returns clarification question directly without querying inventory or model"
   const body = await response?.json();
   expect(body.listings).toEqual({ matches: [], alternatives: [], complete: true });
   expect(body.reply).toMatch(/which cebu area/i);
-  expect(mockCreateClient).not.toHaveBeenCalled();
+  expect(mockCreatePublicClient).not.toHaveBeenCalled();
   expect(mocks.provider).not.toHaveBeenCalled();
 });

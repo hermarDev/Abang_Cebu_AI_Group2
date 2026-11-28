@@ -11,7 +11,7 @@ WORKDIR /app
 
 # Copy package descriptors and scripts required by postinstall hook
 COPY package.json pnpm-lock.yaml ./
-COPY scripts ./scripts
+COPY scripts/copy-maplibre-workers.mjs ./scripts/copy-maplibre-workers.mjs
 
 RUN pnpm install --frozen-lockfile
 

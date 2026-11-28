@@ -6,7 +6,7 @@ import { ArrowLeft, Building2, ChevronDown, Headset, Home, Search, X } from "luc
 import { BrandLogo } from "@/components/brand";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { cn } from "@/components/ui/cn";
+import { cn } from "@/lib/utils";
 import { isWorkspaceRole } from "@/types/auth";
 import {
   HELP_FAQ_CATEGORIES,

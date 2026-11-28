@@ -7,12 +7,6 @@ export interface LogoutCookieStore {
   delete(name: string): void;
 }
 
-export function clearSupabaseAuthCookies(cookieStore: LogoutCookieStore): void {
-  for (const { name } of cookieStore.getAll()) {
-    if (SUPABASE_AUTH_COOKIE.test(name)) cookieStore.delete(name);
-  }
-}
-
 /** Revoke the current refresh token, then purge every Supabase auth cookie chunk. */
 export async function logout(cookieStore: LogoutCookieStore): Promise<void> {
   let failure: unknown;

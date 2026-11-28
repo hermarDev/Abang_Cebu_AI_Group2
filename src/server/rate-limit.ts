@@ -28,6 +28,10 @@ function isValidIpv6(ip: string): boolean {
 export function sanitizeIp(raw: string | null | undefined): string | null {
   if (!raw) return null;
   const trimmed = raw.trim();
+  const ipv4Mapped = /^::ffff:(.+)$/i.exec(trimmed)?.[1];
+  if (ipv4Mapped && isValidIpv4(ipv4Mapped)) {
+    return ipv4Mapped;
+  }
   if (isValidIpv4(trimmed) || isValidIpv6(trimmed)) {
     return trimmed;
   }

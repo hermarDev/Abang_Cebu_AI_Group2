@@ -1,5 +1,5 @@
 import type { HTMLAttributes } from "react";
-import { cn } from "./cn";
+import { cn } from "@/lib/utils";
 
 export type FieldProps = HTMLAttributes<HTMLDivElement>;
 export type FieldErrorProps = HTMLAttributes<HTMLParagraphElement>;

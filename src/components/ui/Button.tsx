@@ -1,6 +1,6 @@
 import type { ButtonHTMLAttributes } from "react";
 import styles from "./primitives.module.css";
-import { cn } from "./cn";
+import { cn } from "@/lib/utils";
 
 export type ButtonVariant = "primary" | "secondary" | "outline" | "ghost" | "destructive";
 export type ButtonSize = "sm" | "md" | "lg";

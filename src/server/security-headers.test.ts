@@ -22,7 +22,11 @@ describe("HTTP Security Headers Configuration", () => {
     expect(csp).not.toContain("'unsafe-eval'");
     expect(csp).toContain("frame-ancestors 'none'");
     expect(csp).toContain("*.supabase.co");
-    expect(csp).toContain("https://api.groq.com");
+    expect(csp).toContain("wss://*.supabase.co");
+    expect(csp).toContain("https://tiles.openfreemap.org");
     expect(csp).toContain("https://photon.komoot.io");
+    expect(csp).not.toContain("https://api.groq.com");
+    expect(csp).not.toContain("connect-src 'self' https: ");
+    expect(csp).not.toContain(" wss: ");
   });
 });

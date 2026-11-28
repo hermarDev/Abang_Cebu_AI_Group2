@@ -1,11 +1,15 @@
 # UI primitives
 
-Token-based form controls, actions, status, cards, dialogs, and loading placeholders. `Select` is a styled Radix single-select with a scrollable popup; import from `@/components/ui` or an individual component file. Pass visible labels or `aria-label` on controls; `Input` and `Select` intentionally do not generate labels.
+Token-based form controls, actions, status, cards, dialogs, and loading placeholders. `Select` is a styled Radix single-select with a scrollable popup; import from individual component files under `@/components/ui/*`. Pass visible labels or `aria-label` on controls; `Input` and `Select` intentionally do not generate labels.
 
 ## Examples
 
 ```tsx
-import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Input, Select } from "@/components/ui";
+import { Badge } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/Button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
+import { Input } from "@/components/ui/Input";
+import { Select } from "@/components/ui/Select";
 
 <Card>
   <CardHeader>
@@ -21,4 +25,4 @@ import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitl
 </Card>
 ```
 
-A complete interactive example (including `Modal`, `Toast`, and `Skeleton`) is in `examples.tsx`. `Select` accepts an `options` array of `{ value, label, disabled? }` and calls `onValueChange` with the selected string; an empty string is supported for a “Any” choice. Triggering Select marks the option with `aria-selected`; the accessible name/description and invalid state are supplied to the trigger. Modals require a title and close callback; Radix Dialog provides modal focus and Escape handling. The wrapper restores focus to the connected original trigger when enabled, otherwise it invokes the supplied close-focus callback. Toasts announce status/errors and dismiss after five seconds by default (`duration={0}` disables the timer). Interactive controls retain at least 44px minimum height/width; use a visible label for every form control.
+`Select` accepts an `options` array of `{ value, label, disabled? }` and calls `onValueChange` with the selected string; an empty string is supported for a “Any” choice. Triggering Select marks the option with `aria-selected`; the accessible name/description and invalid state are supplied to the trigger. Modals require a title and close callback; Radix Dialog provides modal focus and Escape handling. The wrapper restores focus to the connected original trigger when enabled, otherwise it invokes the supplied close-focus callback. For notifications, import `notify` from `@/components/ui/AppToaster`; the root layout mounts `AppToaster`. Interactive controls retain at least 44px minimum height/width; use a visible label for every form control.

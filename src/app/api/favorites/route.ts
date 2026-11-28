@@ -1,16 +1,10 @@
-import { createClient } from "@/lib/supabase/server";
 import { favoritesLimiter } from "@/server/api-limiters";
-import { PUBLIC_SUBMITTED_STATUSES, signSubmittedPhotos } from "@/server/rentals/public-rentals";
-import { mapSubmittedRental } from "@/server/rentals/map-listing";
-
-const noStoreHeaders = { "Cache-Control": "no-store" };
-const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+import { loadPublicSubmittedRentals } from "@/server/rentals/public-rentals";
+import { checkRateLimit, createRoleGuard, noStoreHeaders, uuidPattern } from "@/server/role-access";
 
 type SavedFavorite = { id: string; savedAt: string; title: string; description: string; price: number; propertyType: string; address: string; city: string; imageUrls: string[]; isAvailable: boolean };
 const unavailableFavorite = (listingId: string, savedAt: string): SavedFavorite => ({ id: listingId, savedAt, title: "Unavailable rental", description: "", price: 0, propertyType: "", address: "", city: "", imageUrls: [], isAvailable: false });
 
-// Batch-load and normalize submitted rentals through the same mapper the finder
-// uses, so saved pending/approved properties and propertyType match everywhere.
 async function loadSubmittedRentalsMap(
   supabase: unknown,
   targetIds: Set<string>,
@@ -18,68 +12,29 @@ async function loadSubmittedRentalsMap(
 ): Promise<Map<string, Omit<SavedFavorite, "savedAt">>> {
   const result = new Map<string, Omit<SavedFavorite, "savedAt">>();
   if (targetIds.size === 0) return result;
-  const rpc = (supabase as { rpc?: (fn: string) => Promise<{ data: unknown; error: unknown }> }).rpc;
-  if (typeof rpc !== "function") return result;
-  try {
-    const { data, error } = await rpc.call(supabase, "get_public_submitted_rentals");
-    if (error || !Array.isArray(data)) return result;
-    const matched = (data as unknown[]).filter((row) => {
-      const r = row as { id?: unknown; moderation_status?: unknown } | null;
-      return r && typeof r.id === "string" && targetIds.has(r.id) && typeof r.moderation_status === "string" && (PUBLIC_SUBMITTED_STATUSES as readonly string[]).includes(r.moderation_status);
+  const rentals = await loadPublicSubmittedRentals(supabase, signPhotos);
+  for (const rental of rentals) {
+    if (!targetIds.has(rental.id)) continue;
+    result.set(rental.id, {
+      id: rental.id,
+      title: rental.title,
+      description: rental.description,
+      price: rental.price,
+      propertyType: rental.propertyType ?? rental.type,
+      address: rental.address ?? "",
+      city: rental.locality,
+      imageUrls: rental.imageUrls ?? [],
+      isAvailable: true,
     });
-    if (matched.length === 0) return result;
-    const signed = signPhotos ? await signSubmittedPhotos(matched) : new Map<string, string>();
-    for (const row of matched) {
-      try {
-        const rental = mapSubmittedRental(row, signed);
-        result.set(rental.id, {
-          id: rental.id,
-          title: rental.title,
-          description: rental.description,
-          price: rental.price,
-          propertyType: rental.propertyType ?? rental.type,
-          address: rental.address ?? "",
-          city: rental.locality,
-          imageUrls: rental.imageUrls ?? [],
-          isAvailable: true,
-        });
-      } catch {
-        // Skip malformed rows; caller falls back to unavailable placeholder.
-      }
-    }
-  } catch {
-    // Ignore RPC failure and fall back to unavailable placeholder.
   }
   return result;
 }
 
-async function requireRenter(request: Request) {
-  const supabase = await createClient();
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
-  if (authError || !user) {
-    return { response: Response.json({ error: "Sign in to access saved rentals." }, { status: 401, headers: noStoreHeaders }) } as const;
-  }
-
-  const expectedUserId = request.headers.get("x-expected-user-id");
-  if (expectedUserId !== user.id) {
-    return { response: Response.json({ error: "Your account changed. Please refresh and try again." }, { status: 409, headers: noStoreHeaders }) } as const;
-  }
-
-  const { data: profile, error: profileError } = await supabase
-    .from("profiles")
-    .select("role,is_suspended")
-    .eq("id", user.id)
-    .maybeSingle();
-
-  if (profileError) {
-    return { response: Response.json({ error: "Your account could not be checked. Please try again." }, { status: 503, headers: noStoreHeaders }) } as const;
-  }
-  if (profile?.role !== "renter" || profile.is_suspended) {
-    return { response: Response.json({ error: "Saved rentals are available to renter accounts only." }, { status: 403, headers: noStoreHeaders }) } as const;
-  }
-
-  return { supabase, user } as const;
-}
+const requireRenter = createRoleGuard({
+  allowedRoles: ["renter"],
+  unauthenticatedMessage: "Sign in to access saved rentals.",
+  forbiddenMessage: "Saved rentals are available to renter accounts only.",
+});
 
 async function readListingId(request: Request): Promise<string | null> {
   try {
@@ -156,13 +111,13 @@ export async function POST(request: Request) {
   try {
     const session = await requireRenter(request);
     if ("response" in session) return session.response;
-    const limit = favoritesLimiter.checkDetailed(request, session.user.id);
-    if (!limit.allowed) {
-      return Response.json(
-        { error: "Too many favorites actions. Please wait a moment before trying again." },
-        { status: 429, headers: { ...noStoreHeaders, "Retry-After": String(limit.retryAfterSeconds) } },
-      );
-    }
+    const limited = checkRateLimit(
+      favoritesLimiter,
+      request,
+      session.user.id,
+      "Too many favorites actions. Please wait a moment before trying again.",
+    );
+    if (limited) return limited;
     const listingId = await readListingId(request);
     if (!listingId) return Response.json({ error: "Choose a valid rental to save." }, { status: 400, headers: noStoreHeaders });
 
@@ -199,13 +154,13 @@ export async function DELETE(request: Request) {
   try {
     const session = await requireRenter(request);
     if ("response" in session) return session.response;
-    const limit = favoritesLimiter.checkDetailed(request, session.user.id);
-    if (!limit.allowed) {
-      return Response.json(
-        { error: "Too many favorites actions. Please wait a moment before trying again." },
-        { status: 429, headers: { ...noStoreHeaders, "Retry-After": String(limit.retryAfterSeconds) } },
-      );
-    }
+    const limited = checkRateLimit(
+      favoritesLimiter,
+      request,
+      session.user.id,
+      "Too many favorites actions. Please wait a moment before trying again.",
+    );
+    if (limited) return limited;
     const listingId = await readListingId(request);
     if (!listingId) return Response.json({ error: "Choose a valid rental to remove." }, { status: 400, headers: noStoreHeaders });
 

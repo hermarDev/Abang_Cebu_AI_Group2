@@ -35,8 +35,6 @@ export function rateLimited(limiter: typeof verificationLimiter, request: Reques
   return checkRateLimit(limiter, request, actor, "Too many actions. Please wait before trying again.");
 }
 
-export const isValidVerificationMethod = (val: unknown): val is "site_visit" | "video_call" | "proxy_meeting" =>
-  typeof val === "string" && ["site_visit", "video_call", "proxy_meeting"].includes(val);
 export const isValidVerificationStatus = (val: unknown): val is "verified" | "flagged" =>
   typeof val === "string" && ["verified", "flagged"].includes(val);
 export const isValidNotes = (val: unknown): val is string =>

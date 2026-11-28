@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({
   getUser: vi.fn(),
   profile: vi.fn(),
+  rpc: vi.fn(),
   upload: vi.fn(),
   createSignedUrl: vi.fn(),
 }));
@@ -21,6 +22,7 @@ vi.mock("@/lib/supabase/admin", () => ({
 vi.mock("@/lib/supabase/server", () => ({
   createClient: async () => ({
     auth: { getUser: mocks.getUser },
+    rpc: mocks.rpc,
     from: () => ({ select: () => ({ eq: () => ({ maybeSingle: mocks.profile }) }) }),
   }),
 }));
@@ -35,6 +37,7 @@ function setup() {
   vi.resetAllMocks();
   mocks.getUser.mockResolvedValue({ data: { user: { id: "officer-1" } }, error: null });
   mocks.profile.mockResolvedValue({ data: { role: "verification_officer", is_suspended: false }, error: null });
+  mocks.rpc.mockResolvedValue({ data: { id: propId, fieldVerificationProof: [] }, error: null });
   mocks.upload.mockResolvedValue({ data: { path: "some-path" }, error: null });
   mocks.createSignedUrl.mockResolvedValue({ data: { signedUrl: "https://storage.local/signed" }, error: null });
 }
@@ -136,5 +139,44 @@ describe("POST /api/verification/queue/[propertyId]/media", () => {
     expect(json.kind).toBe("proof");
     expect(json.signedUrl).toBe("https://storage.local/signed");
     expect(mocks.upload).toHaveBeenCalled();
+  });
+
+  it("returns 404 when property is not in the active pending verification queue", async () => {
+    mocks.rpc.mockResolvedValue({ data: null, error: null });
+    const fd = new FormData();
+    fd.append("operationId", opId);
+    fd.append("kind", "proof");
+    fd.append("file", new File([pngHeader], "proof.png", { type: "image/png" }));
+
+    const res = await postForm(fd);
+    expect(res.status).toBe(404);
+    expect(mocks.upload).not.toHaveBeenCalled();
+  });
+
+  it("allows a replacement proof upload when the submitted proof array already has 10 items", async () => {
+    mocks.rpc.mockResolvedValue({
+      data: { id: propId, fieldVerificationProof: Array.from({ length: 10 }, (_, i) => ({ kind: "proof", object_path: `p/${i}.png` })) },
+      error: null,
+    });
+    const fd = new FormData();
+    fd.append("operationId", opId);
+    fd.append("kind", "proof");
+    fd.append("file", new File([pngHeader], "proof.png", { type: "image/png" }));
+
+    const res = await postForm(fd);
+    expect(res.status).toBe(200);
+    expect(mocks.upload).toHaveBeenCalledOnce();
+  });
+
+  it("returns 503 when queue verification lookup errors", async () => {
+    mocks.rpc.mockResolvedValue({ data: null, error: { message: "rpc unavailable" } });
+    const fd = new FormData();
+    fd.append("operationId", opId);
+    fd.append("kind", "proof");
+    fd.append("file", new File([pngHeader], "proof.png", { type: "image/png" }));
+
+    const res = await postForm(fd);
+    expect(res.status).toBe(503);
+    expect(mocks.upload).not.toHaveBeenCalled();
   });
 });

@@ -58,6 +58,7 @@ export async function POST(request: Request, context: Context) {
     const storagePath = `${threadId}/${session.user.id}/${globalThis.crypto.randomUUID()}.${ext}`;
 
     const admin = createAdminClient();
+    // shortcut: uploaded objects are orphaned if message submission never follows; add a scheduled storage sweep job when storage volume grows.
     const { error: uploadError } = await admin.storage
       .from("rental-message-attachments")
       .upload(storagePath, buffer, { contentType: validMime, upsert: false });

@@ -2,7 +2,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   getUser: vi.fn(),
-  getClaims: vi.fn(),
   profile: vi.fn(),
   createServerClient: vi.fn(),
 }));
@@ -22,7 +21,6 @@ beforeEach(() => {
   vi.unstubAllEnvs();
   resetProfileCache();
   mocks.getUser.mockReset().mockResolvedValue({ data: { user: { id: "user-1" } }, error: null });
-  mocks.getClaims.mockReset();
   mocks.profile.mockReset().mockResolvedValue({
     data: {
       id: "user-1",
@@ -62,49 +60,33 @@ describe("loadProfile", () => {
     expect(mocks.profile).not.toHaveBeenCalled();
   });
 
-  it("verifies JWT claims locally when getClaims is available and caches profile rows for 30s", async () => {
+  it("always verifies the session via getUser and caches profile rows for 30s", async () => {
     vi.stubEnv("VITEST", "");
-    mocks.createServerClient.mockImplementation(() => ({
-      auth: { getClaims: mocks.getClaims, getUser: mocks.getUser },
-      from: () => ({ select: () => ({ eq: () => ({ maybeSingle: mocks.profile }) }) }),
-    }));
-    mocks.getClaims.mockResolvedValue({
-      data: {
-        claims: {
-          sub: "user-claims-1",
-          email: "renter@example.com",
-          user_metadata: { full_name: "Renter" },
-        },
-      },
-      error: null,
-    });
 
     const first = await loadProfile();
     const second = await loadProfile();
-    expect(first.user?.id).toBe("user-claims-1");
-    expect(first.user?.email).toBe("renter@example.com");
+    expect(first.user?.id).toBe("user-1");
     expect(second.profile?.role).toBe("renter");
-    expect(mocks.getUser).not.toHaveBeenCalled();
+    expect(mocks.getUser).toHaveBeenCalledTimes(2);
     expect(mocks.profile).toHaveBeenCalledTimes(1);
 
-    invalidateProfileCache("user-claims-1");
+    invalidateProfileCache("user-1");
     await loadProfile();
+    expect(mocks.getUser).toHaveBeenCalledTimes(3);
     expect(mocks.profile).toHaveBeenCalledTimes(2);
+  });
+
+  it("rejects globally revoked sessions when getUser returns an error or null user", async () => {
+    mocks.getUser.mockResolvedValue({ data: { user: null }, error: { message: "Session from session_id claim in JWT does not exist" } });
+
+    const result = await loadProfile();
+    expect(result.user).toBeNull();
+    expect(result.profile).toBeNull();
+    expect(result.authError).toBeTruthy();
+    expect(mocks.profile).not.toHaveBeenCalled();
   });
 
   afterEach(() => {
     vi.unstubAllEnvs();
-  });
-
-  it("falls back to getUser when getClaims fails verification", async () => {
-    mocks.createServerClient.mockImplementation(() => ({
-      auth: { getClaims: mocks.getClaims, getUser: mocks.getUser },
-      from: () => ({ select: () => ({ eq: () => ({ maybeSingle: mocks.profile }) }) }),
-    }));
-    mocks.getClaims.mockResolvedValue({ data: null, error: { message: "expired" } });
-
-    const result = await loadProfile();
-    expect(mocks.getUser).toHaveBeenCalledTimes(1);
-    expect(result.user?.id).toBe("user-1");
   });
 });

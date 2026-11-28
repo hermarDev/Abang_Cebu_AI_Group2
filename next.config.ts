@@ -10,6 +10,21 @@ function getSupabaseFrameOrigin(): string {
   }
 }
 
+function getSupabaseConnectOrigins(): { httpsOrigin: string; wssOrigin: string } {
+  const origin = getSupabaseFrameOrigin();
+  if (origin === "https://*.supabase.co") {
+    return { httpsOrigin: "https://*.supabase.co", wssOrigin: "wss://*.supabase.co" };
+  }
+  const wssOrigin = origin.startsWith("https://")
+    ? `wss://${origin.slice("https://".length)}`
+    : origin.startsWith("http://")
+      ? `ws://${origin.slice("http://".length)}`
+      : "wss://*.supabase.co";
+  return { httpsOrigin: origin, wssOrigin };
+}
+
+const supabaseConnect = getSupabaseConnectOrigins();
+
 const securityHeaders = [
   {
     key: "X-Content-Type-Options",
@@ -39,7 +54,7 @@ const securityHeaders = [
           "style-src 'self' 'unsafe-inline'",
           "img-src 'self' blob: data: https: *.supabase.co",
           "font-src 'self' data:",
-          "connect-src 'self' https: *.supabase.co wss: *.supabase.co https://api.groq.com https://photon.komoot.io",
+          `connect-src 'self' ${supabaseConnect.httpsOrigin} ${supabaseConnect.wssOrigin} https://*.supabase.co wss://*.supabase.co https://tiles.openfreemap.org https://photon.komoot.io`,
           "worker-src 'self' blob:",
           `frame-src 'self' ${getSupabaseFrameOrigin()} blob:`,
           "frame-ancestors 'none'",

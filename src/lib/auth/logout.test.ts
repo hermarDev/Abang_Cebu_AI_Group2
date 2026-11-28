@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { clearSupabaseAuthCookies, logout } from "./logout";
+import { logout } from "./logout";
 
 const { signOut } = vi.hoisted(() => ({ signOut: vi.fn() }));
 vi.mock("@/lib/supabase/server", () => ({
@@ -65,13 +65,13 @@ describe("logout", () => {
     expect(deleted).toEqual(["sb-project-auth-token.0"]);
   });
 
-  it("does not include names that only contain the auth cookie pattern", () => {
+  it("does not delete names that only contain the auth cookie pattern", async () => {
     const { store, deleted } = createCookieStore([
       "sb-project-auth-token-extra",
       "my-sb-project-auth-token",
     ]);
 
-    clearSupabaseAuthCookies(store);
+    await logout(store);
 
     expect(deleted).toEqual([]);
   });

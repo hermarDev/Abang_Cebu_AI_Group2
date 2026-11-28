@@ -1,7 +1,14 @@
 import { revalidatePath } from "next/cache";
 import { invalidateLandlordPortfolioCache } from "@/server/landlord-portfolio-cache";
 import { propertyDraftsLimiter } from "@/server/api-limiters";
-import { createRoleGuard } from "@/server/role-access";
+import {
+  checkRateLimit,
+  createRoleGuard,
+  jsonError,
+  noStoreHeaders,
+  readJsonObject,
+  uuidPattern,
+} from "@/server/role-access";
 import type { Json } from "@/types/database";
 
 const LANDLORD_REVALIDATE_PATHS = ["/landlord/dashboard", "/landlord/properties", "/landlord/map"] as const;
@@ -12,9 +19,9 @@ function revalidateLandlordPaths() {
   } catch { /* ignore outside Next request context */ }
 }
 
-const headers = { "Cache-Control": "no-store" };
-const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-const reply = (error: string, status: number) => Response.json({ error }, { status, headers });
+const headers = noStoreHeaders;
+const uuid = uuidPattern;
+const reply = jsonError;
 
 const access = createRoleGuard({
   allowedRoles: ["landlord"],
@@ -24,13 +31,6 @@ const access = createRoleGuard({
 
 function validPayload(value: unknown): value is Json {
   return !!value && typeof value === "object" && !Array.isArray(value) && new TextEncoder().encode(JSON.stringify(value)).byteLength <= 32768;
-}
-
-async function readBody(request: Request) {
-  try {
-    const value: unknown = await request.json();
-    return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : null;
-  } catch { return null; }
 }
 
 export async function GET(request: Request) {
@@ -44,14 +44,14 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   const session = await access(request);
   if ("response" in session && session.response) return session.response;
-  const limit = propertyDraftsLimiter.checkDetailed(request, session.user.id);
-  if (!limit.allowed) {
-    return Response.json(
-      { error: "Too many draft actions. Please wait a moment before trying again." },
-      { status: 429, headers: { ...headers, "Retry-After": String(limit.retryAfterSeconds) } },
-    );
-  }
-  const body = await readBody(request);
+  const limited = checkRateLimit(
+    propertyDraftsLimiter,
+    request,
+    session.user.id,
+    "Too many draft actions. Please wait a moment before trying again.",
+  );
+  if (limited) return limited;
+  const body = await readJsonObject(request);
   if (!body || typeof body.operationId !== "string" || !uuid.test(body.operationId) || !validPayload(body.payload)) return reply("Invalid draft request.", 400);
   const { data, error } = await session.supabase.rpc("save_property_draft", { p_operation_id: body.operationId, p_payload: body.payload });
   if (error?.code === "54000") return reply("Draft storage limit reached. Contact support for assistance.", 409);
@@ -65,14 +65,14 @@ export async function POST(request: Request) {
 export async function PATCH(request: Request) {
   const session = await access(request);
   if ("response" in session && session.response) return session.response;
-  const limit = propertyDraftsLimiter.checkDetailed(request, session.user.id);
-  if (!limit.allowed) {
-    return Response.json(
-      { error: "Too many draft actions. Please wait a moment before trying again." },
-      { status: 429, headers: { ...headers, "Retry-After": String(limit.retryAfterSeconds) } },
-    );
-  }
-  const body = await readBody(request);
+  const limited = checkRateLimit(
+    propertyDraftsLimiter,
+    request,
+    session.user.id,
+    "Too many draft actions. Please wait a moment before trying again.",
+  );
+  if (limited) return limited;
+  const body = await readJsonObject(request);
   if (!body || typeof body.draftId !== "string" || !uuid.test(body.draftId) || typeof body.operationId !== "string" || !uuid.test(body.operationId) || !Number.isSafeInteger(body.revision) || (body.revision as number) < 1 || !validPayload(body.payload)) return reply("Invalid draft request.", 400);
   const { data, error } = await session.supabase.rpc("update_property_draft", { p_draft_id: body.draftId, p_operation_id: body.operationId, p_expected_revision: body.revision as number, p_payload: body.payload });
   if (error?.code === "54000") return reply("Draft storage limit reached. Contact support for assistance.", 409);

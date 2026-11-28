@@ -1,6 +1,6 @@
 import type { InputHTMLAttributes } from "react";
 import styles from "./primitives.module.css";
-import { cn } from "./cn";
+import { cn } from "@/lib/utils";
 
 export type InputProps = InputHTMLAttributes<HTMLInputElement> & { appearance?: "default" | "embedded" };
 

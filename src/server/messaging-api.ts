@@ -1,13 +1,13 @@
 import { isAuthRetryableFetchError } from "@supabase/supabase-js";
+import { signProfileAvatars } from "@/lib/profile-avatar";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import type { createRateLimiter } from "@/server/rate-limit";
+import { signSubmittedPhotos } from "@/server/rentals/public-rentals";
 
 export const noStoreHeaders = { "Cache-Control": "no-store" };
 export const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const DRAFT_MEDIA_PATH = /^[0-9a-f-]{36}\/[0-9a-f-]{36}\/[0-9a-f-]{36}\/[0-9a-f]{64}\.(?:jpg|png|webp)$/i;
-const PROFILE_AVATAR_BUCKET = "profile-avatars";
-const PROFILE_AVATAR_URL_TTL = 60 * 60 * 24 * 7;
 const PROFILE_AVATAR_PATH = /^[0-9a-f-]+\/[\w-]+\.(?:jpg|png|webp)$/i;
 
 export const reply = (body: unknown, status: number, extra: Record<string, string> = {}) =>
@@ -144,24 +144,13 @@ function sanitizeProfile(profile: ThreadProfile | null | undefined, signedAvatar
 
 export async function enrichThreads(threads: Thread[]) {
   const paths = [...new Set(threads.map((t) => t.listingPhotoPath).filter((p): p is string => typeof p === "string" && DRAFT_MEDIA_PATH.test(p)))];
-  const avatarPaths = [...new Set(
-    threads.flatMap((t) => [validAvatarStoragePath(t.counterpart), validAvatarStoragePath(t.listingOwner)]).filter((p): p is string => Boolean(p)),
-  )];
+  const avatarEntries = threads.flatMap((t) => [t.counterpart, t.listingOwner])
+    .filter((p): p is ThreadProfile & { id: string; avatarUrl: string } => Boolean(p && typeof p.id === "string" && typeof p.avatarUrl === "string"))
+    .map((p) => ({ userId: p.id, avatarReference: p.avatarUrl }));
 
-  const signed = new Map<string, string>();
-  const signedAvatars = new Map<string, string>();
-
-  await Promise.all([
-    paths.length
-      ? createAdminClient().storage.from("property-draft-media").createSignedUrls(paths, 3600).then(({ data }) => {
-          for (const e of data ?? []) if (e?.path && e.signedUrl && /^https?:\/\//i.test(e.signedUrl)) signed.set(e.path, e.signedUrl);
-        }).catch(() => { /* Degrade to no thumbnail if signing fails. */ })
-      : Promise.resolve(),
-    avatarPaths.length
-      ? createAdminClient().storage.from(PROFILE_AVATAR_BUCKET).createSignedUrls(avatarPaths, PROFILE_AVATAR_URL_TTL).then(({ data }) => {
-          for (const e of data ?? []) if (e?.path && e.signedUrl && /^https?:\/\//i.test(e.signedUrl)) signedAvatars.set(e.path, e.signedUrl);
-        }).catch(() => { /* Degrade to no avatar if signing fails. */ })
-      : Promise.resolve(),
+  const [signed, signedAvatars] = await Promise.all([
+    paths.length ? signSubmittedPhotos([{ photo_paths: paths }]) : Promise.resolve(new Map<string, string>()),
+    avatarEntries.length ? signProfileAvatars(avatarEntries) : Promise.resolve(new Map<string, string>()),
   ]);
 
   return threads.map((t) => {

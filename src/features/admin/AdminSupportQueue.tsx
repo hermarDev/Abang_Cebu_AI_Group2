@@ -45,6 +45,13 @@ const categoryFilterOptions = [
 const statusSelectOptions = SUPPORT_STATUSES.map((s) => ({ value: s.value, label: s.label }));
 const prioritySelectOptions = SUPPORT_PRIORITIES.map((p) => ({ value: p.value, label: p.label }));
 
+const RECOMMENDED_ACTION_LABELS: Record<string, string> = {
+  suspend_account: "Suspend landlord account",
+  unpublish_listing: "Unpublish listing",
+  both: "Suspend account & unpublish listing",
+  review: "Admin review",
+};
+
 type UpdateDialog = {
   ticket: SupportTicketRecord;
   operationId: string;
@@ -104,6 +111,67 @@ export function TicketRow({
               <span className="max-w-48 truncate">{att.fileName}</span>
             </button>
           ))}
+        </div>
+      )}
+
+      {(ticket.reportedLandlordName || ticket.reportedLandlordId || ticket.landlordInquiryNote || ticket.landlordResponse) && (
+        <div className="grid gap-2 rounded-lg border border-border/80 bg-muted/30 p-3 text-sm">
+          {(ticket.reportedLandlordName || ticket.reportedLandlordId) && (
+            <p className="m-0 text-xs text-muted-foreground">
+              Reported landlord:{" "}
+              <span className="font-medium text-foreground">
+                {ticket.reportedLandlordName || ticket.reportedLandlordId}
+              </span>
+            </p>
+          )}
+          {ticket.landlordInquiryNote && (
+            <div>
+              <p className="m-0 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                Landlord inquiry{ticket.landlordInquirySentAt ? ` · ${formatAdminDate(ticket.landlordInquirySentAt)}` : ""}
+              </p>
+              <p className="m-0 mt-1 whitespace-pre-wrap break-words text-foreground">{ticket.landlordInquiryNote}</p>
+            </div>
+          )}
+          {ticket.landlordResponse && (
+            <div>
+              <p className="m-0 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                Landlord response{ticket.landlordRespondedAt ? ` · ${formatAdminDate(ticket.landlordRespondedAt)}` : ""}
+              </p>
+              <p className="m-0 mt-1 whitespace-pre-wrap break-words text-foreground">{ticket.landlordResponse}</p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {ticket.supportResolutionNote && (
+        <div className="rounded-lg border border-border/80 bg-muted/40 p-3 text-sm">
+          <p className="m-0 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            Support resolution note{ticket.handledBySupportName ? ` · ${ticket.handledBySupportName}` : ""}
+          </p>
+          <p className="m-0 mt-1 whitespace-pre-wrap break-words text-foreground">{ticket.supportResolutionNote}</p>
+        </div>
+      )}
+
+      {(ticket.escalationReason || ticket.recommendedAdminAction || ticket.escalatedToAdminAt) && (
+        <div className="grid gap-1.5 rounded-lg border border-amber-500/30 bg-amber-500/5 p-3 text-sm">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p className="m-0 text-xs font-semibold uppercase tracking-wide text-amber-800 dark:text-amber-300">
+              Escalated to admin{ticket.handledBySupportName ? ` by ${ticket.handledBySupportName}` : ""}
+            </p>
+            {ticket.recommendedAdminAction && (
+              <Badge variant="outline">
+                Recommended: {RECOMMENDED_ACTION_LABELS[ticket.recommendedAdminAction] ?? ticket.recommendedAdminAction}
+              </Badge>
+            )}
+          </div>
+          {ticket.escalationReason && (
+            <p className="m-0 whitespace-pre-wrap break-words text-foreground">{ticket.escalationReason}</p>
+          )}
+          {ticket.escalatedToAdminAt && (
+            <p className="m-0 text-xs text-muted-foreground">
+              Escalated {formatAdminDate(ticket.escalatedToAdminAt)}
+            </p>
+          )}
         </div>
       )}
 

@@ -7,6 +7,20 @@ export type ReverseGeocodeResult = {
   city: string;
 };
 
+const CACHE_TTL_MS = 60 * 60 * 1000;
+const CACHE_LIMIT = 200;
+const NOMINATIM_MIN_INTERVAL_MS = 1_000;
+
+const reverseCache = new Map<string, { expires: number; result: ReverseGeocodeResult }>();
+const pendingRequests = new Map<string, Promise<ReverseGeocodeResult | null>>();
+let lastNominatimRequestAt: number | null = null;
+
+export function resetReverseGeocodeCache() {
+  reverseCache.clear();
+  pendingRequests.clear();
+  lastNominatimRequestAt = null;
+}
+
 const text = (value: unknown, max: number) => typeof value === "string" ? value.trim().slice(0, max) : "";
 
 function isWithinCebu(longitude: number, latitude: number): boolean {
@@ -97,27 +111,68 @@ async function queryNominatim(longitude: number, latitude: number): Promise<Reve
   return { address, barangay, city };
 }
 
-export async function reverseGeocode([longitude, latitude]: [number, number]): Promise<ReverseGeocodeResult | null> {
-  if (!Number.isFinite(longitude) || !Number.isFinite(latitude)) return null;
-  if (!isWithinCebu(longitude, latitude)) return null;
+function storeCachedResult(key: string, result: ReverseGeocodeResult) {
+  if (reverseCache.size >= CACHE_LIMIT && !reverseCache.has(key)) {
+    const oldest = reverseCache.keys().next().value;
+    if (oldest !== undefined) reverseCache.delete(oldest);
+  }
+  reverseCache.set(key, { expires: Date.now() + CACHE_TTL_MS, result });
+}
 
+async function resolveReverseGeocode(longitude: number, latitude: number, cacheKey: string): Promise<ReverseGeocodeResult | null> {
   const googleApiKey = process.env.GOOGLE_MAPS_API_KEY;
   if (googleApiKey) {
     try {
       const gResult = await queryGoogleMaps(longitude, latitude, googleApiKey);
-      if (gResult) return gResult;
+      if (gResult) {
+        storeCachedResult(cacheKey, gResult);
+        return gResult;
+      }
     } catch { /* proceed to next tier */ }
   }
 
   try {
     const photonResult = await queryPhoton(longitude, latitude);
-    if (photonResult) return photonResult;
+    if (photonResult) {
+      storeCachedResult(cacheKey, photonResult);
+      return photonResult;
+    }
   } catch { /* proceed to next tier */ }
 
-  try {
-    const nominatimResult = await queryNominatim(longitude, latitude);
-    if (nominatimResult) return nominatimResult;
-  } catch { /* proceed to next tier */ }
+  const now = Date.now();
+  if (lastNominatimRequestAt === null || now - lastNominatimRequestAt >= NOMINATIM_MIN_INTERVAL_MS) {
+    lastNominatimRequestAt = now;
+    try {
+      const nominatimResult = await queryNominatim(longitude, latitude);
+      if (nominatimResult) {
+        storeCachedResult(cacheKey, nominatimResult);
+        return nominatimResult;
+      }
+    } catch { /* proceed to next tier */ }
+  }
 
   return deterministicCebuFallback(longitude, latitude);
+}
+
+export async function reverseGeocode([longitude, latitude]: [number, number]): Promise<ReverseGeocodeResult | null> {
+  if (!Number.isFinite(longitude) || !Number.isFinite(latitude)) return null;
+  if (!isWithinCebu(longitude, latitude)) return null;
+
+  const cacheKey = `${latitude.toFixed(4)},${longitude.toFixed(4)}`;
+  const cached = reverseCache.get(cacheKey);
+  if (cached) {
+    if (cached.expires > Date.now()) return cached.result;
+    reverseCache.delete(cacheKey);
+  }
+
+  const existing = pendingRequests.get(cacheKey);
+  if (existing) return existing;
+
+  const operation = resolveReverseGeocode(longitude, latitude, cacheKey);
+  pendingRequests.set(cacheKey, operation);
+  try {
+    return await operation;
+  } finally {
+    pendingRequests.delete(cacheKey);
+  }
 }

@@ -1,25 +1,56 @@
--- Standalone fresh-project bootstrap. Apply this file alone, NOT the legacy migrations.
--- Existing application objects/buckets/policies cause an atomic failure; nothing is replaced.
+-- Idempotent core finder schema migration.
 BEGIN;
 
+-- Permit the storage policies created by this repository's migration chain, but
+-- stop if an unreviewed permissive read policy could broaden KYC object access.
 DO $$
+DECLARE
+  v_policy text;
 BEGIN
-  IF EXISTS (SELECT 1 FROM auth.users) OR EXISTS (
-    SELECT 1 FROM pg_trigger WHERE tgrelid = 'auth.users'::regclass AND NOT tgisinternal
-  ) THEN
-    RAISE EXCEPTION 'Fresh bootstrap requires no existing auth users or custom auth.users triggers';
-  END IF;
-  IF EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'storage' AND tablename = 'objects') THEN
-    RAISE EXCEPTION 'Fresh bootstrap requires storage.objects without existing policies; review them first';
+  SELECT p.policyname INTO v_policy
+  FROM pg_catalog.pg_policies p
+  WHERE p.schemaname = 'storage'
+    AND p.tablename = 'objects'
+    AND p.permissive = 'PERMISSIVE'
+    AND p.cmd IN ('SELECT', 'ALL')
+    AND EXISTS (
+      SELECT 1
+      FROM pg_catalog.unnest(p.roles) AS policy_roles(role_name)
+      WHERE role_name::text IN ('public', 'anon', 'authenticated')
+    )
+    AND p.policyname NOT IN (
+      'finder_images_read', 'finder_kyc_objects_read', 'finder_kyc_objects_read_guard',
+      'finder_objects_insert', 'finder_images_update', 'finder_images_delete',
+      'profile_avatars_read_own', 'profile_avatars_insert_own',
+      'profile_avatars_update_own', 'profile_avatars_delete_own',
+      'rental_attachments_read', 'rental_attachments_insert',
+      'field_verification_media_staff_read', 'field_verification_media_staff_insert',
+      'draft_media_deny_clients', 'support_attachments_deny_clients'
+    )
+  LIMIT 1;
+  IF v_policy IS NOT NULL THEN
+    RAISE EXCEPTION 'Unreviewed storage.objects read policy % requires review before Finder migration', v_policy;
   END IF;
 END;
 $$;
 
-CREATE TYPE public.user_role AS ENUM ('renter', 'landlord', 'admin');
-CREATE TYPE public.kyc_status AS ENUM ('pending', 'verified', 'rejected');
-CREATE TYPE public.kyc_id_type AS ENUM ('passport', 'philsys_id', 'drivers_license', 'umid', 'prc_id', 'postal_id');
+DO $$ BEGIN
+  CREATE TYPE public.user_role AS ENUM ('renter', 'landlord', 'admin');
+EXCEPTION
+  WHEN duplicate_object THEN null;
+END $$;
+DO $$ BEGIN
+  CREATE TYPE public.kyc_status AS ENUM ('pending', 'verified', 'rejected');
+EXCEPTION
+  WHEN duplicate_object THEN null;
+END $$;
+DO $$ BEGIN
+  CREATE TYPE public.kyc_id_type AS ENUM ('passport', 'philsys_id', 'drivers_license', 'umid', 'prc_id', 'postal_id');
+EXCEPTION
+  WHEN duplicate_object THEN null;
+END $$;
 
-CREATE TABLE public.profiles (
+CREATE TABLE IF NOT EXISTS public.profiles (
   id uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   role public.user_role NOT NULL DEFAULT 'renter',
   full_name text NOT NULL CHECK (length(btrim(full_name)) BETWEEN 1 AND 200),
@@ -31,7 +62,7 @@ CREATE TABLE public.profiles (
   updated_at timestamptz NOT NULL DEFAULT now()
 );
 
-CREATE TABLE public.kyc_verifications (
+CREATE TABLE IF NOT EXISTS public.kyc_verifications (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   landlord_id uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
   id_type public.kyc_id_type NOT NULL,
@@ -50,11 +81,11 @@ CREATE TABLE public.kyc_verifications (
     OR (status IN ('verified', 'rejected') AND reviewed_by IS NOT NULL AND reviewed_at IS NOT NULL)),
   CHECK (status <> 'rejected' OR length(btrim(rejection_reason)) > 0 AND rejection_reason IS NOT NULL)
 );
-CREATE INDEX finder_kyc_landlord ON public.kyc_verifications(landlord_id);
-CREATE INDEX finder_kyc_queue ON public.kyc_verifications(status, created_at);
-CREATE INDEX finder_kyc_reviewer ON public.kyc_verifications(reviewed_by);
+CREATE INDEX IF NOT EXISTS finder_kyc_landlord ON public.kyc_verifications(landlord_id);
+CREATE INDEX IF NOT EXISTS finder_kyc_queue ON public.kyc_verifications(status, created_at);
+CREATE INDEX IF NOT EXISTS finder_kyc_reviewer ON public.kyc_verifications(reviewed_by);
 
-CREATE TABLE public.listings (
+CREATE TABLE IF NOT EXISTS public.listings (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   title text NOT NULL CHECK (length(btrim(title)) BETWEEN 1 AND 200),
   description text CHECK (length(description) <= 10000),
@@ -90,34 +121,34 @@ CREATE TABLE public.listings (
   updated_at timestamptz NOT NULL DEFAULT now(),
   CHECK ((status = 'published' AND published_at IS NOT NULL) OR (status <> 'published' AND published_at IS NULL))
 );
-CREATE INDEX finder_listings_owner ON public.listings(owner_id);
-CREATE INDEX finder_listings_public_price ON public.listings(price, id) WHERE status = 'published' AND is_available;
-CREATE INDEX finder_listings_public_type ON public.listings(property_type) WHERE status = 'published' AND is_available;
+CREATE INDEX IF NOT EXISTS finder_listings_owner ON public.listings(owner_id);
+CREATE INDEX IF NOT EXISTS finder_listings_public_price ON public.listings(price, id) WHERE status = 'published' AND is_available;
+CREATE INDEX IF NOT EXISTS finder_listings_public_type ON public.listings(property_type) WHERE status = 'published' AND is_available;
 
-CREATE TABLE public.favorites (
+CREATE TABLE IF NOT EXISTS public.favorites (
   user_id uuid NOT NULL DEFAULT auth.uid() REFERENCES public.profiles(id) ON DELETE CASCADE,
   listing_id uuid NOT NULL REFERENCES public.listings(id) ON DELETE CASCADE,
   created_at timestamptz NOT NULL DEFAULT now(),
   PRIMARY KEY (user_id, listing_id)
 );
-CREATE INDEX finder_favorites_listing ON public.favorites(listing_id);
+CREATE INDEX IF NOT EXISTS finder_favorites_listing ON public.favorites(listing_id);
 
-CREATE FUNCTION public.get_current_user_role() RETURNS public.user_role
+CREATE OR REPLACE FUNCTION public.get_current_user_role() RETURNS public.user_role
 LANGUAGE sql STABLE SECURITY DEFINER SET search_path = '' AS $$
   SELECT role FROM public.profiles WHERE id = auth.uid() AND NOT is_suspended;
 $$;
-CREATE FUNCTION public.is_admin() RETURNS boolean
+CREATE OR REPLACE FUNCTION public.is_admin() RETURNS boolean
 LANGUAGE sql STABLE SECURITY DEFINER SET search_path = '' AS $$
   SELECT coalesce(public.get_current_user_role() = 'admin', false);
 $$;
-CREATE FUNCTION public.finder_updated_at() RETURNS trigger
+CREATE OR REPLACE FUNCTION public.finder_updated_at() RETURNS trigger
 LANGUAGE plpgsql SET search_path = '' AS $$
 BEGIN
   NEW.updated_at := now();
   RETURN NEW;
 END;
 $$;
-CREATE FUNCTION public.finder_listing_edit() RETURNS trigger
+CREATE OR REPLACE FUNCTION public.finder_listing_edit() RETURNS trigger
 LANGUAGE plpgsql SET search_path = '' AS $$
 BEGIN
   -- Owner edits require moderation again; grants prevent owner-written trust fields.
@@ -131,7 +162,7 @@ BEGIN
   RETURN NEW;
 END;
 $$;
-CREATE FUNCTION public.finder_new_user() RETURNS trigger
+CREATE OR REPLACE FUNCTION public.finder_new_user() RETURNS trigger
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
 BEGIN
   INSERT INTO public.profiles(id, role, full_name, phone_number)
@@ -145,9 +176,43 @@ BEGIN
   RETURN NEW;
 END;
 $$;
-CREATE TRIGGER finder_auth_signup AFTER INSERT ON auth.users FOR EACH ROW EXECUTE FUNCTION public.finder_new_user();
+DROP TRIGGER IF EXISTS finder_auth_signup ON auth.users;
+DO $$
+DECLARE
+  v_profile_handler oid := pg_catalog.to_regprocedure('public.handle_new_user()')::oid;
+BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM pg_catalog.pg_trigger t
+    WHERE t.tgrelid = 'auth.users'::regclass
+      AND NOT t.tgisinternal
+      AND NOT (
+        t.tgname = 'on_auth_user_created'
+        AND v_profile_handler IS NOT NULL
+        AND t.tgfoid = v_profile_handler
+      )
+  ) THEN
+    RAISE EXCEPTION 'Unreviewed auth.users trigger requires review before Finder migration';
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_catalog.pg_trigger t
+    WHERE t.tgrelid = 'auth.users'::regclass
+      AND NOT t.tgisinternal
+      AND t.tgname = 'on_auth_user_created'
+      AND v_profile_handler IS NOT NULL
+      AND t.tgfoid = v_profile_handler
+  ) THEN
+    EXECUTE 'CREATE TRIGGER finder_auth_signup AFTER INSERT ON auth.users FOR EACH ROW EXECUTE FUNCTION public.finder_new_user()';
+  END IF;
+END;
+$$;
+DROP TRIGGER IF EXISTS finder_profiles_updated ON public.profiles;
 CREATE TRIGGER finder_profiles_updated BEFORE UPDATE ON public.profiles FOR EACH ROW EXECUTE FUNCTION public.finder_updated_at();
+DROP TRIGGER IF EXISTS finder_kyc_updated ON public.kyc_verifications;
 CREATE TRIGGER finder_kyc_updated BEFORE UPDATE ON public.kyc_verifications FOR EACH ROW EXECUTE FUNCTION public.finder_updated_at();
+DROP TRIGGER IF EXISTS finder_listings_updated ON public.listings;
 CREATE TRIGGER finder_listings_updated BEFORE UPDATE ON public.listings FOR EACH ROW EXECUTE FUNCTION public.finder_listing_edit();
 
 REVOKE ALL ON FUNCTION public.get_current_user_role(), public.is_admin(), public.finder_updated_at(), public.finder_listing_edit(), public.finder_new_user() FROM PUBLIC, anon, authenticated;
@@ -163,14 +228,18 @@ GRANT USAGE ON SCHEMA public TO anon, authenticated, service_role;
 
 GRANT SELECT ON public.profiles TO authenticated;
 GRANT UPDATE (full_name, phone_number, avatar_url, bio) ON public.profiles TO authenticated;
+DROP POLICY IF EXISTS finder_profile_read ON public.profiles;
 CREATE POLICY finder_profile_read ON public.profiles FOR SELECT TO authenticated USING (id = auth.uid());
+DROP POLICY IF EXISTS finder_profile_update ON public.profiles;
 CREATE POLICY finder_profile_update ON public.profiles FOR UPDATE TO authenticated
   USING (id = auth.uid() AND NOT is_suspended) WITH CHECK (id = auth.uid() AND NOT is_suspended);
 
 GRANT SELECT ON public.kyc_verifications TO authenticated;
 GRANT INSERT (landlord_id, id_type, id_document_url, proof_of_ownership_url) ON public.kyc_verifications TO authenticated;
+DROP POLICY IF EXISTS finder_kyc_read ON public.kyc_verifications;
 CREATE POLICY finder_kyc_read ON public.kyc_verifications FOR SELECT TO authenticated
   USING (landlord_id = auth.uid() OR public.is_admin());
+DROP POLICY IF EXISTS finder_kyc_submit ON public.kyc_verifications;
 CREATE POLICY finder_kyc_submit ON public.kyc_verifications FOR INSERT TO authenticated
   WITH CHECK (landlord_id = auth.uid() AND public.get_current_user_role() = 'landlord' AND status = 'pending');
 
@@ -182,42 +251,65 @@ GRANT UPDATE (title, description, price, currency, rental_period, property_type,
   is_available, image_urls, max_occupants, bathroom_type, cooking_allowed, laundry_allowed, curfew_type,
   wifi_available, aircon, water_included, electricity_included, motorcycle_parking, car_parking) ON public.listings TO authenticated;
 GRANT DELETE ON public.listings TO authenticated;
+DROP POLICY IF EXISTS finder_listing_public ON public.listings;
 CREATE POLICY finder_listing_public ON public.listings FOR SELECT TO anon, authenticated
   USING (is_available AND status = 'published');
+DROP POLICY IF EXISTS finder_listing_own_read ON public.listings;
 CREATE POLICY finder_listing_own_read ON public.listings FOR SELECT TO authenticated USING (owner_id = auth.uid());
+DROP POLICY IF EXISTS finder_listing_insert ON public.listings;
 CREATE POLICY finder_listing_insert ON public.listings FOR INSERT TO authenticated
   WITH CHECK (owner_id = auth.uid() AND public.get_current_user_role() = 'landlord' AND status = 'draft'
     AND verification_status IS NULL AND direct_landlord IS NULL);
+DROP POLICY IF EXISTS finder_listing_update ON public.listings;
 CREATE POLICY finder_listing_update ON public.listings FOR UPDATE TO authenticated
   USING (owner_id = auth.uid() AND public.get_current_user_role() = 'landlord')
   WITH CHECK (owner_id = auth.uid() AND public.get_current_user_role() = 'landlord');
+DROP POLICY IF EXISTS finder_listing_delete ON public.listings;
 CREATE POLICY finder_listing_delete ON public.listings FOR DELETE TO authenticated
   USING (owner_id = auth.uid() AND public.get_current_user_role() = 'landlord');
 
 GRANT SELECT, DELETE ON public.favorites TO authenticated;
 GRANT INSERT (user_id, listing_id) ON public.favorites TO authenticated;
+DROP POLICY IF EXISTS finder_favorite_read ON public.favorites;
 CREATE POLICY finder_favorite_read ON public.favorites FOR SELECT TO authenticated USING (user_id = auth.uid());
+DROP POLICY IF EXISTS finder_favorite_delete ON public.favorites;
 CREATE POLICY finder_favorite_delete ON public.favorites FOR DELETE TO authenticated USING (user_id = auth.uid());
+DROP POLICY IF EXISTS finder_favorite_insert ON public.favorites;
 CREATE POLICY finder_favorite_insert ON public.favorites FOR INSERT TO authenticated
   WITH CHECK (user_id = auth.uid() AND public.get_current_user_role() IS NOT NULL
     AND EXISTS (SELECT 1 FROM public.listings l WHERE l.id = listing_id AND l.status = 'published' AND l.is_available));
 
 INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types) VALUES
   ('property-images', 'property-images', true, 10485760, ARRAY['image/jpeg', 'image/png', 'image/webp']),
-  ('kyc-documents', 'kyc-documents', false, 10485760, ARRAY['image/jpeg', 'image/png', 'application/pdf']);
+  ('kyc-documents', 'kyc-documents', false, 10485760, ARRAY['image/jpeg', 'image/png', 'application/pdf'])
+ON CONFLICT (id) DO UPDATE SET
+  name = EXCLUDED.name,
+  public = EXCLUDED.public,
+  file_size_limit = EXCLUDED.file_size_limit,
+  allowed_mime_types = EXCLUDED.allowed_mime_types;
 -- Public images are intentionally retrievable even before/after a listing is published.
+DROP POLICY IF EXISTS finder_images_read ON storage.objects;
 CREATE POLICY finder_images_read ON storage.objects FOR SELECT TO anon, authenticated USING (bucket_id = 'property-images');
+DROP POLICY IF EXISTS finder_kyc_objects_read ON storage.objects;
 CREATE POLICY finder_kyc_objects_read ON storage.objects FOR SELECT TO authenticated
   USING (bucket_id = 'kyc-documents' AND (storage.foldername(name))[1] = auth.uid()::text);
+-- Restrictive policy prevents any other permissive SELECT policy from widening KYC access.
+DROP POLICY IF EXISTS finder_kyc_objects_read_guard ON storage.objects;
+CREATE POLICY finder_kyc_objects_read_guard ON storage.objects AS RESTRICTIVE FOR SELECT TO anon, authenticated
+  USING (bucket_id <> 'kyc-documents' OR
+    (auth.uid() IS NOT NULL AND (storage.foldername(name))[1] = auth.uid()::text));
+DROP POLICY IF EXISTS finder_objects_insert ON storage.objects;
 CREATE POLICY finder_objects_insert ON storage.objects FOR INSERT TO authenticated
   WITH CHECK (bucket_id IN ('property-images', 'kyc-documents') AND (storage.foldername(name))[1] = auth.uid()::text
     AND name !~ '(^|/)\.\.?(/|$)' AND public.get_current_user_role() = 'landlord');
 -- KYC evidence is immutable to clients after upload; only trusted review/retention tooling can remove it.
+DROP POLICY IF EXISTS finder_images_update ON storage.objects;
 CREATE POLICY finder_images_update ON storage.objects FOR UPDATE TO authenticated
   USING (bucket_id = 'property-images' AND (storage.foldername(name))[1] = auth.uid()::text
     AND public.get_current_user_role() = 'landlord')
   WITH CHECK (bucket_id = 'property-images' AND (storage.foldername(name))[1] = auth.uid()::text
     AND name !~ '(^|/)\.\.?(/|$)' AND public.get_current_user_role() = 'landlord');
+DROP POLICY IF EXISTS finder_images_delete ON storage.objects;
 CREATE POLICY finder_images_delete ON storage.objects FOR DELETE TO authenticated
   USING (bucket_id = 'property-images' AND (storage.foldername(name))[1] = auth.uid()::text
     AND public.get_current_user_role() = 'landlord');

@@ -30,4 +30,9 @@ describe("production public build configuration", () => {
     const dockerfile = readFileSync("Dockerfile", "utf8");
     expect(dockerfile).toMatch(/RUN node scripts\/validate-public-build-env\.mjs\s*\n\s*RUN pnpm run build/);
   });
+
+  it("runs validator in a CI builder image before Next.js build", () => {
+    const ci = readFileSync(".github/workflows/ci.yml", "utf8");
+    expect(ci).toMatch(/name: Run Docker build validator[\s\S]*?docker build --target builder[\s\S]*?NEXT_PUBLIC_SUPABASE_URL=https:\/\/example\.supabase\.co/);
+  });
 });

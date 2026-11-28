@@ -34,6 +34,12 @@ beforeEach(() => {
   mocks.rpc.mockResolvedValue({ data: { agreementId: "ag-1", status: "renter_agreed", bothAgreed: false }, error: null });
 });
 
+import { invalidateLandlordPortfolioCache } from "@/server/landlord-portfolio-cache";
+import { invalidatePublicRentalsCache } from "@/server/rentals/public-rentals";
+
+vi.mock("@/server/landlord-portfolio-cache", () => ({ invalidateLandlordPortfolioCache: vi.fn() }));
+vi.mock("@/server/rentals/public-rentals", () => ({ invalidatePublicRentalsCache: vi.fn() }));
+
 import { agreementLimiter } from "@/server/api-limiters";
 import { POST } from "./route";
 
@@ -91,6 +97,18 @@ describe("POST /api/messages/threads/[threadId]/agreement", () => {
 
     const resInvalid = await post({ operationId: opUuid, agree: true, expectedVersion: -1 });
     expect(resInvalid.status).toBe(400);
+  });
+
+  it("invalidates public rentals and landlord portfolio caches only when bothAgreed is true", async () => {
+    await post({ operationId: opUuid, agree: true, unitId: unitUuid });
+    expect(invalidatePublicRentalsCache).not.toHaveBeenCalled();
+    expect(invalidateLandlordPortfolioCache).not.toHaveBeenCalled();
+
+    mocks.rpc.mockResolvedValueOnce({ data: { agreementId: "ag-1", status: "agreed", bothAgreed: true }, error: null });
+    const res = await post({ operationId: opUuid, agree: true, unitId: unitUuid });
+    expect(res.status).toBe(200);
+    expect(invalidatePublicRentalsCache).toHaveBeenCalledTimes(1);
+    expect(invalidateLandlordPortfolioCache).toHaveBeenCalledTimes(1);
   });
 
   it("returns 429 when agreementLimiter is exceeded", async () => {

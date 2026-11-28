@@ -12,9 +12,9 @@ import * as RadixPopover from "@radix-ui/react-popover";
 import { QuickFilters } from "./FinderQuickFilters";
 import { FinderNavigation } from "./FinderNavigation";
 import { FinderAssistant } from "./FinderAssistant";
-import { ExpandedRentalModalContent } from "./RestoredFinderShell";
 import { PropertyDetailsSheet, PropertyDetailsSheetBody, type PropertyDetailsSheetProps } from "../rentals/PropertyDetailsSheet";
 
+const routerPush = vi.hoisted(() => vi.fn());
 const hooks = vi.hoisted(() => ({ changeFilters: undefined as ((filters: RentalFilters) => void) | undefined, changeCenter: undefined as ((center: [number, number]) => void) | undefined, mapRentals: [] as RentalResult[], slots: [] as unknown[], index: 0, refs: [] as { current: unknown }[], refIndex: 0, effects: [] as (() => void | (() => void))[], effect: undefined as (() => void | (() => void)) | undefined }));
 vi.mock("react", async (importOriginal) => ({
   ...await importOriginal<typeof import("react")>(),
@@ -31,7 +31,7 @@ vi.mock("react", async (importOriginal) => ({
   useSyncExternalStore: (_subscribe: (listener: () => void) => () => void, getSnapshot: () => unknown) => getSnapshot(),
   useEffect: (effect: () => void | (() => void)) => { hooks.effect ??= effect; hooks.effects.push(effect); },
 }));
-vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push: routerPush }) }));
 vi.mock("./FinderAssistantLazy", async () => {
   const { FinderAssistant } = await import("./FinderAssistant");
   return { FinderAssistantLazy: FinderAssistant };
@@ -76,7 +76,7 @@ async function load(response: { ok: boolean; json: () => Promise<unknown> }) {
   return { html, fetchMock, cleanup };
 }
 
-afterEach(() => { clearRentalsMemoryCache(); hooks.slots = []; hooks.index = 0; hooks.refs = []; hooks.refIndex = 0; hooks.effect = undefined; hooks.effects = []; vi.unstubAllGlobals(); vi.unstubAllEnvs(); });
+afterEach(() => { clearRentalsMemoryCache(); routerPush.mockClear(); hooks.slots = []; hooks.index = 0; hooks.refs = []; hooks.refIndex = 0; hooks.effect = undefined; hooks.effects = []; vi.unstubAllGlobals(); vi.unstubAllEnvs(); });
 
 function captureShell() {
   hooks.index = 0;
@@ -507,7 +507,7 @@ describe("RestoredFinderShell", () => {
     expect(strictTwoKm).not.toContain("Mandaue condo");
   });
 
-  it("renders consistent truthful verification pills on RentalCard and ExpandedRentalModalContent", () => {
+  it("renders consistent truthful verification pills on RentalCard and PropertyDetailsSheetBody", () => {
     const cases: Array<[string, string]> = [
       ["property_verified", "Verified property"],
       ["approved", "Verified property"],
@@ -517,8 +517,26 @@ describe("RestoredFinderShell", () => {
     for (const [status, label] of cases) {
       const sample = { ...rental, verificationStatus: status as RentalResult["verificationStatus"] };
       expect(renderToStaticMarkup(<RentalCard rental={sample} selected={false} onSelect={vi.fn()} />)).toContain(label);
-      expect(renderToStaticMarkup(<ExpandedRentalModalContent rental={sample} photoIndex={0} onPhotoIndexChange={vi.fn()} canSave={false} saved={false} onToggleSaved={vi.fn()} />)).toContain(label);
     }
+
+    const savedSlots = hooks.slots;
+    const savedIndex = hooks.index;
+    const savedRefs = hooks.refs;
+    const savedRefIndex = hooks.refIndex;
+    hooks.slots = [];
+    hooks.index = 0;
+    hooks.refs = [];
+    hooks.refIndex = 0;
+    expect(renderToStaticMarkup(<PropertyDetailsSheetBody rental={{ ...rental, verificationStatus: "property_verified" }} />)).toContain("Verified property");
+    hooks.slots = [];
+    hooks.index = 0;
+    hooks.refs = [];
+    hooks.refIndex = 0;
+    expect(renderToStaticMarkup(<PropertyDetailsSheetBody rental={{ ...rental, verificationStatus: "unverified" }} />)).toContain("Pending verification");
+    hooks.slots = savedSlots;
+    hooks.index = savedIndex;
+    hooks.refs = savedRefs;
+    hooks.refIndex = savedRefIndex;
   });
 
   it("renders a View details button and photo count badge on multi-photo rental cards", () => {
@@ -589,42 +607,36 @@ describe("RestoredFinderShell", () => {
       }
     });
 
-    it("hands a guest to the login prompt, closes the expanded modal, and resumes the same listing after sign-in", async () => {
+    it("resumes the requested listing in messages after a guest signs in as a renter", async () => {
       await load({ ok: true, json: async () => ({ rentals: [gallery] }) });
       cardProps(capture()).onMessage!("live-1");
-      let tree = capture();
+      const tree = capture();
       expect(accountModal(tree)!.props.open).toBe(true);
       expect(findElement(tree, (element) => element.props.children === "Sign in or create a renter account to message the landlord.")).toBeDefined();
-      // No more ListingInquiryModal - should navigate to messages page instead
       capture(renter);
-      tree = capture(renter);
-      // After sign-in, clicking "Message landlord" should navigate to /messages?listing=<id>
-      // The modal is no longer used
+      hooks.effects.at(-1)?.();
+      expect(routerPush).toHaveBeenCalledWith("/messages?listing=live-1");
     });
 
-    it("drops a pending guest inquiry when the account dialog is dismissed or the user is not a renter", async () => {
+    it("drops a pending guest inquiry when the account dialog is dismissed", async () => {
       await load({ ok: true, json: async () => ({ rentals: [rental] }) });
-      // Guest clicks message landlord -> opens account dialog
-      // After sign-in as renter, should navigate to messages page
-      capture(renter); // the sign-in transition sets state during render
+      cardProps(capture()).onMessage!("live-1");
+      const tree = capture();
+      (accountModal(tree)!.props.onClose as () => void)();
       capture(renter);
-      // No ListingInquiryModal should appear
+      hooks.effects.at(-1)?.();
+      expect(routerPush).not.toHaveBeenCalled();
     });
 
-    it("opens the inquiry from the map popup, card and expanded modal for a signed-in renter", async () => {
+    it("opens the inquiry from the map popup, card and expanded sheet for a signed-in renter", async () => {
       await load({ ok: true, json: async () => ({ rentals: [gallery] }) });
-      // Clicking "Message landlord" should navigate to /messages?listing=<id>
-      // The modal is no longer used - test that the action is present
-      const html = renderToStaticMarkup(<ExpandedRentalModalContent rental={gallery} photoIndex={0} onPhotoIndexChange={vi.fn()} canSave={false} saved={false} onToggleSaved={vi.fn()} canMessage onMessage={vi.fn()} />);
-      expect(html).toContain("Message landlord");
-      expect(renderToStaticMarkup(<ExpandedRentalModalContent rental={gallery} photoIndex={0} onPhotoIndexChange={vi.fn()} canSave={false} saved={false} onToggleSaved={vi.fn()} />)).not.toContain("Message landlord");
-      // Choosing the action from the expanded modal/sheet closes it before navigating
+      // Choosing the action from the expanded sheet closes it before navigating
       hooks.slots = [];
       hooks.refs = [];
       await load({ ok: true, json: async () => ({ rentals: [gallery] }) });
       cardProps(capture(renter)).onExpand!("live-1");
-      const expanded = findElementsByType(capture(renter), PropertyDetailsSheet)[0]
-        ?? findElementsByType(capture(renter), ExpandedRentalModalContent)[0];
+      const expanded = findElementsByType(capture(renter), PropertyDetailsSheet)[0];
+      expect(expanded).toBeDefined();
       expect(expanded.props.canMessage).toBe(true);
       (expanded.props.onMessage as (id: string) => void)("live-1");
       expect(findElementsByType(capture(renter), PropertyDetailsSheet)).toHaveLength(0);

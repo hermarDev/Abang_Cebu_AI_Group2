@@ -1,7 +1,34 @@
 import { createServerClient } from "@supabase/ssr";
+import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
-import { cache } from "react";
 import { createBoundedFetch } from "./fetch-timeout";
+
+function resolvePublicSupabaseConfig() {
+  const envUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const envKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (process.env.NODE_ENV === "production" && process.env.NEXT_PHASE !== "phase-production-build" && (!envUrl || !envKey || envUrl.includes("placeholder.supabase.co") || envKey === "placeholder-anon-key")) {
+    throw new Error("Supabase server configuration is missing.");
+  }
+  return {
+    supabaseUrl: envUrl || "https://placeholder.supabase.co",
+    supabaseAnonKey: envKey || "placeholder-anon-key",
+  };
+}
+
+/**
+ * Cookie-less anon client for public, cacheable reads that must never read or set auth cookies.
+ */
+export function createPublicClient() {
+  const { supabaseUrl, supabaseAnonKey } = resolvePublicSupabaseConfig();
+  return createSupabaseClient(supabaseUrl, supabaseAnonKey, {
+    global: { fetch: createBoundedFetch(6_000) },
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+      detectSessionInUrl: false,
+    },
+  });
+}
 
 /**
  * Creates a Supabase client for use in Server Components, Server Actions, and Route Handlers.
@@ -9,13 +36,7 @@ import { createBoundedFetch } from "./fetch-timeout";
  */
 export async function createClient() {
   const cookieStore = await cookies();
-  const envUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const envKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  if (process.env.NODE_ENV === "production" && process.env.NEXT_PHASE !== "phase-production-build" && (!envUrl || !envKey || envUrl.includes("placeholder.supabase.co") || envKey === "placeholder-anon-key")) {
-    throw new Error("Supabase server configuration is missing.");
-  }
-  const supabaseUrl = envUrl || "https://placeholder.supabase.co";
-  const supabaseAnonKey = envKey || "placeholder-anon-key";
+  const { supabaseUrl, supabaseAnonKey } = resolvePublicSupabaseConfig();
 
   return createServerClient(supabaseUrl, supabaseAnonKey, {
     global: { fetch: createBoundedFetch(6_000) },
@@ -36,9 +57,3 @@ export async function createClient() {
     },
   });
 }
-
-/** Request-scoped: layouts and pages calling this share one GoTrue round trip. */
-export const getCachedServerUser = cache(async () => {
-  const supabase = await createClient();
-  return supabase.auth.getUser();
-});

@@ -1,5 +1,5 @@
 import { forwardRef, type HTMLAttributes } from "react";
-import { cn } from "@/components/ui/cn";
+import { cn } from "@/lib/utils";
 
 export const Marker = forwardRef<HTMLLIElement, HTMLAttributes<HTMLLIElement>>(
   ({ className, children, ...props }, ref) => {

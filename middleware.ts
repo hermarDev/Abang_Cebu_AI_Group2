@@ -1,14 +1,115 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { updateSession } from "@/lib/supabase/middleware";
 
+const RSC_REFRESH_LEEWAY_MS = 90_000;
+
+function decodeBase64Url(value: string): string | null {
+  try {
+    const base64 = value.replace(/-/g, "+").replace(/_/g, "/").padEnd(Math.ceil(value.length / 4) * 4, "=");
+    const binary = atob(base64);
+    const bytes = Uint8Array.from(binary, (c) => c.charCodeAt(0));
+    return new TextDecoder().decode(bytes);
+  } catch {
+    return null;
+  }
+}
+
+function extractJwtExpMs(rawCookieValue: string): number | null {
+  const candidates = [rawCookieValue];
+  if (rawCookieValue.includes("%")) {
+    try {
+      candidates.push(decodeURIComponent(rawCookieValue));
+    } catch {
+      // Ignore malformed percent-encoding.
+    }
+  }
+
+  for (const candidate of candidates) {
+    const decoded = candidate.startsWith("base64-")
+      ? decodeBase64Url(candidate.slice("base64-".length))
+      : candidate;
+    if (!decoded) continue;
+
+    let accessToken: string | null = null;
+    const trimmed = decoded.trim();
+    if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
+      try {
+        const parsed: unknown = JSON.parse(trimmed);
+        if (Array.isArray(parsed) && typeof parsed[0] === "string") {
+          accessToken = parsed[0];
+        } else if (parsed && typeof parsed === "object" && typeof (parsed as { access_token?: unknown }).access_token === "string") {
+          accessToken = (parsed as { access_token: string }).access_token;
+        }
+      } catch {
+        accessToken = null;
+      }
+    } else if (trimmed.split(".").length === 3) {
+      accessToken = trimmed;
+    }
+
+    if (!accessToken) continue;
+    const parts = accessToken.split(".");
+    if (parts.length !== 3) continue;
+    const payloadText = decodeBase64Url(parts[1]);
+    if (!payloadText) continue;
+    try {
+      const payload: unknown = JSON.parse(payloadText);
+      if (payload && typeof payload === "object") {
+        const exp = (payload as { exp?: unknown }).exp;
+        if (typeof exp === "number" && Number.isFinite(exp)) {
+          return exp * 1000;
+        }
+      }
+    } catch {
+      continue;
+    }
+  }
+  return null;
+}
+
+function collectSupabaseAuthCookieValue(request: NextRequest): string | null {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://placeholder.supabase.co";
+  let cookieName: string;
+  try {
+    cookieName = `sb-${new URL(supabaseUrl).hostname.split(".")[0]}-auth-token`;
+  } catch {
+    return null;
+  }
+
+  const cookies = request.cookies.getAll();
+  const unchunked = cookies.find(({ name }) => name === cookieName)?.value;
+  if (unchunked) return unchunked;
+
+  const chunks = cookies.flatMap(({ name, value }) => {
+    const match = new RegExp(`^${cookieName}\\.(\\d+)$`).exec(name);
+    return match ? [{ index: Number(match[1]), value }] : [];
+  });
+  if (chunks.length === 0) return null;
+  chunks.sort((a, b) => a.index - b.index);
+  return chunks.map(({ value }) => value).join("");
+}
+
+/**
+ * Skips GoTrue session refresh on RSC navigations only when a valid Supabase JWT
+ * still has >90s remaining; expired, near-expiry, or unreadable cookies must
+ * run `updateSession` so rotated refresh tokens are persisted via Set-Cookie.
+ */
+export function shouldSkipRscSessionRefresh(request: NextRequest): boolean {
+  if (!request.nextUrl.searchParams.has("_rsc")) return false;
+  const value = collectSupabaseAuthCookieValue(request);
+  if (!value) return false;
+  const now = Date.now();
+  const expMs = extractJwtExpMs(value);
+  return expMs !== null && expMs - now > RSC_REFRESH_LEEWAY_MS;
+}
+
 export async function middleware(request: NextRequest) {
-  // Route handlers verify their own session; cookie-less visitors have nothing to refresh.
-  // RSC navigations carry `_rsc` in the query string (Flight headers are hidden from
-  // middleware). Skipping the session refresh here avoids a second Supabase auth round
-  // trip on every client navigation; pages already verify their own session.
-  const isRscNavigation = request.nextUrl.searchParams.has("_rsc");
   let response: NextResponse;
-  if (isRscNavigation || request.nextUrl.pathname.startsWith("/api/") || !request.cookies.getAll().some(({ name }) => name.startsWith("sb-"))) {
+  if (
+    shouldSkipRscSessionRefresh(request) ||
+    request.nextUrl.pathname.startsWith("/api/") ||
+    !request.cookies.getAll().some(({ name }) => name.startsWith("sb-"))
+  ) {
     response = NextResponse.next({ request });
   } else {
     response = await updateSession(request);

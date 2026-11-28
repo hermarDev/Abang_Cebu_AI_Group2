@@ -17,7 +17,6 @@ vi.mock("@/lib/supabase/server", () => ({
 import {
   isUuid,
   isValidNotes,
-  isValidVerificationMethod,
   isValidVerificationStatus,
   pageParams,
   rateLimited,
@@ -132,13 +131,6 @@ describe("verification-access", () => {
       expect(isUuid("12345678-1234-4234-8234-123456789abc")).toBe(true);
       expect(isUuid("invalid-uuid")).toBe(false);
       expect(isUuid(null)).toBe(false);
-    });
-
-    it("validates methods", () => {
-      expect(isValidVerificationMethod("site_visit")).toBe(true);
-      expect(isValidVerificationMethod("video_call")).toBe(true);
-      expect(isValidVerificationMethod("proxy_meeting")).toBe(true);
-      expect(isValidVerificationMethod("other")).toBe(false);
     });
 
     it("validates statuses", () => {

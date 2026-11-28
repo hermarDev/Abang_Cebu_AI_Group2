@@ -1,7 +1,7 @@
 import { formatAdminDate } from "./admin-api";
 import { Badge } from "@/components/ui/Badge";
 import { CircleAlert, CheckCircle2, FileText, Trash2, UserRound, AlertTriangle, ArrowRight } from "lucide-react";
-import { cn } from "@/components/ui/cn";
+import { cn } from "@/lib/utils";
 
 export type AuditEntry = {
   id?: string;

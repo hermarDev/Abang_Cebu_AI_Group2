@@ -77,3 +77,9 @@ export const notificationsMutationLimiter = createRateLimiter({
   maxPerIp: 60,
   maxPerActor: 60,
 });
+
+export const accountPasswordLimiter = createRateLimiter({
+  windowMs: 15 * 60_000,
+  maxPerIp: 10,
+  maxPerActor: 5,
+});

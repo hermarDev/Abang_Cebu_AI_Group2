@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { createRateLimiter } from "./rate-limit";
+import { createRateLimiter, sanitizeIp } from "./rate-limit";
 
 const req = (headers: Record<string, string> = {}) => new Request("http://localhost/api", { headers });
 const opts = { windowMs: 1000, maxPerIp: 3, maxPerActor: 2 };
@@ -92,6 +92,16 @@ describe("createRateLimiter", () => {
     } finally {
       (process.env as Record<string, string>).NODE_ENV = prev as string;
     }
+  });
+
+  it("normalizes IPv4-mapped IPv6 addresses before rate limiting", () => {
+    vi.stubEnv("NODE_ENV", "production");
+    expect(sanitizeIp("::ffff:192.0.2.10")).toBe("192.0.2.10");
+
+    const l = createRateLimiter({ windowMs: 1000, maxPerIp: 1, maxPerActor: 10 });
+    expect(l.check(req({ "x-real-ip": "::ffff:192.0.2.10" }), "a", 0)).toBe(true);
+    expect(l.check(req({ "x-real-ip": "192.0.2.10" }), "b", 1)).toBe(false);
+    expect(l.check(req({ "x-real-ip": "::ffff:192.0.2.11" }), "c", 2)).toBe(true);
   });
 
   it("reset clears state", () => {

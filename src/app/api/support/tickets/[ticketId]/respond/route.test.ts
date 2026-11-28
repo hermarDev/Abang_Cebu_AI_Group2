@@ -54,6 +54,11 @@ describe("POST /api/support/tickets/[ticketId]/respond", () => {
     expect(res.status).toBe(403);
   });
 
+  it("rejects null or non-object JSON payloads with 400", async () => {
+    expect((await post(null)).status).toBe(400);
+    expect((await post(["not", "an", "object"])).status).toBe(400);
+  });
+
   it("rejects invalid ticketId or short response with 400", async () => {
     const res = await post({ operationId: OP_ID, response: "Hi" }, "invalid-id");
     expect(res.status).toBe(400);

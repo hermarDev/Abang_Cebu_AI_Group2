@@ -7,11 +7,11 @@ test("browser fixture isolates reads and blocks mutations and external requests"
     const rentals = await fetch("/api/rentals").then((response) => response.json());
     const mutationBlocked = await fetch("/api/auth/register", { method: "POST", body: "{}" }).then(() => false, () => true);
     const externalBlocked = await fetch("https://example.com/").then(() => false, () => true);
-    const externalAuthBlocked = await fetch("https://example.com/auth/v1/token", { method: "POST" }).then(() => false, () => true);
+    const externalAuthBlocked = await fetch("https://example.supabase.co/auth/v1/token", { method: "POST" }).then(() => false, () => true);
     return { places, rentals, mutationBlocked, externalBlocked, externalAuthBlocked };
   });
   expect(result).toEqual({ places: { places: [] }, rentals: { rentals: [] }, mutationBlocked: true, externalBlocked: true, externalAuthBlocked: true });
-  expect(blockedRequests).toContain("POST https://example.com/auth/v1/token");
+  expect(blockedRequests).toContain("POST https://example.supabase.co/auth/v1/token");
 });
 
 for (const viewport of [{ width: 360, height: 800 }, { width: 430, height: 932 }]) {

@@ -85,6 +85,14 @@ export async function GET(request: Request) {
   }
 
   const tickets = (ticketsData.data ?? []).map(mapSupportTicketRow);
+  if (landlordComplaintsData.error) {
+    return reply({
+      tickets,
+      awaitingLandlordComplaints: [],
+      landlordComplaintsError: "Could not load complaints awaiting your response.",
+    }, 200);
+  }
+
   const awaitingLandlordComplaints = (landlordComplaintsData.data ?? []).map((row) => ({
     ...mapSupportTicketRow(row),
     supportResolutionNote: null,

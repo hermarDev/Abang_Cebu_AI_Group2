@@ -99,6 +99,7 @@ describe("property draft account binding", () => {
     expect(limited.headers.get("retry-after")).toBeTruthy();
     expect(await limited.json()).toEqual({
       error: "Too many draft actions. Please wait a moment before trying again.",
+      retryAfterSeconds: expect.any(Number),
     });
   });
 });
