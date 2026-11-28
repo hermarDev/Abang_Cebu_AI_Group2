@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { validateRegistration } from "@/lib/auth/validation";
 import { createRateLimiter, getClientIp } from "@/server/rate-limit";
+import { readBoundedJson } from "@/server/bounded-body";
 import { getSiteOrigin } from "@/server/site-origin";
 import { mapSupabaseAuthError } from "@/lib/auth/auth-error";
 import type { RegisterSuccessResponse } from "@/types/auth";
@@ -21,13 +22,24 @@ function hasExceededRateLimit(request: Request, email: string) {
 }
 
 export async function POST(request: Request) {
-  let payload: unknown;
-  try {
-    payload = await request.json();
-  } catch {
+  if (!getClientIp(request)) {
+    return NextResponse.json(
+      { success: false, error: { code: "RATE_LIMIT_EXCEEDED", message: "Too many registration requests. Please try again later." } },
+      { status: 429, headers: { "Retry-After": "900", "Cache-Control": "no-store" } },
+    );
+  }
+
+  const parsed = await readBoundedJson(request, 16 * 1024);
+  if (!parsed.ok) {
+    if (parsed.reason === "too_large") {
+      return NextResponse.json(
+        { success: false, error: { code: "PAYLOAD_TOO_LARGE", message: "Request body is too large." } },
+        { status: 413, headers: { "Cache-Control": "no-store" } },
+      );
+    }
     return NextResponse.json({ success: false, error: { code: "VALIDATION_ERROR", message: "Enter valid registration details." } }, { status: 400 });
   }
-  const validation = validateRegistration(payload);
+  const validation = validateRegistration(parsed.data);
   if (!validation.ok) return NextResponse.json({ success: false, error: { code: "VALIDATION_ERROR", message: "The submitted registration data is invalid.", details: validation.errors } }, { status: 422 });
 
   const { email, password, role, fullName, phoneNumber, preferredLandmark } = validation.value;

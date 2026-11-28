@@ -1,4 +1,5 @@
 import { favoritesLimiter } from "@/server/api-limiters";
+import { readBoundedJson } from "@/server/bounded-body";
 import { loadPublicSubmittedRentals } from "@/server/rentals/public-rentals";
 import { checkRateLimit, createRoleGuard, noStoreHeaders, uuidPattern } from "@/server/role-access";
 
@@ -36,14 +37,16 @@ const requireRenter = createRoleGuard({
   forbiddenMessage: "Saved rentals are available to renter accounts only.",
 });
 
-async function readListingId(request: Request): Promise<string | null> {
-  try {
-    const body: unknown = await request.json();
-    if (!body || typeof body !== "object" || !("listingId" in body) || typeof body.listingId !== "string") return null;
-    return uuidPattern.test(body.listingId) ? body.listingId : null;
-  } catch {
-    return null;
+async function readListingId(request: Request): Promise<{ ok: true; listingId: string | null } | { ok: false; tooLarge: true }> {
+  const parsed = await readBoundedJson(request, 16 * 1024);
+  if (!parsed.ok) {
+    return parsed.reason === "too_large" ? { ok: false, tooLarge: true } : { ok: true, listingId: null };
   }
+  const body = parsed.data;
+  if (!body || typeof body !== "object" || !("listingId" in body) || typeof body.listingId !== "string") {
+    return { ok: true, listingId: null };
+  }
+  return { ok: true, listingId: uuidPattern.test(body.listingId) ? body.listingId : null };
 }
 
 export async function GET(request: Request) {
@@ -118,7 +121,9 @@ export async function POST(request: Request) {
       "Too many favorites actions. Please wait a moment before trying again.",
     );
     if (limited) return limited;
-    const listingId = await readListingId(request);
+    const parsed = await readListingId(request);
+    if (!parsed.ok) return Response.json({ error: "Request body is too large." }, { status: 413, headers: noStoreHeaders });
+    const listingId = parsed.listingId;
     if (!listingId) return Response.json({ error: "Choose a valid rental to save." }, { status: 400, headers: noStoreHeaders });
 
     const { data: listing, error: listingError } = await session.supabase
@@ -161,7 +166,9 @@ export async function DELETE(request: Request) {
       "Too many favorites actions. Please wait a moment before trying again.",
     );
     if (limited) return limited;
-    const listingId = await readListingId(request);
+    const parsed = await readListingId(request);
+    if (!parsed.ok) return Response.json({ error: "Request body is too large." }, { status: 413, headers: noStoreHeaders });
+    const listingId = parsed.listingId;
     if (!listingId) return Response.json({ error: "Choose a valid rental to remove." }, { status: 400, headers: noStoreHeaders });
 
     const { error } = await session.supabase

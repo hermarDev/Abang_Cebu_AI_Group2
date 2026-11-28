@@ -25,7 +25,11 @@ export async function signProfileAvatar(userId: string, avatarReference: string 
   const cacheEnabled = !process.env.VITEST;
   const now = Date.now();
   const cached = cacheEnabled ? avatarUrlCache.get(avatarReference) : undefined;
-  if (cached && cached.expiresAt > now) return cached.url;
+  if (cached && cached.expiresAt > now) {
+    avatarUrlCache.delete(avatarReference);
+    avatarUrlCache.set(avatarReference, cached);
+    return cached.url;
+  }
   if (cached) avatarUrlCache.delete(avatarReference);
 
   try {
@@ -62,6 +66,8 @@ export async function signProfileAvatars(
 
     const cached = cacheEnabled ? avatarUrlCache.get(avatarReference) : undefined;
     if (cached && cached.expiresAt > now) {
+      avatarUrlCache.delete(avatarReference);
+      avatarUrlCache.set(avatarReference, cached);
       result.set(avatarReference, cached.url);
     } else {
       if (cached) avatarUrlCache.delete(avatarReference);

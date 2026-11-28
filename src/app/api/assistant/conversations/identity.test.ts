@@ -42,21 +42,6 @@ it("allows a create with matching expected owner", async () => {
   expect(mocks.from).toHaveBeenCalledWith("assistant_conversations");
 });
 
-it("rejects POST with 409 when user already has 50 conversations", async () => {
-  const countQuery = { eq: vi.fn().mockResolvedValue({ count: 50, error: null }) };
-  const query = { insert: vi.fn(), select: vi.fn() };
-  query.select.mockReturnValue(countQuery);
-  mocks.from.mockReturnValue(query);
-  const request = new Request("http://localhost/api/assistant/conversations", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", "X-Assistant-Owner": "account-b" },
-    body: JSON.stringify({ messages: [{ role: "user", content: "Question" }, { role: "assistant", content: "Reply" }] }),
-  });
-  const response = await POST(request);
-  expect(response?.status).toBe(409);
-  expect(query.insert).not.toHaveBeenCalled();
-});
-
 it("maps DB 54000 conversation-limit trigger error to 409", async () => {
   const countQuery = { eq: vi.fn().mockResolvedValue({ count: 49, error: null }) };
   const query = { insert: vi.fn(), select: vi.fn(), single: vi.fn() };

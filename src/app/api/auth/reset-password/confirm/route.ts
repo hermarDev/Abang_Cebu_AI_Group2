@@ -4,20 +4,22 @@ import { createClient } from "@/lib/supabase/server";
 import { PASSWORD_RESET_RECOVERY_COOKIE } from "@/lib/auth/password-reset";
 import { PASSWORD_RESET_CONSTANTS } from "@/types/auth";
 import { validateResetConfirmation } from "@/lib/auth/password-reset-validation";
+import { readBoundedJson } from "@/server/bounded-body";
 
 function failure(status: number, code: string, message: string) {
   return NextResponse.json({ success: false, error: { code, message } }, { status });
 }
 
 export async function POST(request: Request) {
-  let payload: unknown;
-  try {
-    payload = await request.json();
-  } catch {
+  const parsed = await readBoundedJson(request, 16 * 1024);
+  if (!parsed.ok) {
+    if (parsed.reason === "too_large") {
+      return failure(413, "PAYLOAD_TOO_LARGE", "Request body is too large.");
+    }
     return failure(400, "VALIDATION_ERROR", "Enter a new password and confirmation.");
   }
 
-  const validation = validateResetConfirmation(payload);
+  const validation = validateResetConfirmation(parsed.data);
   if (!validation.ok) {
     const weak = validation.code === "WEAK_PASSWORD";
     return failure(weak ? 422 : 400, validation.code, weak ? "Choose a stronger password." : "Enter matching password values.");
